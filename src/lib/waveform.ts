@@ -12,9 +12,9 @@ export interface Color {
 
 export interface WaveformStyle {
   resolution: number;
-  primary: Color;
-  secondary: Color;
-  background: Color;
+  primary?: Color;
+  secondary?: Color;
+  background?: Color;
 }
 
 export interface WaveformData {
