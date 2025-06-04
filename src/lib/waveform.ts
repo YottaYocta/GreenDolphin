@@ -49,18 +49,19 @@ export const renderWaveform = (
     resolution,
     primary = { r: 50, g: 170, b: 120, a: 100 },
     secondary = { r: 50, g: 170, b: 120, a: 50 },
-    background = { r: 240, g: 240, b: 240, a: 100 },
+    background = { r: 256, g: 256, b: 256, a: 100 },
   }: WaveformStyle,
   canvas: HTMLCanvasElement
 ) => {
   const channelHeight = canvas.height / data.numberOfChannels;
   const canvasCtx = canvas.getContext("2d")!;
+  canvasCtx.imageSmoothingEnabled = false;
   canvasCtx.fillStyle = computeFillStyle(background);
 
   canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
 
   const rangeLength = range.end - range.start;
-  const MIN_WAVE_WIDTH = 0.01;
+  const MIN_WAVE_WIDTH = 1;
 
   const waveWidth = Math.max(MIN_WAVE_WIDTH, canvas.width / resolution);
   const trueResolution = canvas.width / waveWidth;
@@ -89,7 +90,7 @@ export const renderWaveform = (
         sampleCount++;
       }
       const sampleIntensity = sampleSum / sampleCount;
-      const waveHeight = Math.abs(sampleIntensity) * channelHeight;
+      const waveHeight = Math.round(Math.abs(sampleIntensity) * channelHeight);
       canvasCtx.fillStyle = section
         ? j >= section.start && j <= section.end
           ? primaryFill

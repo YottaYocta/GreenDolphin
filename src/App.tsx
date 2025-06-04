@@ -33,10 +33,10 @@ function App() {
   return audioData ? (
     <div className="w-screen h-screen flex items-center justify-center">
       <canvas
-        width={600}
-        height={100}
+        width={800}
+        height={200}
         ref={canvasRef}
-        className="border rounded-xs border-neutral-300"
+        className="border rounded-xs border-neutral-300 pixelated"
       ></canvas>
     </div>
   ) : (

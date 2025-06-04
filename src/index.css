@@ -1,1 +1,12 @@
 @import "tailwindcss";
+
+@layer utilities {
+  .pixelated {
+    image-rendering: pixelated;
+  }
+
+  .crisp-edges {
+    image-rendering: crisp-edges;
+    image-rendering: -moz-crisp-edges;
+  }
+}
