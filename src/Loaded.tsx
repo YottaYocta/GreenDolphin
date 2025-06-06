@@ -124,10 +124,8 @@ export const Loaded: FC<LoadedProps> = ({ state }) => {
                 className="stroke-neutral-500"
               ></MusicIcon>
             }
-            defaultValue={1}
-            step={0.1}
-            min={0.1}
-            max={3}
+            defaultValue={0}
+            step={0.2}
             handleChange={(value) => console.log("NumberInput value:", value)}
             for="pitch"
           />
