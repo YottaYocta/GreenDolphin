@@ -98,7 +98,11 @@ export const NumberInput: FC<NumberInputProps> = ({
           }
           className="no-spinner text-center"
           onInput={(e) => {
-            setRenderedValue(e.currentTarget.valueAsNumber);
+            setRenderedValue(
+              Number.isNaN(e.currentTarget.valueAsNumber)
+                ? 0
+                : e.currentTarget.valueAsNumber
+            );
           }}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
