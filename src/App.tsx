@@ -24,7 +24,7 @@ function App() {
 
   return appState ? (
     <div className="w-screen h-screen flex items-center justify-center bg-neutral-50">
-      <div className="pb-24">
+      <div className="w-full h-full flex items-center justify-center md:pb-16">
         <Loaded state={appState}></Loaded>
       </div>
     </div>

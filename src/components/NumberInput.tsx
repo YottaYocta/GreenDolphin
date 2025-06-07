@@ -81,11 +81,11 @@ export const NumberInput: FC<NumberInputProps> = ({
           max={max}
           step={step}
           value={
-            renderedValue === value ? renderedValue.toFixed(2) : renderedValue
+            renderedValue === value ? renderedValue.toFixed(1) : renderedValue
           }
           size={
             (renderedValue === value
-              ? renderedValue.toFixed(2)
+              ? renderedValue.toFixed(1)
               : renderedValue
             ).toString().length - 2
           }

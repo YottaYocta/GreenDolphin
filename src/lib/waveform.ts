@@ -47,7 +47,7 @@ export const renderWaveform = (
   { data, section, range, selectedSample }: WaveformData,
   {
     resolution,
-    primary = { r: 50, g: 170, b: 120, a: 100 },
+    primary = { r: 25, g: 202, b: 147, a: 100 },
     secondary = { r: 50, g: 170, b: 120, a: 50 },
     background = { r: 256, g: 256, b: 256, a: 100 },
   }: WaveformStyle,
