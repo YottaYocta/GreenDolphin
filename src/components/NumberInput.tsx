@@ -1,14 +1,14 @@
-import { useState, type FC, type ReactElement } from "react";
+import { useState, useEffect, type FC, type ReactElement } from "react";
 import { Button } from "./buttons";
 import { MinusIcon, PlusIcon } from "lucide-react";
 
 interface NumberInputProps {
   handleChange: (value: number) => void;
+  value: number;
   icon: ReactElement;
   min?: number;
   max?: number;
   step?: number;
-  defaultValue?: number;
   for?: string;
 }
 
@@ -17,32 +17,32 @@ export const NumberInput: FC<NumberInputProps> = ({
   icon,
   min,
   max,
-  defaultValue = 1,
+  value,
   step = 1,
   for: forLabel,
 }) => {
-  const [value, setValue] = useState(defaultValue);
+  const [renderedValue, setRenderedValue] = useState(value);
+
+  useEffect(() => {
+    setRenderedValue(value);
+  }, [value]);
 
   const handleIncrement = () => {
-    setValue((prevValue) => {
-      const newValue = Math.min(
-        max ?? Infinity,
-        Math.max(min ?? -Infinity, prevValue + step)
-      );
-      handleChange(newValue);
-      return newValue;
-    });
+    const newValue = Math.min(
+      max ?? Infinity,
+      Math.max(min ?? -Infinity, renderedValue + step)
+    );
+    setRenderedValue(newValue);
+    handleChange(newValue);
   };
 
   const handleDecrement = () => {
-    setValue((prevValue) => {
-      const newValue = Math.max(
-        min ?? -Infinity,
-        Math.min(max ?? Infinity, prevValue - step)
-      );
-      handleChange(newValue);
-      return newValue;
-    });
+    const newValue = Math.max(
+      min ?? -Infinity,
+      Math.min(max ?? Infinity, renderedValue - step)
+    );
+    setRenderedValue(newValue);
+    handleChange(newValue);
   };
 
   return (
@@ -68,24 +68,34 @@ export const NumberInput: FC<NumberInputProps> = ({
           min={min}
           max={max}
           step={step}
-          value={value}
-          size={value.toString().length}
+          value={
+            renderedValue === value ? renderedValue.toFixed(2) : renderedValue
+          }
+          size={
+            (renderedValue === value
+              ? renderedValue.toFixed(2)
+              : renderedValue
+            ).toString().length
+          }
           className="no-spinner text-center"
           onInput={(e) => {
-            const newValue = Math.min(
-              max ?? Infinity,
-              Math.max(min ?? -Infinity, e.currentTarget.valueAsNumber)
-            );
-
-            setValue(() => {
+            setRenderedValue(e.currentTarget.valueAsNumber);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              const inputValue = e.currentTarget.valueAsNumber;
+              const newValue = Math.min(
+                max ?? Infinity,
+                Math.max(min ?? -Infinity, inputValue)
+              );
               if (Number.isNaN(newValue)) {
+                setRenderedValue(0);
                 handleChange(0);
-                return 0;
               } else {
+                setRenderedValue(newValue);
                 handleChange(newValue);
-                return newValue;
               }
-            });
+            }
           }}
         ></input>
         <Button

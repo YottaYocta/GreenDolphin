@@ -1,4 +1,4 @@
-import { useEffect, useRef, type FC } from "react";
+import { useEffect, useRef, useState, type FC } from "react";
 import { formatSeconds } from "./lib/util";
 import { Button } from "./components/buttons";
 import {
@@ -21,6 +21,9 @@ export const Loaded: FC<LoadedProps> = ({ state }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const navCanvasRef = useRef<HTMLCanvasElement>(null);
   const waveformRef = useRef<HTMLCanvasElement>(null);
+
+  const [pitchShift, setPitchShift] = useState<number>(0);
+  const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -124,9 +127,9 @@ export const Loaded: FC<LoadedProps> = ({ state }) => {
                 className="stroke-neutral-500"
               ></MusicIcon>
             }
-            defaultValue={0}
+            value={pitchShift}
             step={0.2}
-            handleChange={(value) => console.log("NumberInput value:", value)}
+            handleChange={(value) => setPitchShift(value)}
             for="pitch"
           />
           <NumberInput
@@ -138,11 +141,11 @@ export const Loaded: FC<LoadedProps> = ({ state }) => {
                 className="stroke-neutral-500"
               ></GaugeIcon>
             }
-            defaultValue={1}
+            value={playbackSpeed}
             step={0.1}
             min={0.1}
             max={3}
-            handleChange={(value) => console.log("NumberInput value:", value)}
+            handleChange={(value) => setPlaybackSpeed(value)}
             for="tempo"
           />
         </div>
