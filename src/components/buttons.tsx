@@ -90,12 +90,12 @@ export const ToggleButton: FC<ToggleButtonProps> = ({
       className={`${
         pressed
           ? accent === "positive"
-            ? `hover:bg-emerald-100 bg-emerald-50 border border-emerald-400 text-emerald-700`
+            ? `hover:bg-emerald-100 bg-emerald-50 border-emerald-400 text-emerald-700`
             : accent === "negative"
-            ? `hover:bg-red-100 bg-red-50 border border-red-400 text-red-700`
-            : `hover:bg-blue-100 bg-blue-50 border border-blue-400 text-blue-600`
-          : "hover:bg-neutral-100 stroke-neutral-300 text-neutral-800"
-      } p-2 rounded-full h-min w-min flex-nowrap text-nowrap ${className}`}
+            ? `hover:bg-red-100 bg-red-50 border-red-400 text-red-700`
+            : `hover:bg-blue-100 bg-blue-50 border-blue-400 text-blue-600`
+          : "hover:bg-neutral-100 border-neutral-300 stroke-neutral-300 text-neutral-800"
+      } p-2 rounded-full border h-min w-min flex-nowrap text-nowrap ${className}`}
       onClick={onClick}
     >
       {iconPlacement === "left" && icon}

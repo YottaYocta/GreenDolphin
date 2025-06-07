@@ -8,6 +8,7 @@ import {
   ChevronsRightIcon,
   GaugeIcon,
   MusicIcon,
+  PauseIcon,
   PlayIcon,
   RepeatIcon,
   SnowflakeIcon,
@@ -29,6 +30,11 @@ export const Loaded: FC<LoadedProps> = ({ state }) => {
 
   const [pitchShift, setPitchShift] = useState<number>(0);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
+
+  const [playState, setPlayState] = useState<"playing" | "paused" | "frozen">(
+    "paused"
+  );
+  const [looping, setLooping] = useState<boolean>(true);
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -121,9 +127,13 @@ export const Loaded: FC<LoadedProps> = ({ state }) => {
               />
             </div>
             <ToggleButton
-              pressed={true}
+              pressed={looping}
               accent="positive"
               icon={<RepeatIcon width={18} height={18}></RepeatIcon>}
+              onClick={() => {
+                setLooping(!looping);
+              }}
+              ariaLabel="loop playback"
             ></ToggleButton>
           </div>
           <div className="flex justify-between items-center gap-2">
@@ -136,16 +146,32 @@ export const Loaded: FC<LoadedProps> = ({ state }) => {
               className="border border-neutral-300 pr-3 pl-2"
             ></Button>
             <ToggleButton
-              pressed={true}
+              pressed={playState === "playing"}
+              onClick={() => {
+                if (playState === "playing") setPlayState("paused");
+                else setPlayState("playing");
+              }}
               className="p-3"
               accent="negative"
-              icon={<PlayIcon width={24} height={24}></PlayIcon>}
+              icon={
+                playState === "playing" ? (
+                  <PauseIcon width={24} height={24}></PauseIcon>
+                ) : (
+                  <PlayIcon width={24} height={24}></PlayIcon>
+                )
+              }
+              ariaLabel="play/pause"
             ></ToggleButton>
             <ToggleButton
-              pressed={true}
+              pressed={playState === "frozen"}
+              onClick={() => {
+                if (playState === "frozen") setPlayState("paused");
+                else setPlayState("frozen");
+              }}
               className="p-3"
               accent="primary"
               icon={<SnowflakeIcon width={24} height={24}></SnowflakeIcon>}
+              ariaLabel="freeze"
             ></ToggleButton>
 
             <Button
