@@ -25,7 +25,7 @@ export const Button: FC<ButtonProps> = ({
   return (
     <button
       aria-label={ariaLabel}
-      className={`hover:bg-neutral-100 p-1 rounded-full h-min w-min flex items-center justify-center text-center gap-1 flex-nowrap text-nowrap  ${className}`}
+      className={`hover:bg-neutral-100 p-1 rounded-full h-min w-min flex items-center justify-center text-center gap-1 flex-nowrap text-nowrap cursor-pointer ${className}`}
       onClick={onClick}
     >
       {iconPlacement === "left" && (
@@ -76,7 +76,7 @@ export const ToggleButton: FC<ToggleButtonProps> = ({
             ? `hover:bg-red-100 bg-red-50 border-red-400 text-red-700`
             : `hover:bg-blue-100 bg-blue-50 border-blue-400 text-blue-600`
           : "hover:bg-neutral-100 border-neutral-300 stroke-neutral-300 text-neutral-800"
-      } p-2 rounded-full border h-min w-min flex-nowrap text-nowrap ${className}`}
+      } p-2 rounded-full border h-min w-min flex-nowrap text-nowrap cursor-pointer ${className}`}
       onClick={onClick}
     >
       {iconPlacement === "left" && icon}
