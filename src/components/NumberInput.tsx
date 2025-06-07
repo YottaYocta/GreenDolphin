@@ -27,6 +27,25 @@ export const NumberInput: FC<NumberInputProps> = ({
     setRenderedValue(value);
   }, [value]);
 
+  const updateValue = (
+    e:
+      | React.KeyboardEvent<HTMLInputElement>
+      | React.FocusEvent<HTMLInputElement>
+  ) => {
+    const inputValue = e.currentTarget.valueAsNumber;
+    const newValue = Math.min(
+      max ?? Infinity,
+      Math.max(min ?? -Infinity, inputValue)
+    );
+    if (Number.isNaN(newValue)) {
+      setRenderedValue(0);
+      handleChange(0);
+    } else {
+      setRenderedValue(newValue);
+      handleChange(newValue);
+    }
+  };
+
   const handleIncrement = () => {
     const newValue = Math.min(
       max ?? Infinity,
@@ -83,20 +102,10 @@ export const NumberInput: FC<NumberInputProps> = ({
           }}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
-              const inputValue = e.currentTarget.valueAsNumber;
-              const newValue = Math.min(
-                max ?? Infinity,
-                Math.max(min ?? -Infinity, inputValue)
-              );
-              if (Number.isNaN(newValue)) {
-                setRenderedValue(0);
-                handleChange(0);
-              } else {
-                setRenderedValue(newValue);
-                handleChange(newValue);
-              }
+              updateValue(e);
             }
           }}
+          onBlur={updateValue}
         ></input>
         <Button
           ariaLabel={forLabel ? `increments ${forLabel}` : "increment value"}
