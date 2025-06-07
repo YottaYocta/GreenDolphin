@@ -37,12 +37,17 @@ export const Loaded: FC<LoadedProps> = ({ state }) => {
   const [looping, setLooping] = useState<boolean>(true);
 
   useEffect(() => {
-    if (canvasRef.current) {
+    if (canvasRef.current && navCanvasRef.current) {
       const range = { start: 0, end: state.data.length };
       renderWaveform(
         { data: state.data, range: range },
         { resolution: 10000 },
         canvasRef.current
+      );
+      renderWaveform(
+        { data: state.data, range: range },
+        { resolution: 10000 },
+        navCanvasRef.current
       );
     }
   }, [state.data]);
