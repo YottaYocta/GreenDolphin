@@ -63,7 +63,31 @@ export const NumberInput: FC<NumberInputProps> = ({
           }
           onClick={handleDecrement}
         ></Button>
-        <span className="min-w-10 text-center">{value.toFixed(2)}</span>
+        <input
+          type="number"
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          size={value.toString().length}
+          className="no-spinner text-center"
+          onInput={(e) => {
+            const newValue = Math.min(
+              max ?? Infinity,
+              Math.max(min ?? -Infinity, e.currentTarget.valueAsNumber)
+            );
+
+            setValue(() => {
+              if (Number.isNaN(newValue)) {
+                handleChange(0);
+                return 0;
+              } else {
+                handleChange(newValue);
+                return newValue;
+              }
+            });
+          }}
+        ></input>
         <Button
           ariaLabel={forLabel ? `increments ${forLabel}` : "increment value"}
           icon={
