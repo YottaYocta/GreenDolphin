@@ -1,28 +1,9 @@
+import { PlusIcon } from "lucide-react";
 import { useRef, type FC, type ReactNode } from "react";
 
 export interface LoadButtonProps {
   handleLoaded: (file: File) => void;
 }
-
-export const LoadButton: FC<LoadButtonProps> = ({ handleLoaded }) => {
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  return (
-    <input
-      type="file"
-      ref={inputRef}
-      className="p-2 rounded-xs border border-neutral-300 max-w-48"
-      onInput={() => {
-        if (
-          inputRef.current &&
-          inputRef.current.files &&
-          inputRef.current.files.length > 0
-        )
-          handleLoaded(inputRef.current.files[0]);
-      }}
-    ></input>
-  );
-};
 
 export interface ButtonProps {
   icon?: ReactNode;
@@ -102,5 +83,35 @@ export const ToggleButton: FC<ToggleButtonProps> = ({
       {text}
       {iconPlacement === "right" && icon}
     </button>
+  );
+};
+
+export const LoadButton: FC<LoadButtonProps> = ({ handleLoaded }) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <>
+      <Button
+        className="border-neutral-300 border pl-2 pr-3"
+        text="Load Recording"
+        icon={<PlusIcon width={18} height={18} strokeWidth={1.5}></PlusIcon>}
+        onClick={() => {
+          if (inputRef.current) inputRef.current.click();
+        }}
+      ></Button>
+      <input
+        type="file"
+        ref={inputRef}
+        onChange={() => {
+          if (
+            inputRef.current &&
+            inputRef.current.files &&
+            inputRef.current.files.length > 0
+          )
+            handleLoaded(inputRef.current.files[0]);
+        }}
+        className="hidden"
+      ></input>
+    </>
   );
 };

@@ -27,6 +27,9 @@ function App() {
       <div className="w-full h-full flex items-center justify-center md:pb-16">
         <Loaded state={appState}></Loaded>
       </div>
+      <div className="absolute z-10 right-2 top-2 h-min w-min">
+        <LoadButton handleLoaded={handleLoaded}></LoadButton>
+      </div>
     </div>
   ) : (
     <div className="w-screen h-screen flex items-center justify-center">
