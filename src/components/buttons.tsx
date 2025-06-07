@@ -44,7 +44,58 @@ export const Button: FC<ButtonProps> = ({
   return (
     <button
       aria-label={ariaLabel}
-      className={`hover:bg-neutral-100 p-1 rounded-full h-min w-min ${className}`}
+      className={`hover:bg-neutral-100 p-1 rounded-full h-min w-min flex items-center justify-center text-center gap-1 flex-nowrap text-nowrap  ${className}`}
+      onClick={onClick}
+    >
+      {iconPlacement === "left" && (
+        <span className="text-neutral-500 text-center flex items-center justify-center w-min">
+          {icon}
+        </span>
+      )}
+      {text && <span className="text-neutral-800 text-center">{text}</span>}
+      {iconPlacement === "right" && (
+        <span className="text-neutral-500 text-center flex items-center justify-center w-min">
+          {icon}
+        </span>
+      )}
+    </button>
+  );
+};
+
+export interface ToggleButtonProps {
+  pressed: boolean;
+  icon?: ReactNode;
+  text?: string;
+  onClick?: () => void;
+  className?: string;
+  ariaLabel?: string;
+  accent?: "positive" | "primary" | "negative";
+  iconPlacement?: "left" | "right";
+}
+
+export const ToggleButton: FC<ToggleButtonProps> = ({
+  pressed,
+  icon,
+  text,
+  onClick,
+  className,
+  ariaLabel,
+  accent,
+  iconPlacement = "left",
+}) => {
+  return (
+    <button
+      aria-pressed={pressed}
+      aria-label={ariaLabel}
+      className={`${
+        pressed
+          ? accent === "positive"
+            ? `hover:bg-emerald-200 bg-emerald-100 border border-emerald-600 text-emerald-700`
+            : accent === "negative"
+            ? `hover:bg-red-200 bg-red-100 border border-red-600 text-red-700`
+            : `hover:bg-blue-200 bg-blue-100 border border-blue-600 text-blue-700`
+          : "hover:bg-neutral-100 stroke-neutral-300 text-neutral-800"
+      } p-2 rounded-full h-min w-min flex-nowrap text-nowrap ${className}`}
       onClick={onClick}
     >
       {iconPlacement === "left" && icon}

@@ -1,11 +1,16 @@
 import { useEffect, useRef, useState, type FC } from "react";
 import { formatSeconds } from "./lib/util";
-import { Button } from "./components/buttons";
+import { Button, ToggleButton } from "./components/buttons";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
+  ChevronsLeftIcon,
+  ChevronsRightIcon,
   GaugeIcon,
   MusicIcon,
+  PlayIcon,
+  RepeatIcon,
+  SnowflakeIcon,
   ZoomInIcon,
   ZoomOutIcon,
 } from "lucide-react";
@@ -37,7 +42,7 @@ export const Loaded: FC<LoadedProps> = ({ state }) => {
   }, [state.data]);
 
   return (
-    <div className="w-full max-w-3xl h-min p-8 bg-white flex flex-col gap-16 border border-neutral-300 rounded-xs">
+    <div className="w-full max-w-4xl h-min p-8 bg-white flex flex-col gap-16 border border-neutral-300 rounded-xs">
       <div className="w-full flex justify-between items-baseline border-b border-neutral-300">
         <p className="max-w-1/2 text-nowrap text-ellipsis overflow-hidden">
           {state.filename}
@@ -69,48 +74,22 @@ export const Loaded: FC<LoadedProps> = ({ state }) => {
           <div className="flex border border-neutral-300 rounded-full p-1 items-center">
             <Button
               ariaLabel="zoom in"
-              icon={
-                <ZoomInIcon
-                  strokeWidth={1.5}
-                  width={18}
-                  height={18}
-                  className="stroke-neutral-500"
-                ></ZoomInIcon>
-              }
+              icon={<ZoomInIcon width={18} height={18}></ZoomInIcon>}
             ></Button>
             <Button
               ariaLabel="zoom out"
-              icon={
-                <ZoomOutIcon
-                  strokeWidth={1.5}
-                  width={18}
-                  height={18}
-                  className="stroke-neutral-500"
-                ></ZoomOutIcon>
-              }
+              icon={<ZoomOutIcon width={18} height={18}></ZoomOutIcon>}
             ></Button>
           </div>
           <div className="flex border border-neutral-300 rounded-full p-1 items-center">
             <Button
               ariaLabel="zoom in"
-              icon={
-                <ChevronLeftIcon
-                  strokeWidth={1.5}
-                  width={18}
-                  height={18}
-                  className="stroke-neutral-500"
-                ></ChevronLeftIcon>
-              }
+              icon={<ChevronLeftIcon width={18} height={18}></ChevronLeftIcon>}
             ></Button>
             <Button
               ariaLabel="zoom out"
               icon={
-                <ChevronRightIcon
-                  strokeWidth={1.5}
-                  width={18}
-                  height={18}
-                  className="stroke-neutral-500"
-                ></ChevronRightIcon>
+                <ChevronRightIcon width={18} height={18}></ChevronRightIcon>
               }
             ></Button>
           </div>
@@ -119,28 +98,14 @@ export const Loaded: FC<LoadedProps> = ({ state }) => {
       <div className="flex w-full justify-between items-center">
         <div className="flex items-center gap-2">
           <NumberInput
-            icon={
-              <MusicIcon
-                strokeWidth={1.5}
-                width={18}
-                height={18}
-                className="stroke-neutral-500"
-              ></MusicIcon>
-            }
+            icon={<MusicIcon width={18} height={18}></MusicIcon>}
             value={pitchShift}
             step={0.2}
             handleChange={(value) => setPitchShift(value)}
             for="pitch"
           />
           <NumberInput
-            icon={
-              <GaugeIcon
-                strokeWidth={1.5}
-                width={18}
-                height={18}
-                className="stroke-neutral-500"
-              ></GaugeIcon>
-            }
+            icon={<GaugeIcon width={18} height={18}></GaugeIcon>}
             value={playbackSpeed}
             step={0.1}
             min={0.1}
@@ -148,6 +113,41 @@ export const Loaded: FC<LoadedProps> = ({ state }) => {
             handleChange={(value) => setPlaybackSpeed(value)}
             for="tempo"
           />
+          <ToggleButton
+            pressed={true}
+            accent="positive"
+            icon={<RepeatIcon width={18} height={18}></RepeatIcon>}
+          ></ToggleButton>
+        </div>
+        <div className="flex justify-between items-center gap-2">
+          <Button
+            icon={<ChevronsLeftIcon width={18} height={18}></ChevronsLeftIcon>}
+            text="5s"
+            ariaLabel="rewind 5 seconds"
+            className="border border-neutral-300 pr-3 pl-2"
+          ></Button>
+          <ToggleButton
+            pressed={true}
+            className="p-3"
+            accent="negative"
+            icon={<PlayIcon width={24} height={24}></PlayIcon>}
+          ></ToggleButton>
+          <ToggleButton
+            pressed={true}
+            className="p-3"
+            accent="primary"
+            icon={<SnowflakeIcon width={24} height={24}></SnowflakeIcon>}
+          ></ToggleButton>
+
+          <Button
+            icon={
+              <ChevronsRightIcon width={18} height={18}></ChevronsRightIcon>
+            }
+            text="5s"
+            ariaLabel="rewind 5 seconds"
+            className="border border-neutral-300 pr-2 pl-3"
+            iconPlacement="right"
+          ></Button>
         </div>
       </div>
     </div>

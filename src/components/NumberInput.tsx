@@ -69,17 +69,10 @@ export const NumberInput: FC<NumberInputProps> = ({
       <div className="flex items-center h-full border-r border-neutral-300 p-2">
         {icon}
       </div>
-      <div className="flex justify-center items-center gap-2 px-2">
+      <div className="flex justify-center items-center px-2 gap-1">
         <Button
           ariaLabel={forLabel ? `decrements ${forLabel}` : "decrement value"}
-          icon={
-            <MinusIcon
-              strokeWidth={1.5}
-              width={18}
-              height={18}
-              className="stroke-neutral-500"
-            ></MinusIcon>
-          }
+          icon={<MinusIcon width={18} height={18}></MinusIcon>}
           onClick={handleDecrement}
         ></Button>
         <input
@@ -94,7 +87,7 @@ export const NumberInput: FC<NumberInputProps> = ({
             (renderedValue === value
               ? renderedValue.toFixed(2)
               : renderedValue
-            ).toString().length
+            ).toString().length - 2
           }
           className="no-spinner text-center"
           onInput={(e) => {
@@ -113,14 +106,7 @@ export const NumberInput: FC<NumberInputProps> = ({
         ></input>
         <Button
           ariaLabel={forLabel ? `increments ${forLabel}` : "increment value"}
-          icon={
-            <PlusIcon
-              strokeWidth={1.5}
-              width={18}
-              height={18}
-              className="stroke-neutral-500"
-            ></PlusIcon>
-          }
+          icon={<PlusIcon width={18} height={18}></PlusIcon>}
           onClick={handleIncrement}
         ></Button>
       </div>
