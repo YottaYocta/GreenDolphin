@@ -8,7 +8,6 @@ import {
   ChevronsRightIcon,
   GaugeIcon,
   MusicIcon,
-  PauseIcon,
   PlayIcon,
   RepeatIcon,
   SnowflakeIcon,
@@ -115,14 +114,26 @@ export const Loaded: FC<LoadedProps> = ({ state }) => {
           <div className="flex items-center gap-2">
             <div className="flex flex-col gap-2 md:flex-row">
               <NumberInput
-                icon={<MusicIcon width={18} height={18}></MusicIcon>}
+                icon={
+                  <MusicIcon
+                    width={18}
+                    height={18}
+                    className="text-neutral-500"
+                  ></MusicIcon>
+                }
                 value={pitchShift}
                 step={0.2}
                 handleChange={(value) => setPitchShift(value)}
                 for="pitch"
               />
               <NumberInput
-                icon={<GaugeIcon width={18} height={18}></GaugeIcon>}
+                icon={
+                  <GaugeIcon
+                    width={18}
+                    height={18}
+                    className="text-neutral-500"
+                  ></GaugeIcon>
+                }
                 value={playbackSpeed}
                 step={0.1}
                 min={0.1}
@@ -157,13 +168,9 @@ export const Loaded: FC<LoadedProps> = ({ state }) => {
                 else setPlayState("playing");
               }}
               className="p-3"
-              accent="negative"
+              accent="primary"
               icon={
-                playState === "playing" ? (
-                  <PauseIcon width={24} height={24}></PauseIcon>
-                ) : (
-                  <PlayIcon width={24} height={24}></PlayIcon>
-                )
+                <PlayIcon width={22} height={22} strokeWidth={1.5}></PlayIcon>
               }
               ariaLabel="play/pause"
             ></ToggleButton>
@@ -175,7 +182,13 @@ export const Loaded: FC<LoadedProps> = ({ state }) => {
               }}
               className="p-3"
               accent="primary"
-              icon={<SnowflakeIcon width={24} height={24}></SnowflakeIcon>}
+              icon={
+                <SnowflakeIcon
+                  width={24}
+                  height={24}
+                  strokeWidth={1.5}
+                ></SnowflakeIcon>
+              }
               ariaLabel="freeze"
             ></ToggleButton>
 
