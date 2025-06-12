@@ -168,7 +168,7 @@ export const Loaded: FC<LoadedProps> = ({ state }) => {
                 else setPlayState("playing");
               }}
               className="p-3"
-              accent="primary"
+              accent="negative"
               icon={
                 <PlayIcon width={22} height={22} strokeWidth={1.5}></PlayIcon>
               }
