@@ -4,7 +4,7 @@ import type { AppState } from "./lib/types";
 import { Loaded } from "./Loaded";
 
 function App() {
-  const audioContext = new AudioContext();
+  const [audioContext] = useState(new AudioContext());
   const [appState, setAppState] = useState<AppState | undefined>();
 
   const handleLoaded = (file: File) => {
