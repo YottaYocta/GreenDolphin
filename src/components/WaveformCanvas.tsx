@@ -1,0 +1,131 @@
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CanvasHTMLAttributes,
+  type FC,
+} from "react";
+import {
+  computeSampleIndex,
+  renderWaveform,
+  type Section,
+  type WaveformData,
+  type WaveformStyle,
+} from "../lib/waveform";
+
+export interface WaveformCanvasProps {
+  waveformData: WaveformData;
+  waveformStyle?: WaveformStyle;
+  allowZoomPan?: boolean;
+  handleRangeChange?: (newRange: Section) => void;
+  handleSelection?: (selection: Section) => void;
+  handlePosition?: (position: number) => void;
+}
+
+export const WaveformCanvas: FC<
+  WaveformCanvasProps & CanvasHTMLAttributes<HTMLCanvasElement>
+> = ({
+  waveformData,
+  waveformStyle = { resolution: 10000 },
+  allowZoomPan = true,
+  ...props
+}) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const [localData, setLocalData] = useState<WaveformData>({
+    ...waveformData,
+  });
+
+  const setRange = (
+    setRangeCallback: (prevData: WaveformData, prevRange: Section) => Section
+  ) => {
+    setLocalData((prevLocalData) => ({
+      ...prevLocalData,
+      range: setRangeCallback(prevLocalData, prevLocalData.range),
+    }));
+  };
+
+  useEffect(() => {
+    if (canvasRef.current) {
+      renderWaveform(localData, waveformStyle, canvasRef.current);
+    }
+  }, [localData, waveformStyle]);
+
+  useEffect(() => {
+    setLocalData(waveformData);
+  }, [waveformData]);
+
+  useEffect(() => {
+    const canvasElement = canvasRef.current;
+    if (!canvasElement) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+
+      setRange((prevWaveform, prevRange) => {
+        const rangeLength = prevRange.end - prevRange.start;
+        if ((Math.abs(e.deltaX) + 0.001) / (Math.abs(e.deltaY) + 0.001) > 0.5) {
+          const targetStart = prevRange.start + e.deltaX * (rangeLength / 400);
+          const targetEnd = targetStart + rangeLength;
+          if (targetEnd > prevWaveform.data.length) {
+            const start = Math.max(0, prevWaveform.data.length - rangeLength);
+            return {
+              start: start,
+              end: start + rangeLength,
+            };
+          } else if (targetStart < 0) {
+            const start = 0;
+            return {
+              start: start,
+              end: start + rangeLength,
+            };
+          } else {
+            const start = Math.floor(targetStart);
+            return {
+              start: start,
+              end: start + rangeLength,
+            };
+          }
+        } else {
+          const currentRange = prevRange.end - prevRange.start;
+          const before =
+            computeSampleIndex(e.offsetX, currentRange, canvasElement) /
+            currentRange;
+          const after = 1 - before;
+
+          const targetRange = Math.max(
+            2,
+            Math.min(
+              prevWaveform.data.length,
+              currentRange * (1 + -e.deltaY / 1000)
+            )
+          );
+
+          const targetBefore = targetRange * before;
+          const targetAfter = targetRange * after;
+
+          const currentTarget =
+            computeSampleIndex(e.offsetX, currentRange, canvasElement) +
+            prevRange.start;
+          return {
+            start: Math.floor(Math.max(0, currentTarget - targetBefore)),
+            end: Math.floor(
+              Math.min(currentTarget + targetAfter, prevWaveform.data.length)
+            ),
+          };
+        }
+      });
+    };
+
+    if (allowZoomPan) {
+      canvasElement.addEventListener("wheel", handleWheel);
+      return () => {
+        canvasElement.removeEventListener("wheel", handleWheel);
+        console.log("removed");
+      };
+    } else return;
+  }, [allowZoomPan]);
+
+  return <canvas {...props} ref={canvasRef}></canvas>;
+};

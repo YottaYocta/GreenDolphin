@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FC } from "react";
+import { useMemo, useRef, useState, type FC } from "react";
 import { formatSeconds } from "./lib/util";
 import { Button, ToggleButton } from "./components/buttons";
 import {
@@ -16,15 +16,14 @@ import {
 } from "lucide-react";
 import { NumberInput } from "./components/NumberInput";
 import type { AppState } from "./lib/types";
-import { renderWaveform } from "./lib/waveform";
+import { type WaveformData } from "./lib/waveform";
+import { WaveformCanvas } from "./components/WaveformCanvas";
 
 interface LoadedProps {
   state: AppState;
 }
 
 export const Loaded: FC<LoadedProps> = ({ state }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const navCanvasRef = useRef<HTMLCanvasElement>(null);
   const waveformRef = useRef<HTMLCanvasElement>(null);
 
   const [pitchShift, setPitchShift] = useState<number>(0);
@@ -35,20 +34,11 @@ export const Loaded: FC<LoadedProps> = ({ state }) => {
   );
   const [looping, setLooping] = useState<boolean>(true);
 
-  useEffect(() => {
-    if (canvasRef.current && navCanvasRef.current) {
-      const range = { start: 0, end: state.data.length };
-      renderWaveform(
-        { data: state.data, range: range },
-        { resolution: 10000 },
-        canvasRef.current
-      );
-      renderWaveform(
-        { data: state.data, range: range },
-        { resolution: 10000 },
-        navCanvasRef.current
-      );
-    }
+  const largeWaveformData: WaveformData = useMemo(() => {
+    return {
+      data: state.data,
+      range: { start: 0, end: state.data.length },
+    };
   }, [state.data]);
 
   return (
@@ -69,19 +59,19 @@ export const Loaded: FC<LoadedProps> = ({ state }) => {
           className="border rounded-xs border-neutral-300 pixelated w-full"
         ></canvas>
         <div className="flex flex-col gap-2">
-          <canvas
+          <WaveformCanvas
+            waveformData={largeWaveformData}
             width={800}
             height={200}
-            ref={canvasRef}
             className="border rounded-xs border-neutral-300 pixelated w-full"
-          ></canvas>
+          ></WaveformCanvas>
           <div className="flex flex-col md:flex-row gap-2 items-center">
-            <canvas
+            <WaveformCanvas
+              waveformData={largeWaveformData}
               width={800}
               height={50}
-              ref={navCanvasRef}
               className="border rounded-xs border-neutral-300 pixelated w-full"
-            ></canvas>
+            ></WaveformCanvas>
             <div className="flex flex-row gap-2">
               <div className="flex border border-neutral-300 rounded-full p-1 items-center">
                 <Button
