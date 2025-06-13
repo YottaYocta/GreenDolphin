@@ -70,6 +70,7 @@ export const Loaded: FC<LoadedProps> = ({ state }) => {
               waveformData={largeWaveformData}
               width={800}
               height={50}
+              allowZoomPan={false}
               className="border rounded-xs border-neutral-300 pixelated w-full"
             ></WaveformCanvas>
             <div className="flex flex-row gap-2">

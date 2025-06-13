@@ -120,11 +120,15 @@ export const WaveformCanvas: FC<
 
     if (allowZoomPan) {
       canvasElement.addEventListener("wheel", handleWheel);
-      return () => {
+      console.log(`[ADD] Zoom/Pan on ${canvasElement.nodeName}`);
+    }
+
+    return () => {
+      if (allowZoomPan) {
         canvasElement.removeEventListener("wheel", handleWheel);
-        console.log("removed");
-      };
-    } else return;
+        console.log(`[REMOVE] Zoom/Pan on ${canvasElement.nodeName}`);
+      }
+    };
   }, [allowZoomPan]);
 
   return <canvas {...props} ref={canvasRef}></canvas>;
