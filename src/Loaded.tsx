@@ -1,4 +1,11 @@
-import { useMemo, useRef, useState, type FC } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FC,
+} from "react";
 import { formatSeconds } from "./lib/util";
 import { Button, ToggleButton } from "./components/buttons";
 import {
@@ -15,15 +22,16 @@ import {
   ZoomOutIcon,
 } from "lucide-react";
 import { NumberInput } from "./components/NumberInput";
-import type { AppState } from "./lib/types";
 import { type WaveformData } from "./lib/waveform";
 import { WaveformCanvas } from "./components/WaveformCanvas";
 
-interface LoadedProps {
-  state: AppState;
+export interface LoadedProps {
+  data: AudioBuffer;
+  filename: string;
+  audioContext: AudioContext;
 }
 
-export const Loaded: FC<LoadedProps> = ({ state }) => {
+export const Loaded: FC<LoadedProps> = ({ data, filename, audioContext }) => {
   const waveformRef = useRef<HTMLCanvasElement>(null);
 
   const [pitchShift, setPitchShift] = useState<number>(0);
@@ -34,21 +42,120 @@ export const Loaded: FC<LoadedProps> = ({ state }) => {
   );
   const [looping, setLooping] = useState<boolean>(true);
 
+  const [positionSeconds, setPositionSeconds] = useState<number | undefined>();
+
+  const sourceNode = useRef<AudioBufferSourceNode | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const startTimeRef = useRef<number>(0);
+  const startPositionRef = useRef<number>(0);
+
+  const play = useCallback(
+    (startOffset: number = 0) => {
+      if (sourceNode.current) {
+        sourceNode.current.stop();
+        sourceNode.current.disconnect();
+        sourceNode.current = null;
+      }
+
+      sourceNode.current = audioContext.createBufferSource();
+      sourceNode.current.buffer = data;
+      sourceNode.current.playbackRate.value = playbackSpeed;
+      sourceNode.current.detune.value = pitchShift * 100; // pitchShift is in semitones, detune is in cents
+
+      if (looping) {
+        sourceNode.current.loop = true;
+        sourceNode.current.loopStart = 0;
+        sourceNode.current.loopEnd = data.duration;
+      } else {
+        sourceNode.current.loop = false;
+      }
+
+      sourceNode.current.connect(audioContext.destination);
+      sourceNode.current.start(0, startOffset);
+
+      startTimeRef.current = audioContext.currentTime;
+      startPositionRef.current = startOffset;
+
+      const updatePosition = () => {
+        if (playState === "playing") {
+          let currentPlaybackTime =
+            startPositionRef.current +
+            (audioContext.currentTime - startTimeRef.current) * playbackSpeed;
+          if (looping) {
+            currentPlaybackTime %= data.duration;
+          }
+          setPositionSeconds(currentPlaybackTime);
+          animationFrameRef.current = requestAnimationFrame(updatePosition);
+        }
+      };
+      animationFrameRef.current = requestAnimationFrame(updatePosition);
+    },
+    [audioContext, data, looping, pitchShift, playState, playbackSpeed]
+  );
+
+  const pause = useCallback(() => {
+    if (sourceNode.current) {
+      sourceNode.current.stop();
+      sourceNode.current.disconnect();
+      sourceNode.current = null;
+    }
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+  }, []);
+
+  const stop = useCallback(() => {
+    pause();
+    setPositionSeconds(0);
+  }, [pause]);
+
+  useMemo(() => {
+    if (positionSeconds === undefined) {
+      setPositionSeconds(0);
+    }
+  }, [positionSeconds]);
+
+  useEffect(() => {
+    if (playState === "playing") {
+      play(positionSeconds);
+    } else if (playState === "paused") {
+      pause();
+    } else if (playState === "frozen") {
+      pause();
+    }
+  }, [playState, play, pause, positionSeconds]);
+
+  // Effect for positionSeconds changes while playing
+  useEffect(() => {
+    if (positionSeconds !== undefined && playState !== "paused") {
+      pause();
+      play(positionSeconds);
+    }
+  }, [positionSeconds, playState, play, pause]);
+
+  // Cleanup on component unmount
+  useEffect(() => {
+    return () => {
+      stop();
+    };
+  }, [stop]);
+
   const largeWaveformData: WaveformData = useMemo(() => {
     return {
-      data: state.data,
-      range: { start: 0, end: state.data.length },
+      data: data,
+      range: { start: 0, end: data.length },
     };
-  }, [state.data]);
+  }, [data]);
 
   return (
     <div className="w-full max-w-4xl h-full md:h-min p-4 py-8 md:p-8 bg-white flex flex-col justify-center gap-16 border border-neutral-300 rounded-xs">
       <div className="w-full flex justify-between items-baseline border-b border-neutral-300 py-2">
         <p className="max-w-1/2 text-nowrap text-ellipsis overflow-hidden">
-          {state.filename}
+          {filename}
         </p>
         <p className="max-w-1/2 text-nowrap text-ellipsis overflow-hidden">
-          {formatSeconds(state.data.duration)}
+          {formatSeconds(data.duration)}
         </p>
       </div>
       <div className="w-full flex flex-col gap-16 md:gap-24">

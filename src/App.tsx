@@ -1,31 +1,35 @@
 import { useState } from "react";
 import { LoadButton } from "./components/buttons";
-import type { AppState } from "./lib/types";
-import { Loaded } from "./Loaded";
+import { Loaded, type LoadedProps } from "./Loaded";
 
 function App() {
-  const [audioContext] = useState(new AudioContext());
-  const [appState, setAppState] = useState<AppState | undefined>();
+  const [loadedProps, setLoadedProps] = useState<LoadedProps | undefined>();
 
   const handleLoaded = (file: File) => {
     const fileReader = new FileReader();
     fileReader.addEventListener("loadend", async () => {
       if (fileReader.result instanceof ArrayBuffer) {
-        const newData = await audioContext.decodeAudioData(fileReader.result);
-        const newAppState: AppState = {
+        if (loadedProps?.audioContext) {
+          loadedProps.audioContext.close();
+        }
+        const newAudioContext = new AudioContext();
+        const newData = await newAudioContext.decodeAudioData(
+          fileReader.result
+        );
+        setLoadedProps({
           data: newData,
           filename: file.name,
-        };
-        setAppState(newAppState);
+          audioContext: newAudioContext,
+        });
       }
     });
     fileReader.readAsArrayBuffer(file);
   };
 
-  return appState ? (
+  return loadedProps ? (
     <div className="w-screen h-screen flex items-center justify-center bg-neutral-50">
       <div className="w-full h-full flex items-center justify-center md:pb-16">
-        <Loaded state={appState}></Loaded>
+        <Loaded {...loadedProps}></Loaded>
       </div>
       <div className="absolute z-10 right-2 top-2 h-min w-min">
         <LoadButton handleLoaded={handleLoaded}></LoadButton>

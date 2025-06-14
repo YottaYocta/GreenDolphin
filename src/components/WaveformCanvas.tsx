@@ -51,9 +51,10 @@ export const WaveformCanvas: FC<
     }
   }, [localData, waveformStyle]);
 
-  useEffect(() => {
-    setLocalData(waveformData);
-  }, [waveformData]);
+  // useEffect(() => {
+  //   console.log(waveformData);
+  //   setLocalData(waveformData);
+  // }, [waveformData]);
 
   useEffect(() => {
     const canvasElement = canvasRef.current;
