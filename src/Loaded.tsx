@@ -48,6 +48,8 @@ export const Loaded: FC<LoadedProps> = ({ data, filename, audioContext }) => {
   const animationFrameRef = useRef<number | null>(null);
   const startTimeRef = useRef<number>(0);
   const startPositionRef = useRef<number>(0);
+  const positionRef = useRef<number>(0);
+  const lastUpdatedRef = useRef<number>(0);
 
   const play = useCallback(
     (startOffset: number = 0) => {
@@ -84,7 +86,12 @@ export const Loaded: FC<LoadedProps> = ({ data, filename, audioContext }) => {
           if (looping) {
             currentPlaybackTime %= data.duration;
           }
-          setPositionSeconds(currentPlaybackTime);
+          positionRef.current = currentPlaybackTime;
+          const now = performance.now();
+          if (now - lastUpdatedRef.current > 250) {
+            setPositionSeconds(currentPlaybackTime);
+            lastUpdatedRef.current = now;
+          }
           animationFrameRef.current = requestAnimationFrame(updatePosition);
         }
       };
