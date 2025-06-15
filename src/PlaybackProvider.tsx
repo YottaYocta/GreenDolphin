@@ -18,17 +18,18 @@ export const PlaybackProvider = ({
   const lastTimeStamp = useRef<number>(0);
   const animationFrameId = useRef<number | undefined>(undefined);
   const [playState, setPlayState] = useState<PlayState>("paused");
+  const [localData, setLocalData] = useState<AudioBuffer>(data);
 
   const sourceNode = useRef<AudioBufferSourceNode | undefined>(undefined);
 
   const tick = useCallback(() => {
     const now = performance.now();
     playbackPosition.current += now - lastTimeStamp.current;
-    playbackPosition.current %= data.duration * 1000;
+    playbackPosition.current %= localData.duration * 1000;
 
     lastTimeStamp.current = performance.now();
     animationFrameId.current = requestAnimationFrame(tick);
-  }, [data.duration]);
+  }, [localData.duration]);
 
   const startCount = useCallback(() => {
     lastTimeStamp.current = performance.now();
@@ -47,6 +48,13 @@ export const PlaybackProvider = ({
   }, []);
 
   useEffect(() => {
+    stopCount();
+    setPlayState("paused");
+    playbackPosition.current = 0;
+    setLocalData(data);
+  }, [data, stopCount]);
+
+  useEffect(() => {
     if (playState === "paused") {
       if (sourceNode.current) {
         sourceNode.current.stop();
@@ -62,7 +70,7 @@ export const PlaybackProvider = ({
       }
 
       sourceNode.current = context.createBufferSource();
-      sourceNode.current.buffer = data;
+      sourceNode.current.buffer = localData;
       sourceNode.current.connect(context.destination);
       sourceNode.current.onended = () => {
         stopCount();
@@ -70,7 +78,7 @@ export const PlaybackProvider = ({
       sourceNode.current.start(0, playbackPosition.current / 1000);
       startCount();
     }
-  }, [context, data, playState, startCount, stopCount]);
+  }, [context, localData, playState, startCount, stopCount]);
 
   const start = useCallback(() => {
     if (playState !== "playing") {

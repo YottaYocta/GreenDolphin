@@ -69,7 +69,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
             height={200}
             positionReference={playbackPosition}
             animate={playState === "playing"}
-            className="border rounded-xs border-neutral-300 pixelated w-full"
+            className="border rounded-xs border-neutral-300 w-full"
           ></WaveformCanvas>
           <div className="flex flex-col md:flex-row gap-2 items-center">
             <WaveformCanvas
@@ -79,7 +79,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
               positionReference={playbackPosition}
               animate={playState === "playing"}
               allowZoomPan={false}
-              className="border rounded-xs border-neutral-300 pixelated w-full"
+              className="border rounded-xs border-neutral-300 w-full"
             ></WaveformCanvas>
             <div className="flex flex-row gap-2">
               <div className="flex border border-neutral-300 rounded-full p-1 items-center">

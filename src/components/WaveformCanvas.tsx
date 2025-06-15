@@ -29,6 +29,7 @@ export const WaveformCanvas: FC<
   WaveformCanvasProps & CanvasHTMLAttributes<HTMLCanvasElement>
 > = ({
   waveformData,
+  animate,
   waveformStyle = { resolution: 10000 },
   positionReference,
   allowZoomPan = true,
@@ -50,6 +51,10 @@ export const WaveformCanvas: FC<
   };
 
   useEffect(() => {
+    setLocalData(waveformData);
+  }, [waveformData]);
+
+  useEffect(() => {
     if (canvasRef.current) {
       renderWaveform(
         localData,
@@ -67,7 +72,39 @@ export const WaveformCanvas: FC<
     waveformStyle,
   ]);
 
-  // add animationframe functionality to redraw
+  useEffect(() => {
+    let animationFrameId: number;
+
+    const renderLoop = () => {
+      if (canvasRef.current) {
+        renderWaveform(
+          localData,
+          waveformStyle,
+          canvasRef.current,
+          positionReference?.current
+            ? (positionReference.current * waveformData.data.sampleRate) / 1000
+            : undefined
+        );
+      }
+      if (animate) {
+        animationFrameId = requestAnimationFrame(renderLoop);
+      }
+    };
+
+    if (animate) {
+      animationFrameId = requestAnimationFrame(renderLoop);
+    }
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, [
+    animate,
+    localData,
+    positionReference,
+    waveformData.data.sampleRate,
+    waveformStyle,
+  ]);
 
   useEffect(() => {
     const canvasElement = canvasRef.current;
