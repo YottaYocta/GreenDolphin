@@ -1,11 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type FC,
-} from "react";
+import { useContext, useMemo, useRef, useState, type FC } from "react";
 import { formatSeconds } from "./lib/util";
 import { Button, ToggleButton } from "./components/buttons";
 import {
@@ -24,129 +17,26 @@ import {
 import { NumberInput } from "./components/NumberInput";
 import { type WaveformData } from "./lib/waveform";
 import { WaveformCanvas } from "./components/WaveformCanvas";
+import { PlaybackContext } from "./PlaybackContext";
 
 export interface LoadedProps {
   data: AudioBuffer;
   filename: string;
-  audioContext: AudioContext;
 }
 
-export const Loaded: FC<LoadedProps> = ({ data, filename, audioContext }) => {
+export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
   const waveformRef = useRef<HTMLCanvasElement>(null);
 
   const [pitchShift, setPitchShift] = useState<number>(0);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
 
-  const [playState, setPlayState] = useState<"playing" | "paused" | "frozen">(
-    "paused"
-  );
   const [looping, setLooping] = useState<boolean>(true);
 
-  const [positionSeconds, setPositionSeconds] = useState<number | undefined>();
-
-  const sourceNode = useRef<AudioBufferSourceNode | null>(null);
-  const animationFrameRef = useRef<number | null>(null);
-  const startTimeRef = useRef<number>(0);
-  const startPositionRef = useRef<number>(0);
-  const positionRef = useRef<number>(0);
-  const lastUpdatedRef = useRef<number>(0);
-
-  const play = useCallback(
-    (startOffset: number = 0) => {
-      if (sourceNode.current) {
-        sourceNode.current.stop();
-        sourceNode.current.disconnect();
-        sourceNode.current = null;
-      }
-
-      sourceNode.current = audioContext.createBufferSource();
-      sourceNode.current.buffer = data;
-      sourceNode.current.playbackRate.value = playbackSpeed;
-      sourceNode.current.detune.value = pitchShift * 100; // pitchShift is in semitones, detune is in cents
-
-      if (looping) {
-        sourceNode.current.loop = true;
-        sourceNode.current.loopStart = 0;
-        sourceNode.current.loopEnd = data.duration;
-      } else {
-        sourceNode.current.loop = false;
-      }
-
-      sourceNode.current.connect(audioContext.destination);
-      sourceNode.current.start(0, startOffset);
-
-      startTimeRef.current = audioContext.currentTime;
-      startPositionRef.current = startOffset;
-
-      const updatePosition = () => {
-        if (playState === "playing") {
-          let currentPlaybackTime =
-            startPositionRef.current +
-            (audioContext.currentTime - startTimeRef.current) * playbackSpeed;
-          if (looping) {
-            currentPlaybackTime %= data.duration;
-          }
-          positionRef.current = currentPlaybackTime;
-          const now = performance.now();
-          if (now - lastUpdatedRef.current > 250) {
-            setPositionSeconds(currentPlaybackTime);
-            lastUpdatedRef.current = now;
-          }
-          animationFrameRef.current = requestAnimationFrame(updatePosition);
-        }
-      };
-      animationFrameRef.current = requestAnimationFrame(updatePosition);
-    },
-    [audioContext, data, looping, pitchShift, playState, playbackSpeed]
-  );
-
-  const pause = useCallback(() => {
-    if (sourceNode.current) {
-      sourceNode.current.stop();
-      sourceNode.current.disconnect();
-      sourceNode.current = null;
-    }
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-    }
-  }, []);
-
-  const stop = useCallback(() => {
-    pause();
-    setPositionSeconds(0);
-  }, [pause]);
-
-  useMemo(() => {
-    if (positionSeconds === undefined) {
-      setPositionSeconds(0);
-    }
-  }, [positionSeconds]);
-
-  useEffect(() => {
-    if (playState === "playing") {
-      play(positionSeconds);
-    } else if (playState === "paused") {
-      pause();
-    } else if (playState === "frozen") {
-      pause();
-    }
-  }, [playState, play, pause, positionSeconds]);
-
-  // Effect for positionSeconds changes while playing
-  useEffect(() => {
-    if (positionSeconds !== undefined && playState !== "paused") {
-      pause();
-      play(positionSeconds);
-    }
-  }, [positionSeconds, playState, play, pause]);
-
-  // Cleanup on component unmount
-  useEffect(() => {
-    return () => {
-      stop();
-    };
-  }, [stop]);
+  const playback = useContext(PlaybackContext);
+  if (!playback) {
+    throw new Error("Loaded must be used within a PlaybackProvider");
+  }
+  const { playState, start, pause, freeze } = playback;
 
   const largeWaveformData: WaveformData = useMemo(() => {
     return {
@@ -269,8 +159,8 @@ export const Loaded: FC<LoadedProps> = ({ data, filename, audioContext }) => {
             <ToggleButton
               pressed={playState === "playing"}
               onClick={() => {
-                if (playState === "playing") setPlayState("paused");
-                else setPlayState("playing");
+                if (playState === "playing") pause();
+                else start();
               }}
               className="p-3"
               accent="negative"
@@ -282,8 +172,8 @@ export const Loaded: FC<LoadedProps> = ({ data, filename, audioContext }) => {
             <ToggleButton
               pressed={playState === "frozen"}
               onClick={() => {
-                if (playState === "frozen") setPlayState("paused");
-                else setPlayState("frozen");
+                if (playState === "frozen") pause();
+                else freeze();
               }}
               className="p-3"
               accent="primary"
