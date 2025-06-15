@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -51,12 +52,8 @@ export const WaveformCanvas: FC<
     }));
   };
 
-  useEffect(() => {
-    setLocalData(waveformData);
-  }, [waveformData]);
-
-  useEffect(() => {
-    if (canvasRef.current) {
+  const renderWaveformAux = useCallback(() => {
+    if (canvasRef.current)
       renderWaveform(
         localData,
         waveformStyle,
@@ -65,7 +62,6 @@ export const WaveformCanvas: FC<
           ? (positionReference.current * waveformData.data.sampleRate) / 1000
           : undefined
       );
-    }
   }, [
     localData,
     positionReference,
@@ -74,18 +70,21 @@ export const WaveformCanvas: FC<
   ]);
 
   useEffect(() => {
+    setLocalData(waveformData);
+  }, [waveformData]);
+
+  useEffect(() => {
+    if (canvasRef.current) {
+      renderWaveformAux();
+    }
+  }, [renderWaveformAux]);
+
+  useEffect(() => {
     let animationFrameId: number;
 
     const renderLoop = () => {
       if (canvasRef.current) {
-        renderWaveform(
-          localData,
-          waveformStyle,
-          canvasRef.current,
-          positionReference?.current
-            ? (positionReference.current * waveformData.data.sampleRate) / 1000
-            : undefined
-        );
+        renderWaveformAux();
       }
       if (animate) {
         animationFrameId = requestAnimationFrame(renderLoop);
@@ -99,13 +98,7 @@ export const WaveformCanvas: FC<
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [
-    animate,
-    localData,
-    positionReference,
-    waveformData.data.sampleRate,
-    waveformStyle,
-  ]);
+  }, [animate, renderWaveformAux]);
 
   useEffect(() => {
     const canvasElement = canvasRef.current;
@@ -181,10 +174,19 @@ export const WaveformCanvas: FC<
       });
     };
 
+    const handleResize = () => {
+      canvasElement.width = canvasElement.clientWidth;
+      canvasElement.height = canvasElement.clientHeight;
+      renderWaveformAux();
+    };
+
     if (allowZoomPan) {
       canvasElement.addEventListener("wheel", handleWheel);
       console.log(`[ADD] Zoom/Pan on ${canvasElement.nodeName}`);
     }
+
+    window.addEventListener("resize", handleResize);
+    handleResize(); // Initial call to set resolution
 
     canvasElement.addEventListener("mousedown", handleClick);
     console.log(`[ADD] Click/Press on ${canvasElement.nodeName}`);
@@ -194,10 +196,11 @@ export const WaveformCanvas: FC<
         canvasElement.removeEventListener("wheel", handleWheel);
         console.log(`[REMOVE] Zoom/Pan on ${canvasElement.nodeName}`);
       }
+      window.removeEventListener("resize", handleResize);
       canvasElement.removeEventListener("mousedown", handleClick);
       console.log(`[REMOVE] Click/Press on ${canvasElement.nodeName}`);
     };
-  }, [allowZoomPan, handlePosition, localData.range]);
+  }, [allowZoomPan, handlePosition, localData.range, renderWaveformAux]);
 
   return <canvas {...props} ref={canvasRef}></canvas>;
 };
