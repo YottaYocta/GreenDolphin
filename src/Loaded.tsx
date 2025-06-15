@@ -36,7 +36,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
   if (!playback) {
     throw new Error("Loaded must be used within a PlaybackProvider");
   }
-  const { playState, start, pause, freeze } = playback;
+  const { playbackPosition, playState, start, pause, freeze } = playback;
 
   const largeWaveformData: WaveformData = useMemo(() => {
     return {
@@ -67,6 +67,8 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
             waveformData={largeWaveformData}
             width={800}
             height={200}
+            positionReference={playbackPosition}
+            animate={playState === "playing"}
             className="border rounded-xs border-neutral-300 pixelated w-full"
           ></WaveformCanvas>
           <div className="flex flex-col md:flex-row gap-2 items-center">
@@ -74,6 +76,8 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
               waveformData={largeWaveformData}
               width={800}
               height={50}
+              positionReference={playbackPosition}
+              animate={playState === "playing"}
               allowZoomPan={false}
               className="border rounded-xs border-neutral-300 pixelated w-full"
             ></WaveformCanvas>

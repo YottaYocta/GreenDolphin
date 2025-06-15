@@ -21,7 +21,6 @@ export interface WaveformData {
   data: AudioBuffer;
   range: Section;
   section?: Section;
-  position?: number;
 }
 
 const computeFillStyle = (color: Color): string =>
@@ -44,14 +43,15 @@ export const computeSampleIndex = (
 };
 
 export const renderWaveform = (
-  { data, section, range, position }: WaveformData,
+  { data, section, range }: WaveformData,
   {
     resolution,
     primary = { r: 25, g: 202, b: 147, a: 100 },
     secondary = { r: 50, g: 170, b: 120, a: 50 },
     background = { r: 256, g: 256, b: 256, a: 100 },
   }: WaveformStyle,
-  canvas: HTMLCanvasElement
+  canvas: HTMLCanvasElement,
+  position?: number
 ) => {
   const channelHeight = canvas.height / data.numberOfChannels;
   const canvasCtx = canvas.getContext("2d")!;
@@ -133,7 +133,7 @@ export const renderWaveform = (
   }
 
   if (position) {
-    const pos = computePixel(position, rangeLength, canvas);
+    const pos = computePixel(position - range.start, rangeLength, canvas);
     if (pos > 0 && pos < canvas.width) {
       canvasCtx.fillStyle = "rgb(0 0 0)";
       canvasCtx.fillRect(pos, 0, 1, canvas.height);

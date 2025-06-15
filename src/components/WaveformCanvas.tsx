@@ -4,6 +4,7 @@ import {
   useState,
   type CanvasHTMLAttributes,
   type FC,
+  type RefObject,
 } from "react";
 import {
   computeSampleIndex,
@@ -15,6 +16,8 @@ import {
 
 export interface WaveformCanvasProps {
   waveformData: WaveformData;
+  animate: boolean;
+  positionReference?: RefObject<number>;
   waveformStyle?: WaveformStyle;
   allowZoomPan?: boolean;
   handleRangeChange?: (newRange: Section) => void;
@@ -27,6 +30,7 @@ export const WaveformCanvas: FC<
 > = ({
   waveformData,
   waveformStyle = { resolution: 10000 },
+  positionReference,
   allowZoomPan = true,
   ...props
 }) => {
@@ -47,14 +51,23 @@ export const WaveformCanvas: FC<
 
   useEffect(() => {
     if (canvasRef.current) {
-      renderWaveform(localData, waveformStyle, canvasRef.current);
+      renderWaveform(
+        localData,
+        waveformStyle,
+        canvasRef.current,
+        positionReference?.current
+          ? (positionReference.current * waveformData.data.sampleRate) / 1000
+          : undefined
+      );
     }
-  }, [localData, waveformStyle]);
+  }, [
+    localData,
+    positionReference,
+    waveformData.data.sampleRate,
+    waveformStyle,
+  ]);
 
-  // useEffect(() => {
-  //   console.log(waveformData);
-  //   setLocalData(waveformData);
-  // }, [waveformData]);
+  // add animationframe functionality to redraw
 
   useEffect(() => {
     const canvasElement = canvasRef.current;
