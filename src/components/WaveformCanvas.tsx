@@ -34,6 +34,7 @@ export const WaveformCanvas: FC<
   waveformStyle = { resolution: 10000 },
   positionReference,
   allowZoomPan = true,
+  handleRangeChange,
   handlePosition,
   ...props
 }) => {
@@ -70,8 +71,12 @@ export const WaveformCanvas: FC<
   ]);
 
   useEffect(() => {
-    setLocalData(waveformData);
-  }, [waveformData]);
+    if (
+      (waveformData.section && waveformData.section !== localData.section) ||
+      waveformData.data !== localData.data
+    )
+      setLocalData({ ...waveformData });
+  }, [localData.data, localData.section, waveformData]);
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -101,6 +106,12 @@ export const WaveformCanvas: FC<
   }, [animate, renderWaveformAux]);
 
   useEffect(() => {
+    if (handleRangeChange) {
+      handleRangeChange(localData.range);
+    }
+  }, [handleRangeChange, localData.range]);
+
+  useEffect(() => {
     const canvasElement = canvasRef.current;
     if (!canvasElement) return;
 
@@ -111,7 +122,7 @@ export const WaveformCanvas: FC<
           localData.range.end - localData.range.start,
           canvasElement
         );
-        handlePosition(sampleIndex);
+        handlePosition(localData.range.start + sampleIndex);
       }
     };
 
@@ -182,23 +193,23 @@ export const WaveformCanvas: FC<
 
     if (allowZoomPan) {
       canvasElement.addEventListener("wheel", handleWheel);
-      console.log(`[ADD] Zoom/Pan on ${canvasElement.nodeName}`);
+      // console.log(`[ADD] Zoom/Pan on ${canvasElement.nodeName}`);
     }
 
     window.addEventListener("resize", handleResize);
     handleResize(); // Initial call to set resolution
 
     canvasElement.addEventListener("mousedown", handleClick);
-    console.log(`[ADD] Click/Press on ${canvasElement.nodeName}`);
+    // console.log(`[ADD] Click/Press on ${canvasElement.nodeName}`);
 
     return () => {
       if (allowZoomPan) {
         canvasElement.removeEventListener("wheel", handleWheel);
-        console.log(`[REMOVE] Zoom/Pan on ${canvasElement.nodeName}`);
+        // console.log(`[REMOVE] Zoom/Pan on ${canvasElement.nodeName}`);
       }
       window.removeEventListener("resize", handleResize);
       canvasElement.removeEventListener("mousedown", handleClick);
-      console.log(`[REMOVE] Click/Press on ${canvasElement.nodeName}`);
+      // console.log(`[REMOVE] Click/Press on ${canvasElement.nodeName}`);
     };
   }, [allowZoomPan, handlePosition, localData.range, renderWaveformAux]);
 

@@ -47,12 +47,23 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
   const { playbackPosition, playState, start, pause, freeze, setPosition } =
     playback;
 
-  const largeWaveformData: WaveformData = useMemo(() => {
+  const [largeWaveformRange, setLargeWaveformRange] = useState({
+    start: 0,
+    end: data.length,
+  });
+
+  useEffect(
+    () => setLargeWaveformRange({ start: 0, end: data.length }),
+    [data]
+  );
+
+  const navWaveformData: WaveformData = useMemo(() => {
     return {
       data: data,
+      section: largeWaveformRange,
       range: { start: 0, end: data.length },
     };
-  }, [data]);
+  }, [data, largeWaveformRange]);
 
   const handlePosition = (sampleIndex: number) => {
     const timeInSeconds = sampleIndex / data.sampleRate;
@@ -88,17 +99,20 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
         ></canvas>
         <div className="flex flex-col gap-2">
           <WaveformCanvas
-            waveformData={largeWaveformData}
+            waveformData={{ data: data, range: { start: 0, end: data.length } }}
             width={800}
             height={200}
             positionReference={playbackPosition}
             animate={playState === "playing" || triggerUpdate}
             handlePosition={handlePosition}
+            handleRangeChange={(newRange) => {
+              setLargeWaveformRange(newRange);
+            }}
             className="border rounded-xs border-neutral-300 w-full"
           ></WaveformCanvas>
           <div className="flex flex-col md:flex-row gap-2 items-center">
             <WaveformCanvas
-              waveformData={largeWaveformData}
+              waveformData={navWaveformData}
               width={800}
               height={50}
               positionReference={playbackPosition}
