@@ -9,6 +9,7 @@ export interface PlaybackContextType {
   start: () => void;
   pause: () => void;
   freeze: () => void;
+  setPosition: (position: number) => void;
 }
 
 export const PlaybackContext = createContext<PlaybackContextType | undefined>(

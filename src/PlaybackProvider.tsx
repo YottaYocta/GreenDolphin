@@ -19,6 +19,7 @@ export const PlaybackProvider = ({
   const animationFrameId = useRef<number | undefined>(undefined);
   const [playState, setPlayState] = useState<PlayState>("paused");
   const [localData, setLocalData] = useState<AudioBuffer>(data);
+  const [trigger, setTrigger] = useState<boolean>(false);
 
   const sourceNode = useRef<AudioBufferSourceNode | undefined>(undefined);
 
@@ -78,25 +79,24 @@ export const PlaybackProvider = ({
       sourceNode.current.start(0, playbackPosition.current / 1000);
       startCount();
     }
-  }, [context, localData, playState, startCount, stopCount]);
+  }, [context, localData, playState, startCount, stopCount, trigger]);
 
   const start = useCallback(() => {
-    if (playState !== "playing") {
-      setPlayState("playing");
-    }
-  }, [playState]);
+    setPlayState("playing");
+  }, []);
 
   const pause = useCallback(() => {
-    if (playState !== "paused") {
-      setPlayState("paused");
-    }
-  }, [playState]);
+    setPlayState("paused");
+  }, []);
 
   const freeze = useCallback(() => {
-    if (playState !== "frozen") {
-      setPlayState("frozen");
-    }
-  }, [playState]);
+    setPlayState("frozen");
+  }, []);
+
+  const setPosition = useCallback((position: number) => {
+    playbackPosition.current = position;
+    setTrigger((prev) => !prev);
+  }, []);
 
   return (
     <PlaybackContext.Provider
@@ -106,6 +106,7 @@ export const PlaybackProvider = ({
         start,
         pause,
         freeze,
+        setPosition,
       }}
     >
       {children}

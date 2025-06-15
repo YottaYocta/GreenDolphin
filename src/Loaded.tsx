@@ -44,7 +44,8 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
   if (!playback) {
     throw new Error("Loaded must be used within a PlaybackProvider");
   }
-  const { playbackPosition, playState, start, pause, freeze } = playback;
+  const { playbackPosition, playState, start, pause, freeze, setPosition } =
+    playback;
 
   const largeWaveformData: WaveformData = useMemo(() => {
     return {
@@ -61,6 +62,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
       Math.min(timeInMs, data.duration * 1000)
     );
     setTriggerUpdate(true);
+    setPosition(timeInMs);
   };
 
   useEffect(() => {
