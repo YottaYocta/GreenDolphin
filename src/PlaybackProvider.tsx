@@ -100,7 +100,13 @@ export const PlaybackProvider = ({
 
   return (
     <PlaybackContext.Provider
-      value={{ playbackPosition, playState, start, pause, freeze }}
+      value={{
+        playbackPosition,
+        playState,
+        start,
+        pause,
+        freeze,
+      }}
     >
       {children}
     </PlaybackContext.Provider>

@@ -1,4 +1,11 @@
-import { useContext, useMemo, useRef, useState, type FC } from "react";
+import {
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FC,
+} from "react";
 import { formatSeconds } from "./lib/util";
 import { Button, ToggleButton } from "./components/buttons";
 import {
@@ -31,6 +38,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
 
   const [looping, setLooping] = useState<boolean>(true);
+  const [triggerUpdate, setTriggerUpdate] = useState<boolean>(false);
 
   const playback = useContext(PlaybackContext);
   if (!playback) {
@@ -44,6 +52,20 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
       range: { start: 0, end: data.length },
     };
   }, [data]);
+
+  const handlePosition = (sampleIndex: number) => {
+    const timeInSeconds = sampleIndex / data.sampleRate;
+    const timeInMs = timeInSeconds * 1000;
+    playbackPosition.current = Math.max(
+      0,
+      Math.min(timeInMs, data.duration * 1000)
+    );
+    setTriggerUpdate(true);
+  };
+
+  useEffect(() => {
+    if (triggerUpdate) setTriggerUpdate(false);
+  }, [triggerUpdate]);
 
   return (
     <div className="w-full max-w-4xl h-full md:h-min p-4 py-8 md:p-8 bg-white flex flex-col justify-center gap-16 border border-neutral-300 rounded-xs">
@@ -68,7 +90,8 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
             width={800}
             height={200}
             positionReference={playbackPosition}
-            animate={playState === "playing"}
+            animate={playState === "playing" || triggerUpdate}
+            handlePosition={handlePosition}
             className="border rounded-xs border-neutral-300 w-full"
           ></WaveformCanvas>
           <div className="flex flex-col md:flex-row gap-2 items-center">
@@ -77,7 +100,8 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
               width={800}
               height={50}
               positionReference={playbackPosition}
-              animate={playState === "playing"}
+              animate={playState === "playing" || triggerUpdate}
+              handlePosition={handlePosition}
               allowZoomPan={false}
               className="border rounded-xs border-neutral-300 w-full"
             ></WaveformCanvas>

@@ -33,6 +33,7 @@ export const WaveformCanvas: FC<
   waveformStyle = { resolution: 10000 },
   positionReference,
   allowZoomPan = true,
+  handlePosition,
   ...props
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -110,6 +111,17 @@ export const WaveformCanvas: FC<
     const canvasElement = canvasRef.current;
     if (!canvasElement) return;
 
+    const handleClick = (e: MouseEvent) => {
+      if (handlePosition) {
+        const sampleIndex = computeSampleIndex(
+          e.offsetX,
+          localData.range.end - localData.range.start,
+          canvasElement
+        );
+        handlePosition(sampleIndex);
+      }
+    };
+
     const handleWheel = (e: WheelEvent) => {
       e.stopPropagation();
       e.preventDefault();
@@ -174,13 +186,18 @@ export const WaveformCanvas: FC<
       console.log(`[ADD] Zoom/Pan on ${canvasElement.nodeName}`);
     }
 
+    canvasElement.addEventListener("mousedown", handleClick);
+    console.log(`[ADD] Click/Press on ${canvasElement.nodeName}`);
+
     return () => {
       if (allowZoomPan) {
         canvasElement.removeEventListener("wheel", handleWheel);
         console.log(`[REMOVE] Zoom/Pan on ${canvasElement.nodeName}`);
       }
+      canvasElement.removeEventListener("mousedown", handleClick);
+      console.log(`[REMOVE] Click/Press on ${canvasElement.nodeName}`);
     };
-  }, [allowZoomPan]);
+  }, [allowZoomPan, handlePosition, localData.range]);
 
   return <canvas {...props} ref={canvasRef}></canvas>;
 };
