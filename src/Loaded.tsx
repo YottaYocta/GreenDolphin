@@ -52,6 +52,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
     setPosition,
     looping,
     setLooping,
+    setLoop,
   } = playback;
 
   const [largeWaveformRange, setLargeWaveformRange] = useState({
@@ -115,6 +116,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
             handleRangeChange={(newRange) => {
               setLargeWaveformRange(newRange);
             }}
+            handleSelection={(section) => setLoop(section)}
             className="border rounded-xs border-neutral-300 w-full"
           ></WaveformCanvas>
           <div className="flex flex-col md:flex-row gap-2 items-center">

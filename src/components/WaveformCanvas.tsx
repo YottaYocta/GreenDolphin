@@ -36,6 +36,7 @@ export const WaveformCanvas: FC<
   positionReference,
   allowZoomPan = true,
   handleRangeChange,
+  handleSelection,
   handlePosition,
   ...props
 }) => {
@@ -156,12 +157,13 @@ export const WaveformCanvas: FC<
       if (selectRange !== undefined) {
         const min = Math.min(selectRange.start, selectRange.end);
         const max = Math.max(selectRange.start, selectRange.end);
-        if (max - min > clickSelectThresholdValue)
+        if (max - min > clickSelectThresholdValue) {
           setLocalData((prevData) => ({
             ...prevData,
             section: { start: min, end: max },
           }));
-        else if (handlePosition) handlePosition(selectRange.start);
+          if (handleSelection) handleSelection({ start: min, end: max });
+        } else if (handlePosition) handlePosition(selectRange.start);
       }
       setSelectRange(undefined);
     };
@@ -270,6 +272,7 @@ export const WaveformCanvas: FC<
     allowZoomPan,
     clickSelectThresholdValue,
     handlePosition,
+    handleSelection,
     localData.range,
     selectRange,
     updateWaveform,

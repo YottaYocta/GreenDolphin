@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import type { ReactNode } from "react";
 import { PlaybackContext } from "./PlaybackContext";
 import type { PlayState } from "./PlaybackContext";
+import { type Section } from "./lib/waveform";
 
 export interface PlaybackProviderProps {
   context: AudioContext;
@@ -22,6 +23,8 @@ export const PlaybackProvider = ({
   const [trigger, setTrigger] = useState<boolean>(false);
 
   const [looping, setLooping] = useState<boolean>(false);
+
+  const [loop, setLoop] = useState<undefined | Section>();
 
   const sourceNode = useRef<AudioBufferSourceNode | undefined>(undefined);
 
@@ -58,29 +61,49 @@ export const PlaybackProvider = ({
   }, []);
 
   const toLoopStart = useCallback(() => {
-    playbackPosition.current = 0;
-  }, []);
+    playbackPosition.current =
+      loop && looping ? loop.start / localData.sampleRate : 0;
+  }, [localData.sampleRate, loop, looping]);
 
   const tick = useCallback(() => {
     const now = performance.now();
     const next = playbackPosition.current + (now - lastTimeStamp.current);
-    if (next / 1000 <= localData.duration) {
-      playbackPosition.current = next;
 
-      lastTimeStamp.current = performance.now();
-      animationFrameId.current = requestAnimationFrame(tick);
-    } else if (looping) {
-      toLoopStart();
+    if (looping) {
+      if (loop) {
+        const startMS = (loop.start / localData.sampleRate) * 1000;
+        const endMS = (loop.end / localData.sampleRate) * 1000;
+        const clampedNext = next > endMS ? startMS : Math.max(startMS, next);
 
-      lastTimeStamp.current = performance.now();
-      animationFrameId.current = requestAnimationFrame(tick);
+        playbackPosition.current = clampedNext;
+        lastTimeStamp.current = performance.now();
+
+        animationFrameId.current = requestAnimationFrame(tick);
+      } else {
+        if (next > localData.duration * 1000) {
+          playbackPosition.current = 0;
+        } else {
+          playbackPosition.current = next;
+        }
+        lastTimeStamp.current = performance.now();
+
+        animationFrameId.current = requestAnimationFrame(tick);
+      }
     } else {
-      toLoopStart();
-      lastTimeStamp.current = performance.now();
+      // if not looping, ignore loop section and keep playing
+      if (next > localData.duration * 1000) {
+        playbackPosition.current = 0;
 
-      pause();
+        lastTimeStamp.current = performance.now();
+        pause();
+      } else {
+        playbackPosition.current = next;
+        lastTimeStamp.current = performance.now();
+
+        animationFrameId.current = requestAnimationFrame(tick);
+      }
     }
-  }, [localData.duration, looping, pause, toLoopStart]);
+  }, [localData.duration, localData.sampleRate, loop, looping, pause]);
 
   const startCount = useCallback(() => {
     stopCount();
@@ -91,9 +114,9 @@ export const PlaybackProvider = ({
   useEffect(() => {
     stopCount();
     setPlayState("paused");
-    playbackPosition.current = 0;
+    toLoopStart();
     setLocalData(data);
-  }, [data, stopCount]);
+  }, [data, stopCount, toLoopStart]);
 
   useEffect(() => {
     if (playState === "paused") {
@@ -113,11 +136,35 @@ export const PlaybackProvider = ({
       sourceNode.current = context.createBufferSource();
       sourceNode.current.buffer = localData;
       sourceNode.current.connect(context.destination);
-      sourceNode.current.loop = looping;
-      sourceNode.current.start(0, playbackPosition.current / 1000);
+      if (looping) {
+        sourceNode.current.loop = looping;
+        if (loop) {
+          const startSeconds = loop.start / localData.sampleRate;
+          const endSeconds = loop.end / localData.sampleRate;
+          sourceNode.current.loopStart = startSeconds;
+          sourceNode.current.loopEnd = endSeconds;
+
+          sourceNode.current.start(
+            0,
+            Math.max(
+              startSeconds,
+              Math.min(endSeconds, playbackPosition.current / 1000)
+            )
+          );
+        }
+      } else sourceNode.current.start(0, playbackPosition.current / 1000);
       startCount();
     }
-  }, [context, localData, playState, startCount, stopCount, trigger, looping]);
+  }, [
+    context,
+    localData,
+    playState,
+    startCount,
+    stopCount,
+    trigger,
+    looping,
+    loop,
+  ]);
 
   return (
     <PlaybackContext.Provider
@@ -130,6 +177,8 @@ export const PlaybackProvider = ({
         setPosition,
         looping,
         setLooping,
+        loop,
+        setLoop,
       }}
     >
       {children}
