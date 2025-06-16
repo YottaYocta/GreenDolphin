@@ -60,11 +60,6 @@ export const PlaybackProvider = ({
     }
   }, []);
 
-  const toLoopStart = useCallback(() => {
-    playbackPosition.current =
-      loop && looping ? loop.start / localData.sampleRate : 0;
-  }, [localData.sampleRate, loop, looping]);
-
   const tick = useCallback(() => {
     const now = performance.now();
     const next = playbackPosition.current + (now - lastTimeStamp.current);
@@ -114,9 +109,9 @@ export const PlaybackProvider = ({
   useEffect(() => {
     stopCount();
     setPlayState("paused");
-    toLoopStart();
     setLocalData(data);
-  }, [data, stopCount, toLoopStart]);
+    playbackPosition.current = 0;
+  }, [data, stopCount]);
 
   useEffect(() => {
     if (playState === "paused") {
