@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type CanvasHTMLAttributes,
@@ -44,6 +45,15 @@ export const WaveformCanvas: FC<
     ...waveformData,
   });
 
+  const [selectRange, setSelectRange] = useState<Section | undefined>();
+
+  const CLICK_SELECTION_THRESHOLD = 0.01;
+  const clickSelectThresholdValue = useMemo(
+    () =>
+      CLICK_SELECTION_THRESHOLD * (localData.range.end - localData.range.start),
+    [localData.range.end, localData.range.start]
+  );
+
   const setRange = (
     setRangeCallback: (prevData: WaveformData, prevRange: Section) => Section
   ) => {
@@ -56,7 +66,17 @@ export const WaveformCanvas: FC<
   const updateWaveform = useCallback(() => {
     if (canvasRef.current)
       renderWaveform(
-        localData,
+        selectRange !== undefined &&
+          Math.abs(selectRange.end - selectRange.start) >
+            clickSelectThresholdValue
+          ? {
+              ...localData,
+              section: {
+                start: Math.min(selectRange.end, selectRange.start),
+                end: Math.max(selectRange.end, selectRange.start),
+              },
+            }
+          : localData,
         waveformStyle,
         canvasRef.current,
         positionReference?.current
@@ -64,6 +84,8 @@ export const WaveformCanvas: FC<
           : undefined
       );
   }, [
+    clickSelectThresholdValue,
+    selectRange,
     localData,
     positionReference,
     waveformData.data.sampleRate,
@@ -115,15 +137,44 @@ export const WaveformCanvas: FC<
     const canvasElement = canvasRef.current;
     if (!canvasElement) return;
 
-    const handleClick = (e: MouseEvent) => {
-      if (handlePosition) {
-        const sampleIndex = computeSampleIndex(
+    const handleMove = (e: MouseEvent) => {
+      if (selectRange !== undefined) {
+        const endSample =
+          computeSampleIndex(
+            e.offsetX,
+            localData.range.end - localData.range.start,
+            canvasElement
+          ) + localData.range.start;
+        setSelectRange({
+          start: selectRange.start,
+          end: endSample,
+        });
+      }
+    };
+
+    const handleMouseUp = () => {
+      if (selectRange !== undefined) {
+        const min = Math.min(selectRange.start, selectRange.end);
+        const max = Math.max(selectRange.start, selectRange.end);
+        if (max - min > clickSelectThresholdValue)
+          setLocalData((prevData) => ({
+            ...prevData,
+            section: { start: min, end: max },
+          }));
+        else if (handlePosition) handlePosition(selectRange.start);
+      }
+      setSelectRange(undefined);
+    };
+
+    const handleMouseDown = (e: MouseEvent) => {
+      const sampleIndex =
+        computeSampleIndex(
           e.offsetX,
           localData.range.end - localData.range.start,
           canvasElement
-        );
-        handlePosition(localData.range.start + sampleIndex);
-      }
+        ) + localData.range.start;
+
+      setSelectRange({ start: sampleIndex, end: sampleIndex });
     };
 
     const handleWheel = (e: WheelEvent) => {
@@ -199,7 +250,9 @@ export const WaveformCanvas: FC<
     window.addEventListener("resize", handleResize);
     handleResize(); // Initial call to set resolution
 
-    canvasElement.addEventListener("mousedown", handleClick);
+    canvasElement.addEventListener("mousedown", handleMouseDown);
+    canvasElement.addEventListener("mousemove", handleMove);
+    canvasElement.addEventListener("mouseup", handleMouseUp);
     // console.log(`[ADD] Click/Press on ${canvasElement.nodeName}`);
 
     return () => {
@@ -208,10 +261,19 @@ export const WaveformCanvas: FC<
         // console.log(`[REMOVE] Zoom/Pan on ${canvasElement.nodeName}`);
       }
       window.removeEventListener("resize", handleResize);
-      canvasElement.removeEventListener("mousedown", handleClick);
+      canvasElement.removeEventListener("mousedown", handleMouseDown);
+      canvasElement.removeEventListener("mousemove", handleMove);
+      canvasElement.removeEventListener("mouseup", handleMouseUp);
       // console.log(`[REMOVE] Click/Press on ${canvasElement.nodeName}`);
     };
-  }, [allowZoomPan, handlePosition, localData.range, updateWaveform]);
+  }, [
+    allowZoomPan,
+    clickSelectThresholdValue,
+    handlePosition,
+    localData.range,
+    selectRange,
+    updateWaveform,
+  ]);
 
   return <canvas {...props} ref={canvasRef}></canvas>;
 };
