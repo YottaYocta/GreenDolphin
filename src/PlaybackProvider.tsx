@@ -25,11 +25,40 @@ export const PlaybackProvider = ({
 
   const sourceNode = useRef<AudioBufferSourceNode | undefined>(undefined);
 
+  const start = useCallback(() => {
+    setPlayState("playing");
+  }, []);
+
+  const pause = useCallback(() => {
+    setPlayState("paused");
+  }, []);
+
+  const freeze = useCallback(() => {
+    setPlayState("frozen");
+  }, []);
+
+  const triggerUpdate = useCallback(
+    () => setTrigger((prevTrigger) => !prevTrigger),
+    []
+  );
+
+  const setPosition = useCallback(
+    (position: number) => {
+      playbackPosition.current = position;
+      triggerUpdate();
+    },
+    [triggerUpdate]
+  );
+
   const stopCount = useCallback(() => {
     if (animationFrameId.current) {
       cancelAnimationFrame(animationFrameId.current);
       animationFrameId.current = undefined;
     }
+  }, []);
+
+  const toLoopStart = useCallback(() => {
+    playbackPosition.current = 0;
   }, []);
 
   const tick = useCallback(() => {
@@ -41,14 +70,17 @@ export const PlaybackProvider = ({
       lastTimeStamp.current = performance.now();
       animationFrameId.current = requestAnimationFrame(tick);
     } else if (looping) {
-      playbackPosition.current = 0;
+      toLoopStart();
 
       lastTimeStamp.current = performance.now();
       animationFrameId.current = requestAnimationFrame(tick);
     } else {
-      stopCount();
+      toLoopStart();
+      lastTimeStamp.current = performance.now();
+
+      pause();
     }
-  }, [localData.duration, looping, stopCount]);
+  }, [localData.duration, looping, pause, toLoopStart]);
 
   const startCount = useCallback(() => {
     stopCount();
@@ -86,23 +118,6 @@ export const PlaybackProvider = ({
       startCount();
     }
   }, [context, localData, playState, startCount, stopCount, trigger, looping]);
-
-  const start = useCallback(() => {
-    setPlayState("playing");
-  }, []);
-
-  const pause = useCallback(() => {
-    setPlayState("paused");
-  }, []);
-
-  const freeze = useCallback(() => {
-    setPlayState("frozen");
-  }, []);
-
-  const setPosition = useCallback((position: number) => {
-    playbackPosition.current = position;
-    setTrigger((prev) => !prev);
-  }, []);
 
   return (
     <PlaybackContext.Provider
