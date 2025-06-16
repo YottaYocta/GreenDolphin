@@ -37,15 +37,22 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
   const [pitchShift, setPitchShift] = useState<number>(0);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
 
-  const [looping, setLooping] = useState<boolean>(true);
   const [triggerUpdate, setTriggerUpdate] = useState<boolean>(false);
 
   const playback = useContext(PlaybackContext);
   if (!playback) {
     throw new Error("Loaded must be used within a PlaybackProvider");
   }
-  const { playbackPosition, playState, start, pause, freeze, setPosition } =
-    playback;
+  const {
+    playbackPosition,
+    playState,
+    start,
+    pause,
+    freeze,
+    setPosition,
+    looping,
+    setLooping,
+  } = playback;
 
   const [largeWaveformRange, setLargeWaveformRange] = useState({
     start: 0,

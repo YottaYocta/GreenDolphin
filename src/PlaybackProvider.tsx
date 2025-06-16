@@ -21,6 +21,8 @@ export const PlaybackProvider = ({
   const [localData, setLocalData] = useState<AudioBuffer>(data);
   const [trigger, setTrigger] = useState<boolean>(false);
 
+  const [looping, setLooping] = useState<boolean>(false);
+
   const sourceNode = useRef<AudioBufferSourceNode | undefined>(undefined);
 
   const stopCount = useCallback(() => {
@@ -38,10 +40,15 @@ export const PlaybackProvider = ({
 
       lastTimeStamp.current = performance.now();
       animationFrameId.current = requestAnimationFrame(tick);
+    } else if (looping) {
+      playbackPosition.current = 0;
+
+      lastTimeStamp.current = performance.now();
+      animationFrameId.current = requestAnimationFrame(tick);
     } else {
       stopCount();
     }
-  }, [localData.duration, stopCount]);
+  }, [localData.duration, looping, stopCount]);
 
   const startCount = useCallback(() => {
     stopCount();
@@ -74,10 +81,11 @@ export const PlaybackProvider = ({
       sourceNode.current = context.createBufferSource();
       sourceNode.current.buffer = localData;
       sourceNode.current.connect(context.destination);
+      sourceNode.current.loop = looping;
       sourceNode.current.start(0, playbackPosition.current / 1000);
       startCount();
     }
-  }, [context, localData, playState, startCount, stopCount, trigger]);
+  }, [context, localData, playState, startCount, stopCount, trigger, looping]);
 
   const start = useCallback(() => {
     setPlayState("playing");
@@ -105,6 +113,8 @@ export const PlaybackProvider = ({
         pause,
         freeze,
         setPosition,
+        looping,
+        setLooping,
       }}
     >
       {children}
