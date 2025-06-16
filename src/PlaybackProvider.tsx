@@ -28,18 +28,6 @@ export const PlaybackProvider = ({
 
   const sourceNode = useRef<AudioBufferSourceNode | undefined>(undefined);
 
-  const start = useCallback(() => {
-    setPlayState("playing");
-  }, []);
-
-  const pause = useCallback(() => {
-    setPlayState("paused");
-  }, []);
-
-  const freeze = useCallback(() => {
-    setPlayState("frozen");
-  }, []);
-
   const triggerUpdate = useCallback(
     () => setTrigger((prevTrigger) => !prevTrigger),
     []
@@ -90,7 +78,7 @@ export const PlaybackProvider = ({
         playbackPosition.current = 0;
 
         lastTimeStamp.current = performance.now();
-        pause();
+        setPlayState("paused");
       } else {
         playbackPosition.current = next;
         lastTimeStamp.current = performance.now();
@@ -98,7 +86,7 @@ export const PlaybackProvider = ({
         animationFrameId.current = requestAnimationFrame(tick);
       }
     }
-  }, [localData.duration, localData.sampleRate, loop, looping, pause]);
+  }, [localData.duration, localData.sampleRate, loop, looping]);
 
   const startCount = useCallback(() => {
     stopCount();
@@ -128,18 +116,28 @@ export const PlaybackProvider = ({
         sourceNode.current = undefined;
       }
 
-      sourceNode.current = context.createBufferSource();
-      sourceNode.current.buffer = localData;
-      sourceNode.current.connect(context.destination);
+      const newSourceNode = context.createBufferSource();
+      newSourceNode.buffer = localData;
+      newSourceNode.connect(context.destination);
+
+      newSourceNode.onended = () => {
+        console.log("Source node ended naturally.");
+        if (sourceNode.current === newSourceNode) {
+          sourceNode.current.disconnect();
+          sourceNode.current = undefined;
+          setPlayState("paused");
+        }
+      };
+
       if (looping) {
-        sourceNode.current.loop = looping;
+        newSourceNode.loop = looping;
         if (loop) {
           const startSeconds = loop.start / localData.sampleRate;
           const endSeconds = loop.end / localData.sampleRate;
-          sourceNode.current.loopStart = startSeconds;
-          sourceNode.current.loopEnd = endSeconds;
+          newSourceNode.loopStart = startSeconds;
+          newSourceNode.loopEnd = endSeconds;
 
-          sourceNode.current.start(
+          newSourceNode.start(
             0,
             Math.max(
               startSeconds,
@@ -147,7 +145,9 @@ export const PlaybackProvider = ({
             )
           );
         }
-      } else sourceNode.current.start(0, playbackPosition.current / 1000);
+      } else newSourceNode.start(0, playbackPosition.current / 1000);
+
+      sourceNode.current = newSourceNode;
       startCount();
     }
   }, [
@@ -164,11 +164,9 @@ export const PlaybackProvider = ({
   return (
     <PlaybackContext.Provider
       value={{
-        playbackPosition,
         playState,
-        start,
-        pause,
-        freeze,
+        setPlayState,
+        playbackPosition,
         setPosition,
         looping,
         setLooping,

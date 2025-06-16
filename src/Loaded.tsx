@@ -46,14 +46,33 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
   const {
     playbackPosition,
     playState,
-    start,
-    pause,
-    freeze,
+    setPlayState,
     setPosition,
     looping,
     setLooping,
     setLoop,
   } = playback;
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "p") {
+        if (playState === "paused") {
+          setPlayState("playing");
+        } else if (playState === "frozen") {
+          setPlayState("paused");
+        } else {
+          setPlayState("paused");
+        }
+      } else if (e.key === "f") {
+        if (playState === "frozen") setPlayState("paused");
+        else setPlayState("frozen");
+      }
+    };
+    window.addEventListener("keypress", handleKey);
+    return () => {
+      window.removeEventListener("keypress", handleKey);
+    };
+  }, [playState, setPlayState]);
 
   const [largeWaveformRange, setLargeWaveformRange] = useState({
     start: 0,
@@ -212,8 +231,8 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
             <ToggleButton
               pressed={playState === "playing"}
               onClick={() => {
-                if (playState === "playing") pause();
-                else start();
+                if (playState === "playing") setPlayState("paused");
+                else setPlayState("playing");
               }}
               className="p-3"
               accent="negative"
@@ -225,8 +244,10 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
             <ToggleButton
               pressed={playState === "frozen"}
               onClick={() => {
-                if (playState === "frozen") pause();
-                else freeze();
+                if (playState === "frozen") setPlayState("paused");
+                else {
+                  setPlayState("frozen");
+                }
               }}
               className="p-3"
               accent="primary"

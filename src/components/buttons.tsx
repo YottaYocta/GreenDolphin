@@ -25,7 +25,7 @@ export const Button: FC<ButtonProps> = ({
   return (
     <button
       aria-label={ariaLabel}
-      className={`hover:bg-neutral-100 p-1 rounded-full h-min w-min flex items-center justify-center text-center gap-1 flex-nowrap text-nowrap cursor-pointer ${className}`}
+      className={`hover:bg-neutral-100 p-1 rounded-full h-min w-min flex items-center justify-center text-center gap-1 flex-nowrap text-nowrap cursor-pointer focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${className}`}
       onClick={onClick}
     >
       {iconPlacement === "left" && (
@@ -71,16 +71,16 @@ export const ToggleButton: FC<ToggleButtonProps> = ({
       className={`${
         pressed
           ? accent === "positive"
-            ? `hover:bg-emerald-100 bg-emerald-50 border-emerald-500 text-emerald-700`
+            ? `hover:bg-emerald-100 bg-emerald-50 border-emerald-500 text-emerald-700 focus:ring-emerald-600`
             : accent === "negative"
-            ? `hover:bg-rose-100 bg-rose-50 border-rose-400 text-rose-700`
-            : `hover:bg-blue-100 bg-blue-100 border-blue-400 text-blue-600`
+            ? `hover:bg-rose-100 bg-rose-50 border-rose-400 text-rose-700 focus:ring-red-500`
+            : `hover:bg-blue-100 bg-blue-100 border-blue-400 text-blue-600 focus:ring-blue-500`
           : accent === "positive"
-          ? "hover:bg-neutral-100 border-neutral-300 text-emerald-600 bg-white"
+          ? "hover:bg-neutral-100 border-neutral-300 text-emerald-600 bg-white focus:ring-emerald-600"
           : accent === "negative"
-          ? "hover:bg-neutral-100 border-neutral-300 text-rose-500 bg-white"
-          : "hover:bg-neutral-100 border-neutral-300 text-blue-500 bg-white"
-      } p-2 rounded-full border h-min w-min flex-nowrap text-nowrap cursor-pointer ${className}`}
+          ? "hover:bg-neutral-100 border-neutral-300 text-rose-500 bg-white focus:ring-red-500"
+          : "hover:bg-neutral-100 border-neutral-300 text-blue-500 bg-white focus:ring-blue-500"
+      } p-2 rounded-full border h-min w-min flex-nowrap text-nowrap cursor-pointer focus:ring-2 focus:ring-offset-2 ${className}`}
       onClick={onClick}
     >
       {iconPlacement === "left" && icon}
