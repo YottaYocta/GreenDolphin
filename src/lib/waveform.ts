@@ -1,3 +1,5 @@
+import { formatSeconds } from "./util";
+
 export interface Section {
   start: number;
   end: number;
@@ -47,7 +49,7 @@ export const renderWaveform = (
   {
     resolution,
     primary = { r: 25, g: 202, b: 147, a: 100 },
-    secondary = { r: 25, g: 202, b: 147, a: 50 },
+    secondary = { r: 25, g: 202, b: 147, a: 30 },
     background = { r: 256, g: 256, b: 256, a: 100 },
   }: WaveformStyle,
   canvas: HTMLCanvasElement,
@@ -114,22 +116,27 @@ export const renderWaveform = (
 
     const endPos = computePixel(section.end - range.start, rangeLength, canvas);
 
-    canvasCtx.fillStyle = "rgb(0 0 0)";
+    canvasCtx.fillStyle = primaryFill;
     canvasCtx.fillRect(startPos, 0, 1, canvas.height);
     // canvasCtx.fillText(`sample ${section.start}`, startPos + 5, 10);
+    canvasCtx.fillStyle = "rgb(0 0 0)";
     canvasCtx.fillText(
-      `${Math.trunc((section.start / data.sampleRate) * 100) / 100}s`,
+      `${formatSeconds(
+        Math.trunc((section.start / data.sampleRate) * 100) / 100
+      )}`,
       startPos + 5,
       10
     );
 
+    canvasCtx.fillStyle = primaryFill;
     canvasCtx.fillRect(endPos, 0, 1, canvas.height);
     // canvasCtx.fillText(`sample ${section.end}`, endPos + 5, 10);
 
     if (endPos - startPos > 70) {
-      const endString = `${
+      const endString = `${formatSeconds(
         Math.trunc((section.end / data.sampleRate) * 100) / 100
-      }s`;
+      )}`;
+      canvasCtx.fillStyle = "rgb(0 0 0)";
       canvasCtx.fillText(
         endString,
         endPos - 5 - canvasCtx.measureText(endString).width,
@@ -141,7 +148,7 @@ export const renderWaveform = (
   if (position) {
     const pos = computePixel(position - range.start, rangeLength, canvas);
     if (pos > 0 && pos < canvas.width) {
-      canvasCtx.fillStyle = "rgb(10 136 97)";
+      canvasCtx.fillStyle = "rgb(10 150 100)";
       canvasCtx.fillRect(pos, 0, 2, canvas.height);
     }
   }

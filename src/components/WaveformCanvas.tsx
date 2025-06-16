@@ -53,7 +53,7 @@ export const WaveformCanvas: FC<
     }));
   };
 
-  const renderWaveformAux = useCallback(() => {
+  const updateWaveform = useCallback(() => {
     if (canvasRef.current)
       renderWaveform(
         localData,
@@ -80,16 +80,16 @@ export const WaveformCanvas: FC<
 
   useEffect(() => {
     if (canvasRef.current) {
-      renderWaveformAux();
+      updateWaveform();
     }
-  }, [renderWaveformAux]);
+  }, [updateWaveform]);
 
   useEffect(() => {
     let animationFrameId: number;
 
     const renderLoop = () => {
       if (canvasRef.current) {
-        renderWaveformAux();
+        updateWaveform();
       }
       if (animate) {
         animationFrameId = requestAnimationFrame(renderLoop);
@@ -103,7 +103,7 @@ export const WaveformCanvas: FC<
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [animate, renderWaveformAux]);
+  }, [animate, updateWaveform]);
 
   useEffect(() => {
     if (handleRangeChange) {
@@ -188,7 +188,7 @@ export const WaveformCanvas: FC<
     const handleResize = () => {
       canvasElement.width = canvasElement.clientWidth;
       canvasElement.height = canvasElement.clientHeight;
-      renderWaveformAux();
+      updateWaveform();
     };
 
     if (allowZoomPan) {
@@ -211,7 +211,7 @@ export const WaveformCanvas: FC<
       canvasElement.removeEventListener("mousedown", handleClick);
       // console.log(`[REMOVE] Click/Press on ${canvasElement.nodeName}`);
     };
-  }, [allowZoomPan, handlePosition, localData.range, renderWaveformAux]);
+  }, [allowZoomPan, handlePosition, localData.range, updateWaveform]);
 
   return <canvas {...props} ref={canvasRef}></canvas>;
 };
