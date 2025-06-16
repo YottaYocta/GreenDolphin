@@ -23,30 +23,31 @@ export const PlaybackProvider = ({
 
   const sourceNode = useRef<AudioBufferSourceNode | undefined>(undefined);
 
-  const tick = useCallback(() => {
-    const now = performance.now();
-    playbackPosition.current += now - lastTimeStamp.current;
-    playbackPosition.current %= localData.duration * 1000;
-
-    lastTimeStamp.current = performance.now();
-    animationFrameId.current = requestAnimationFrame(tick);
-  }, [localData.duration]);
-
-  const startCount = useCallback(() => {
-    lastTimeStamp.current = performance.now();
-
-    if (animationFrameId.current) {
-      cancelAnimationFrame(animationFrameId.current);
-    }
-    animationFrameId.current = requestAnimationFrame(tick);
-  }, [tick]);
-
   const stopCount = useCallback(() => {
     if (animationFrameId.current) {
       cancelAnimationFrame(animationFrameId.current);
       animationFrameId.current = undefined;
     }
   }, []);
+
+  const tick = useCallback(() => {
+    const now = performance.now();
+    const next = playbackPosition.current + (now - lastTimeStamp.current);
+    if (next / 1000 <= localData.duration) {
+      playbackPosition.current = next;
+
+      lastTimeStamp.current = performance.now();
+      animationFrameId.current = requestAnimationFrame(tick);
+    } else {
+      stopCount();
+    }
+  }, [localData.duration, stopCount]);
+
+  const startCount = useCallback(() => {
+    stopCount();
+    lastTimeStamp.current = performance.now();
+    animationFrameId.current = requestAnimationFrame(tick);
+  }, [stopCount, tick]);
 
   useEffect(() => {
     stopCount();
@@ -73,9 +74,6 @@ export const PlaybackProvider = ({
       sourceNode.current = context.createBufferSource();
       sourceNode.current.buffer = localData;
       sourceNode.current.connect(context.destination);
-      sourceNode.current.onended = () => {
-        stopCount();
-      };
       sourceNode.current.start(0, playbackPosition.current / 1000);
       startCount();
     }
