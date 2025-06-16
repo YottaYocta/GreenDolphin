@@ -104,8 +104,8 @@ export const PlaybackProvider = ({
   useEffect(() => {
     if (playState === "paused") {
       if (sourceNode.current) {
-        sourceNode.current.stop();
         stopCount();
+        sourceNode.current.stop();
         sourceNode.current.disconnect();
         sourceNode.current = undefined;
       }
@@ -121,8 +121,8 @@ export const PlaybackProvider = ({
       newSourceNode.connect(context.destination);
 
       newSourceNode.onended = () => {
-        console.log("Source node ended naturally.");
         if (sourceNode.current === newSourceNode) {
+          sourceNode.current.stop();
           sourceNode.current.disconnect();
           sourceNode.current = undefined;
           setPlayState("paused");
@@ -144,6 +144,8 @@ export const PlaybackProvider = ({
               Math.min(endSeconds, playbackPosition.current / 1000)
             )
           );
+        } else {
+          newSourceNode.start(0, playbackPosition.current / 1000);
         }
       } else newSourceNode.start(0, playbackPosition.current / 1000);
 
