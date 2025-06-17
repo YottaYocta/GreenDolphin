@@ -15,6 +15,7 @@ import {
   type WaveformData,
   type WaveformStyle,
 } from "../lib/waveform";
+import { clampSection } from "../lib/util";
 
 export interface WaveformCanvasProps {
   waveformData: WaveformData;
@@ -84,6 +85,34 @@ export const WaveformCanvas: FC<
           ? (positionReference.current * waveformData.data.sampleRate) / 1000
           : undefined
       );
+
+    if (positionReference && positionReference.current) {
+      const sample =
+        (positionReference.current * waveformData.data.sampleRate) / 1000;
+      if (sample > localData.range.end) {
+        setRange((prevData, prevRange) => {
+          const currentRangeLength = prevRange.end - prevRange.start;
+          const targetStart = prevRange.end;
+          const targetEnd = prevRange.end + currentRangeLength;
+          const clampedSection = clampSection(
+            { start: targetStart, end: targetEnd },
+            { start: 0, end: prevData.data.length }
+          );
+          return clampedSection;
+        });
+      } else if (sample < localData.range.start) {
+        setRange((prevData, prevRange) => {
+          const currentRangeLength = prevRange.end - prevRange.start;
+          const targetEnd = prevRange.start;
+          const targetStart = targetEnd - currentRangeLength;
+          const clampedSection = clampSection(
+            { start: targetStart, end: targetEnd },
+            { start: 0, end: prevData.data.length }
+          );
+          return clampedSection;
+        });
+      }
+    }
   }, [
     clickSelectThresholdValue,
     selectRange,
