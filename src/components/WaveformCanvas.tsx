@@ -325,22 +325,101 @@ export const WaveformCanvas: FC<
             <Button
               ariaLabel="zoom in"
               icon={<ZoomInIcon width={18} height={18}></ZoomInIcon>}
+              onClick={() => {
+                setRange((prevData, prevRange) => {
+                  const zoomAmount = Math.floor(
+                    (prevRange.end - prevRange.start) * 0.1
+                  );
+
+                  const targetSection = {
+                    start: prevRange.start + zoomAmount,
+                    end: prevRange.end - zoomAmount,
+                  };
+                  const midPoint =
+                    Math.floor((prevRange.end - prevRange.start) / 2) +
+                    prevRange.start;
+
+                  const minSection = {
+                    start: Math.floor(midPoint - minRangeThresholdValue / 2),
+                    end: Math.floor(midPoint + minRangeThresholdValue / 2),
+                  };
+                  const targetSectionMinClamped = {
+                    start: Math.min(minSection.start, targetSection.start),
+                    end: Math.max(minSection.end, targetSection.end),
+                  };
+
+                  return clampSection(targetSectionMinClamped, {
+                    start: 0,
+                    end: prevData.data.length,
+                  });
+                });
+              }}
             ></Button>
             <Button
               ariaLabel="zoom out"
               icon={<ZoomOutIcon width={18} height={18}></ZoomOutIcon>}
+              onClick={() => {
+                setRange((prevData, prevRange) => {
+                  const scrollAmount = Math.floor(
+                    (prevRange.end - prevRange.start) * 0.1
+                  );
+                  return clampSection(
+                    {
+                      start: prevRange.start - scrollAmount,
+                      end: prevRange.end + scrollAmount,
+                    },
+                    { start: 0, end: prevData.data.length }
+                  );
+                });
+              }}
             ></Button>
           </div>
           <div className="flex border border-neutral-300 hover:border-neutral-300 rounded-xs p-1 items-center opacity-70 bg-white group-hover:opacity-100 duration-75">
             <Button
-              ariaLabel="zoom in"
+              ariaLabel="scroll left"
               icon={<ChevronLeftIcon width={18} height={18}></ChevronLeftIcon>}
+              onClick={() => {
+                setRange((prevData, prevRange) => {
+                  const shiftAmount = Math.floor(
+                    (prevRange.end - prevRange.start) * 0.1
+                  );
+                  const targetRange = {
+                    start: prevData.range.start - shiftAmount,
+                    end: prevData.range.end - shiftAmount,
+                  };
+                  if (targetRange.start < 0) {
+                    return {
+                      start: 0,
+                      end: prevRange.end - prevRange.start,
+                    };
+                  } else return targetRange;
+                });
+              }}
             ></Button>
             <Button
-              ariaLabel="zoom out"
+              ariaLabel="scroll right"
               icon={
                 <ChevronRightIcon width={18} height={18}></ChevronRightIcon>
               }
+              onClick={() => {
+                setRange((prevData, prevRange) => {
+                  const shiftAmount = Math.floor(
+                    (prevRange.end - prevRange.start) * 0.1
+                  );
+                  const targetRange = {
+                    start: prevData.range.start + shiftAmount,
+                    end: prevData.range.end + shiftAmount,
+                  };
+                  if (targetRange.end > prevData.data.length) {
+                    return {
+                      start:
+                        prevData.data.length -
+                        (prevRange.end - prevRange.start),
+                      end: prevData.data.length,
+                    };
+                  } else return targetRange;
+                });
+              }}
             ></Button>
           </div>
         </div>
