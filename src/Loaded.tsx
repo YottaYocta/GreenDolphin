@@ -74,10 +74,10 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
   const navWaveformData: WaveformData = useMemo(() => {
     return {
       data: data,
-      section: looping && loop ? loop : undefined,
+      section: loop,
       range: { start: 0, end: data.length },
     };
-  }, [data, loop, looping]);
+  }, [data, loop]);
 
   const handlePosition = (sampleIndex: number) => {
     const timeInSeconds = sampleIndex / data.sampleRate;
