@@ -85,7 +85,30 @@ export const WaveformCanvas: FC<
           ? (positionReference.current * waveformData.data.sampleRate) / 1000
           : undefined
       );
+  }, [
+    clickSelectThresholdValue,
+    selectRange,
+    localData,
+    positionReference,
+    waveformData.data.sampleRate,
+    waveformStyle,
+  ]);
 
+  useEffect(() => {
+    if (
+      (waveformData.section && waveformData.section !== localData.section) ||
+      waveformData.data !== localData.data
+    )
+      setLocalData({ ...waveformData });
+  }, [localData.data, localData.section, waveformData]);
+
+  useEffect(() => {
+    if (canvasRef.current) {
+      updateWaveform();
+    }
+  }, [updateWaveform]);
+
+  const checkScroll = useCallback(() => {
     if (positionReference && positionReference.current) {
       const sample =
         (positionReference.current * waveformData.data.sampleRate) / 1000;
@@ -114,27 +137,11 @@ export const WaveformCanvas: FC<
       }
     }
   }, [
-    clickSelectThresholdValue,
-    selectRange,
-    localData,
+    localData.range.end,
+    localData.range.start,
     positionReference,
     waveformData.data.sampleRate,
-    waveformStyle,
   ]);
-
-  useEffect(() => {
-    if (
-      (waveformData.section && waveformData.section !== localData.section) ||
-      waveformData.data !== localData.data
-    )
-      setLocalData({ ...waveformData });
-  }, [localData.data, localData.section, waveformData]);
-
-  useEffect(() => {
-    if (canvasRef.current) {
-      updateWaveform();
-    }
-  }, [updateWaveform]);
 
   useEffect(() => {
     let animationFrameId: number;
@@ -144,18 +151,20 @@ export const WaveformCanvas: FC<
         updateWaveform();
       }
       if (animate) {
+        checkScroll();
         animationFrameId = requestAnimationFrame(renderLoop);
       }
     };
 
     if (animate) {
+      checkScroll();
       animationFrameId = requestAnimationFrame(renderLoop);
     }
 
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [animate, updateWaveform]);
+  }, [animate, checkScroll, updateWaveform]);
 
   useEffect(() => {
     if (handleRangeChange) {
