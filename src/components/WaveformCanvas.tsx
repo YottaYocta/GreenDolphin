@@ -16,6 +16,13 @@ import {
   type WaveformStyle,
 } from "../lib/waveform";
 import { clampSection } from "../lib/util";
+import { Button } from "./buttons";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ZoomInIcon,
+  ZoomOutIcon,
+} from "lucide-react";
 
 export interface WaveformCanvasProps {
   waveformData: WaveformData;
@@ -309,5 +316,37 @@ export const WaveformCanvas: FC<
     updateWaveform,
   ]);
 
-  return <canvas {...props} ref={canvasRef}></canvas>;
+  return (
+    <div className="relative">
+      <canvas {...props} ref={canvasRef}></canvas>
+      {allowZoomPan ? (
+        <div className="group flex flex-row gap-2 absolute bottom-1 right-1 z-10 w-min opacity-70 hover:opacity-100 focus:opacity-100 focus-within:opacity-100">
+          <div className="flex border border-neutral-300 hover:border-neutral-300 rounded-xs p-1 items-center opacity-70 bg-white group-hover:opacity-100 duration-75">
+            <Button
+              ariaLabel="zoom in"
+              icon={<ZoomInIcon width={18} height={18}></ZoomInIcon>}
+            ></Button>
+            <Button
+              ariaLabel="zoom out"
+              icon={<ZoomOutIcon width={18} height={18}></ZoomOutIcon>}
+            ></Button>
+          </div>
+          <div className="flex border border-neutral-300 hover:border-neutral-300 rounded-xs p-1 items-center opacity-70 bg-white group-hover:opacity-100 duration-75">
+            <Button
+              ariaLabel="zoom in"
+              icon={<ChevronLeftIcon width={18} height={18}></ChevronLeftIcon>}
+            ></Button>
+            <Button
+              ariaLabel="zoom out"
+              icon={
+                <ChevronRightIcon width={18} height={18}></ChevronRightIcon>
+              }
+            ></Button>
+          </div>
+        </div>
+      ) : (
+        <></>
+      )}
+    </div>
+  );
 };

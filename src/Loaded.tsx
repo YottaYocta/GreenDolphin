@@ -9,8 +9,6 @@ import {
 import { formatSeconds } from "./lib/util";
 import { Button, ToggleButton } from "./components/buttons";
 import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
   ChevronsLeftIcon,
   ChevronsRightIcon,
   GaugeIcon,
@@ -18,8 +16,6 @@ import {
   PlayIcon,
   RepeatIcon,
   SnowflakeIcon,
-  ZoomInIcon,
-  ZoomOutIcon,
 } from "lucide-react";
 import { NumberInput } from "./components/NumberInput";
 import { type WaveformData } from "./lib/waveform";
@@ -126,44 +122,16 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
             handleSelection={(section) => setLoop(section)}
             className="border rounded-xs border-neutral-300 w-full"
           ></WaveformCanvas>
-          <div className="flex flex-col md:flex-row gap-2 items-center">
-            <WaveformCanvas
-              waveformData={navWaveformData}
-              width={800}
-              height={50}
-              positionReference={playbackPosition}
-              animate={playState === "playing" || triggerUpdate}
-              handlePosition={handlePosition}
-              allowZoomPan={false}
-              className="border rounded-xs border-neutral-300 w-full"
-            ></WaveformCanvas>
-            <div className="flex flex-row gap-2">
-              <div className="flex border border-neutral-300 rounded-full p-1 items-center">
-                <Button
-                  ariaLabel="zoom in"
-                  icon={<ZoomInIcon width={18} height={18}></ZoomInIcon>}
-                ></Button>
-                <Button
-                  ariaLabel="zoom out"
-                  icon={<ZoomOutIcon width={18} height={18}></ZoomOutIcon>}
-                ></Button>
-              </div>
-              <div className="flex border border-neutral-300 rounded-full p-1 items-center">
-                <Button
-                  ariaLabel="zoom in"
-                  icon={
-                    <ChevronLeftIcon width={18} height={18}></ChevronLeftIcon>
-                  }
-                ></Button>
-                <Button
-                  ariaLabel="zoom out"
-                  icon={
-                    <ChevronRightIcon width={18} height={18}></ChevronRightIcon>
-                  }
-                ></Button>
-              </div>
-            </div>
-          </div>
+          <WaveformCanvas
+            waveformData={navWaveformData}
+            width={800}
+            height={50}
+            positionReference={playbackPosition}
+            animate={playState === "playing" || triggerUpdate}
+            handlePosition={handlePosition}
+            allowZoomPan={false}
+            className="border rounded-xs border-neutral-300 w-full"
+          ></WaveformCanvas>
         </div>
         <div className="flex flex-col gap-8 md:flex-row w-full justify-between items-center">
           <div className="flex items-center gap-2">
