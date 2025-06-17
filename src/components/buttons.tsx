@@ -71,7 +71,7 @@ export const ToggleButton: FC<ToggleButtonProps> = ({
       className={`${
         pressed
           ? accent === "positive"
-            ? `hover:bg-emerald-100 bg-emerald-50 border-emerald-500`
+            ? `hover:bg-emerald-100 bg-emerald-50 border-emerald-500 text-emerald-700`
             : accent === "negative"
             ? `hover:bg-rose-100 bg-rose-50 border-rose-400 text-rose-700`
             : `hover:bg-blue-100 bg-blue-100 border-blue-400 text-blue-600`
