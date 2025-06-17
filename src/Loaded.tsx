@@ -48,6 +48,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
     playState,
     setPlayState,
     setPosition,
+    loop,
     looping,
     setLooping,
     setLoop,
@@ -74,23 +75,13 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
     };
   }, [playState, setPlayState]);
 
-  const [largeWaveformRange, setLargeWaveformRange] = useState({
-    start: 0,
-    end: data.length,
-  });
-
-  useEffect(
-    () => setLargeWaveformRange({ start: 0, end: data.length }),
-    [data]
-  );
-
   const navWaveformData: WaveformData = useMemo(() => {
     return {
       data: data,
-      section: largeWaveformRange,
+      section: looping && loop ? loop : undefined,
       range: { start: 0, end: data.length },
     };
-  }, [data, largeWaveformRange]);
+  }, [data, loop, looping]);
 
   const handlePosition = (sampleIndex: number) => {
     const timeInSeconds = sampleIndex / data.sampleRate;
@@ -132,9 +123,6 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
             positionReference={playbackPosition}
             animate={playState === "playing" || triggerUpdate}
             handlePosition={handlePosition}
-            handleRangeChange={(newRange) => {
-              setLargeWaveformRange(newRange);
-            }}
             handleSelection={(section) => setLoop(section)}
             className="border rounded-xs border-neutral-300 w-full"
           ></WaveformCanvas>
