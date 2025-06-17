@@ -56,6 +56,12 @@ export const WaveformCanvas: FC<
     [localData.range.end, localData.range.start]
   );
 
+  const MIN_RANGE_THRESHOLD = 0.005;
+  const minRangeThresholdValue = useMemo(() => {
+    const value = Math.floor(MIN_RANGE_THRESHOLD * localData.data.length);
+    return value;
+  }, [localData.data.length]);
+
   const setRange = (
     setRangeCallback: (prevData: WaveformData, prevRange: Section) => Section
   ) => {
@@ -226,25 +232,10 @@ export const WaveformCanvas: FC<
         if ((Math.abs(e.deltaX) + 0.001) / (Math.abs(e.deltaY) + 0.001) > 0.5) {
           const targetStart = prevRange.start + e.deltaX * (rangeLength / 400);
           const targetEnd = targetStart + rangeLength;
-          if (targetEnd > prevWaveform.data.length) {
-            const start = Math.max(0, prevWaveform.data.length - rangeLength);
-            return {
-              start: start,
-              end: start + rangeLength,
-            };
-          } else if (targetStart < 0) {
-            const start = 0;
-            return {
-              start: start,
-              end: start + rangeLength,
-            };
-          } else {
-            const start = Math.floor(targetStart);
-            return {
-              start: start,
-              end: start + rangeLength,
-            };
-          }
+          return clampSection(
+            { start: targetStart, end: targetEnd },
+            { start: 0, end: localData.data.length }
+          );
         } else {
           const currentRange = prevRange.end - prevRange.start;
           const before =
@@ -253,7 +244,7 @@ export const WaveformCanvas: FC<
           const after = 1 - before;
 
           const targetRange = Math.max(
-            2,
+            Math.floor(minRangeThresholdValue),
             Math.min(
               prevWaveform.data.length,
               currentRange * (1 + -e.deltaY / 1000)
@@ -311,7 +302,9 @@ export const WaveformCanvas: FC<
     clickSelectThresholdValue,
     handlePosition,
     handleSelection,
+    localData.data.length,
     localData.range,
+    minRangeThresholdValue,
     selectRange,
     updateWaveform,
   ]);
