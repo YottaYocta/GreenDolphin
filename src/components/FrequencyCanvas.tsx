@@ -85,9 +85,8 @@ export const FrequencyCanvas: FC = () => {
           const intensity = Math.min(140, rawIntensity + 140);
           if (intensity > 10) {
             const base = (intensity * Math.pow(idx, 1 / 5)) / 2;
-            const barHeight = Math.sqrt(
-              Math.pow(base * base * base, base / 130)
-            );
+            const barHeight =
+              Math.sqrt(Math.pow(base * base * base, base / 130)) / 2;
 
             pitchCtx.fillStyle = fillStyle;
             pitchCtx.fillRect(
