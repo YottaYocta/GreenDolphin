@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { PlaybackContext } from "./PlaybackContext";
 import type { PlayState } from "./PlaybackContext";
 import { type Section } from "./lib/waveform";
+import { clampSection } from "./lib/util";
 
 export interface PlaybackProviderProps {
   context: AudioContext;
@@ -15,15 +16,18 @@ export const PlaybackProvider = ({
   context,
   data,
 }: PlaybackProviderProps) => {
+  /**
+   * the playback position in milliseconds
+   */
   const playbackPosition = useRef<number>(0);
   const lastTimeStamp = useRef<number>(0);
   const animationFrameId = useRef<number | undefined>(undefined);
+
   const [playState, setPlayState] = useState<PlayState>("paused");
   const [localData, setLocalData] = useState<AudioBuffer>(data);
   const [trigger, setTrigger] = useState<boolean>(false);
 
   const [looping, setLooping] = useState<boolean>(false);
-
   const [loop, setLoop] = useState<undefined | Section>();
 
   const sourceNode = useRef<AudioBufferSourceNode | undefined>(undefined);
@@ -102,20 +106,54 @@ export const PlaybackProvider = ({
   }, [data, stopCount]);
 
   useEffect(() => {
+    if (sourceNode.current) {
+      sourceNode.current.stop();
+      sourceNode.current.disconnect();
+      sourceNode.current = undefined;
+    }
+
     if (playState === "paused") {
-      if (sourceNode.current) {
-        stopCount();
-        sourceNode.current.stop();
-        sourceNode.current.disconnect();
-        sourceNode.current = undefined;
-      }
-    } else {
-      if (sourceNode.current) {
-        sourceNode.current.stop();
-        sourceNode.current.disconnect();
-        sourceNode.current = undefined;
+      stopCount();
+    } else if (playState === "frozen") {
+      stopCount();
+      const newSourceNode = context.createBufferSource();
+      const playbackPositionSamples = Math.floor(
+        (playbackPosition.current / 1000) * localData.sampleRate
+      );
+      const FREEZE_RANGE = 2000;
+      const clampedBufferRange = clampSection(
+        {
+          start: playbackPositionSamples - FREEZE_RANGE,
+          end: playbackPositionSamples + FREEZE_RANGE,
+        },
+        { start: 0, end: localData.length }
+      );
+      const newBufferLength = clampedBufferRange.end - clampedBufferRange.start;
+      const newBuffer = context.createBuffer(
+        localData.numberOfChannels,
+        newBufferLength,
+        localData.sampleRate
+      );
+
+      for (let i = 0; i < localData.numberOfChannels; i++) {
+        const channelData = localData.getChannelData(i);
+        const newChannelData = newBuffer.getChannelData(i);
+        for (let j = 0; j < newBufferLength; j++) {
+          newChannelData[j] = channelData[clampedBufferRange.start + j];
+        }
       }
 
+      newSourceNode.buffer = newBuffer;
+      newSourceNode.loop = true;
+      newSourceNode.connect(context.destination);
+      newSourceNode.start();
+      console.log(
+        newBuffer.length,
+        clampedBufferRange,
+        playbackPositionSamples
+      );
+      sourceNode.current = newSourceNode;
+    } else {
       const newSourceNode = context.createBufferSource();
       newSourceNode.buffer = localData;
       newSourceNode.connect(context.destination);
