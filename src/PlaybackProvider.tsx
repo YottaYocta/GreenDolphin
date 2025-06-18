@@ -120,7 +120,7 @@ export const PlaybackProvider = ({
       const playbackPositionSamples = Math.floor(
         (playbackPosition.current / 1000) * localData.sampleRate
       );
-      const FREEZE_RANGE = 6000;
+      const FREEZE_RANGE = 4000;
       const clampedBufferRange = clampSection(
         {
           start: playbackPositionSamples - FREEZE_RANGE,
