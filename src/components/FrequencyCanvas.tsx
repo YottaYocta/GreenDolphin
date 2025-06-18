@@ -78,7 +78,7 @@ export const FrequencyCanvas: FC = () => {
           PITCH_BUCKETS
         );
 
-        const pitchBarWidth = canvas.width / PITCH_BUCKETS.length;
+        const pitchBarWidth = canvas.width / (PITCH_BUCKETS.length - 3);
         const fillStyle = `rgb(25 202 147)`;
 
         groupedPitchData.forEach((rawIntensity, idx) => {
@@ -125,7 +125,7 @@ export const FrequencyCanvas: FC = () => {
   return (
     <canvas
       ref={canvasRef}
-      className="border rounded-xs border-neutral-300 pixelated w-full h-24"
+      className="border rounded-xs border-neutral-300 pixelated w-full h-32"
     ></canvas>
   );
 };
