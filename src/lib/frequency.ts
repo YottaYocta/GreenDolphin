@@ -1,4 +1,4 @@
-export type FrequencyData = Float32Array;
+export type FrequencyData = Float32Array<ArrayBuffer>;
 
 export interface FrequencyBucket {
   start: number;
@@ -62,7 +62,7 @@ export const groupFrequencies = (
       Math.min(fEnd, groupings[gIndex].end) -
       Math.max(fStart, groupings[gIndex].start);
 
-    console.log(overlap / (44100 / 2));
+    // console.log(overlap / (44100 / 2));
     // console.log(overlap);
     if (overlap > 0) {
       addAmplitude(result, gIndex, data[fIndex] * overlap);

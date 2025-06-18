@@ -1,6 +1,7 @@
 import { createContext } from "react";
 import type { RefObject } from "react";
 import type { Section } from "./lib/waveform";
+import type { FrequencyData } from "./lib/frequency";
 
 export type PlayState = "playing" | "paused" | "frozen";
 
@@ -13,6 +14,7 @@ export interface PlaybackContextType {
   setLooping: (looping: boolean) => void;
   loop: Section | undefined;
   setLoop: (section: Section) => void;
+  frequencyData: RefObject<FrequencyData | undefined>;
 }
 
 export const PlaybackContext = createContext<PlaybackContextType | undefined>(

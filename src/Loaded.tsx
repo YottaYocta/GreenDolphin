@@ -1,11 +1,4 @@
-import {
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type FC,
-} from "react";
+import { useContext, useEffect, useMemo, useState, type FC } from "react";
 import { formatSeconds } from "./lib/util";
 import { Button, ToggleButton } from "./components/buttons";
 import {
@@ -20,6 +13,7 @@ import {
 import { NumberInput } from "./components/NumberInput";
 import { type WaveformData } from "./lib/waveform";
 import { WaveformCanvas } from "./components/WaveformCanvas";
+import { FrequencyCanvas } from "./components/FrequencyCanvas";
 import { PlaybackContext } from "./PlaybackContext";
 
 export interface LoadedProps {
@@ -28,8 +22,6 @@ export interface LoadedProps {
 }
 
 export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
-  const waveformRef = useRef<HTMLCanvasElement>(null);
-
   const [pitchShift, setPitchShift] = useState<number>(0);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
 
@@ -105,12 +97,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
         </p>
       </div>
       <div className="w-full flex flex-col gap-16 md:gap-24">
-        <canvas
-          width={800}
-          height={100}
-          ref={waveformRef}
-          className="border rounded-xs border-neutral-300 pixelated w-full"
-        ></canvas>
+        <FrequencyCanvas></FrequencyCanvas>
         <div className="flex flex-col gap-2">
           <WaveformCanvas
             waveformData={{ data: data, range: { start: 0, end: data.length } }}

@@ -4,6 +4,7 @@ import { PlaybackContext } from "./PlaybackContext";
 import type { PlayState } from "./PlaybackContext";
 import { type Section } from "./lib/waveform";
 import { clampSection } from "./lib/util";
+import type { FrequencyData } from "./lib/frequency";
 
 export interface PlaybackProviderProps {
   context: AudioContext;
@@ -30,7 +31,55 @@ export const PlaybackProvider = ({
   const [looping, setLooping] = useState<boolean>(false);
   const [loop, setLoop] = useState<undefined | Section>();
 
+  const ANALYZER_BUFFER_LENGTH = 8192 * 4;
+
+  const analyzerNode = useRef<AnalyserNode | undefined>(undefined);
+  const frequencyData = useRef<FrequencyData>(
+    new Float32Array(ANALYZER_BUFFER_LENGTH)
+  );
+  const analyzerFrameId = useRef<number | undefined>(undefined);
+
   const sourceNode = useRef<AudioBufferSourceNode | undefined>(undefined);
+
+  const createAnalyzerNode = useCallback(
+    (context: AudioContext) => {
+      const newAnalyzer = context.createAnalyser();
+      newAnalyzer.minDecibels = -140;
+      newAnalyzer.maxDecibels = 0;
+      newAnalyzer.smoothingTimeConstant = 0.1;
+      newAnalyzer.fftSize = ANALYZER_BUFFER_LENGTH;
+      return newAnalyzer;
+    },
+    [ANALYZER_BUFFER_LENGTH]
+  );
+
+  const getFrequencyLoop = useCallback(() => {
+    if (analyzerNode.current) {
+      requestAnimationFrame(getFrequencyLoop);
+      analyzerNode.current.getFloatFrequencyData(frequencyData.current);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (analyzerNode.current) {
+      analyzerNode.current.disconnect();
+      analyzerNode.current = undefined;
+    }
+    analyzerNode.current = createAnalyzerNode(context);
+    analyzerNode.current.connect(context.destination);
+    analyzerFrameId.current = requestAnimationFrame(getFrequencyLoop);
+
+    return () => {
+      if (analyzerNode.current) {
+        analyzerNode.current.disconnect();
+        analyzerNode.current = undefined;
+      }
+      if (analyzerFrameId.current) {
+        cancelAnimationFrame(analyzerFrameId.current);
+        analyzerFrameId.current = undefined;
+      }
+    };
+  }, [context, createAnalyzerNode, getFrequencyLoop]);
 
   const triggerUpdate = useCallback(
     () => setTrigger((prevTrigger) => !prevTrigger),
@@ -112,6 +161,11 @@ export const PlaybackProvider = ({
       sourceNode.current = undefined;
     }
 
+    if (!analyzerNode.current) {
+      analyzerNode.current = createAnalyzerNode(context);
+      analyzerNode.current.connect(context.destination);
+    }
+
     if (playState === "paused") {
       stopCount();
     } else if (playState === "frozen") {
@@ -154,13 +208,13 @@ export const PlaybackProvider = ({
 
       newSourceNode.buffer = newBuffer;
       newSourceNode.loop = true;
-      newSourceNode.connect(context.destination);
+      newSourceNode.connect(analyzerNode.current);
       newSourceNode.start();
       sourceNode.current = newSourceNode;
     } else {
       const newSourceNode = context.createBufferSource();
       newSourceNode.buffer = localData;
-      newSourceNode.connect(context.destination);
+      newSourceNode.connect(analyzerNode.current);
 
       newSourceNode.onended = () => {
         if (sourceNode.current === newSourceNode) {
@@ -203,6 +257,7 @@ export const PlaybackProvider = ({
     trigger,
     looping,
     loop,
+    createAnalyzerNode,
   ]);
 
   return (
@@ -216,6 +271,7 @@ export const PlaybackProvider = ({
         setLooping,
         loop,
         setLoop,
+        frequencyData,
       }}
     >
       {children}
