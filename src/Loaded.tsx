@@ -56,7 +56,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
         if (playState === "paused") {
           setPlayState("playing");
         } else if (playState === "frozen") {
-          setPlayState("paused");
+          setPlayState("playing");
         } else {
           setPlayState("paused");
         }

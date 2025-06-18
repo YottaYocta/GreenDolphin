@@ -120,7 +120,7 @@ export const PlaybackProvider = ({
       const playbackPositionSamples = Math.floor(
         (playbackPosition.current / 1000) * localData.sampleRate
       );
-      const FREEZE_RANGE = 2000;
+      const FREEZE_RANGE = 6000;
       const clampedBufferRange = clampSection(
         {
           start: playbackPositionSamples - FREEZE_RANGE,
@@ -139,7 +139,16 @@ export const PlaybackProvider = ({
         const channelData = localData.getChannelData(i);
         const newChannelData = newBuffer.getChannelData(i);
         for (let j = 0; j < newBufferLength; j++) {
-          newChannelData[j] = channelData[clampedBufferRange.start + j];
+          const blendShifted = Math.abs(j / newBufferLength - 0.5) * 2;
+          const blendSource = 1 - blendShifted;
+          const shiftedIntensity =
+            channelData[
+              clampedBufferRange.start +
+                ((j + Math.floor(newBufferLength / 2)) % newBufferLength)
+            ] * blendShifted;
+          const sourceIntensity =
+            channelData[clampedBufferRange.start + j] * blendSource;
+          newChannelData[j] = shiftedIntensity + sourceIntensity;
         }
       }
 
@@ -147,11 +156,6 @@ export const PlaybackProvider = ({
       newSourceNode.loop = true;
       newSourceNode.connect(context.destination);
       newSourceNode.start();
-      console.log(
-        newBuffer.length,
-        clampedBufferRange,
-        playbackPositionSamples
-      );
       sourceNode.current = newSourceNode;
     } else {
       const newSourceNode = context.createBufferSource();
