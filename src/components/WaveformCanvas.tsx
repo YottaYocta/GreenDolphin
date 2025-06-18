@@ -112,7 +112,7 @@ export const WaveformCanvas: FC<
       (waveformData.section && waveformData.section !== localData.section) ||
       waveformData.data !== localData.data
     )
-      setLocalData({ ...waveformData });
+      setLocalData((prevData) => ({ ...waveformData, range: prevData.range }));
   }, [localData.data, localData.section, waveformData]);
 
   useEffect(() => {
@@ -294,6 +294,7 @@ export const WaveformCanvas: FC<
     canvasElement.addEventListener("mousedown", handleMouseDown);
     canvasElement.addEventListener("mousemove", handleMove);
     canvasElement.addEventListener("mouseup", handleMouseUp);
+    canvasElement.addEventListener("mouseleave", handleMouseUp);
     // console.log(`[ADD] Click/Press on ${canvasElement.nodeName}`);
 
     return () => {
@@ -305,6 +306,7 @@ export const WaveformCanvas: FC<
       canvasElement.removeEventListener("mousedown", handleMouseDown);
       canvasElement.removeEventListener("mousemove", handleMove);
       canvasElement.removeEventListener("mouseup", handleMouseUp);
+      canvasElement.removeEventListener("mouseleave", handleMouseUp);
       // console.log(`[REMOVE] Click/Press on ${canvasElement.nodeName}`);
     };
   }, [

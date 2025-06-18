@@ -100,7 +100,11 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
         <FrequencyCanvas></FrequencyCanvas>
         <div className="flex flex-col gap-2">
           <WaveformCanvas
-            waveformData={{ data: data, range: { start: 0, end: data.length } }}
+            waveformData={{
+              data: data,
+              range: { start: 0, end: data.length },
+              section: loop,
+            }}
             width={800}
             height={200}
             positionReference={playbackPosition}
@@ -116,6 +120,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
             positionReference={playbackPosition}
             animate={playState === "playing" || triggerUpdate}
             handlePosition={handlePosition}
+            handleSelection={(section) => setLoop(section)}
             allowZoomPan={false}
             className="border rounded-xs border-neutral-300 w-full"
           ></WaveformCanvas>
