@@ -121,6 +121,9 @@ export const WaveformCanvas: FC<
     }
   }, [updateWaveform]);
 
+  /**
+   * if cursor position is outside of range, scroll to include cursor position
+   */
   const checkScroll = useCallback(() => {
     if (positionReference && positionReference.current) {
       const sample =
@@ -128,8 +131,8 @@ export const WaveformCanvas: FC<
       if (sample > localData.range.end) {
         setRange((prevData, prevRange) => {
           const currentRangeLength = prevRange.end - prevRange.start;
-          const targetStart = prevRange.end;
-          const targetEnd = prevRange.end + currentRangeLength;
+          const targetStart = sample;
+          const targetEnd = targetStart + currentRangeLength;
           const clampedSection = clampSection(
             { start: targetStart, end: targetEnd },
             { start: 0, end: prevData.data.length }
@@ -139,7 +142,7 @@ export const WaveformCanvas: FC<
       } else if (sample < localData.range.start) {
         setRange((prevData, prevRange) => {
           const currentRangeLength = prevRange.end - prevRange.start;
-          const targetEnd = prevRange.start;
+          const targetEnd = sample;
           const targetStart = targetEnd - currentRangeLength;
           const clampedSection = clampSection(
             { start: targetStart, end: targetEnd },
