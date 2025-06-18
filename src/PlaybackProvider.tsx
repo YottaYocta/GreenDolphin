@@ -31,7 +31,7 @@ export const PlaybackProvider = ({
   const [looping, setLooping] = useState<boolean>(false);
   const [loop, setLoop] = useState<undefined | Section>();
 
-  const ANALYZER_BUFFER_LENGTH = 8192 * 4;
+  const ANALYZER_BUFFER_LENGTH = 8192 * 2;
 
   const analyzerNode = useRef<AnalyserNode | undefined>(undefined);
   const frequencyData = useRef<FrequencyData>(

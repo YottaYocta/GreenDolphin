@@ -51,6 +51,15 @@ export const FrequencyCanvas: FC = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    const setCanvasDimensions = () => {
+      // Set canvas drawing buffer size to match its display size
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    };
+
+    setCanvasDimensions(); // Set initial dimensions
+    window.addEventListener("resize", setCanvasDimensions);
+
     const pitchCtx = canvas.getContext("2d");
     if (!pitchCtx) return;
 
@@ -75,9 +84,9 @@ export const FrequencyCanvas: FC = () => {
         groupedPitchData.forEach((rawIntensity, idx) => {
           const intensity = Math.min(140, rawIntensity + 140);
           if (intensity > 10) {
-            const barHeight = Math.min(
-              canvas.height,
-              canvas.height * Math.pow(intensity / 140, 5) * 15
+            const base = (intensity * Math.pow(idx, 1 / 5)) / 2;
+            const barHeight = Math.sqrt(
+              Math.pow(base * base * base, base / 130)
             );
 
             pitchCtx.fillStyle = fillStyle;
@@ -89,9 +98,10 @@ export const FrequencyCanvas: FC = () => {
             );
 
             pitchCtx.fillStyle = `${fillStyle.slice(0, -1)} / ${Math.pow(
-              Math.max(0, barHeight - 30),
+              Math.max(0, barHeight - 10),
               2
             )}%)`;
+            pitchCtx.font = "16px Arial";
             pitchCtx.fillText(
               `${computeNoteName(idx)}`,
               idx * pitchBarWidth - pitchBarWidth,
@@ -108,15 +118,14 @@ export const FrequencyCanvas: FC = () => {
 
     return () => {
       cancelAnimationFrame(animationFrameId);
+      window.removeEventListener("resize", setCanvasDimensions);
     };
   }, [frequencyDataRef, PITCH_BUCKETS]);
 
   return (
     <canvas
       ref={canvasRef}
-      width={800}
-      height={100}
-      className="border rounded-xs border-neutral-300 pixelated w-full"
+      className="border rounded-xs border-neutral-300 pixelated w-full h-24"
     ></canvas>
   );
 };
