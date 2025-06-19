@@ -87,8 +87,8 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
   }, [triggerUpdate]);
 
   return (
-    <div className="w-full max-w-4xl h-full md:h-min p-4 py-8 md:p-8 bg-white flex flex-col justify-center gap-16 border border-neutral-300 rounded-xs">
-      <div className="w-full flex justify-between items-baseline border-b border-neutral-300 py-2">
+    <div className="w-full max-w-4xl h-full md:h-min p-4 py-8 md:p-8 bg-white flex flex-col justify-center gap-16 border border-neutral-2 rounded-xs">
+      <div className="w-full flex justify-between items-baseline border-b border-neutral-2 py-2">
         <p className="max-w-1/2 text-nowrap text-ellipsis overflow-hidden">
           {filename}
         </p>
@@ -111,7 +111,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
             animate={playState === "playing" || triggerUpdate}
             handlePosition={handlePosition}
             handleSelection={(section) => setLoop(section)}
-            className="border rounded-xs border-neutral-300 w-full"
+            className="border rounded-xs border-neutral-2 w-full"
           ></WaveformCanvas>
           <WaveformCanvas
             waveformData={navWaveformData}
@@ -122,7 +122,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
             handlePosition={handlePosition}
             handleSelection={(section) => setLoop(section)}
             allowZoomPan={false}
-            className="border rounded-xs border-neutral-300 w-full"
+            className="border rounded-xs border-neutral-2 w-full"
           ></WaveformCanvas>
         </div>
         <div className="flex flex-col gap-8 md:flex-row w-full justify-between items-center">
@@ -174,7 +174,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
               }
               text="5s"
               ariaLabel="rewind 5 seconds"
-              className="border border-neutral-300 pr-3 pl-2"
+              className="border border-neutral-2 pr-3 pl-2"
             ></Button>
             <ToggleButton
               pressed={playState === "playing"}
@@ -215,7 +215,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
               }
               text="5s"
               ariaLabel="rewind 5 seconds"
-              className="border border-neutral-300 pr-2 pl-3"
+              className="border border-neutral-2 pr-2 pl-3"
               iconPlacement="right"
             ></Button>
           </div>

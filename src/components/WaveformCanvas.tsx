@@ -326,7 +326,7 @@ export const WaveformCanvas: FC<
       <canvas {...props} ref={canvasRef}></canvas>
       {allowZoomPan ? (
         <div className="group flex flex-row gap-2 absolute bottom-1 right-1 z-10 w-min opacity-70 hover:opacity-100 focus:opacity-100 focus-within:opacity-100">
-          <div className="flex border border-neutral-300 hover:border-neutral-300 rounded-xs p-1 items-center opacity-70 bg-white group-hover:opacity-100 duration-75">
+          <div className="flex border border-neutral-2 hover:border-neutral-2 rounded-xs p-1 items-center opacity-70 bg-white group-hover:opacity-100 duration-75">
             <Button
               ariaLabel="zoom in"
               icon={<ZoomInIcon width={18} height={18}></ZoomInIcon>}
@@ -379,7 +379,7 @@ export const WaveformCanvas: FC<
               }}
             ></Button>
           </div>
-          <div className="flex border border-neutral-300 hover:border-neutral-300 rounded-xs p-1 items-center opacity-70 bg-white group-hover:opacity-100 duration-75">
+          <div className="flex border border-neutral-2 hover:border-neutral-2 rounded-xs p-1 items-center opacity-70 bg-white group-hover:opacity-100 duration-75">
             <Button
               ariaLabel="scroll left"
               icon={<ChevronLeftIcon width={18} height={18}></ChevronLeftIcon>}

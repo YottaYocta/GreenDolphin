@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@theme {
+  --color-neutral-2: #c7c7c7;
+}
+
 @layer utilities {
   .pixelated {
     image-rendering: pixelated;

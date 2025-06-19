@@ -124,7 +124,7 @@ export const FrequencyCanvas: FC = () => {
   return (
     <canvas
       ref={canvasRef}
-      className="border rounded-xs border-neutral-300 pixelated w-full h-32"
+      className="border rounded-xs border-neutral-2 pixelated w-full h-32"
     ></canvas>
   );
 };

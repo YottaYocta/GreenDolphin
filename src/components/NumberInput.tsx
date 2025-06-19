@@ -65,8 +65,8 @@ export const NumberInput: FC<NumberInputProps> = ({
   };
 
   return (
-    <div className="flex border border-neutral-300 rounded-xs">
-      <div className="flex items-center h-full border-r border-neutral-300 p-2">
+    <div className="flex border border-neutral-2 rounded-xs">
+      <div className="flex items-center h-full border-r border-neutral-2 p-2">
         {icon}
       </div>
       <div className="flex justify-center items-center px-2 gap-1">

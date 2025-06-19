@@ -49,7 +49,7 @@ function App() {
     </div>
   ) : (
     <div className="w-screen h-screen flex items-center justify-center">
-      <div className="w-min p-8 border border-neutral-300 rounded-xs flex flex-col justify-center items-center">
+      <div className="w-min p-8 border border-neutral-2 rounded-xs flex flex-col justify-center items-center">
         <LoadButton handleLoaded={handleLoaded}></LoadButton>
       </div>
     </div>

@@ -76,10 +76,10 @@ export const ToggleButton: FC<ToggleButtonProps> = ({
             ? `hover:bg-rose-100 bg-rose-50 border-rose-400 text-rose-700`
             : `hover:bg-blue-100 bg-blue-100 border-blue-400 text-blue-600`
           : accent === "positive"
-          ? "hover:bg-neutral-100 border-neutral-300 text-emerald-600 bg-white"
+          ? "hover:bg-neutral-100 border-neutral-2 text-emerald-600 bg-white"
           : accent === "negative"
-          ? "hover:bg-neutral-100 border-neutral-300 text-rose-500 bg-white"
-          : "hover:bg-neutral-100 border-neutral-300 text-blue-500 bg-white"
+          ? "hover:bg-neutral-100 border-neutral-2 text-rose-500 bg-white"
+          : "hover:bg-neutral-100 border-neutral-2 text-blue-500 bg-white"
       } p-2 rounded-full border h-min w-min flex-nowrap text-nowrap cursor-pointer ${className}`}
       onClick={onClick}
     >
@@ -96,7 +96,7 @@ export const LoadButton: FC<LoadButtonProps> = ({ handleLoaded }) => {
   return (
     <>
       <Button
-        className="border-neutral-300 border pl-2 pr-3"
+        className="border-neutral-2 border pl-2 pr-3"
         text="Load Recording"
         icon={<PlusIcon width={18} height={18} strokeWidth={1.5}></PlusIcon>}
         onClick={() => {
