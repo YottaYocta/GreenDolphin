@@ -17,6 +17,8 @@ export interface PlaybackContextType {
   frequencyData: RefObject<FrequencyData | undefined>;
   pitchShift: number;
   setPitchShift: (newPitchShift: number) => void;
+  playbackSpeed: number;
+  setPlaybackSpeed: (newPlaybackSpeed: number) => void;
 }
 
 export const PlaybackContext = createContext<PlaybackContextType | undefined>(

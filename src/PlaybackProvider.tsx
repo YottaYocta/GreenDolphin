@@ -58,6 +58,7 @@ export const PlaybackProvider = ({
   );
 
   const [pitchShift, setPitchShift] = useState<number>(0);
+  const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
 
   const getFrequencyLoop = useCallback(() => {
     if (analyzerNode.current) {
@@ -252,6 +253,7 @@ export const PlaybackProvider = ({
       const newSourceNode = context.createBufferSource();
       newSourceNode.buffer = newBuffer;
       newSourceNode.loop = true;
+      newSourceNode.playbackRate.value = playbackSpeed;
 
       connectSource(newSourceNode);
       newSourceNode.start();
@@ -283,6 +285,8 @@ export const PlaybackProvider = ({
         }
       } else newSourceNode.start(0, playbackPosition.current / 1000);
 
+      newSourceNode.playbackRate.value = playbackSpeed;
+
       startCount();
       connectSource(newSourceNode);
     }
@@ -299,6 +303,7 @@ export const PlaybackProvider = ({
     pitchShift,
     destroyChain,
     buildChain,
+    playbackSpeed,
   ]);
 
   return (
@@ -315,6 +320,8 @@ export const PlaybackProvider = ({
         frequencyData,
         pitchShift,
         setPitchShift,
+        playbackSpeed,
+        setPlaybackSpeed,
       }}
     >
       {children}

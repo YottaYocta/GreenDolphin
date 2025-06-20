@@ -22,8 +22,6 @@ export interface LoadedProps {
 }
 
 export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
-  const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
-
   const [triggerUpdate, setTriggerUpdate] = useState<boolean>(false);
 
   const playback = useContext(PlaybackContext);
@@ -41,6 +39,8 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
     setLoop,
     pitchShift,
     setPitchShift,
+    playbackSpeed,
+    setPlaybackSpeed,
   } = playback;
 
   useEffect(() => {
