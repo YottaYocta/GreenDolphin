@@ -55,13 +55,15 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
       } else if (e.key === "f") {
         if (playState === "frozen") setPlayState("paused");
         else setPlayState("frozen");
+      } else if (e.key === "l") {
+        setLooping(!looping);
       }
     };
     window.addEventListener("keypress", handleKey);
     return () => {
       window.removeEventListener("keypress", handleKey);
     };
-  }, [playState, setPlayState]);
+  }, [looping, playState, setLooping, setPlayState]);
 
   const navWaveformData: WaveformData = useMemo(() => {
     return {
