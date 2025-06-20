@@ -5,6 +5,8 @@ import type { PlayState } from "./PlaybackContext";
 import { type Section } from "./lib/waveform";
 import { clampSection } from "./lib/util";
 import type { FrequencyData } from "./lib/frequency";
+import { PitchShift } from "tone";
+import * as Tone from "tone";
 
 export interface PlaybackProviderProps {
   context: AudioContext;
@@ -39,6 +41,8 @@ export const PlaybackProvider = ({
   );
   const analyzerFrameId = useRef<number | undefined>(undefined);
 
+  const pitchShiftNode = useRef<PitchShift | undefined>(undefined);
+
   const sourceNode = useRef<AudioBufferSourceNode | undefined>(undefined);
 
   const createAnalyzerNode = useCallback(
@@ -62,26 +66,51 @@ export const PlaybackProvider = ({
     }
   }, []);
 
-  useEffect(() => {
+  const destroyChain = useCallback(() => {
+    if (sourceNode.current) {
+      sourceNode.current.stop();
+      sourceNode.current.disconnect();
+      sourceNode.current = undefined;
+    }
     if (analyzerNode.current) {
       analyzerNode.current.disconnect();
       analyzerNode.current = undefined;
     }
-    analyzerNode.current = createAnalyzerNode(context);
-    analyzerNode.current.connect(context.destination);
-    analyzerFrameId.current = requestAnimationFrame(getFrequencyLoop);
+    if (pitchShiftNode.current) {
+      pitchShiftNode.current.dispose();
+      pitchShiftNode.current = undefined;
+    }
+    if (analyzerFrameId.current) {
+      cancelAnimationFrame(analyzerFrameId.current);
+      analyzerFrameId.current = undefined;
+    }
+  }, []);
 
-    return () => {
-      if (analyzerNode.current) {
-        analyzerNode.current.disconnect();
-        analyzerNode.current = undefined;
-      }
-      if (analyzerFrameId.current) {
-        cancelAnimationFrame(analyzerFrameId.current);
-        analyzerFrameId.current = undefined;
-      }
-    };
-  }, [context, createAnalyzerNode, getFrequencyLoop]);
+  const buildChain = useCallback(
+    (sourceData: AudioBuffer): AudioBufferSourceNode => {
+      destroyChain();
+
+      const newSource = context.createBufferSource();
+      newSource.buffer = sourceData;
+      const newAnalzyer = createAnalyzerNode(context);
+      const newPitchShift = new PitchShift();
+
+      Tone.connectSeries(
+        newSource,
+        newAnalzyer,
+        newPitchShift,
+        context.destination
+      );
+
+      sourceNode.current = newSource;
+      analyzerNode.current = newAnalzyer;
+      analyzerFrameId.current = requestAnimationFrame(getFrequencyLoop);
+      pitchShiftNode.current = newPitchShift;
+      return newSource;
+    },
+
+    [context, createAnalyzerNode, destroyChain, getFrequencyLoop]
+  );
 
   const triggerUpdate = useCallback(
     () => setTrigger((prevTrigger) => !prevTrigger),
@@ -157,22 +186,12 @@ export const PlaybackProvider = ({
   }, [data, stopCount]);
 
   useEffect(() => {
-    if (sourceNode.current) {
-      sourceNode.current.stop();
-      sourceNode.current.disconnect();
-      sourceNode.current = undefined;
-    }
-
-    if (!analyzerNode.current) {
-      analyzerNode.current = createAnalyzerNode(context);
-      analyzerNode.current.connect(context.destination);
-    }
+    destroyChain();
 
     if (playState === "paused") {
       stopCount();
     } else if (playState === "frozen") {
       stopCount();
-      const newSourceNode = context.createBufferSource();
       const playbackPositionSamples = Math.floor(
         (playbackPosition.current / 1000) * localData.sampleRate
       );
@@ -208,23 +227,12 @@ export const PlaybackProvider = ({
         }
       }
 
-      newSourceNode.buffer = newBuffer;
-      newSourceNode.loop = true;
-      newSourceNode.connect(analyzerNode.current);
-      newSourceNode.start();
-      sourceNode.current = newSourceNode;
+      buildChain(newBuffer).start();
     } else {
-      const newSourceNode = context.createBufferSource();
-      newSourceNode.buffer = localData;
-      newSourceNode.connect(analyzerNode.current);
+      const newSourceNode = buildChain(localData);
 
       newSourceNode.onended = () => {
-        if (sourceNode.current === newSourceNode) {
-          sourceNode.current.stop();
-          sourceNode.current.disconnect();
-          sourceNode.current = undefined;
-          setPlayState("paused");
-        }
+        setPlayState("paused");
       };
 
       if (looping) {
@@ -247,19 +255,19 @@ export const PlaybackProvider = ({
         }
       } else newSourceNode.start(0, playbackPosition.current / 1000);
 
-      sourceNode.current = newSourceNode;
       startCount();
     }
   }, [
+    buildChain,
     context,
+    destroyChain,
     localData,
+    loop,
+    looping,
     playState,
     startCount,
     stopCount,
     trigger,
-    looping,
-    loop,
-    createAnalyzerNode,
   ]);
 
   return (

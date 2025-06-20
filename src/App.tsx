@@ -5,6 +5,7 @@ import {
   PlaybackProvider,
   type PlaybackProviderProps,
 } from "./PlaybackProvider";
+import * as Tone from "tone";
 
 function App() {
   const [loadedProps, setLoadedProps] = useState<LoadedProps | undefined>();
@@ -16,19 +17,24 @@ function App() {
     const fileReader = new FileReader();
     fileReader.addEventListener("loadend", async () => {
       if (fileReader.result instanceof ArrayBuffer) {
-        if (playbackProps?.context) {
-          playbackProps.context.close();
-        }
-        const newAudioContext = new AudioContext();
+        const newAudioContext = new Tone.Context();
+        console.log(`[${new Date().toTimeString()}] AudioContext Created`);
+        console.log(`[${new Date().toTimeString()}] Start Loading File`);
         const newData = await newAudioContext.decodeAudioData(
           fileReader.result
         );
+        console.log(
+          `[${new Date().toTimeString()}] Finished Loading Audio File!`
+        );
+        console.log(`[${new Date().toTimeString()}] Starting Tone.js`);
+        Tone.setContext(newAudioContext);
+        console.log(`[${new Date().toTimeString()}] Tone.js Started`);
         setLoadedProps({
           data: newData,
           filename: file.name,
         });
         setPlaybackProps({
-          context: newAudioContext,
+          context: newAudioContext.rawContext as AudioContext,
           data: newData,
         });
       }
