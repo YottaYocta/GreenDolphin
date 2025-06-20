@@ -198,6 +198,10 @@ export const PlaybackProvider = ({
   }, [data, stopCount]);
 
   useEffect(() => {
+    if (pitchShiftNode.current) {
+      pitchShiftNode.current.pitch = pitchShift;
+    }
+
     if (playState === "paused") {
       stopCount();
       if (sourceNode.current) {
@@ -288,6 +292,7 @@ export const PlaybackProvider = ({
     trigger,
     startCount,
     stopCount,
+    pitchShift,
   ]);
 
   return (
