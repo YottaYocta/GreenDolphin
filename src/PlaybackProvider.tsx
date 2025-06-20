@@ -92,7 +92,7 @@ export const PlaybackProvider = ({
     const newAnalzyer = createAnalyzerNode(context);
     const newPitchShift = new PitchShift();
 
-    Tone.connectSeries(newAnalzyer, newPitchShift, context.destination);
+    Tone.connectSeries(newPitchShift, newAnalzyer, context.destination);
 
     analyzerNode.current = newAnalzyer;
     analyzerFrameId.current = requestAnimationFrame(getFrequencyLoop);
@@ -107,12 +107,12 @@ export const PlaybackProvider = ({
         sourceNode.current = undefined;
       }
 
-      if (analyzerNode.current) {
-        Tone.connect(newSourceNode, analyzerNode.current);
+      if (pitchShiftNode.current) {
+        Tone.connect(newSourceNode, pitchShiftNode.current);
       } else {
         destroyChain();
-        const [newAnalzyerNode] = buildChain();
-        Tone.connect(newSourceNode, newAnalzyerNode);
+        const [, newPitchShift] = buildChain();
+        Tone.connect(newSourceNode, newPitchShift);
       }
       sourceNode.current = newSourceNode;
     },
@@ -200,6 +200,10 @@ export const PlaybackProvider = ({
   useEffect(() => {
     if (pitchShiftNode.current) {
       pitchShiftNode.current.pitch = pitchShift;
+    } else {
+      destroyChain();
+      const [, newPitchShift] = buildChain();
+      newPitchShift.pitch = pitchShift;
     }
 
     if (playState === "paused") {
@@ -293,6 +297,8 @@ export const PlaybackProvider = ({
     startCount,
     stopCount,
     pitchShift,
+    destroyChain,
+    buildChain,
   ]);
 
   return (
