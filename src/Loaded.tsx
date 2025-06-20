@@ -22,7 +22,6 @@ export interface LoadedProps {
 }
 
 export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
-  const [pitchShift, setPitchShift] = useState<number>(0);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
 
   const [triggerUpdate, setTriggerUpdate] = useState<boolean>(false);
@@ -40,6 +39,8 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
     looping,
     setLooping,
     setLoop,
+    pitchShift,
+    setPitchShift,
   } = playback;
 
   useEffect(() => {
@@ -131,27 +132,17 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
           <div className="flex items-center gap-2">
             <div className="flex flex-col gap-2 md:flex-row">
               <NumberInput
-                icon={
-                  <MusicIcon
-                    width={18}
-                    height={18}
-                    className="text-neutral-500"
-                  ></MusicIcon>
-                }
+                icon={<MusicIcon width={18} height={18}></MusicIcon>}
                 value={pitchShift}
+                defaultValue={0}
                 step={0.2}
                 handleChange={(value) => setPitchShift(value)}
                 for="pitch"
               />
               <NumberInput
-                icon={
-                  <GaugeIcon
-                    width={18}
-                    height={18}
-                    className="text-neutral-500"
-                  ></GaugeIcon>
-                }
+                icon={<GaugeIcon width={18} height={18}></GaugeIcon>}
                 value={playbackSpeed}
+                defaultValue={1}
                 step={0.1}
                 min={0.1}
                 max={3}

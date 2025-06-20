@@ -15,6 +15,8 @@ export interface PlaybackContextType {
   loop: Section | undefined;
   setLoop: (section: Section) => void;
   frequencyData: RefObject<FrequencyData | undefined>;
+  pitchShift: number;
+  setPitchShift: (newPitchShift: number) => void;
 }
 
 export const PlaybackContext = createContext<PlaybackContextType | undefined>(

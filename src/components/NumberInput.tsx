@@ -10,6 +10,7 @@ interface NumberInputProps {
   max?: number;
   step?: number;
   for?: string;
+  defaultValue?: number;
 }
 
 export const NumberInput: FC<NumberInputProps> = ({
@@ -20,6 +21,7 @@ export const NumberInput: FC<NumberInputProps> = ({
   value,
   step = 1,
   for: forLabel,
+  defaultValue,
 }) => {
   const [renderedValue, setRenderedValue] = useState(value);
 
@@ -65,8 +67,20 @@ export const NumberInput: FC<NumberInputProps> = ({
   };
 
   return (
-    <div className="flex border border-neutral-2 rounded-xs">
-      <div className="flex items-center h-full border-r border-neutral-2 p-2">
+    <div
+      className={`flex border rounded-xs ${
+        defaultValue !== undefined && value !== defaultValue
+          ? "bg-emerald-50 border-emerald-500"
+          : "bg-white border-neutral-2"
+      }`}
+    >
+      <div
+        className={`flex items-center h-full border-r p-2 ${
+          defaultValue !== undefined && value !== defaultValue
+            ? "border-emerald-500 text-emerald-700"
+            : "border-neutral-2 text-emerald-600"
+        }`}
+      >
         {icon}
       </div>
       <div className="flex justify-center items-center px-2 gap-1">
@@ -89,7 +103,11 @@ export const NumberInput: FC<NumberInputProps> = ({
               : renderedValue
             ).toString().length - 2
           }
-          className="no-spinner text-center"
+          className={`no-spinner text-center ${
+            defaultValue !== undefined && value !== defaultValue
+              ? "text-emerald-700"
+              : "text-neutral-900"
+          }`}
           onInput={(e) => {
             setRenderedValue(
               Number.isNaN(e.currentTarget.valueAsNumber)

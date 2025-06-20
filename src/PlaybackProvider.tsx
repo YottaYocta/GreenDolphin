@@ -53,6 +53,8 @@ export const PlaybackProvider = ({
     [ANALYZER_BUFFER_LENGTH]
   );
 
+  const [pitchShift, setPitchShift] = useState<number>(0);
+
   const getFrequencyLoop = useCallback(() => {
     if (analyzerNode.current) {
       requestAnimationFrame(getFrequencyLoop);
@@ -272,6 +274,8 @@ export const PlaybackProvider = ({
         loop,
         setLoop,
         frequencyData,
+        pitchShift,
+        setPitchShift,
       }}
     >
       {children}
