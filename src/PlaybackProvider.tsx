@@ -67,6 +67,9 @@ export const PlaybackProvider = ({
     }
   }, []);
 
+  /**
+   * disposes of post-processing chain and source node
+   */
   const destroyChain = useCallback(() => {
     if (sourceNode.current) {
       sourceNode.current.stop();
@@ -87,11 +90,15 @@ export const PlaybackProvider = ({
     }
   }, []);
 
+  /**
+   * creates the post-processing chain (analyzer, pitchshift) and connects them
+   */
   const buildChain = useCallback((): [AnalyserNode, PitchShift] => {
     destroyChain();
 
     const newAnalzyer = createAnalyzerNode(context);
-    const newPitchShift = new PitchShift();
+    const newPitchShift = new PitchShift(pitchShift);
+    newPitchShift.windowSize = 0.15;
 
     Tone.connectSeries(newPitchShift, newAnalzyer, context.destination);
 
@@ -99,7 +106,7 @@ export const PlaybackProvider = ({
     analyzerFrameId.current = requestAnimationFrame(getFrequencyLoop);
     pitchShiftNode.current = newPitchShift;
     return [newAnalzyer, newPitchShift];
-  }, [context, createAnalyzerNode, destroyChain, getFrequencyLoop]);
+  }, [context, createAnalyzerNode, destroyChain, getFrequencyLoop, pitchShift]);
 
   const connectSource = useCallback(
     (newSourceNode: AudioBufferSourceNode) => {
