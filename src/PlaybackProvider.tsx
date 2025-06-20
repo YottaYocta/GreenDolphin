@@ -86,31 +86,43 @@ export const PlaybackProvider = ({
     }
   }, []);
 
-  const buildChain = useCallback(
-    (sourceData: AudioBuffer): AudioBufferSourceNode => {
-      destroyChain();
+  const buildChain = useCallback((): [AnalyserNode, PitchShift] => {
+    destroyChain();
 
-      const newSource = context.createBufferSource();
-      newSource.buffer = sourceData;
-      const newAnalzyer = createAnalyzerNode(context);
-      const newPitchShift = new PitchShift();
+    const newAnalzyer = createAnalyzerNode(context);
+    const newPitchShift = new PitchShift();
 
-      Tone.connectSeries(
-        newSource,
-        newAnalzyer,
-        newPitchShift,
-        context.destination
-      );
+    Tone.connectSeries(newAnalzyer, newPitchShift, context.destination);
 
-      sourceNode.current = newSource;
-      analyzerNode.current = newAnalzyer;
-      analyzerFrameId.current = requestAnimationFrame(getFrequencyLoop);
-      pitchShiftNode.current = newPitchShift;
-      return newSource;
+    analyzerNode.current = newAnalzyer;
+    analyzerFrameId.current = requestAnimationFrame(getFrequencyLoop);
+    pitchShiftNode.current = newPitchShift;
+    return [newAnalzyer, newPitchShift];
+  }, [context, createAnalyzerNode, destroyChain, getFrequencyLoop]);
+
+  const connectSource = useCallback(
+    (newSourceNode: AudioBufferSourceNode) => {
+      if (sourceNode.current) {
+        sourceNode.current.disconnect();
+        sourceNode.current = undefined;
+      }
+
+      if (analyzerNode.current) {
+        Tone.connect(newSourceNode, analyzerNode.current);
+      } else {
+        destroyChain();
+        const [newAnalzyerNode] = buildChain();
+        Tone.connect(newSourceNode, newAnalzyerNode);
+      }
+      sourceNode.current = newSourceNode;
     },
-
-    [context, createAnalyzerNode, destroyChain, getFrequencyLoop]
+    [buildChain, destroyChain]
   );
+
+  useEffect(() => {
+    buildChain();
+    return () => destroyChain();
+  }, [buildChain, destroyChain]);
 
   const triggerUpdate = useCallback(
     () => setTrigger((prevTrigger) => !prevTrigger),
@@ -186,10 +198,12 @@ export const PlaybackProvider = ({
   }, [data, stopCount]);
 
   useEffect(() => {
-    destroyChain();
-
     if (playState === "paused") {
       stopCount();
+      if (sourceNode.current) {
+        sourceNode.current.disconnect();
+        sourceNode.current = undefined;
+      }
     } else if (playState === "frozen") {
       stopCount();
       const playbackPositionSamples = Math.floor(
@@ -227,9 +241,15 @@ export const PlaybackProvider = ({
         }
       }
 
-      buildChain(newBuffer).start();
+      const newSourceNode = context.createBufferSource();
+      newSourceNode.buffer = newBuffer;
+      newSourceNode.loop = true;
+
+      connectSource(newSourceNode);
+      newSourceNode.start();
     } else {
-      const newSourceNode = buildChain(localData);
+      const newSourceNode = context.createBufferSource();
+      newSourceNode.buffer = localData;
 
       newSourceNode.onended = () => {
         setPlayState("paused");
@@ -256,18 +276,18 @@ export const PlaybackProvider = ({
       } else newSourceNode.start(0, playbackPosition.current / 1000);
 
       startCount();
+      connectSource(newSourceNode);
     }
   }, [
-    buildChain,
+    connectSource,
     context,
-    destroyChain,
     localData,
     loop,
     looping,
     playState,
+    trigger,
     startCount,
     stopCount,
-    trigger,
   ]);
 
   return (
