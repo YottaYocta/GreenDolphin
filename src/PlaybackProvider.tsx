@@ -163,7 +163,8 @@ export const PlaybackProvider = ({
 
   const tick = useCallback(() => {
     const now = performance.now();
-    const next = playbackPosition.current + (now - lastTimeStamp.current);
+    const next =
+      playbackPosition.current + (now - lastTimeStamp.current) * playbackSpeed;
 
     if (looping) {
       if (loop) {
@@ -199,7 +200,7 @@ export const PlaybackProvider = ({
         animationFrameId.current = requestAnimationFrame(tick);
       }
     }
-  }, [localData.duration, localData.sampleRate, loop, looping]);
+  }, [localData.duration, localData.sampleRate, loop, looping, playbackSpeed]);
 
   const startCount = useCallback(() => {
     stopCount();
@@ -216,12 +217,20 @@ export const PlaybackProvider = ({
 
   useEffect(() => {
     if (pitchShiftNode.current) {
-      pitchShiftNode.current.pitch =
-        pitchShift + getInverseShift(playbackSpeed);
+      if (playState === "frozen") {
+        pitchShiftNode.current.pitch = pitchShift;
+      } else {
+        pitchShiftNode.current.pitch =
+          pitchShift + getInverseShift(playbackSpeed);
+      }
     } else {
       destroyChain();
       const [, newPitchShift] = buildChain();
-      newPitchShift.pitch = pitchShift + getInverseShift(playbackSpeed);
+      if (playState === "frozen") {
+        newPitchShift.pitch = pitchShift;
+      } else {
+        newPitchShift.pitch = pitchShift + getInverseShift(playbackSpeed);
+      }
     }
 
     if (playState === "paused") {
@@ -270,7 +279,6 @@ export const PlaybackProvider = ({
       const newSourceNode = context.createBufferSource();
       newSourceNode.buffer = newBuffer;
       newSourceNode.loop = true;
-      newSourceNode.playbackRate.value = playbackSpeed;
 
       connectSource(newSourceNode);
       newSourceNode.start();
