@@ -100,7 +100,7 @@ export const PlaybackProvider = ({
     const newPitchShift = new PitchShift(
       pitchShift - getInverseShift(playbackSpeed)
     );
-    newPitchShift.windowSize = 0.15;
+    newPitchShift.windowSize = 0.1;
 
     Tone.connectSeries(newPitchShift, newAnalzyer, context.destination);
 
@@ -215,7 +215,6 @@ export const PlaybackProvider = ({
   }, [data, stopCount]);
 
   useEffect(() => {
-    console.log(pitchShift, getInverseShift(playbackSpeed), playbackSpeed);
     if (pitchShiftNode.current) {
       pitchShiftNode.current.pitch =
         pitchShift + getInverseShift(playbackSpeed);
