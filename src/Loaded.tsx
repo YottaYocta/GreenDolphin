@@ -136,7 +136,9 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
                 value={pitchShift}
                 defaultValue={0}
                 step={0.2}
-                handleChange={(value) => setPitchShift(value)}
+                handleChange={(value) =>
+                  setPitchShift(Math.round(value * 10) / 10)
+                }
                 for="pitch"
               />
               <NumberInput
@@ -146,7 +148,9 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
                 step={0.1}
                 min={0.1}
                 max={3}
-                handleChange={(value) => setPlaybackSpeed(value)}
+                handleChange={(value) =>
+                  setPlaybackSpeed(Math.round(value * 10) / 10)
+                }
                 for="tempo"
               />
             </div>
