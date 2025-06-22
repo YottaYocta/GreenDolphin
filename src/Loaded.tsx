@@ -99,7 +99,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
           {formatSeconds(data.duration)}
         </p>
       </div>
-      <div className="w-full flex flex-col gap-16 md:gap-24">
+      <div className="w-full flex flex-col gap-12 md:gap-20">
         <FrequencyCanvas></FrequencyCanvas>
         <div className="flex flex-col gap-2">
           <WaveformCanvas
