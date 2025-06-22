@@ -43,7 +43,7 @@ function App() {
   };
 
   return loadedProps && playbackProps ? (
-    <div className="w-screen h-screen flex items-center justify-center bg-neutral-50">
+    <div className="w-screen h-screen flex items-center justify-center bg-neutral-100">
       <div className="w-full h-full flex items-center justify-center md:pb-16">
         <PlaybackProvider {...playbackProps}>
           <Loaded {...loadedProps}></Loaded>

@@ -90,7 +90,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
   }, [triggerUpdate]);
 
   return (
-    <div className="w-full max-w-4xl h-full md:h-min p-4 py-8 md:p-8 bg-white flex flex-col justify-center gap-16 border border-neutral-2 rounded-xs">
+    <div className="w-full max-w-[800px] h-full md:h-min p-4 py-8 md:p-8 bg-white flex flex-col justify-center gap-16 border border-neutral-2 rounded-xs shadow-md">
       <div className="w-full flex justify-between items-baseline border-b border-neutral-2 py-2">
         <p className="max-w-1/2 text-nowrap text-ellipsis overflow-hidden">
           {filename}
