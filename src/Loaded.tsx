@@ -172,6 +172,10 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
               text="5s"
               ariaLabel="rewind 5 seconds"
               className="border border-neutral-2 pr-3 pl-2"
+              onClick={() => {
+                const targetMS = Math.max(0, playbackPosition.current - 5000);
+                setPosition(targetMS);
+              }}
             ></Button>
             <ToggleButton
               pressed={playState === "playing"}
@@ -211,9 +215,13 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
                 <ChevronsRightIcon width={18} height={18}></ChevronsRightIcon>
               }
               text="5s"
-              ariaLabel="rewind 5 seconds"
+              ariaLabel="fast forward5 seconds"
               className="border border-neutral-2 pr-2 pl-3"
               iconPlacement="right"
+              onClick={() => {
+                const targetMS = Math.max(0, playbackPosition.current + 5000);
+                setPosition(targetMS);
+              }}
             ></Button>
           </div>
         </div>
