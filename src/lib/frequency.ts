@@ -75,3 +75,84 @@ export const groupFrequencies = (
   }
   return result;
 };
+
+const QUARTER_STEP_RATIO = Math.pow(2, 1 / 24);
+
+const computeFrequency = (pitchIndex: number) => {
+  return 440 * Math.pow(2, (1 / 12) * (pitchIndex - 57));
+};
+
+const computeNoteName = (pitchIndex: number) => {
+  const notes = [
+    "c",
+    "db",
+    "d",
+    "eb",
+    "e",
+    "f",
+    "gb",
+    "g",
+    "ab",
+    "a",
+    "bb",
+    "b",
+  ];
+
+  const octave = Math.floor(pitchIndex / 12);
+  const noteIndex = pitchIndex % 12;
+  return `${notes[noteIndex]}${octave}`;
+};
+
+const generatePitchBuckets = () => {
+  const buckets: FrequencyBucket[] = [];
+  // C0 to C8 covers 9 octaves, 12 notes per octave = 108 notes
+  // idx 0 is C0, idx 107 is B8
+  for (let i = 0; i < 108; i++) {
+    const freq = computeFrequency(i);
+    const start = freq / QUARTER_STEP_RATIO;
+    const end = freq * QUARTER_STEP_RATIO;
+    buckets.push({ start, end });
+  }
+  return buckets;
+};
+
+export const PITCH_BUCKETS = generatePitchBuckets();
+
+export const drawFrequencyNoteBars = (
+  pitches: FrequencyData,
+  canvas: HTMLCanvasElement
+) => {
+  const pitchBarWidth = canvas.width / (PITCH_BUCKETS.length - 3);
+  const fillStyle = `rgb(25 202 147)`;
+  const pitchCtx = canvas.getContext("2d");
+  if (!pitchCtx) return;
+
+  pitchCtx.clearRect(0, 0, canvas.width, canvas.height);
+
+  pitches.forEach((rawIntensity, idx) => {
+    const intensity = Math.min(140, rawIntensity + 140);
+    if (intensity > 10) {
+      const base = (intensity * Math.pow(idx, 1 / 5)) / 2;
+      const barHeight = Math.sqrt(Math.pow(base * base * base, base / 130)) / 2;
+
+      pitchCtx.fillStyle = fillStyle;
+      pitchCtx.fillRect(
+        idx * pitchBarWidth,
+        canvas.height - barHeight / 2,
+        pitchBarWidth,
+        barHeight / 2
+      );
+
+      pitchCtx.fillStyle = `${fillStyle.slice(0, -1)} / ${Math.pow(
+        Math.max(0, barHeight - 10),
+        2
+      )}%)`;
+      pitchCtx.font = "16px Arial";
+      pitchCtx.fillText(
+        `${computeNoteName(idx)}`,
+        idx * pitchBarWidth - pitchBarWidth,
+        canvas.height - barHeight / 2 - 2
+      );
+    }
+  });
+};
