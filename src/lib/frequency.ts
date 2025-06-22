@@ -224,7 +224,9 @@ export const drawFrequencyPiano = (
         // drawing c and f
         pitchCtx.fillStyle = "rgb(256, 256, 256)";
         pitchCtx.fillRect(idx * keyWidth, canvas.height / 2, 1, keyWidth * 6);
-        pitchCtx.fillStyle = "rgb(20, 20, 20)";
+
+        if (idx % 12 === 0) pitchCtx.fillStyle = "rgb(100 100 100)";
+        else pitchCtx.fillStyle = "rgb(200 200 200)";
         pitchCtx.fillRect(
           Math.floor(idx * keyWidth),
           canvas.height / 2,
@@ -282,13 +284,22 @@ export const drawFrequencyPiano = (
       }
       default: {
         // drawing black keys
-        pitchCtx.fillStyle = "rgb(100, 100, 100)";
+        pitchCtx.fillStyle = "rgb(200 200 200)";
         pitchCtx.fillRect(
           idx * keyWidth + keyWidth / 2,
           canvas.height / 2,
           1,
           whiteKeyHeight
         );
+
+        pitchCtx.fillStyle = "rgb(100 100 100)";
+        pitchCtx.fillRect(
+          idx * keyWidth,
+          canvas.height / 2,
+          keyWidth,
+          blackKeyHeight
+        );
+
         // const intensityScaled = Math.pow(
         //   Math.max(0, Math.min(140, intensity)) / 140,
         //   2
@@ -308,22 +319,15 @@ export const drawFrequencyPiano = (
         // } else {
         //   pitchCtx.fillStyle = "rgb(50, 50, 50)";
         // }
-        pitchCtx.fillStyle = "rgb(50, 50, 50)";
-        pitchCtx.fillRect(
-          idx * keyWidth,
-          canvas.height / 2,
-          keyWidth,
-          blackKeyHeight
-        );
-
         break;
       }
     }
   });
 
-  pitchCtx.fillStyle = "rgb(100, 100, 100)";
+  pitchCtx.fillStyle = "rgb(200 200 200)";
   pitchCtx.fillRect(0, canvas.height / 2, canvas.width, 1);
   pitchCtx.fillRect(0, canvas.height / 2 + whiteKeyHeight - 1, canvas.width, 1);
   pitchCtx.fillRect(canvas.width - 1, canvas.height / 2, 1, whiteKeyHeight);
+  pitchCtx.fillStyle = "rgb(100 100 100)";
   pitchCtx.fillRect(0, canvas.height / 2, 1, whiteKeyHeight);
 };
