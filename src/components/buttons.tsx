@@ -11,6 +11,7 @@ export interface ButtonProps {
   onClick?: () => void;
   className?: string;
   ariaLabel?: string;
+  tooltip?: string;
   iconPlacement?: "left" | "right";
 }
 
@@ -20,6 +21,7 @@ export const Button: FC<ButtonProps> = ({
   onClick,
   className,
   ariaLabel,
+  tooltip,
   iconPlacement = "left", // Default to left
 }) => {
   return (
@@ -27,6 +29,7 @@ export const Button: FC<ButtonProps> = ({
       aria-label={ariaLabel}
       className={`hover:bg-neutral-100 p-1 rounded-full h-min w-min flex items-center justify-center text-center gap-1 flex-nowrap text-nowrap cursor-pointer ${className}`}
       onClick={onClick}
+      title={tooltip}
     >
       {iconPlacement === "left" && (
         <span className="text-neutral-500 text-center flex items-center justify-center w-min">
@@ -52,6 +55,7 @@ export interface ToggleButtonProps {
   ariaLabel?: string;
   accent?: "positive" | "primary" | "negative";
   iconPlacement?: "left" | "right";
+  tooltip?: string;
 }
 
 export const ToggleButton: FC<ToggleButtonProps> = ({
@@ -63,11 +67,13 @@ export const ToggleButton: FC<ToggleButtonProps> = ({
   ariaLabel,
   accent,
   iconPlacement = "left",
+  tooltip,
 }) => {
   return (
     <button
       aria-pressed={pressed}
       aria-label={ariaLabel}
+      title={tooltip}
       className={`${
         pressed
           ? accent === "positive"
@@ -96,7 +102,7 @@ export const LoadButton: FC<LoadButtonProps> = ({ handleLoaded }) => {
   return (
     <>
       <Button
-        className="border-neutral-2 border pl-2 pr-3"
+        className="border-neutral-2 border pl-2 pr-3 bg-neutral-50 hover:bg-white"
         text="Load Recording"
         icon={<PlusIcon width={18} height={18} strokeWidth={1.5}></PlusIcon>}
         onClick={() => {

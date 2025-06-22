@@ -49,14 +49,29 @@ function App() {
           <Loaded {...loadedProps}></Loaded>
         </PlaybackProvider>
       </div>
-      <div className="absolute z-10 right-2 top-2 h-min w-min">
+      <div className="absolute z-10 right-3 top-3 h-min w-min">
         <LoadButton handleLoaded={handleLoaded}></LoadButton>
       </div>
     </div>
   ) : (
-    <div className="w-screen h-screen flex items-center justify-center">
-      <div className="w-min p-8 border border-neutral-2 rounded-xs flex flex-col justify-center items-center">
+    <div className="w-screen h-screen flex items-center justify-center bg-neutral-100">
+      <div className="w-min p-10 border border-neutral-2 rounded-xs flex flex-col justify-center items-center bg-white shadow-md gap-8">
+        <div className="flex flex-col items-center">
+          <h1 className="text-2xl text-nowrap text-neutral-800">
+            Welcome to{" "}
+            <span className="text-emerald-600 text-shadow-emerald-100 text-shadow-lg">
+              GreenDolphin
+            </span>
+          </h1>
+          <p className="text-neutral-500">Virtuosic Music Transcription</p>
+        </div>
+        <hr className="text-neutral-200 w-full"></hr>
         <LoadButton handleLoaded={handleLoaded}></LoadButton>
+      </div>
+      <div className="absolute w-full flex items-center justify-center bottom-4">
+        <p className="text-neutral-400">
+          Version <em>Alpha-1</em>, source code licensed under <em>GPL 3</em>
+        </p>
       </div>
     </div>
   );

@@ -162,6 +162,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
                 setLooping(!looping);
               }}
               ariaLabel="loop playback"
+              tooltip="Toggle Loop (l)"
             ></ToggleButton>
           </div>
           <div className="flex justify-between items-center gap-2">
@@ -183,12 +184,13 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
                 if (playState === "playing") setPlayState("paused");
                 else setPlayState("playing");
               }}
-              className="p-3"
+              className="md:p-4 p-3"
               accent="negative"
               icon={
                 <PlayIcon width={22} height={22} strokeWidth={1.5}></PlayIcon>
               }
               ariaLabel="play/pause"
+              tooltip="Play/Pause (p)"
             ></ToggleButton>
             <ToggleButton
               pressed={playState === "frozen"}
@@ -198,7 +200,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
                   setPlayState("frozen");
                 }
               }}
-              className="p-3"
+              className="md:p-4 p-3"
               accent="primary"
               icon={
                 <SnowflakeIcon
@@ -208,6 +210,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
                 ></SnowflakeIcon>
               }
               ariaLabel="freeze"
+              tooltip="Freeze in Place (f)"
             ></ToggleButton>
 
             <Button
