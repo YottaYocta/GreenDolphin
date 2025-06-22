@@ -118,11 +118,41 @@ const generatePitchBuckets = () => {
 
 export const PITCH_BUCKETS = generatePitchBuckets();
 
+export const isLocalMax = (
+  frequencies: FrequencyData,
+  threshold: number,
+  index: number
+): boolean => {
+  if (index < 0 || index >= frequencies.length) return false;
+  if (index === 0) {
+    if (frequencies.length > 1) {
+      return Math.abs(frequencies[0] * threshold) > Math.abs(frequencies[1]);
+    } else {
+      return true;
+    }
+  } else if (index === frequencies.length - 1) {
+    if (frequencies.length > 1) {
+      return (
+        Math.abs(frequencies[frequencies.length - 1] * threshold) >
+        Math.abs(frequencies[length - 2])
+      );
+    } else {
+      return true;
+    }
+  } else {
+    const current = Math.abs(frequencies[index]);
+    return (
+      current < Math.abs(frequencies[index - 1] * threshold) ||
+      current < Math.abs(frequencies[index + 1] * threshold)
+    );
+  }
+};
+
 export const drawFrequencyNoteBars = (
   pitches: FrequencyData,
   canvas: HTMLCanvasElement
 ) => {
-  const pitchBarWidth = canvas.width / (PITCH_BUCKETS.length - 3);
+  const pitchBarWidth = canvas.width / PITCH_BUCKETS.length;
   const fillStyle = `rgb(25 202 147)`;
   const pitchCtx = canvas.getContext("2d");
   if (!pitchCtx) return;
@@ -155,4 +185,145 @@ export const drawFrequencyNoteBars = (
       );
     }
   });
+};
+
+export const drawFrequencyPiano = (
+  pitches: FrequencyData,
+  canvas: HTMLCanvasElement
+) => {
+  const keyWidth = canvas.width / PITCH_BUCKETS.length;
+  const blackKeyHeight = canvas.height / 3;
+  const whiteKeyHeight = canvas.height / 2;
+  const fillStyle = `rgb(25 202 147)`;
+  const pitchCtx = canvas.getContext("2d");
+  if (!pitchCtx) return;
+
+  pitchCtx.clearRect(0, 0, canvas.width, canvas.height);
+
+  pitches.forEach((rawIntensity, idx) => {
+    const intensity = Math.min(140, rawIntensity + 140);
+
+    if (intensity > 10) {
+      const base = (intensity * Math.pow(idx, 1 / 5)) / 2;
+      const barHeight = Math.min(
+        Math.sqrt(Math.pow(base * base * base, base / 130)) / 5,
+        canvas.height / 2
+      );
+
+      pitchCtx.fillStyle = fillStyle;
+      pitchCtx.fillRect(
+        idx * keyWidth,
+        canvas.height / 2 - barHeight,
+        keyWidth,
+        barHeight
+      );
+    }
+    switch (idx % 12) {
+      case 5:
+      case 0: {
+        // drawing c and f
+        pitchCtx.fillStyle = "rgb(256, 256, 256)";
+        pitchCtx.fillRect(idx * keyWidth, canvas.height / 2, 1, keyWidth * 6);
+        pitchCtx.fillStyle = "rgb(20, 20, 20)";
+        pitchCtx.fillRect(
+          Math.floor(idx * keyWidth),
+          canvas.height / 2,
+          1,
+          whiteKeyHeight
+        );
+        // const intensityScaled = Math.pow(
+        //   Math.max(0, Math.min(140, intensity)) / 140,
+        //   2
+        // );
+        // if (intensityScaled > 0.4) {
+        //   pitchCtx.fillStyle = `rgba(25 202 147 / ${
+        //     (1 - intensityScaled) * 100
+        //   }%)`;
+        //   pitchCtx.fillRect(
+        //     idx * keyWidth + 2,
+        //     canvas.height / 2 + whiteKeyHeight - 10,
+        //     keyWidth - 2,
+        //     8
+        //   );
+        // }
+
+        break;
+      }
+      case 4:
+      case 2:
+      case 11:
+      case 7:
+      case 9: {
+        // drawing all other white keys
+        pitchCtx.fillStyle = "rgb(256, 256, 256)";
+        pitchCtx.fillRect(
+          idx * keyWidth,
+          canvas.height / 2,
+          keyWidth,
+          keyWidth * 6
+        );
+        // const intensityScaled = Math.pow(
+        //   Math.max(0, Math.min(140, intensity)) / 140,
+        //   2
+        // );
+        // if (intensityScaled > 0.4) {
+        //   pitchCtx.fillStyle = `rgba(25 202 147 / ${
+        //     (1 - intensityScaled) * 100
+        //   }%)`;
+        //   pitchCtx.fillRect(
+        //     idx * keyWidth + 2,
+        //     canvas.height / 2 + whiteKeyHeight - 10,
+        //     keyWidth - 2,
+        //     8
+        //   );
+        // }
+
+        break;
+      }
+      default: {
+        // drawing black keys
+        pitchCtx.fillStyle = "rgb(100, 100, 100)";
+        pitchCtx.fillRect(
+          idx * keyWidth + keyWidth / 2,
+          canvas.height / 2,
+          1,
+          whiteKeyHeight
+        );
+        // const intensityScaled = Math.pow(
+        //   Math.max(0, Math.min(140, intensity)) / 140,
+        //   2
+        // );
+        // if (intensityScaled > 0.4) {
+        //   pitchCtx.fillStyle = "rgb(256 256 256)";
+        //   pitchCtx.fillRect(
+        //     idx * keyWidth,
+        //     canvas.height / 2,
+        //     keyWidth,
+        //     blackKeyHeight
+        //   );
+
+        //   pitchCtx.fillStyle = `rgba(25 202 147 / ${
+        //     intensityScaled * intensityScaled * 100
+        //   }%)`;
+        // } else {
+        //   pitchCtx.fillStyle = "rgb(50, 50, 50)";
+        // }
+        pitchCtx.fillStyle = "rgb(50, 50, 50)";
+        pitchCtx.fillRect(
+          idx * keyWidth,
+          canvas.height / 2,
+          keyWidth,
+          blackKeyHeight
+        );
+
+        break;
+      }
+    }
+  });
+
+  pitchCtx.fillStyle = "rgb(100, 100, 100)";
+  pitchCtx.fillRect(0, canvas.height / 2, canvas.width, 1);
+  pitchCtx.fillRect(0, canvas.height / 2 + whiteKeyHeight - 1, canvas.width, 1);
+  pitchCtx.fillRect(canvas.width - 1, canvas.height / 2, 1, whiteKeyHeight);
+  pitchCtx.fillRect(0, canvas.height / 2, 1, whiteKeyHeight);
 };

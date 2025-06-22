@@ -1,7 +1,7 @@
 import { useContext, type FC, useRef, useEffect } from "react";
 import { PlaybackContext } from "../PlaybackContext";
 import {
-  drawFrequencyNoteBars,
+  drawFrequencyPiano,
   groupFrequencies,
   PITCH_BUCKETS,
 } from "../lib/frequency";
@@ -36,7 +36,7 @@ export const FrequencyCanvas: FC = () => {
           sampleRate / 2,
           PITCH_BUCKETS
         );
-        drawFrequencyNoteBars(groupedPitchData, canvas);
+        drawFrequencyPiano(groupedPitchData, canvas);
       }
 
       animationFrameId = requestAnimationFrame(render);
@@ -51,9 +51,8 @@ export const FrequencyCanvas: FC = () => {
   }, [frequencyDataRef]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="border rounded-xs border-neutral-2 pixelated w-full h-32"
-    ></canvas>
+    <div className="border rounded-xs border-neutral-2 pixelated w-full h-32 py-4 px-16">
+      <canvas ref={canvasRef} className="w-full h-full"></canvas>
+    </div>
   );
 };
