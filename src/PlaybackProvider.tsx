@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { PlaybackContext } from "./PlaybackContext";
 import type { PlayState } from "./PlaybackContext";
 import { type Section } from "./lib/waveform";
-import { clampSection } from "./lib/util";
+import { clampSection, getInverseShift } from "./lib/util";
 import type { FrequencyData } from "./lib/frequency";
 import { PitchShift } from "tone";
 import * as Tone from "tone";
@@ -97,7 +97,9 @@ export const PlaybackProvider = ({
     destroyChain();
 
     const newAnalzyer = createAnalyzerNode(context);
-    const newPitchShift = new PitchShift(pitchShift);
+    const newPitchShift = new PitchShift(
+      pitchShift - getInverseShift(playbackSpeed)
+    );
     newPitchShift.windowSize = 0.15;
 
     Tone.connectSeries(newPitchShift, newAnalzyer, context.destination);
@@ -106,7 +108,14 @@ export const PlaybackProvider = ({
     analyzerFrameId.current = requestAnimationFrame(getFrequencyLoop);
     pitchShiftNode.current = newPitchShift;
     return [newAnalzyer, newPitchShift];
-  }, [context, createAnalyzerNode, destroyChain, getFrequencyLoop, pitchShift]);
+  }, [
+    context,
+    createAnalyzerNode,
+    destroyChain,
+    getFrequencyLoop,
+    pitchShift,
+    playbackSpeed,
+  ]);
 
   const connectSource = useCallback(
     (newSourceNode: AudioBufferSourceNode) => {
@@ -206,12 +215,14 @@ export const PlaybackProvider = ({
   }, [data, stopCount]);
 
   useEffect(() => {
+    console.log(pitchShift, getInverseShift(playbackSpeed), playbackSpeed);
     if (pitchShiftNode.current) {
-      pitchShiftNode.current.pitch = pitchShift;
+      pitchShiftNode.current.pitch =
+        pitchShift + getInverseShift(playbackSpeed);
     } else {
       destroyChain();
       const [, newPitchShift] = buildChain();
-      newPitchShift.pitch = pitchShift;
+      newPitchShift.pitch = pitchShift + getInverseShift(playbackSpeed);
     }
 
     if (playState === "paused") {

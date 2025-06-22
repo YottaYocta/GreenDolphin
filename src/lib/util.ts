@@ -34,3 +34,11 @@ export const clampSection = (
 
   return targetSection;
 };
+
+/**
+ * returns the number of semitones needed to pitch-shift an audio stream with playback speed equal to playbackShift
+ * @requires playbackShift > 0
+ */
+export const getInverseShift = (playbackShift: number): number => {
+  return Math.log(1 / playbackShift) / Math.log(Math.pow(2, 1 / 12));
+};
