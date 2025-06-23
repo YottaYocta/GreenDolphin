@@ -31,7 +31,13 @@ export const PlaybackProvider = ({
   const [trigger, setTrigger] = useState<boolean>(false);
 
   const [looping, setLooping] = useState<boolean>(false);
-  const [loop, setLoop] = useState<undefined | Section>();
+  const [loop, setLocalLoop] = useState<undefined | Section>();
+  const setLoop = useCallback(
+    (newLoop: Section) => {
+      setLocalLoop(clampSection(newLoop, { start: 0, end: data.length }));
+    },
+    [data.length]
+  );
 
   const ANALYZER_BUFFER_LENGTH = 8192 * 2;
 
@@ -148,10 +154,10 @@ export const PlaybackProvider = ({
 
   const setPosition = useCallback(
     (position: number) => {
-      playbackPosition.current = position;
+      playbackPosition.current = Math.min(Math.max(0, position), data.length);
       triggerUpdate();
     },
-    [triggerUpdate]
+    [data.length, triggerUpdate]
   );
 
   const stopCount = useCallback(() => {

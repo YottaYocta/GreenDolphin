@@ -70,7 +70,7 @@ function App() {
       </div>
       <div className="absolute w-full flex items-center justify-center bottom-4">
         <p className="text-neutral-400">
-          Version <em>Alpha-1</em>, source code licensed under <em>GPL 3</em>
+          Version 0.1, source code licensed under <em>GPL 3</em>
         </p>
       </div>
     </div>
