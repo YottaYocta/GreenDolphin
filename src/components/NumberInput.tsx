@@ -103,7 +103,7 @@ export const NumberInput: FC<NumberInputProps> = ({
               : renderedValue
             ).toString().length - 2
           }
-          className={`no-spinner text-center ${
+          className={`w-8 no-spinner text-center ${
             defaultValue !== undefined && value !== defaultValue
               ? "text-emerald-700"
               : "text-neutral-900"
