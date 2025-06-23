@@ -122,6 +122,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
                       const targetStart = clampedEnd - sectionRange;
                       const clampedStart = Math.max(0, targetStart);
                       setLoop({ start: clampedStart, end: clampedEnd });
+                      setPosition((clampedStart / data.sampleRate) * 1000);
                     }}
                     className="text-sm px-0 py-0 text-neutral-500 hover:text-neutral-800 hover:bg-white hover:underline"
                   ></Button>
