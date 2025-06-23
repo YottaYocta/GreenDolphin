@@ -111,7 +111,14 @@ export const WaveformCanvas: FC<
     if (waveformData.section && waveformData.section !== localData.section)
       setLocalData((prevData) => ({ ...waveformData, range: prevData.range }));
     else if (waveformData.data !== localData.data) setLocalData(waveformData);
-  }, [localData.data, localData.section, waveformData]);
+
+    if (waveformData.section !== localData.section) {
+      setLocalData((prevData) => ({
+        ...prevData,
+        section: waveformData.section,
+      }));
+    }
+  }, [localData.data, localData.section, selectRange, waveformData]);
 
   useEffect(() => {
     if (canvasRef.current) {

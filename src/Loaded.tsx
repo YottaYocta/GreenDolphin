@@ -102,6 +102,16 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
       <div className="w-full flex flex-col gap-12 md:gap-20">
         <FrequencyCanvas></FrequencyCanvas>
         <div className="flex flex-col gap-2">
+          {loop ? (
+            <Button
+              text="Clear Selection"
+              onClick={() => {
+                setLoop(undefined);
+              }}
+            ></Button>
+          ) : (
+            <></>
+          )}
           <WaveformCanvas
             waveformData={{
               data: data,

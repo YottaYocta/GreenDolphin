@@ -13,7 +13,7 @@ export interface PlaybackContextType {
   looping: boolean;
   setLooping: (looping: boolean) => void;
   loop: Section | undefined;
-  setLoop: (section: Section) => void;
+  setLoop: (section: Section | undefined) => void;
   frequencyData: RefObject<FrequencyData | undefined>;
   pitchShift: number;
   setPitchShift: (newPitchShift: number) => void;

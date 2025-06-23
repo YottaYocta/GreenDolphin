@@ -33,8 +33,10 @@ export const PlaybackProvider = ({
   const [looping, setLooping] = useState<boolean>(false);
   const [loop, setLocalLoop] = useState<undefined | Section>();
   const setLoop = useCallback(
-    (newLoop: Section) => {
-      setLocalLoop(clampSection(newLoop, { start: 0, end: data.length }));
+    (newLoop: Section | undefined) => {
+      if (newLoop !== undefined)
+        setLocalLoop(clampSection(newLoop, { start: 0, end: data.length }));
+      else setLocalLoop(undefined);
     },
     [data.length]
   );
