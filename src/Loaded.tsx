@@ -99,33 +99,43 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
           {formatSeconds(data.duration)}
         </p>
       </div>
-      <div className="w-full flex flex-col gap-12 md:gap-20">
+      <div className="w-full flex flex-col gap-6 md:gap-16">
         <FrequencyCanvas></FrequencyCanvas>
         <div className="flex flex-col gap-2">
-          {loop ? (
-            <Button
-              text="Clear Selection"
-              onClick={() => {
-                setLoop(undefined);
+          <div className="flex flex-col">
+            <div className="h-6">
+              {loop ? (
+                <Button
+                  text="Clear Selection"
+                  onClick={() => {
+                    setLoop(undefined);
+                  }}
+                  className="text-sm px-0 py-0 text-neutral-500 hover:text-neutral-800 hover:bg-white hover:underline"
+                ></Button>
+              ) : (
+                <></>
+              )}
+            </div>
+            <WaveformCanvas
+              waveformData={{
+                data: data,
+                range: { start: 0, end: data.length },
+                section: loop,
               }}
-            ></Button>
-          ) : (
-            <></>
-          )}
-          <WaveformCanvas
-            waveformData={{
-              data: data,
-              range: { start: 0, end: data.length },
-              section: loop,
-            }}
-            width={800}
-            height={200}
-            positionReference={playbackPosition}
-            animate={playState === "playing" || triggerUpdate}
-            handlePosition={handlePosition}
-            handleSelection={(section) => setLoop(section)}
-            className="border rounded-xs border-neutral-2 w-full"
-          ></WaveformCanvas>
+              width={800}
+              height={200}
+              positionReference={playbackPosition}
+              animate={playState === "playing" || triggerUpdate}
+              handlePosition={handlePosition}
+              handleSelection={(section) => {
+                setLoop(section);
+                handlePosition(
+                  Math.min(Math.max(0, section.start), data.length)
+                );
+              }}
+              className="border rounded-xs border-neutral-2 w-full"
+            ></WaveformCanvas>
+          </div>
           <WaveformCanvas
             waveformData={navWaveformData}
             width={800}
@@ -133,7 +143,10 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
             positionReference={playbackPosition}
             animate={playState === "playing" || triggerUpdate}
             handlePosition={handlePosition}
-            handleSelection={(section) => setLoop(section)}
+            handleSelection={(section) => {
+              setLoop(section);
+              handlePosition(Math.min(Math.max(0, section.start), data.length));
+            }}
             allowZoomPan={false}
             className="border rounded-xs border-neutral-2 w-full"
           ></WaveformCanvas>

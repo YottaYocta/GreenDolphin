@@ -36,7 +36,7 @@ export const Button: FC<ButtonProps> = ({
           {icon}
         </span>
       )}
-      {text && <span className="text-neutral-800 text-center">{text}</span>}
+      {text && <span className="text-center">{text}</span>}
       {iconPlacement === "right" && (
         <span className="text-neutral-500 text-center flex items-center justify-center w-min">
           {icon}
