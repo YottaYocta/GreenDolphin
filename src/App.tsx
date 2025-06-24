@@ -63,7 +63,7 @@ function App() {
               GreenDolphin
             </span>
           </h1>
-          <p className="text-neutral-500">Virtuosic Music Transcription</p>
+          <p className="text-neutral-500">Music Looper and Analysis Tool</p>
         </div>
         <hr className="text-neutral-200 w-full"></hr>
         <LoadButton handleLoaded={handleLoaded}></LoadButton>
