@@ -42,3 +42,11 @@ export const clampSection = (
 export const getInverseShift = (playbackShift: number): number => {
   return Math.log(1 / playbackShift) / Math.log(Math.pow(2, 1 / 12));
 };
+
+export const computeMS = (sampleRate: number, sampleIndex: number) => {
+  return (sampleIndex / sampleRate) * 1000;
+};
+
+export const computeSampleIndex = (sampleRate: number, ms: number) => {
+  return Math.floor((ms / 1000) * sampleRate);
+};

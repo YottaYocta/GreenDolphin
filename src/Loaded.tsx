@@ -122,7 +122,6 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
                       const targetStart = clampedEnd - sectionRange;
                       const clampedStart = Math.max(0, targetStart);
                       setLoop({ start: clampedStart, end: clampedEnd });
-                      setPosition((clampedStart / data.sampleRate) * 1000);
                     }}
                     className="text-sm px-0 py-0 text-neutral-500 hover:text-neutral-800 hover:bg-white hover:underline"
                   ></Button>
@@ -144,9 +143,6 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
               handlePosition={handlePosition}
               handleSelection={(section) => {
                 setLoop(section);
-                handlePosition(
-                  Math.min(Math.max(0, section.start), data.length)
-                );
               }}
               className="border rounded-xs border-neutral-2 w-full"
             ></WaveformCanvas>
@@ -160,7 +156,6 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
             handlePosition={handlePosition}
             handleSelection={(section) => {
               setLoop(section);
-              handlePosition(Math.min(Math.max(0, section.start), data.length));
             }}
             allowZoomPan={false}
             className="border rounded-xs border-neutral-2 w-full"

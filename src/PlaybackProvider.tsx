@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { PlaybackContext } from "./PlaybackContext";
 import type { PlayState } from "./PlaybackContext";
 import { type Section } from "./lib/waveform";
-import { clampSection, getInverseShift } from "./lib/util";
+import { clampSection, computeMS, getInverseShift } from "./lib/util";
 import type { FrequencyData } from "./lib/frequency";
 import { PitchShift } from "tone";
 import * as Tone from "tone";
@@ -32,15 +32,34 @@ export const PlaybackProvider = ({
 
   const [looping, setLooping] = useState<boolean>(false);
   const [loop, setLocalLoop] = useState<undefined | Section>();
+
+  const triggerUpdate = useCallback(
+    () => setTrigger((prevTrigger) => !prevTrigger),
+    []
+  );
+
+  const setPosition = useCallback(
+    (position: number) => {
+      playbackPosition.current = Math.min(Math.max(0, position), data.length);
+      triggerUpdate();
+    },
+    [data.length, triggerUpdate]
+  );
+
   const setLoop = useCallback(
     (newLoop: Section | undefined) => {
       if (newLoop !== undefined) {
-        setLocalLoop(clampSection(newLoop, { start: 0, end: data.length }));
+        const clampedSection = clampSection(newLoop, {
+          start: 0,
+          end: data.length,
+        });
+        setLocalLoop(clampedSection);
+        setPosition(computeMS(data.sampleRate, clampedSection.start));
       } else {
         setLocalLoop(undefined);
       }
     },
-    [data.length]
+    [data.length, data.sampleRate, setPosition]
   );
 
   const ANALYZER_BUFFER_LENGTH = 8192 * 2;
@@ -150,19 +169,6 @@ export const PlaybackProvider = ({
     buildChain();
     return () => destroyChain();
   }, [buildChain, destroyChain]);
-
-  const triggerUpdate = useCallback(
-    () => setTrigger((prevTrigger) => !prevTrigger),
-    []
-  );
-
-  const setPosition = useCallback(
-    (position: number) => {
-      playbackPosition.current = Math.min(Math.max(0, position), data.length);
-      triggerUpdate();
-    },
-    [data.length, triggerUpdate]
-  );
 
   const stopCount = useCallback(() => {
     if (animationFrameId.current) {
