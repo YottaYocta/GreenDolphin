@@ -34,9 +34,11 @@ export const PlaybackProvider = ({
   const [loop, setLocalLoop] = useState<undefined | Section>();
   const setLoop = useCallback(
     (newLoop: Section | undefined) => {
-      if (newLoop !== undefined)
+      if (newLoop !== undefined) {
         setLocalLoop(clampSection(newLoop, { start: 0, end: data.length }));
-      else setLocalLoop(undefined);
+      } else {
+        setLocalLoop(undefined);
+      }
     },
     [data.length]
   );
@@ -220,6 +222,7 @@ export const PlaybackProvider = ({
     stopCount();
     setPlayState("paused");
     setLocalData(data);
+    setLocalLoop(undefined);
     playbackPosition.current = 0;
   }, [data, stopCount]);
 
