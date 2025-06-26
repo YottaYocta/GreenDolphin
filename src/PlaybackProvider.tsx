@@ -3,7 +3,12 @@ import type { ReactNode } from "react";
 import { PlaybackContext } from "./PlaybackContext";
 import type { PlayState } from "./PlaybackContext";
 import { type Section } from "./lib/waveform";
-import { clampSection, computeMS, getInverseShift } from "./lib/util";
+import {
+  clampSection,
+  computeMS,
+  getInverseShift,
+  MStoSampleIndex,
+} from "./lib/util";
 import type { FrequencyData } from "./lib/frequency";
 import { PitchShift } from "tone";
 import * as Tone from "tone";
@@ -203,8 +208,24 @@ export const PlaybackProvider = ({
         animationFrameId.current = requestAnimationFrame(tick);
       }
     } else {
-      // if not looping, ignore loop section and keep playing
-      if (next > localData.duration * 1000) {
+      // playing
+      if (loop) {
+        const startMS = computeMS(localData.sampleRate, loop.start);
+        const endMS = computeMS(localData.sampleRate, loop.end);
+
+        if (next > endMS) {
+          playbackPosition.current = startMS;
+          setPlayState("paused");
+        } else if (next < startMS) {
+          playbackPosition.current = startMS;
+          animationFrameId.current = requestAnimationFrame(tick);
+        } else {
+          playbackPosition.current = next;
+          animationFrameId.current = requestAnimationFrame(tick);
+        }
+
+        lastTimeStamp.current = performance.now();
+      } else if (next > localData.duration * 1000) {
         playbackPosition.current = 0;
 
         lastTimeStamp.current = performance.now();
