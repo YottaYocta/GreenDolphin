@@ -3,12 +3,7 @@ import type { ReactNode } from "react";
 import { PlaybackContext } from "./PlaybackContext";
 import type { PlayState } from "./PlaybackContext";
 import { type Section } from "./lib/waveform";
-import {
-  clampSection,
-  computeMS,
-  getInverseShift,
-  MStoSampleIndex,
-} from "./lib/util";
+import { clampSection, computeMS, getInverseShift } from "./lib/util";
 import type { FrequencyData } from "./lib/frequency";
 import { PitchShift } from "tone";
 import * as Tone from "tone";
