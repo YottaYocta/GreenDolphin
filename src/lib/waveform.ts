@@ -52,8 +52,8 @@ export const renderWaveformFrame = (
   // primary = { r: 25, g: 202, b: 147, a: 100 }
 ) => {
   const fillStyle = computeFillStyle(primary);
-  const paddingTop = Math.floor(canvas.height * 0.8);
-  const paddingBottom = 0;
+  const triangleHeight = Math.floor(canvas.height * 0.2);
+  const verticalPadding = 0;
   const barWidth = 4;
   const frameStart = computePixel(
     frameRange.start - range.start,
@@ -68,18 +68,36 @@ export const renderWaveformFrame = (
   const canvasCtx = canvas.getContext("2d")!;
   canvasCtx.fillStyle = fillStyle;
   canvasCtx.imageSmoothingEnabled = false;
-  canvasCtx.fillRect(
-    frameStart - barWidth,
-    paddingTop,
-    barWidth,
-    canvas.height - paddingBottom
+  canvasCtx.beginPath();
+  canvasCtx.moveTo(
+    frameStart,
+    canvas.height - verticalPadding - triangleHeight
   );
-  canvasCtx.fillRect(
-    frameEnd,
-    paddingTop,
-    barWidth,
-    canvas.height - paddingBottom
-  );
+  canvasCtx.lineTo(frameStart - barWidth / 2, canvas.height - verticalPadding);
+  canvasCtx.lineTo(frameStart + barWidth / 2, canvas.height - verticalPadding);
+  canvasCtx.closePath();
+  canvasCtx.fill();
+
+  canvasCtx.beginPath();
+  canvasCtx.moveTo(frameEnd, canvas.height - verticalPadding - triangleHeight);
+  canvasCtx.lineTo(frameEnd - barWidth / 2, canvas.height - verticalPadding);
+  canvasCtx.lineTo(frameEnd + barWidth / 2, canvas.height - verticalPadding);
+  canvasCtx.closePath();
+  canvasCtx.fill();
+
+  canvasCtx.beginPath();
+  canvasCtx.moveTo(frameStart, verticalPadding + triangleHeight);
+  canvasCtx.lineTo(frameStart - barWidth / 2, verticalPadding);
+  canvasCtx.lineTo(frameStart + barWidth / 2, verticalPadding);
+  canvasCtx.closePath();
+  canvasCtx.fill();
+
+  canvasCtx.beginPath();
+  canvasCtx.moveTo(frameEnd, verticalPadding + triangleHeight);
+  canvasCtx.lineTo(frameEnd - barWidth / 2, verticalPadding);
+  canvasCtx.lineTo(frameEnd + barWidth / 2, verticalPadding);
+  canvasCtx.closePath();
+  canvasCtx.fill();
 };
 
 export const renderWaveform = (
