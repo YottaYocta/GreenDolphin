@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useState, type FC } from "react";
+import { useContext, useEffect, useState, type FC } from "react";
 import { formatSeconds } from "./lib/util";
 import { Button, ToggleButton } from "./components/buttons";
 import {
@@ -11,10 +11,9 @@ import {
   SnowflakeIcon,
 } from "lucide-react";
 import { NumberInput } from "./components/NumberInput";
-import { type WaveformData } from "./lib/waveform";
-import { WaveformCanvas } from "./components/WaveformCanvas";
 import { FrequencyCanvas } from "./components/FrequencyCanvas";
 import { PlaybackContext } from "./PlaybackContext";
+import { WaveformView } from "./components/WaveformView";
 
 export interface LoadedProps {
   data: AudioBuffer;
@@ -66,14 +65,6 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
     };
   }, [looping, playState, setLooping, setPlayState]);
 
-  const navWaveformData: WaveformData = useMemo(() => {
-    return {
-      data: data,
-      section: loop,
-      range: { start: 0, end: data.length },
-    };
-  }, [data, loop]);
-
   const handlePosition = (sampleIndex: number) => {
     const timeInSeconds = sampleIndex / data.sampleRate;
     const timeInMs = timeInSeconds * 1000;
@@ -122,7 +113,6 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
                       const targetStart = clampedEnd - sectionRange;
                       const clampedStart = Math.max(0, targetStart);
                       setLoop({ start: clampedStart, end: clampedEnd });
-                      setPosition((clampedStart / data.sampleRate) * 1000);
                     }}
                     className="text-sm px-0 py-0 text-neutral-500 hover:text-neutral-800 hover:bg-white hover:underline"
                   ></Button>
@@ -131,40 +121,20 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
                 <></>
               )}
             </div>
-            <WaveformCanvas
-              waveformData={{
+            <WaveformView
+              initialData={{
                 data: data,
                 range: { start: 0, end: data.length },
                 section: loop,
               }}
-              width={800}
-              height={200}
               positionReference={playbackPosition}
               animate={playState === "playing" || triggerUpdate}
               handlePosition={handlePosition}
               handleSelection={(section) => {
                 setLoop(section);
-                handlePosition(
-                  Math.min(Math.max(0, section.start), data.length)
-                );
               }}
-              className="border rounded-xs border-neutral-2 w-full"
-            ></WaveformCanvas>
+            ></WaveformView>
           </div>
-          <WaveformCanvas
-            waveformData={navWaveformData}
-            width={800}
-            height={50}
-            positionReference={playbackPosition}
-            animate={playState === "playing" || triggerUpdate}
-            handlePosition={handlePosition}
-            handleSelection={(section) => {
-              setLoop(section);
-              handlePosition(Math.min(Math.max(0, section.start), data.length));
-            }}
-            allowZoomPan={false}
-            className="border rounded-xs border-neutral-2 w-full"
-          ></WaveformCanvas>
         </div>
         <div className="flex flex-col gap-8 md:flex-row w-full justify-between items-center">
           <div className="flex items-center gap-2">

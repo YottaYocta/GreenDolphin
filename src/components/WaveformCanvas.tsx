@@ -10,25 +10,26 @@ import {
 } from "react";
 import {
   computeSampleIndex,
-  renderWaveform,
   type Section,
   type WaveformData,
-  type WaveformStyle,
 } from "../lib/waveform";
-import { clampSection } from "../lib/util";
-import { Button } from "./buttons";
+import { clampSection, MStoSampleIndex } from "../lib/util";
 import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  ZoomInIcon,
-  ZoomOutIcon,
-} from "lucide-react";
+  CLICK_SELECTION_THRESHOLD,
+  MIN_RANGE_THRESHOLD,
+} from "../lib/constants";
+
+export type WaveformRenderFunction = (
+  data: WaveformData,
+  canvas: HTMLCanvasElement,
+  position?: number
+) => void;
 
 export interface WaveformCanvasProps {
   waveformData: WaveformData;
   animate: boolean;
+  renderFunction: WaveformRenderFunction;
   positionReference?: RefObject<number>;
-  waveformStyle?: WaveformStyle;
   allowZoomPan?: boolean;
   handleRangeChange?: (newRange: Section) => void;
   handleSelection?: (selection: Section) => void;
@@ -40,7 +41,7 @@ export const WaveformCanvas: FC<
 > = ({
   waveformData,
   animate,
-  waveformStyle = { resolution: 10000 },
+  renderFunction,
   positionReference,
   allowZoomPan = true,
   handleRangeChange,
@@ -54,58 +55,39 @@ export const WaveformCanvas: FC<
     ...waveformData,
   });
 
+  useEffect(() => {
+    setLocalData(waveformData);
+  }, [waveformData]);
+
   const [selectRange, setSelectRange] = useState<Section | undefined>();
 
-  const CLICK_SELECTION_THRESHOLD = 0.01;
   const clickSelectThresholdValue = useMemo(
     () =>
       CLICK_SELECTION_THRESHOLD * (localData.range.end - localData.range.start),
     [localData.range.end, localData.range.start]
   );
 
-  const MIN_RANGE_THRESHOLD = 0.005;
   const minRangeThresholdValue = useMemo(() => {
     const value = Math.floor(MIN_RANGE_THRESHOLD * localData.data.length);
     return value;
   }, [localData.data.length]);
 
-  const setRange = (
-    setRangeCallback: (prevData: WaveformData, prevRange: Section) => Section
-  ) => {
-    setLocalData((prevLocalData) => ({
-      ...prevLocalData,
-      range: setRangeCallback(prevLocalData, prevLocalData.range),
-    }));
-  };
-
   const updateWaveform = useCallback(() => {
     if (canvasRef.current)
-      renderWaveform(
-        selectRange !== undefined &&
-          Math.abs(selectRange.end - selectRange.start) >
-            clickSelectThresholdValue
-          ? {
-              ...localData,
-              section: {
-                start: Math.min(selectRange.end, selectRange.start),
-                end: Math.max(selectRange.end, selectRange.start),
-              },
-            }
-          : localData,
-        waveformStyle,
+      renderFunction(
+        {
+          ...localData,
+          section: selectRange ? selectRange : localData.section,
+        },
         canvasRef.current,
-        positionReference?.current
-          ? (positionReference.current * waveformData.data.sampleRate) / 1000
+        positionReference && positionReference.current
+          ? MStoSampleIndex(
+              localData.data.sampleRate,
+              positionReference.current
+            )
           : undefined
       );
-  }, [
-    clickSelectThresholdValue,
-    selectRange,
-    localData,
-    positionReference,
-    waveformData.data.sampleRate,
-    waveformStyle,
-  ]);
+  }, [localData, positionReference, renderFunction, selectRange]);
 
   useEffect(() => {
     if (waveformData.section && waveformData.section !== localData.section)
@@ -121,9 +103,7 @@ export const WaveformCanvas: FC<
   }, [localData.data, localData.section, selectRange, waveformData]);
 
   useEffect(() => {
-    if (canvasRef.current) {
-      updateWaveform();
-    }
+    updateWaveform();
   }, [updateWaveform]);
 
   /**
@@ -134,35 +114,35 @@ export const WaveformCanvas: FC<
       const sample =
         (positionReference.current * waveformData.data.sampleRate) / 1000;
       if (sample > localData.range.end) {
-        setRange((prevData, prevRange) => {
-          const currentRangeLength = prevRange.end - prevRange.start;
-          const targetStart = sample;
-          const targetEnd = targetStart + currentRangeLength;
-          const clampedSection = clampSection(
-            { start: targetStart, end: targetEnd },
-            { start: 0, end: prevData.data.length }
-          );
-          return clampedSection;
-        });
+        const currentRangeLength = localData.range.end - localData.range.start;
+        const targetStart = sample;
+        const targetEnd = targetStart + currentRangeLength;
+        const clampedSection = clampSection(
+          { start: targetStart, end: targetEnd },
+          { start: 0, end: localData.data.length }
+        );
+        if (handleRangeChange) handleRangeChange(clampedSection);
       } else if (sample < localData.range.start) {
-        setRange((prevData, prevRange) => {
-          const currentRangeLength = prevRange.end - prevRange.start;
-          const targetEnd = sample;
-          const targetStart = targetEnd - currentRangeLength;
-          const clampedSection = clampSection(
-            { start: targetStart, end: targetEnd },
-            { start: 0, end: prevData.data.length }
-          );
-          return clampedSection;
-        });
+        const currentRangeLength = localData.range.end - localData.range.start;
+        const targetEnd = sample;
+        const targetStart = targetEnd - currentRangeLength;
+        const clampedSection = clampSection(
+          { start: targetStart, end: targetEnd },
+          { start: 0, end: localData.data.length }
+        );
+        if (handleRangeChange) handleRangeChange(clampedSection);
       }
     }
   }, [
+    handleRangeChange,
+    localData.data.length,
     localData.range.end,
     localData.range.start,
     positionReference,
     waveformData.data.sampleRate,
   ]);
+
+  // console.log("[WaveformCanvas] Rerender");
 
   useEffect(() => {
     let animationFrameId: number;
@@ -186,12 +166,6 @@ export const WaveformCanvas: FC<
       cancelAnimationFrame(animationFrameId);
     };
   }, [animate, checkScroll, updateWaveform]);
-
-  useEffect(() => {
-    if (handleRangeChange) {
-      handleRangeChange(localData.range);
-    }
-  }, [handleRangeChange, localData.range]);
 
   useEffect(() => {
     const canvasElement = canvasRef.current;
@@ -242,17 +216,20 @@ export const WaveformCanvas: FC<
       e.stopPropagation();
       e.preventDefault();
 
-      setRange((prevWaveform, prevRange) => {
-        const rangeLength = prevRange.end - prevRange.start;
+      if (handleRangeChange) {
+        const rangeLength = localData.range.end - localData.range.start;
         if ((Math.abs(e.deltaX) + 0.001) / (Math.abs(e.deltaY) + 0.001) > 0.5) {
-          const targetStart = prevRange.start + e.deltaX * (rangeLength / 400);
+          const targetStart =
+            localData.range.start + e.deltaX * (rangeLength / 400);
           const targetEnd = targetStart + rangeLength;
-          return clampSection(
-            { start: targetStart, end: targetEnd },
-            { start: 0, end: localData.data.length }
+          handleRangeChange(
+            clampSection(
+              { start: targetStart, end: targetEnd },
+              { start: 0, end: localData.data.length }
+            )
           );
         } else {
-          const currentRange = prevRange.end - prevRange.start;
+          const currentRange = localData.range.end - localData.range.start;
           const before =
             computeSampleIndex(e.offsetX, currentRange, canvasElement) /
             currentRange;
@@ -261,7 +238,7 @@ export const WaveformCanvas: FC<
           const targetRange = Math.max(
             Math.floor(minRangeThresholdValue),
             Math.min(
-              prevWaveform.data.length,
+              localData.data.length,
               currentRange * (1 + -e.deltaY / 1000)
             )
           );
@@ -271,15 +248,15 @@ export const WaveformCanvas: FC<
 
           const currentTarget =
             computeSampleIndex(e.offsetX, currentRange, canvasElement) +
-            prevRange.start;
-          return {
+            localData.range.start;
+          handleRangeChange({
             start: Math.floor(Math.max(0, currentTarget - targetBefore)),
             end: Math.floor(
-              Math.min(currentTarget + targetAfter, prevWaveform.data.length)
+              Math.min(currentTarget + targetAfter, localData.data.length)
             ),
-          };
+          });
         }
-      });
+      }
     };
 
     const handleResize = () => {
@@ -318,9 +295,11 @@ export const WaveformCanvas: FC<
     allowZoomPan,
     clickSelectThresholdValue,
     handlePosition,
+    handleRangeChange,
     handleSelection,
     localData.data.length,
-    localData.range,
+    localData.range.end,
+    localData.range.start,
     minRangeThresholdValue,
     selectRange,
     updateWaveform,
@@ -329,113 +308,6 @@ export const WaveformCanvas: FC<
   return (
     <div className="relative">
       <canvas {...props} ref={canvasRef}></canvas>
-      {allowZoomPan ? (
-        <div className="group flex flex-row gap-2 absolute bottom-1 right-1 z-10 w-min opacity-70 hover:opacity-100 focus:opacity-100 focus-within:opacity-100">
-          <div className="flex border border-neutral-2 hover:border-neutral-2 rounded-xs p-1 items-center opacity-70 bg-white group-hover:opacity-100 duration-75">
-            <Button
-              ariaLabel="zoom in"
-              icon={<ZoomInIcon width={18} height={18}></ZoomInIcon>}
-              onClick={() => {
-                setRange((prevData, prevRange) => {
-                  const zoomAmount = Math.floor(
-                    (prevRange.end - prevRange.start) * 0.1
-                  );
-
-                  const targetSection = {
-                    start: prevRange.start + zoomAmount,
-                    end: prevRange.end - zoomAmount,
-                  };
-                  const midPoint =
-                    Math.floor((prevRange.end - prevRange.start) / 2) +
-                    prevRange.start;
-
-                  const minSection = {
-                    start: Math.floor(midPoint - minRangeThresholdValue / 2),
-                    end: Math.floor(midPoint + minRangeThresholdValue / 2),
-                  };
-                  const targetSectionMinClamped = {
-                    start: Math.min(minSection.start, targetSection.start),
-                    end: Math.max(minSection.end, targetSection.end),
-                  };
-
-                  return clampSection(targetSectionMinClamped, {
-                    start: 0,
-                    end: prevData.data.length,
-                  });
-                });
-              }}
-            ></Button>
-            <Button
-              ariaLabel="zoom out"
-              icon={<ZoomOutIcon width={18} height={18}></ZoomOutIcon>}
-              onClick={() => {
-                setRange((prevData, prevRange) => {
-                  const scrollAmount = Math.floor(
-                    (prevRange.end - prevRange.start) * 0.1
-                  );
-                  return clampSection(
-                    {
-                      start: prevRange.start - scrollAmount,
-                      end: prevRange.end + scrollAmount,
-                    },
-                    { start: 0, end: prevData.data.length }
-                  );
-                });
-              }}
-            ></Button>
-          </div>
-          <div className="flex border border-neutral-2 hover:border-neutral-2 rounded-xs p-1 items-center opacity-70 bg-white group-hover:opacity-100 duration-75">
-            <Button
-              ariaLabel="scroll left"
-              icon={<ChevronLeftIcon width={18} height={18}></ChevronLeftIcon>}
-              onClick={() => {
-                setRange((prevData, prevRange) => {
-                  const shiftAmount = Math.floor(
-                    (prevRange.end - prevRange.start) * 0.1
-                  );
-                  const targetRange = {
-                    start: prevData.range.start - shiftAmount,
-                    end: prevData.range.end - shiftAmount,
-                  };
-                  if (targetRange.start < 0) {
-                    return {
-                      start: 0,
-                      end: prevRange.end - prevRange.start,
-                    };
-                  } else return targetRange;
-                });
-              }}
-            ></Button>
-            <Button
-              ariaLabel="scroll right"
-              icon={
-                <ChevronRightIcon width={18} height={18}></ChevronRightIcon>
-              }
-              onClick={() => {
-                setRange((prevData, prevRange) => {
-                  const shiftAmount = Math.floor(
-                    (prevRange.end - prevRange.start) * 0.1
-                  );
-                  const targetRange = {
-                    start: prevData.range.start + shiftAmount,
-                    end: prevData.range.end + shiftAmount,
-                  };
-                  if (targetRange.end > prevData.data.length) {
-                    return {
-                      start:
-                        prevData.data.length -
-                        (prevRange.end - prevRange.start),
-                      end: prevData.data.length,
-                    };
-                  } else return targetRange;
-                });
-              }}
-            ></Button>
-          </div>
-        </div>
-      ) : (
-        <></>
-      )}
     </div>
   );
 };

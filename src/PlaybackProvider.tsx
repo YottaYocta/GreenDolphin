@@ -3,7 +3,12 @@ import type { ReactNode } from "react";
 import { PlaybackContext } from "./PlaybackContext";
 import type { PlayState } from "./PlaybackContext";
 import { type Section } from "./lib/waveform";
-import { clampSection, getInverseShift } from "./lib/util";
+import {
+  clampSection,
+  computeMS,
+  getInverseShift,
+  MStoSampleIndex,
+} from "./lib/util";
 import type { FrequencyData } from "./lib/frequency";
 import { PitchShift } from "tone";
 import * as Tone from "tone";
@@ -32,13 +37,34 @@ export const PlaybackProvider = ({
 
   const [looping, setLooping] = useState<boolean>(false);
   const [loop, setLocalLoop] = useState<undefined | Section>();
+
+  const triggerUpdate = useCallback(
+    () => setTrigger((prevTrigger) => !prevTrigger),
+    []
+  );
+
+  const setPosition = useCallback(
+    (position: number) => {
+      playbackPosition.current = Math.min(Math.max(0, position), data.length);
+      triggerUpdate();
+    },
+    [data.length, triggerUpdate]
+  );
+
   const setLoop = useCallback(
     (newLoop: Section | undefined) => {
-      if (newLoop !== undefined)
-        setLocalLoop(clampSection(newLoop, { start: 0, end: data.length }));
-      else setLocalLoop(undefined);
+      if (newLoop !== undefined) {
+        const clampedSection = clampSection(newLoop, {
+          start: 0,
+          end: data.length,
+        });
+        setLocalLoop(clampedSection);
+        setPosition(computeMS(data.sampleRate, clampedSection.start));
+      } else {
+        setLocalLoop(undefined);
+      }
     },
-    [data.length]
+    [data.length, data.sampleRate, setPosition]
   );
 
   const ANALYZER_BUFFER_LENGTH = 8192 * 2;
@@ -149,19 +175,6 @@ export const PlaybackProvider = ({
     return () => destroyChain();
   }, [buildChain, destroyChain]);
 
-  const triggerUpdate = useCallback(
-    () => setTrigger((prevTrigger) => !prevTrigger),
-    []
-  );
-
-  const setPosition = useCallback(
-    (position: number) => {
-      playbackPosition.current = Math.min(Math.max(0, position), data.length);
-      triggerUpdate();
-    },
-    [data.length, triggerUpdate]
-  );
-
   const stopCount = useCallback(() => {
     if (animationFrameId.current) {
       cancelAnimationFrame(animationFrameId.current);
@@ -195,8 +208,24 @@ export const PlaybackProvider = ({
         animationFrameId.current = requestAnimationFrame(tick);
       }
     } else {
-      // if not looping, ignore loop section and keep playing
-      if (next > localData.duration * 1000) {
+      // playing
+      if (loop) {
+        const startMS = computeMS(localData.sampleRate, loop.start);
+        const endMS = computeMS(localData.sampleRate, loop.end);
+
+        if (next > endMS) {
+          playbackPosition.current = startMS;
+          setPlayState("paused");
+        } else if (next < startMS) {
+          playbackPosition.current = startMS;
+          animationFrameId.current = requestAnimationFrame(tick);
+        } else {
+          playbackPosition.current = next;
+          animationFrameId.current = requestAnimationFrame(tick);
+        }
+
+        lastTimeStamp.current = performance.now();
+      } else if (next > localData.duration * 1000) {
         playbackPosition.current = 0;
 
         lastTimeStamp.current = performance.now();
@@ -220,6 +249,7 @@ export const PlaybackProvider = ({
     stopCount();
     setPlayState("paused");
     setLocalData(data);
+    setLocalLoop(undefined);
     playbackPosition.current = 0;
   }, [data, stopCount]);
 
