@@ -44,6 +44,44 @@ export const computeSampleIndex = (
   return Math.floor((pixel / canvas.width) * rangeLength);
 };
 
+export const renderWaveformFrame = (
+  { range }: WaveformData,
+  frameRange: Section,
+  canvas: HTMLCanvasElement,
+  primary = { r: 0, g: 100, b: 50, a: 100 }
+  // primary = { r: 25, g: 202, b: 147, a: 100 }
+) => {
+  const fillStyle = computeFillStyle(primary);
+  const paddingTop = Math.floor(canvas.height * 0.8);
+  const paddingBottom = 0;
+  const barWidth = 4;
+  const frameStart = computePixel(
+    frameRange.start - range.start,
+    range.end - range.start,
+    canvas
+  );
+  const frameEnd = computePixel(
+    frameRange.end - range.start,
+    range.end - range.start,
+    canvas
+  );
+  const canvasCtx = canvas.getContext("2d")!;
+  canvasCtx.fillStyle = fillStyle;
+  canvasCtx.imageSmoothingEnabled = false;
+  canvasCtx.fillRect(
+    frameStart - barWidth,
+    paddingTop,
+    barWidth,
+    canvas.height - paddingBottom
+  );
+  canvasCtx.fillRect(
+    frameEnd,
+    paddingTop,
+    barWidth,
+    canvas.height - paddingBottom
+  );
+};
+
 export const renderWaveform = (
   { data, section, range }: WaveformData,
   {

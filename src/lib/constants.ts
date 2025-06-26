@@ -1,0 +1,2 @@
+export const CLICK_SELECTION_THRESHOLD = 0.01;
+export const MIN_RANGE_THRESHOLD = 0.005;

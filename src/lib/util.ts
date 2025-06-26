@@ -47,6 +47,6 @@ export const computeMS = (sampleRate: number, sampleIndex: number) => {
   return (sampleIndex / sampleRate) * 1000;
 };
 
-export const computeSampleIndex = (sampleRate: number, ms: number) => {
+export const MStoSampleIndex = (sampleRate: number, ms: number) => {
   return Math.floor((ms / 1000) * sampleRate);
 };
