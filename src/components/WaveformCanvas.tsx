@@ -77,7 +77,15 @@ export const WaveformCanvas: FC<
       renderFunction(
         {
           ...localData,
-          section: selectRange ? selectRange : localData.section,
+          section:
+            selectRange &&
+            Math.abs(selectRange.end - selectRange.start) >
+              minRangeThresholdValue
+              ? {
+                  start: Math.min(selectRange.end, selectRange.start),
+                  end: Math.max(selectRange.end, selectRange.start),
+                }
+              : localData.section,
         },
         canvasRef.current,
         positionReference && positionReference.current
@@ -87,7 +95,13 @@ export const WaveformCanvas: FC<
             )
           : undefined
       );
-  }, [localData, positionReference, renderFunction, selectRange]);
+  }, [
+    localData,
+    minRangeThresholdValue,
+    positionReference,
+    renderFunction,
+    selectRange,
+  ]);
 
   useEffect(() => {
     if (waveformData.section && waveformData.section !== localData.section)
@@ -306,7 +320,7 @@ export const WaveformCanvas: FC<
   ]);
 
   return (
-    <div className="relative">
+    <div className="relative pixelated cursor-pointer">
       <canvas {...props} ref={canvasRef}></canvas>
     </div>
   );

@@ -255,7 +255,10 @@ export const WaveformView: FC<WaveformViewProps> = ({
         <></>
       )}
       <WaveformCanvas
-        waveformData={{ ...initialData, range: localRange }}
+        waveformData={{
+          ...initialData,
+          range: localRange,
+        }}
         renderFunction={viewportRenderFunction}
         width={800}
         height={200}
