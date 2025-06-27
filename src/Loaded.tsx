@@ -94,33 +94,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
         <FrequencyCanvas></FrequencyCanvas>
         <div className="flex flex-col gap-2">
           <div className="flex flex-col">
-            <div className="h-6 flex flex-row gap-2">
-              {loop ? (
-                <>
-                  <Button
-                    text="Clear Selection"
-                    onClick={() => {
-                      setLoop(undefined);
-                    }}
-                    className="text-sm px-0 py-0 text-neutral-500 hover:text-neutral-800 hover:bg-white hover:underline"
-                  ></Button>
-                  <Button
-                    text="Advance Selection"
-                    onClick={() => {
-                      const sectionRange = loop.end - loop.start;
-                      const targetEnd = loop.end + sectionRange;
-                      const clampedEnd = Math.min(targetEnd, data.length);
-                      const targetStart = clampedEnd - sectionRange;
-                      const clampedStart = Math.max(0, targetStart);
-                      setLoop({ start: clampedStart, end: clampedEnd });
-                    }}
-                    className="text-sm px-0 py-0 text-neutral-500 hover:text-neutral-800 hover:bg-white hover:underline"
-                  ></Button>
-                </>
-              ) : (
-                <></>
-              )}
-            </div>
+            <div className="h-6 flex flex-row gap-2"></div>
             <WaveformView
               initialData={{
                 data: data,

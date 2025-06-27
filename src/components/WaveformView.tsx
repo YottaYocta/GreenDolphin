@@ -15,8 +15,11 @@ import {
 import { WaveformCanvas, type WaveformRenderFunction } from "./WaveformCanvas";
 import { Button } from "./buttons";
 import {
+  BanIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  PanelLeftCloseIcon,
+  PanelRightCloseIcon,
   ZoomInIcon,
   ZoomOutIcon,
 } from "lucide-react";
@@ -28,7 +31,7 @@ export interface WaveformViewProps {
   positionReference: RefObject<number>;
   animate: boolean;
   handlePosition: (sampleIndex: number) => void;
-  handleSelection: (section: Section) => void;
+  handleSelection: (section: Section | undefined) => void;
 }
 
 export const WaveformView: FC<WaveformViewProps> = ({
@@ -191,6 +194,66 @@ export const WaveformView: FC<WaveformViewProps> = ({
           ></Button>
         </div>
       </div>
+      {initialData.section ? (
+        <div className="group flex flex-row gap-2 absolute top-1 left-1 z-10 w-min opacity-70 hover:opacity-100 focus:opacity-100 focus-within:opacity-100">
+          <div className="flex border border-neutral-2 hover:border-neutral-2 rounded-xs p-1 items-center opacity-70 bg-white group-hover:opacity-100 duration-75">
+            <Button
+              ariaLabel="Clear Selection"
+              icon={<BanIcon width={18} height={18}></BanIcon>}
+              onClick={() => {
+                handleSelection(undefined);
+              }}
+            ></Button>
+          </div>
+          <div className="flex border border-neutral-2 hover:border-neutral-2 rounded-xs p-1 items-center opacity-70 bg-white group-hover:opacity-100 duration-75">
+            <Button
+              icon={
+                <PanelLeftCloseIcon width={18} height={18}></PanelLeftCloseIcon>
+              }
+              ariaLabel="Back Up Selection"
+              onClick={() => {
+                if (initialData.section) {
+                  const sectionRange =
+                    initialData.section.end - initialData.section.start;
+                  const targetStart = initialData.section.start - sectionRange;
+                  const clampedStart = Math.max(targetStart, 0);
+                  const targetEnd = clampedStart + sectionRange;
+                  const clampedEnd = Math.min(
+                    initialData.data.length,
+                    targetEnd
+                  );
+                  handleSelection({ start: clampedStart, end: clampedEnd });
+                }
+              }}
+            ></Button>
+            <Button
+              icon={
+                <PanelRightCloseIcon
+                  width={18}
+                  height={18}
+                ></PanelRightCloseIcon>
+              }
+              ariaLabel="Advance Selection"
+              onClick={() => {
+                if (initialData.section) {
+                  const sectionRange =
+                    initialData.section.end - initialData.section.start;
+                  const targetEnd = initialData.section.end + sectionRange;
+                  const clampedEnd = Math.min(
+                    targetEnd,
+                    initialData.data.length
+                  );
+                  const targetStart = clampedEnd - sectionRange;
+                  const clampedStart = Math.max(0, targetStart);
+                  handleSelection({ start: clampedStart, end: clampedEnd });
+                }
+              }}
+            ></Button>
+          </div>
+        </div>
+      ) : (
+        <></>
+      )}
       <WaveformCanvas
         waveformData={{ ...initialData, range: localRange }}
         renderFunction={viewportRenderFunction}
