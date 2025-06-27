@@ -23,46 +23,44 @@ export const NumberInput: FC<NumberInputProps> = ({
   for: forLabel,
   defaultValue,
 }) => {
-  const [renderedValue, setRenderedValue] = useState(value);
+  const [renderedValue, setRenderedValue] = useState(value.toString());
 
   useEffect(() => {
-    setRenderedValue(value);
+    setRenderedValue(value.toString());
   }, [value]);
 
-  const updateValue = (
-    e:
-      | React.KeyboardEvent<HTMLInputElement>
-      | React.FocusEvent<HTMLInputElement>
-  ) => {
-    const inputValue = e.currentTarget.valueAsNumber;
-    const newValue = Math.min(
-      max ?? Infinity,
-      Math.max(min ?? -Infinity, inputValue)
-    );
-    if (Number.isNaN(newValue)) {
-      setRenderedValue(0);
-      handleChange(0);
-    } else {
-      setRenderedValue(newValue);
+  const updateValue = () => {
+    const parsedValue = parseFloat(renderedValue);
+    if (!Number.isNaN(parsedValue)) {
+      const newValue = Math.min(
+        max ?? Infinity,
+        Math.max(min ?? -Infinity, parsedValue)
+      );
+      setRenderedValue(newValue.toString());
       handleChange(newValue);
+    } else {
+      setRenderedValue(defaultValue ? defaultValue.toString() : "0");
+      handleChange(defaultValue ? defaultValue : 0);
     }
   };
 
   const handleIncrement = () => {
+    const currentNumValue = parseFloat(renderedValue);
     const newValue = Math.min(
       max ?? Infinity,
-      Math.max(min ?? -Infinity, renderedValue + step)
+      Math.max(min ?? -Infinity, currentNumValue + step)
     );
-    setRenderedValue(newValue);
+    setRenderedValue(newValue.toString());
     handleChange(newValue);
   };
 
   const handleDecrement = () => {
+    const currentNumValue = parseFloat(renderedValue);
     const newValue = Math.max(
       min ?? -Infinity,
-      Math.min(max ?? Infinity, renderedValue - step)
+      Math.min(max ?? Infinity, currentNumValue - step)
     );
-    setRenderedValue(newValue);
+    setRenderedValue(newValue.toString());
     handleChange(newValue);
   };
 
@@ -94,30 +92,19 @@ export const NumberInput: FC<NumberInputProps> = ({
           min={min}
           max={max}
           step={step}
-          value={
-            renderedValue === value ? renderedValue.toFixed(1) : renderedValue
-          }
-          size={
-            (renderedValue === value
-              ? renderedValue.toFixed(1)
-              : renderedValue
-            ).toString().length - 2
-          }
-          className={`w-8 no-spinner text-center ${
+          value={renderedValue}
+          size={renderedValue.length - 2}
+          className={`w-10 no-spinner text-center ${
             defaultValue !== undefined && value !== defaultValue
-              ? "text-emerald-700"
-              : "text-neutral-900"
-          }`}
+              ? "text-emerald-700 border-emerald-500"
+              : "text-neutral-900 border-neutral-2"
+          } border rounded-full`}
           onInput={(e) => {
-            setRenderedValue(
-              Number.isNaN(e.currentTarget.valueAsNumber)
-                ? 0
-                : e.currentTarget.valueAsNumber
-            );
+            setRenderedValue(e.currentTarget.value);
           }}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
-              updateValue(e);
+              updateValue();
             }
           }}
           onBlur={updateValue}
