@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState, type FC } from "react";
+import { useCallback, useContext, useEffect, useState, type FC } from "react";
 import { formatSeconds } from "./lib/util";
 import { Button, ToggleButton } from "./components/buttons";
 import {
@@ -64,6 +64,30 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
       window.removeEventListener("keypress", handleKey);
     };
   }, [looping, playState, setLooping, setPlayState]);
+
+  const rewindFiveSeconds = useCallback(() => {
+    const targetMS = Math.max(0, playbackPosition.current - 5000);
+    setPosition(targetMS);
+  }, [playbackPosition, setPosition]);
+
+  const fastForwardFiveSeconds = useCallback(() => {
+    const targetMS = Math.max(0, playbackPosition.current + 5000);
+    setPosition(targetMS);
+  }, [playbackPosition, setPosition]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "[") {
+        rewindFiveSeconds();
+      } else if (e.key === "]") {
+        fastForwardFiveSeconds();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [rewindFiveSeconds, fastForwardFiveSeconds]);
 
   const handlePosition = (sampleIndex: number) => {
     const timeInSeconds = sampleIndex / data.sampleRate;
@@ -152,13 +176,11 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
               icon={
                 <ChevronsLeftIcon width={18} height={18}></ChevronsLeftIcon>
               }
+              tooltip="Rewind 5s ([)"
               text="5s"
               ariaLabel="rewind 5 seconds"
               className="border border-neutral-2 pr-3 pl-2"
-              onClick={() => {
-                const targetMS = Math.max(0, playbackPosition.current - 5000);
-                setPosition(targetMS);
-              }}
+              onClick={rewindFiveSeconds}
             ></Button>
             <ToggleButton
               pressed={playState === "playing"}
@@ -199,14 +221,12 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
               icon={
                 <ChevronsRightIcon width={18} height={18}></ChevronsRightIcon>
               }
+              tooltip="Fast Forward 5s (])"
               text="5s"
-              ariaLabel="fast forward5 seconds"
+              ariaLabel="fast forward 5 seconds"
               className="border border-neutral-2 pr-2 pl-3"
               iconPlacement="right"
-              onClick={() => {
-                const targetMS = Math.max(0, playbackPosition.current + 5000);
-                setPosition(targetMS);
-              }}
+              onClick={fastForwardFiveSeconds}
             ></Button>
           </div>
         </div>
