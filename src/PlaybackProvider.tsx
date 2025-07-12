@@ -30,7 +30,7 @@ export const PlaybackProvider = ({
   const [localData, setLocalData] = useState<AudioBuffer>(data);
   const [trigger, setTrigger] = useState<boolean>(false);
 
-  const [looping, setLooping] = useState<boolean>(false);
+  const [looping, setLooping] = useState<boolean>(true);
   const [loop, setLocalLoop] = useState<undefined | Section>();
 
   const triggerUpdate = useCallback(
@@ -88,6 +88,7 @@ export const PlaybackProvider = ({
 
   const [pitchShift, setPitchShift] = useState<number>(0);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
+  const [gain, setGain] = useState<number>(0);
 
   const getFrequencyLoop = useCallback(() => {
     if (analyzerNode.current) {
@@ -380,6 +381,8 @@ export const PlaybackProvider = ({
         setPitchShift,
         playbackSpeed,
         setPlaybackSpeed,
+        gain,
+        setGain,
       }}
     >
       {children}

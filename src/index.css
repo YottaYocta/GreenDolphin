@@ -5,6 +5,15 @@
 }
 
 @layer utilities {
+  .play-button {
+    width: 5em;
+    min-width: 5em;
+    max-width: 5em;
+    height: 5em;
+    min-height: 5em;
+    max-height: 5em;
+  }
+
   .pixelated {
     image-rendering: pixelated;
   }
@@ -23,22 +32,5 @@
   .no-spinner[type="number"] {
     -moz-appearance: textfield;
     appearance: textfield;
-  }
-
-  .slider-thumb-sm::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: currentColor; /* Uses the accent color */
-    cursor: pointer;
-  }
-
-  .slider-thumb-sm::-moz-range-thumb {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: currentColor; /* Uses the accent color */
-    cursor: pointer;
   }
 }

@@ -27,7 +27,7 @@ export const Button: FC<ButtonProps> = ({
   return (
     <button
       aria-label={ariaLabel}
-      className={`hover:bg-neutral-100 p-1 rounded-full h-min w-min flex items-center justify-center text-center gap-1 flex-nowrap text-nowrap cursor-pointer ${className}`}
+      className={`bg-white hover:bg-neutral-100 p-1 rounded-full h-min w-min flex items-center justify-center text-center gap-1 flex-nowrap text-nowrap cursor-pointer ${className}`}
       onClick={onClick}
       title={tooltip}
     >
@@ -86,7 +86,7 @@ export const ToggleButton: FC<ToggleButtonProps> = ({
           : accent === "negative"
           ? "hover:bg-neutral-100 border-neutral-2 text-rose-500 bg-white"
           : "hover:bg-neutral-100 border-neutral-2 text-blue-500 bg-white"
-      } p-2 rounded-full border h-min w-min flex-nowrap text-nowrap cursor-pointer ${className}`}
+      } p-2 rounded-full border h-min w-min flex items-center justify-center gap-2 flex-nowrap text-nowrap cursor-pointer ${className}`}
       onClick={onClick}
     >
       {iconPlacement === "left" && icon}

@@ -19,6 +19,8 @@ export interface PlaybackContextType {
   setPitchShift: (newPitchShift: number) => void;
   playbackSpeed: number;
   setPlaybackSpeed: (newPlaybackSpeed: number) => void;
+  gain: number;
+  setGain: (newGain: number) => void;
 }
 
 export const PlaybackContext = createContext<PlaybackContextType | undefined>(

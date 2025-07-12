@@ -28,7 +28,7 @@ export const SliderInput: FC<SliderInputProps> = ({
   }, [value]);
 
   return (
-    <div className={`flex rounded-xs bg-white h-10 gap-2`}>
+    <div className={`flex rounded-xs bg-white h-10 gap-2 w-full`}>
       <div
         className={`flex items-center h-full border p-2 ${
           defaultValue !== undefined && value !== defaultValue
@@ -38,7 +38,7 @@ export const SliderInput: FC<SliderInputProps> = ({
       >
         {icon}
       </div>
-      <div className="flex flex-col justify-between items-center px-2 pb-2 gap-1">
+      <div className="flex flex-col justify-between items-center px-2 pb-2 gap-1 w-full">
         <div className=" flex w-full justify-between h-min">
           <p className="text-neutral-500 text-sm">{forLabel}</p>
           <p className="text-neutral-500 text-sm">{renderedValue}</p>
