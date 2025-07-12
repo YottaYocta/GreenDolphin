@@ -1,3 +1,4 @@
+import { RotateCcwIcon } from "lucide-react";
 import { useState, useEffect, type FC, type ReactElement } from "react";
 
 interface SliderInputProps {
@@ -24,22 +25,43 @@ export const SliderInput: FC<SliderInputProps> = ({
   valueRenderer,
 }) => {
   const [renderedValue, setRenderedValue] = useState(valueRenderer(value));
+  const [isHovering, setIsHovering] = useState(false);
 
   useEffect(() => {
     setRenderedValue(valueRenderer(value));
   }, [value, valueRenderer]);
 
+  const handleResetClick = () => {
+    if (defaultValue !== undefined) {
+      setRenderedValue(valueRenderer(defaultValue));
+      handleChange(defaultValue);
+    }
+  };
+
   return (
     <div className={`flex rounded-xs bg-white h-10 gap-2 w-full`}>
-      <div
-        className={`flex items-center h-full border p-2 ${
+      <button
+        className={`flex items-center h-full border p-2 rounded-full ${
           defaultValue !== undefined && value !== defaultValue
             ? "border-emerald-500 text-emerald-700 bg-emerald-50"
             : "border-neutral-2 text-neutral-600"
         } aspect-square justify-center`}
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
+        onClick={handleResetClick}
+        disabled={defaultValue === undefined}
       >
-        {icon}
-      </div>
+        {isHovering && defaultValue !== undefined ? (
+          <RotateCcwIcon
+            strokeWidth={1.5}
+            className={`${
+              defaultValue !== value ? "opacity-100" : "opacity-40"
+            }`}
+          />
+        ) : (
+          icon
+        )}
+      </button>
       <div className="flex flex-col justify-between items-center px-2 pb-2 gap-1 w-full">
         <div className=" flex w-full justify-between h-min">
           <p className="text-neutral-500 text-sm">{forLabel}</p>
