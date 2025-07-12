@@ -10,10 +10,10 @@ import {
   RepeatIcon,
   SnowflakeIcon,
 } from "lucide-react";
-import { NumberInput } from "./components/NumberInput";
 import { FrequencyCanvas } from "./components/FrequencyCanvas";
 import { PlaybackContext } from "./PlaybackContext";
 import { WaveformView } from "./components/WaveformView";
+import { SliderInput } from "./components/SliderInput";
 
 export interface LoadedProps {
   data: AudioBuffer;
@@ -136,18 +136,20 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
         </div>
         <div className="flex flex-col gap-8 md:flex-row w-full justify-between items-center">
           <div className="flex items-center gap-2">
-            <div className="flex flex-col gap-2 md:flex-row">
-              <NumberInput
+            <div className="flex flex-col gap-4">
+              <SliderInput
                 icon={<MusicIcon width={18} height={18}></MusicIcon>}
                 value={pitchShift}
                 defaultValue={0}
                 step={0.2}
+                min={-12}
+                max={12}
                 handleChange={(value) =>
                   setPitchShift(Math.round(value * 10) / 10)
                 }
                 for="pitch"
               />
-              <NumberInput
+              <SliderInput
                 icon={<GaugeIcon width={18} height={18}></GaugeIcon>}
                 value={playbackSpeed}
                 defaultValue={1}
