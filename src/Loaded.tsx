@@ -44,6 +44,12 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
     setGain,
   } = playback;
 
+  const [renderedGain, setRenderedGain] = useState<number>(1);
+
+  useEffect(() => {
+    setGain(renderedGain * renderedGain);
+  }, [renderedGain, setGain]);
+
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "p") {
@@ -149,6 +155,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
                 setPitchShift(Math.round(value * 10) / 10)
               }
               for="Pitch"
+              valueRenderer={(currentValue) => `${currentValue} smt.`}
             />
             <SliderInput
               icon={<GaugeIcon width={18} height={18}></GaugeIcon>}
@@ -160,19 +167,21 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
               handleChange={(value) =>
                 setPlaybackSpeed(Math.round(value * 10) / 10)
               }
-              for="Tempo"
+              for="Speed"
+              valueRenderer={(currentValue) => `${currentValue.toFixed(2)} x`}
             />
             <SliderInput
               icon={<MegaphoneIcon width={18} height={18}></MegaphoneIcon>}
-              value={gain}
-              defaultValue={0}
+              value={renderedGain}
+              defaultValue={1}
               step={0.1}
-              min={-1}
-              max={1}
+              min={0}
+              max={2}
               handleChange={(value) => {
-                setGain(Math.round(value * 10) / 10);
+                setRenderedGain(Math.round(value * 10) / 10);
               }}
               for="Volume"
+              valueRenderer={() => `${(gain * gain).toFixed(1)} db`}
             />
           </div>
           <div className="flex md:flex-col flex-row justify-between items-center gap-2">

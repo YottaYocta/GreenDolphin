@@ -72,6 +72,8 @@ export const PlaybackProvider = ({
 
   const pitchShiftNode = useRef<PitchShift | undefined>(undefined);
 
+  const gainNode = useRef<GainNode | undefined>(undefined);
+
   const sourceNode = useRef<AudioBufferSourceNode | undefined>(undefined);
 
   const createAnalyzerNode = useCallback(
@@ -88,7 +90,7 @@ export const PlaybackProvider = ({
 
   const [pitchShift, setPitchShift] = useState<number>(0);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
-  const [gain, setGain] = useState<number>(0);
+  const [gain, setGain] = useState<number>(1);
 
   const getFrequencyLoop = useCallback(() => {
     if (analyzerNode.current) {
@@ -114,6 +116,11 @@ export const PlaybackProvider = ({
       pitchShiftNode.current.dispose();
       pitchShiftNode.current = undefined;
     }
+    if (gainNode.current) {
+      gainNode.current.disconnect();
+      gainNode.current = undefined;
+    }
+
     if (analyzerFrameId.current) {
       cancelAnimationFrame(analyzerFrameId.current);
       analyzerFrameId.current = undefined;
@@ -130,9 +137,16 @@ export const PlaybackProvider = ({
     const newPitchShift = new PitchShift(
       pitchShift - getInverseShift(playbackSpeed)
     );
+    const newGain = context.createGain();
+    newGain.gain.value = gain;
     newPitchShift.windowSize = 0.1;
 
-    Tone.connectSeries(newPitchShift, newAnalzyer, context.destination);
+    Tone.connectSeries(
+      newPitchShift,
+      newGain,
+      newAnalzyer,
+      context.destination
+    );
 
     analyzerNode.current = newAnalzyer;
     analyzerFrameId.current = requestAnimationFrame(getFrequencyLoop);
@@ -142,6 +156,7 @@ export const PlaybackProvider = ({
     context,
     createAnalyzerNode,
     destroyChain,
+    gain,
     getFrequencyLoop,
     pitchShift,
     playbackSpeed,

@@ -9,6 +9,7 @@ interface SliderInputProps {
   step?: number;
   for: string;
   defaultValue?: number;
+  valueRenderer: (currentValue: number) => string;
 }
 
 export const SliderInput: FC<SliderInputProps> = ({
@@ -20,12 +21,13 @@ export const SliderInput: FC<SliderInputProps> = ({
   step = 1,
   for: forLabel,
   defaultValue,
+  valueRenderer,
 }) => {
-  const [renderedValue, setRenderedValue] = useState(value.toString());
+  const [renderedValue, setRenderedValue] = useState(valueRenderer(value));
 
   useEffect(() => {
-    setRenderedValue(value.toString());
-  }, [value]);
+    setRenderedValue(valueRenderer(value));
+  }, [value, valueRenderer]);
 
   return (
     <div className={`flex rounded-xs bg-white h-10 gap-2 w-full`}>
@@ -48,14 +50,14 @@ export const SliderInput: FC<SliderInputProps> = ({
           min={min}
           max={max}
           step={step}
-          value={renderedValue}
+          value={value}
           className={`w-full h-1 bg-neutral-400 rounded-lg appearance-none cursor-pointer ${
             defaultValue !== undefined && value !== defaultValue
               ? "accent-emerald-500"
               : "accent-emerald-600"
           }`}
           onInput={(e) => {
-            setRenderedValue(e.currentTarget.value);
+            setRenderedValue(valueRenderer(parseFloat(e.currentTarget.value)));
             handleChange(parseFloat(e.currentTarget.value));
           }}
         ></input>
