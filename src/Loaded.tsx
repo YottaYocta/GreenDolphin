@@ -114,7 +114,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
 
   return (
     <div className="w-full max-w-[800px] h-full md:h-min p-4 md:p-6 bg-white flex flex-col justify-center gap-4 border border-neutral-2 rounded-xs shadow-md">
-      <div className="w-full flex justify-between items-baseline border-b border-neutral-2 py-2">
+      <div className="w-full flex justify-between items-baseline border-b border-neutral-2">
         <p className="max-w-1/2 text-nowrap text-ellipsis overflow-hidden">
           {filename}
         </p>
@@ -126,7 +126,6 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
         <FrequencyCanvas></FrequencyCanvas>
         <div className="flex flex-col gap-2">
           <div className="flex flex-col">
-            <div className="h-6 flex flex-row gap-2"></div>
             <WaveformView
               initialData={{
                 data: data,
@@ -142,7 +141,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
             ></WaveformView>
           </div>
         </div>
-        <div className="flex flex-col gap-8 md:flex-row w-full h-full justify-between items-center p-8">
+        <div className="flex flex-col gap-12 md:flex-row w-full h-full justify-between items-center p-8">
           <div className="w-full h-full flex flex-col items-center gap-2 justify-center">
             <SliderInput
               icon={<MusicIcon width={18} height={18}></MusicIcon>}
