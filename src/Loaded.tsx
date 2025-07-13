@@ -142,7 +142,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
           </div>
         </div>
         <div className="flex flex-col gap-12 md:flex-row w-full h-full justify-between items-center p-8">
-          <div className="w-full h-full flex flex-col items-center gap-2 justify-center">
+          <div className="w-full h-full flex flex-col items-center gap-6 justify-center">
             <SliderInput
               icon={<MusicIcon width={18} height={18}></MusicIcon>}
               value={pitchShift}
