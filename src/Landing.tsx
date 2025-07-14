@@ -11,13 +11,43 @@ export function Landing({ handleLoaded }: LandingProps) {
         <nav className="w-2xl p-2 flex justify-between items-center rounded-xs gap-64">
           <h1 className=" text-emerald-600 font-semibold">GreenDolphin</h1>
           <div className="flex gap-8">
-            <a href="#" className="text-neutral-600 hover:text-emerald-600">
+            <a
+              href="#features-section"
+              className="text-neutral-600 hover:text-emerald-600"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById("features-section")?.scrollIntoView({
+                  behavior: "smooth",
+                  block: "center",
+                });
+              }}
+            >
               Features
             </a>
-            <a href="#" className="text-neutral-600 hover:text-emerald-600">
+            <a
+              href="#report-bug-section"
+              className="text-neutral-600 hover:text-emerald-600"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById("report-bug-section")?.scrollIntoView({
+                  behavior: "smooth",
+                  block: "center",
+                });
+              }}
+            >
               Report a Bug
             </a>
-            <a href="#" className="text-neutral-600 hover:text-emerald-600">
+            <a
+              href="#support-section"
+              className="text-neutral-600 hover:text-emerald-600"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById("support-section")?.scrollIntoView({
+                  behavior: "smooth",
+                  block: "center",
+                });
+              }}
+            >
               Support
             </a>
           </div>
@@ -43,12 +73,15 @@ export function Landing({ handleLoaded }: LandingProps) {
 
       <hr className="w-96 stroke-neutral-2 border border-neutral-2" />
 
-      <div className="flex-grow flex flex-col items-center justify-center gap-8">
+      <div
+        id="features-section"
+        className="flex-grow flex flex-col items-center justify-center gap-8"
+      >
         <h2 className="text-2xl text-neutral-400 text-center max-w-2xl">
           What is GreenDolphin?
         </h2>
         <div className="flex flex-col items-center justify-center gap-1 text-neutral-600">
-          <p>An recording looper and analysis app,</p>
+          <p>An open-source recording looper and analysis app,</p>
           <p>designed to help you replay and analyze recordings seamlessly</p>
         </div>
 
@@ -110,11 +143,14 @@ export function Landing({ handleLoaded }: LandingProps) {
 
       <hr className="w-96 stroke-neutral-2 border border-neutral-2" />
 
-      <div className="flex-grow flex flex-col items-center justify-center gap-8">
+      <div
+        id="report-bug-section"
+        className="flex-grow flex flex-col items-center justify-center gap-8"
+      >
         <h2 className="text-2xl text-neutral-400 text-center max-w-2xl">
           Encounter a Bug? Have Questions?
         </h2>
-        <div className="flex items-center justify-center gap-1 text-neutral-600">
+        <div className="flex items-center justify-center gap-2 text-neutral-600">
           <p>Please fill out</p>
           <Button
             className="border border-emerald-500 rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
@@ -127,12 +163,25 @@ export function Landing({ handleLoaded }: LandingProps) {
       </div>
       <hr className="w-96 stroke-neutral-2 border border-neutral-2" />
 
-      <div className="flex-grow flex flex-col items-center justify-center gap-8">
+      <div
+        id="support-section"
+        className="flex-grow flex flex-col items-center justify-center gap-8"
+      >
         <h2 className="text-2xl text-neutral-400 text-center max-w-2xl">
           Like What You See?
         </h2>
-        <div className="flex items-center justify-center gap-1 text-neutral-600">
-          <p>Consider sharing GreenDolphin with friends!</p>
+        <div className="flex items-center justify-center gap-2 text-neutral-600">
+          <p>Consider sharing GreenDolphin with friends or</p>
+          <Button
+            className="border border-emerald-500 rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+            text="Starring the GitHub"
+            onClick={() =>
+              window.open(
+                "https://github.com/YottaYocta/GreenDolphin",
+                "_blank"
+              )
+            }
+          />
         </div>
       </div>
 
