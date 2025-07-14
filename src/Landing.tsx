@@ -1,4 +1,4 @@
-import { LoadButton } from "./components/buttons";
+import { LoadButton, Button } from "./components/buttons";
 
 interface LandingProps {
   handleLoaded: (file: File) => void;
@@ -48,7 +48,7 @@ export function Landing({ handleLoaded }: LandingProps) {
           What is GreenDolphin?
         </h2>
         <div className="flex flex-col items-center justify-center gap-1 text-neutral-600">
-          <p>An open-source recording looper and analysis app,</p>
+          <p>An recording looper and analysis app,</p>
           <p>designed to help you replay and analyze recordings seamlessly</p>
         </div>
 
@@ -105,6 +105,34 @@ export function Landing({ handleLoaded }: LandingProps) {
               Shortcuts for <em>everything</em>
             </p>
           </div>
+        </div>
+      </div>
+
+      <hr className="w-96 stroke-neutral-2 border border-neutral-2" />
+
+      <div className="flex-grow flex flex-col items-center justify-center gap-8">
+        <h2 className="text-2xl text-neutral-400 text-center max-w-2xl">
+          Encounter a Bug? Have Questions?
+        </h2>
+        <div className="flex items-center justify-center gap-1 text-neutral-600">
+          <p>Please fill out</p>
+          <Button
+            className="border border-emerald-500 rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+            text="This Google Form"
+            onClick={() =>
+              window.open("https://forms.gle/XmVubjrPpvwwXJ7U7", "_blank")
+            }
+          />
+        </div>
+      </div>
+      <hr className="w-96 stroke-neutral-2 border border-neutral-2" />
+
+      <div className="flex-grow flex flex-col items-center justify-center gap-8">
+        <h2 className="text-2xl text-neutral-400 text-center max-w-2xl">
+          Like What You See?
+        </h2>
+        <div className="flex items-center justify-center gap-1 text-neutral-600">
+          <p>Consider sharing GreenDolphin with friends!</p>
         </div>
       </div>
 
