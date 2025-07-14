@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { LoadButton } from "./components/buttons";
 import { Loaded, type LoadedProps } from "./Loaded";
+import { Landing } from "./Landing";
 import {
   PlaybackProvider,
   type PlaybackProviderProps,
@@ -54,26 +55,7 @@ function App() {
       </div>
     </div>
   ) : (
-    <div className="w-screen h-screen flex items-center justify-center bg-neutral-100">
-      <div className="w-min p-10 border border-neutral-2 rounded-xs flex flex-col justify-center items-center bg-white shadow-md gap-8">
-        <div className="flex flex-col items-center">
-          <h1 className="text-2xl text-nowrap text-neutral-800">
-            Welcome to{" "}
-            <span className="text-emerald-600 text-shadow-emerald-100 text-shadow-lg">
-              GreenDolphin
-            </span>
-          </h1>
-          <p className="text-neutral-500">Music Looper and Analysis Tool</p>
-        </div>
-        <hr className="text-neutral-200 w-full"></hr>
-        <LoadButton handleLoaded={handleLoaded}></LoadButton>
-      </div>
-      <div className="absolute w-full flex items-center justify-center bottom-4">
-        <p className="text-neutral-400">
-          Version 0.1, source code licensed under <em>GPL 3</em>
-        </p>
-      </div>
-    </div>
+    <Landing handleLoaded={handleLoaded}></Landing>
   );
 }
 
