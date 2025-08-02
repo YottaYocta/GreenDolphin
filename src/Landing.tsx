@@ -125,7 +125,7 @@ export function Landing({ handleLoaded }: LandingProps) {
               className="min-w-72 h-48 object-contain border border-neutral-2 rounded-xs"
             />
             <p className="text-center text-neutral-600">
-              Supports audio files <em>and</em> video files
+              Supports audio files and video files
             </p>
           </div>
           <div className="flex flex-col items-center gap-2 max-w-min">
@@ -135,7 +135,7 @@ export function Landing({ handleLoaded }: LandingProps) {
               className="min-w-72 h-48 object-contain border border-neutral-2 rounded-xs"
             />
             <p className="text-center text-neutral-600">
-              Shortcuts for <em>everything</em>
+              Shortcuts for everything
             </p>
           </div>
         </div>

@@ -91,106 +91,177 @@ export const WaveformView: FC<WaveformViewProps> = ({
     return value;
   }, [initialData.range.end, initialData.range.start]);
 
+  const handleZoomIn = useCallback(() => {
+    setLocalRange((prevRange) => {
+      const zoomAmount = Math.floor((prevRange.end - prevRange.start) * 0.1);
+
+      const targetSection = {
+        start: prevRange.start + zoomAmount,
+        end: prevRange.end - zoomAmount,
+      };
+      const midPoint =
+        Math.floor((prevRange.end - prevRange.start) / 2) + prevRange.start;
+
+      const minSection = {
+        start: Math.floor(midPoint - minRangeThresholdValue / 2),
+        end: Math.floor(midPoint + minRangeThresholdValue / 2),
+      };
+      const targetSectionMinClamped = {
+        start: Math.min(minSection.start, targetSection.start),
+        end: Math.max(minSection.end, targetSection.end),
+      };
+
+      return clampSection(targetSectionMinClamped, {
+        start: 0,
+        end: initialData.data.length,
+      });
+    });
+  }, [initialData.data.length, minRangeThresholdValue]);
+
+  const handleZoomOut = useCallback(() => {
+    setLocalRange((prevRange) => {
+      const scrollAmount = Math.floor((prevRange.end - prevRange.start) * 0.1);
+      return clampSection(
+        {
+          start: prevRange.start - scrollAmount,
+          end: prevRange.end + scrollAmount,
+        },
+        { start: 0, end: initialData.data.length }
+      );
+    });
+  }, [initialData.data.length]);
+
+  const handleScrollLeft = useCallback(() => {
+    setLocalRange((prevRange) => {
+      const shiftAmount = Math.floor((prevRange.end - prevRange.start) * 0.1);
+      const targetRange = {
+        start: prevRange.start - shiftAmount,
+        end: prevRange.end - shiftAmount,
+      };
+      if (targetRange.start < 0) {
+        return {
+          start: 0,
+          end: prevRange.end - prevRange.start,
+        };
+      } else return targetRange;
+    });
+  }, []);
+
+  const handleScrollRight = useCallback(() => {
+    setLocalRange((prevRange) => {
+      const shiftAmount = Math.floor((prevRange.end - prevRange.start) * 0.1);
+      const targetRange = {
+        start: prevRange.start + shiftAmount,
+        end: prevRange.end + shiftAmount,
+      };
+      if (targetRange.end > initialData.data.length) {
+        return {
+          start: initialData.data.length - (prevRange.end - prevRange.start),
+          end: initialData.data.length,
+        };
+      } else return targetRange;
+    });
+  }, [initialData.data.length]);
+
+  const handleClearSelection = useCallback(() => {
+    handleSelection(undefined);
+  }, [handleSelection]);
+
+  const handleBackUpSelection = useCallback(() => {
+    if (initialData.section) {
+      const sectionRange = initialData.section.end - initialData.section.start;
+      const targetStart = initialData.section.start - sectionRange;
+      const clampedStart = Math.max(targetStart, 0);
+      const targetEnd = clampedStart + sectionRange;
+      const clampedEnd = Math.min(initialData.data.length, targetEnd);
+      handleSelection({ start: clampedStart, end: clampedEnd });
+    }
+  }, [initialData.section, initialData.data.length, handleSelection]);
+
+  const handleAdvanceSelection = useCallback(() => {
+    if (initialData.section) {
+      const sectionRange = initialData.section.end - initialData.section.start;
+      const targetEnd = initialData.section.end + sectionRange;
+      const clampedEnd = Math.min(targetEnd, initialData.data.length);
+      const targetStart = clampedEnd - sectionRange;
+      const clampedStart = Math.max(0, targetStart);
+      handleSelection({ start: clampedStart, end: clampedEnd });
+    }
+  }, [initialData.section, initialData.data.length, handleSelection]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const { key } = e;
+      switch (key) {
+        case "j":
+          handleZoomOut();
+          break;
+        case "k":
+          handleZoomIn();
+          break;
+        case "h":
+          handleScrollLeft();
+          break;
+        case "l":
+          handleScrollRight();
+          break;
+        case "Escape":
+          e.preventDefault();
+          handleClearSelection();
+          break;
+        case "H":
+          handleBackUpSelection();
+          break;
+        case "L":
+          handleAdvanceSelection();
+          break;
+        default:
+          break;
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [
+    handleZoomIn,
+    handleZoomOut,
+    handleScrollLeft,
+    handleScrollRight,
+    handleClearSelection,
+    handleBackUpSelection,
+    handleAdvanceSelection,
+  ]);
+
   return (
     <div className="relative w-full h-min flex flex-col gap-2">
       <div className="group flex flex-row gap-2 absolute top-1 right-1 z-10 w-min opacity-70 hover:opacity-100 focus:opacity-100 focus-within:opacity-100">
         <div className="flex border border-neutral-2 hover:border-neutral-2 rounded-xs p-1 items-center opacity-70 bg-white group-hover:opacity-100 duration-75">
           <Button
-            ariaLabel="zoom in"
-            icon={<ZoomInIcon width={18} height={18}></ZoomInIcon>}
-            onClick={() => {
-              setLocalRange((prevRange) => {
-                const zoomAmount = Math.floor(
-                  (prevRange.end - prevRange.start) * 0.1
-                );
-
-                const targetSection = {
-                  start: prevRange.start + zoomAmount,
-                  end: prevRange.end - zoomAmount,
-                };
-                const midPoint =
-                  Math.floor((prevRange.end - prevRange.start) / 2) +
-                  prevRange.start;
-
-                const minSection = {
-                  start: Math.floor(midPoint - minRangeThresholdValue / 2),
-                  end: Math.floor(midPoint + minRangeThresholdValue / 2),
-                };
-                const targetSectionMinClamped = {
-                  start: Math.min(minSection.start, targetSection.start),
-                  end: Math.max(minSection.end, targetSection.end),
-                };
-
-                return clampSection(targetSectionMinClamped, {
-                  start: 0,
-                  end: initialData.data.length,
-                });
-              });
-            }}
+            ariaLabel="zoom out"
+            tooltip="zoom out ( j )"
+            icon={<ZoomOutIcon width={18} height={18}></ZoomOutIcon>}
+            onClick={handleZoomOut}
           ></Button>
           <Button
-            ariaLabel="zoom out"
-            icon={<ZoomOutIcon width={18} height={18}></ZoomOutIcon>}
-            onClick={() => {
-              setLocalRange((prevRange) => {
-                const scrollAmount = Math.floor(
-                  (prevRange.end - prevRange.start) * 0.1
-                );
-                return clampSection(
-                  {
-                    start: prevRange.start - scrollAmount,
-                    end: prevRange.end + scrollAmount,
-                  },
-                  { start: 0, end: initialData.data.length }
-                );
-              });
-            }}
+            ariaLabel="zoom in"
+            icon={<ZoomInIcon width={18} height={18}></ZoomInIcon>}
+            tooltip="zoom in ( k )"
+            onClick={handleZoomIn}
           ></Button>
         </div>
         <div className="flex border border-neutral-2 hover:border-neutral-2 rounded-xs p-1 items-center opacity-70 bg-white group-hover:opacity-100 duration-75">
           <Button
             ariaLabel="scroll left"
+            tooltip="Scroll left ( h )"
             icon={<ChevronLeftIcon width={18} height={18}></ChevronLeftIcon>}
-            onClick={() => {
-              setLocalRange((prevRange) => {
-                const shiftAmount = Math.floor(
-                  (prevRange.end - prevRange.start) * 0.1
-                );
-                const targetRange = {
-                  start: prevRange.start - shiftAmount,
-                  end: prevRange.end - shiftAmount,
-                };
-                if (targetRange.start < 0) {
-                  return {
-                    start: 0,
-                    end: prevRange.end - prevRange.start,
-                  };
-                } else return targetRange;
-              });
-            }}
+            onClick={handleScrollLeft}
           ></Button>
           <Button
             ariaLabel="scroll right"
+            tooltip="Scroll left ( l )"
             icon={<ChevronRightIcon width={18} height={18}></ChevronRightIcon>}
-            onClick={() => {
-              setLocalRange((prevRange) => {
-                const shiftAmount = Math.floor(
-                  (prevRange.end - prevRange.start) * 0.1
-                );
-                const targetRange = {
-                  start: prevRange.start + shiftAmount,
-                  end: prevRange.end + shiftAmount,
-                };
-                if (targetRange.end > initialData.data.length) {
-                  return {
-                    start:
-                      initialData.data.length -
-                      (prevRange.end - prevRange.start),
-                    end: initialData.data.length,
-                  };
-                } else return targetRange;
-              });
-            }}
+            onClick={handleScrollRight}
           ></Button>
         </div>
       </div>
@@ -199,10 +270,9 @@ export const WaveformView: FC<WaveformViewProps> = ({
           <div className="flex border border-neutral-2 hover:border-neutral-2 rounded-xs p-1 items-center opacity-70 bg-white group-hover:opacity-100 duration-75">
             <Button
               ariaLabel="Clear Selection"
+              tooltip="Clear Selection ( Escape ) "
               icon={<BanIcon width={18} height={18}></BanIcon>}
-              onClick={() => {
-                handleSelection(undefined);
-              }}
+              onClick={handleClearSelection}
             ></Button>
           </div>
           <div className="flex border border-neutral-2 hover:border-neutral-2 rounded-xs p-1 items-center opacity-70 bg-white group-hover:opacity-100 duration-75">
@@ -211,20 +281,8 @@ export const WaveformView: FC<WaveformViewProps> = ({
                 <PanelLeftCloseIcon width={18} height={18}></PanelLeftCloseIcon>
               }
               ariaLabel="Back Up Selection"
-              onClick={() => {
-                if (initialData.section) {
-                  const sectionRange =
-                    initialData.section.end - initialData.section.start;
-                  const targetStart = initialData.section.start - sectionRange;
-                  const clampedStart = Math.max(targetStart, 0);
-                  const targetEnd = clampedStart + sectionRange;
-                  const clampedEnd = Math.min(
-                    initialData.data.length,
-                    targetEnd
-                  );
-                  handleSelection({ start: clampedStart, end: clampedEnd });
-                }
-              }}
+              tooltip="Back Up Selection ( H )"
+              onClick={handleBackUpSelection}
             ></Button>
             <Button
               icon={
@@ -234,20 +292,8 @@ export const WaveformView: FC<WaveformViewProps> = ({
                 ></PanelRightCloseIcon>
               }
               ariaLabel="Advance Selection"
-              onClick={() => {
-                if (initialData.section) {
-                  const sectionRange =
-                    initialData.section.end - initialData.section.start;
-                  const targetEnd = initialData.section.end + sectionRange;
-                  const clampedEnd = Math.min(
-                    targetEnd,
-                    initialData.data.length
-                  );
-                  const targetStart = clampedEnd - sectionRange;
-                  const clampedStart = Math.max(0, targetStart);
-                  handleSelection({ start: clampedStart, end: clampedEnd });
-                }
-              }}
+              tooltip="Advance Selection ( L )"
+              onClick={handleAdvanceSelection}
             ></Button>
           </div>
         </div>

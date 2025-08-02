@@ -52,7 +52,11 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "p") {
+      if (e.key === "0") {
+        const currentStart = loop ? loop.start : 0;
+        setPosition(currentStart);
+        setPlayState("playing");
+      } else if (e.key === "p") {
         if (playState === "paused") {
           setPlayState("playing");
         } else if (playState === "frozen") {
@@ -63,15 +67,17 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
       } else if (e.key === "f") {
         if (playState === "frozen") setPlayState("paused");
         else setPlayState("frozen");
-      } else if (e.key === "l") {
-        setLooping(!looping);
       }
+
+      // else if (e.key === "l") {
+      //   setLooping(!looping);
+      // }
     };
     window.addEventListener("keypress", handleKey);
     return () => {
       window.removeEventListener("keypress", handleKey);
     };
-  }, [looping, playState, setLooping, setPlayState]);
+  }, [loop, looping, playState, setLooping, setPlayState, setPosition]);
 
   const rewindFiveSeconds = useCallback(() => {
     const targetMS = Math.max(0, playbackPosition.current - 5000);
