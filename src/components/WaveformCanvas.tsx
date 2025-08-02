@@ -320,8 +320,8 @@ export const WaveformCanvas: FC<
   ]);
 
   return (
-    <div className="relative pixelated cursor-pointer">
-      <canvas {...props} ref={canvasRef}></canvas>
+    <div className="relative pixelated cursor-pointer select-none">
+      <canvas {...props} ref={canvasRef} draggable="false"></canvas>
     </div>
   );
 };
