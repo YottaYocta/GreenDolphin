@@ -202,7 +202,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
                   <PlayIcon width={22} height={22} strokeWidth={1.5}></PlayIcon>
                 }
                 ariaLabel="play/pause"
-                tooltip="Play/Pause (p)"
+                tooltip="Play/Pause ( p )"
                 className="play-button"
               ></ToggleButton>
               <ToggleButton
@@ -222,7 +222,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
                   ></SnowflakeIcon>
                 }
                 ariaLabel="freeze"
-                tooltip="Freeze in Place (f)"
+                tooltip="Freeze in Place ( f )"
                 className="play-button"
               ></ToggleButton>
             </div>
@@ -231,7 +231,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
                 icon={
                   <ChevronsLeftIcon width={18} height={18}></ChevronsLeftIcon>
                 }
-                tooltip="Rewind 5s ([)"
+                tooltip="Rewind 5s ( [ )"
                 text="5s"
                 ariaLabel="rewind 5 seconds"
                 className="play-button border border-neutral-2"
@@ -241,7 +241,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
                 icon={
                   <ChevronsRightIcon width={18} height={18}></ChevronsRightIcon>
                 }
-                tooltip="Fast Forward 5s (])"
+                tooltip="Fast Forward 5s ( ] )"
                 text="5s"
                 ariaLabel="fast forward 5 seconds"
                 className="play-button flex-1 border border-neutral-2"

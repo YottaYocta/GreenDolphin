@@ -49,6 +49,7 @@ export const SliderInput: FC<SliderInputProps> = ({
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
         onClick={handleResetClick}
+        title={`Reset ${forLabel}`}
         disabled={defaultValue === undefined}
       >
         {isHovering && defaultValue !== undefined ? (
