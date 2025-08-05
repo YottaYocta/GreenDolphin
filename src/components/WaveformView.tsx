@@ -199,10 +199,10 @@ export const WaveformView: FC<WaveformViewProps> = ({
         case "k":
           handleZoomIn();
           break;
-        case "h":
+        case "[":
           handleScrollLeft();
           break;
-        case "l":
+        case "]":
           handleScrollRight();
           break;
         case "Escape":
@@ -253,13 +253,13 @@ export const WaveformView: FC<WaveformViewProps> = ({
         <div className="flex border border-neutral-2 hover:border-neutral-2 rounded-xs p-1 items-center opacity-70 bg-white group-hover:opacity-100 duration-75">
           <Button
             ariaLabel="scroll left"
-            tooltip="Scroll left ( h )"
+            tooltip="Scroll left ( [ )"
             icon={<ChevronLeftIcon width={18} height={18}></ChevronLeftIcon>}
             onClick={handleScrollLeft}
           ></Button>
           <Button
             ariaLabel="scroll right"
-            tooltip="Scroll left ( l )"
+            tooltip="Scroll left ( ] )"
             icon={<ChevronRightIcon width={18} height={18}></ChevronRightIcon>}
             onClick={handleScrollRight}
           ></Button>

@@ -91,9 +91,9 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "[") {
+      if (e.key === "h") {
         rewindFiveSeconds();
-      } else if (e.key === "]") {
+      } else if (e.key === "l") {
         fastForwardFiveSeconds();
       }
     };
@@ -119,7 +119,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
   }, [triggerUpdate]);
 
   return (
-    <div className="w-full max-w-[800px] h-full md:h-min p-4 md:p-6 bg-white flex flex-col justify-center gap-4 border border-neutral-2 rounded-xs shadow-md">
+    <div className="w-full max-w-[800px] h-screen sm:h-full md:h-min p-4 md:p-6 bg-white flex flex-col justify-center gap-4 sm:border sm:border-neutral-2 sm:rounded-xs sm:shadow-md">
       <div className="w-full flex justify-between items-baseline border-b border-neutral-2">
         <p className="max-w-1/2 text-nowrap text-ellipsis overflow-hidden">
           {filename}
@@ -147,8 +147,8 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
             ></WaveformView>
           </div>
         </div>
-        <div className="flex flex-col gap-12 md:flex-row w-full h-full justify-between items-center p-8">
-          <div className="w-full h-full flex flex-col items-center gap-6 justify-center">
+        <div className="flex flex-col sm:gap-12 gap-8 md:flex-row w-full sm:h-full h-min justify-between items-center p-4 sm:p-8">
+          <div className="w-full h-full flex flex-col items-center sm:gap-6 gap-2 justify-center">
             <SliderInput
               icon={<MusicIcon width={18} height={18}></MusicIcon>}
               value={pitchShift}
@@ -231,7 +231,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
                 icon={
                   <ChevronsLeftIcon width={18} height={18}></ChevronsLeftIcon>
                 }
-                tooltip="Rewind 5s ( [ )"
+                tooltip="Rewind 5s ( h )"
                 text="5s"
                 ariaLabel="rewind 5 seconds"
                 className="play-button border border-neutral-2"
@@ -241,7 +241,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
                 icon={
                   <ChevronsRightIcon width={18} height={18}></ChevronsRightIcon>
                 }
-                tooltip="Fast Forward 5s ( ] )"
+                tooltip="Fast Forward 5s ( l )"
                 text="5s"
                 ariaLabel="fast forward 5 seconds"
                 className="play-button flex-1 border border-neutral-2"

@@ -51,10 +51,10 @@ export const FrequencyCanvas: FC = () => {
   }, [frequencyDataRef]);
 
   return (
-    <div className="border rounded-xs border-neutral-2 pixelated w-full h-32 py-4 px-16 select-none">
+    <div className="border rounded-xs border-neutral-2 pixelated w-full h-min flex items-center justify-center overflow-hidden overflow-x-scroll py-4 select-none">
       <canvas
         ref={canvasRef}
-        className="w-full h-full"
+        className="w-[600px] h-24"
         draggable="false"
       ></canvas>
     </div>
