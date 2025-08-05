@@ -36,6 +36,11 @@ export interface WaveformCanvasProps {
   handlePosition?: (position: number) => void;
 }
 
+interface CanvasGesture {
+  offsetX: number;
+  offsetY: number;
+}
+
 export const WaveformCanvas: FC<
   WaveformCanvasProps & CanvasHTMLAttributes<HTMLCanvasElement>
 > = ({
@@ -185,7 +190,7 @@ export const WaveformCanvas: FC<
     const canvasElement = canvasRef.current;
     if (!canvasElement) return;
 
-    const handleMove = (e: MouseEvent) => {
+    const handleMove = (e: CanvasGesture) => {
       if (selectRange !== undefined) {
         const endSample =
           computeSampleIndex(
@@ -215,7 +220,7 @@ export const WaveformCanvas: FC<
       setSelectRange(undefined);
     };
 
-    const handleMouseDown = (e: MouseEvent) => {
+    const handleMouseDown = (e: CanvasGesture) => {
       const sampleIndex =
         computeSampleIndex(
           e.offsetX,
@@ -291,6 +296,30 @@ export const WaveformCanvas: FC<
     canvasElement.addEventListener("mousemove", handleMove);
     canvasElement.addEventListener("mouseup", handleMouseUp);
     canvasElement.addEventListener("mouseleave", handleMouseUp);
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches[0]) {
+        const touchGesture: CanvasGesture = {
+          offsetX: e.touches[0].clientX,
+          offsetY: e.touches[0].clientX,
+        };
+        handleMouseDown(touchGesture);
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches[0]) {
+        const touchGesture: CanvasGesture = {
+          offsetX: e.touches[0].clientX,
+          offsetY: e.touches[0].clientX,
+        };
+        handleMove(touchGesture);
+      }
+    };
+
+    canvasElement.addEventListener("touchstart", handleTouchStart);
+    canvasElement.addEventListener("touchmove", handleTouchMove);
+    canvasElement.addEventListener("touchend", handleMouseUp);
     // console.log(`[ADD] Click/Press on ${canvasElement.nodeName}`);
 
     return () => {
@@ -303,6 +332,10 @@ export const WaveformCanvas: FC<
       canvasElement.removeEventListener("mousemove", handleMove);
       canvasElement.removeEventListener("mouseup", handleMouseUp);
       canvasElement.removeEventListener("mouseleave", handleMouseUp);
+      canvasElement.removeEventListener("touchstart", handleTouchStart);
+      canvasElement.removeEventListener("touchmove", handleTouchMove);
+      canvasElement.removeEventListener("touchend", handleMouseUp);
+
       // console.log(`[REMOVE] Click/Press on ${canvasElement.nodeName}`);
     };
   }, [
