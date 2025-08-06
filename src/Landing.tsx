@@ -169,7 +169,7 @@ export function Landing({ handleLoaded }: LandingProps) {
         </div>
 
         <div className="flex flex-wrap items-start w-full max-w-2xl justify-between gap-24">
-          <div
+          <section
             id="report-bug-section"
             className="w-full flex flex-col justify-between gap-8"
           >
@@ -193,10 +193,10 @@ export function Landing({ handleLoaded }: LandingProps) {
                 />
               </a>
             </div>
-          </div>
+          </section>
 
-          <div
-            id="report-bug-section"
+          <section
+            id="support-section"
             className="w-full gap-8 flex flex-col justify-between"
           >
             <h2 className="text-lg text-neutral-400 max-w-2xl w-full border-b border-neutral-2">
@@ -218,7 +218,7 @@ export function Landing({ handleLoaded }: LandingProps) {
                 />
               </span>
             </div>
-          </div>
+          </section>
         </div>
         <div className="w-full flex items-center justify-center">
           <p className="text-neutral-400">
