@@ -1,5 +1,5 @@
 import { PlusIcon } from "lucide-react";
-import { useRef, type FC, type ReactNode } from "react";
+import { useRef, type FC, type MouseEventHandler, type ReactNode } from "react";
 
 export interface LoadButtonProps {
   handleLoaded: (file: File) => void;
@@ -9,7 +9,7 @@ export interface LoadButtonProps {
 export interface ButtonProps {
   icon?: ReactNode;
   text?: string;
-  onClick?: () => void;
+  onClick?: MouseEventHandler<HTMLButtonElement>;
   className?: string;
   ariaLabel?: string;
   tooltip?: string;
