@@ -54,11 +54,11 @@ export function Landing({ handleLoaded }: LandingProps) {
 
   return (
     <div
-      className="w-screen max-w-screen min-h-screen flex flex-col"
+      className="w-full min-h-screen flex flex-col"
       onClick={() => setShowMenu(false)}
     >
-      <div className="w-full flex items-center justify-center border-b border-neutral-2 p-4 pb-2 sticky top-0 bg-white/10 backdrop-blur-lg">
-        <nav className="flex items-center justify-between max-w-2xl w-full">
+      <div className="w-full flex items-center justify-center border-b border-neutral-2 p-2 sticky top-0 bg-white/10 backdrop-blur-lg">
+        <nav className="flex items-center justify-between max-w-2xl w-full pl-2">
           <a href="#" className="text-emerald-600 font-semibold">
             GreenDolphin
           </a>
@@ -121,7 +121,7 @@ export function Landing({ handleLoaded }: LandingProps) {
                 alt="Fine-grain playback playback control"
                 className="sm:min-w-56 min-w-32 h-36 object-contain border border-neutral-2 rounded-xs bg-white"
               />
-              <p className="text-center text-neutral-400">
+              <p className="text-center text-neutral-400 text-sm">
                 Adjust playback properties like speed and pitch
               </p>
             </div>
@@ -131,7 +131,7 @@ export function Landing({ handleLoaded }: LandingProps) {
                 alt="Freeze and loop audio"
                 className="sm:min-w-56 min-w-32 h-36 object-contain border border-neutral-2 rounded-xs bg-white"
               />
-              <p className="text-center text-neutral-400">
+              <p className="text-center text-neutral-400 text-sm">
                 Freeze and loop audio
               </p>
             </div>
@@ -141,7 +141,7 @@ export function Landing({ handleLoaded }: LandingProps) {
                 alt="Visualize frequencies in real time"
                 className="sm:min-w-56 min-w-32 h-36 object-contain border border-neutral-2 rounded-xs bg-white"
               />
-              <p className="text-center text-neutral-400">
+              <p className="text-center text-neutral-400 text-sm">
                 Visualize frequencies in real time
               </p>
             </div>
@@ -151,8 +151,8 @@ export function Landing({ handleLoaded }: LandingProps) {
                 alt="Load audio and video files"
                 className="sm:min-w-56 min-w-32 h-36 object-contain border border-neutral-2 rounded-xs bg-white"
               />
-              <p className="text-center text-neutral-400">
-                Load audio files and video files
+              <p className="text-center text-neutral-400 text-sm">
+                Load audio and video files
               </p>
             </div>
             <div className="flex flex-col items-center gap-2 max-w-min">
@@ -161,7 +161,7 @@ export function Landing({ handleLoaded }: LandingProps) {
                 alt="Shortcuts for everything"
                 className="sm:min-w-56 min-w-32 h-36 object-contain border border-neutral-2 rounded-xs bg-white"
               />
-              <p className="text-center text-neutral-400">
+              <p className="text-center text-neutral-400 text-sm">
                 Use shortcuts for everything
               </p>
             </div>
