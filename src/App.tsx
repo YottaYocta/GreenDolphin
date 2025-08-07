@@ -50,9 +50,9 @@ function App() {
   };
 
   return loadedProps && playbackProps ? (
-    <div className="w-screen h-screen flex flex-col items-center justify-center bg-white md:bg-neutral-100 sm:p-0 pt-2">
-      <div className="w-full h-full flex flex-col items-center justify-between sm:justify-center pb-8">
-        <div className="sm:absolute z-10 right-3 top-3 h-min w-min">
+    <div className="w-screen h-screen flex flex-col items-center justify-center bg-white md:bg-neutral-100 md:p-0 pt-2">
+      <div className="w-full h-full flex flex-col items-center justify-between md:justify-center md:pb-0 pb-4">
+        <div className="md:absolute z-10 right-3 top-3 h-min w-min">
           <LoadButton handleLoaded={handleLoaded}></LoadButton>
         </div>
         <PlaybackProvider {...playbackProps}>

@@ -119,7 +119,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
   }, [triggerUpdate]);
 
   return (
-    <div className="w-full max-w-[800px] h-full sm:h-min p-4 md:p-6 bg-white flex flex-col justify-between sm:justify-center gap-6 md:border md:border-neutral-2 md:rounded-xs md:shadow-md">
+    <div className="w-full max-w-[800px] h-full md:h-min p-4 md:p-6 bg-white flex flex-col justify-between md:justify-center gap-6 md:border md:border-neutral-2 md:rounded-xs md:shadow-md">
       <div className="w-full flex justify-between items-baseline border-b border-neutral-2">
         <p className="max-w-1/2 text-nowrap text-ellipsis overflow-hidden">
           {filename}
@@ -145,9 +145,9 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
           }}
         ></WaveformView>
       </div>
-      <div className="flex flex-col md:gap-12 gap-6 sm:flex-row w-full sm:h-full h-min justify-between items-center sm:px-4 md:px-8">
+      <div className="flex flex-col md:gap-12 gap-6 md:flex-row w-full h-full justify-between items-center md:px-8 md:py-4">
         <div
-          className="w-full h-full flex flex-col items-center sm:gap-4 gap-1 justify-center "
+          className="w-full h-full flex flex-col items-center md:gap-4 gap-1 justify-center "
           id="recording-properties"
         >
           <SliderInput
@@ -189,7 +189,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
           />
         </div>
         <div
-          className="flex sm:flex-col flex-row justify-between items-center gap-2 "
+          className="flex md:flex-col flex-row justify-between items-center gap-2 "
           id="playback-controls"
         >
           <div className="w-full flex gap-2 items-center justify-center">
