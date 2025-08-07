@@ -3,7 +3,7 @@ import { useRef, type FC, type MouseEventHandler, type ReactNode } from "react";
 
 export interface LoadButtonProps {
   handleLoaded: (file: File) => void;
-  buttonText?: string;
+  text?: string;
 }
 
 export interface ButtonProps {
@@ -97,17 +97,14 @@ export const ToggleButton: FC<ToggleButtonProps> = ({
   );
 };
 
-export const LoadButton: FC<LoadButtonProps> = ({
-  handleLoaded,
-  buttonText,
-}) => {
+export const LoadButton: FC<LoadButtonProps> = ({ handleLoaded, text }) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
     <>
       <Button
         className="border-neutral-2 border pl-2 pr-3 bg-neutral-50 hover:bg-white"
-        text={buttonText || "Load Recording"}
+        text={text || "Load Recording"}
         icon={<PlusIcon width={18} height={18} strokeWidth={1.5}></PlusIcon>}
         onClick={() => {
           if (inputRef.current) inputRef.current.click();

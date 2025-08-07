@@ -85,7 +85,7 @@ export function Landing({ handleLoaded }: LandingProps) {
             <h1 className="text-3xl mt-8">Study Music Without Interruption</h1>
             <LoadButton
               handleLoaded={handleLoaded}
-              buttonText="Load a recording to get started"
+              text="Load a recording to get started"
             ></LoadButton>
           </div>
           <img
