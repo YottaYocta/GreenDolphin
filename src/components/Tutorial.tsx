@@ -66,11 +66,24 @@ export const Tutorial: FC<TutorialProps> = ({
       const selection = document.querySelector(currentStep.htmlSelector);
       if (selection instanceof HTMLElement) {
         const rect = selection.getBoundingClientRect();
-        popupRef.current.style.left = `${
-          rect.left + rect.width / 2 - popupRef.current.clientWidth / 2
-        }px`;
+
+        const topHeight = rect.top;
+        const bottomHeight = window.innerHeight - rect.bottom;
+        const minLeft = HIGHLIGHT_OFFSET;
+        const maxLeft =
+          window.innerWidth - popupRef.current.offsetWidth - HIGHLIGHT_OFFSET;
+        popupRef.current.style.left = `${Math.max(
+          Math.min(
+            maxLeft,
+            rect.left + rect.width / 2 - popupRef.current.clientWidth / 2
+          ),
+          minLeft
+        )}px`;
+
         popupRef.current.style.top = `${
-          rect.top + rect.height + 2 * HIGHLIGHT_OFFSET
+          topHeight > bottomHeight
+            ? rect.top - 2 * HIGHLIGHT_OFFSET - popupRef.current.offsetHeight
+            : rect.top + rect.height + 2 * HIGHLIGHT_OFFSET
         }px`;
 
         highlightRef.current.style.left = `${rect.left - HIGHLIGHT_OFFSET}px`;
