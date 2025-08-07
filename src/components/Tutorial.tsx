@@ -101,7 +101,7 @@ export const Tutorial: FC<TutorialProps> = ({
       ></div>
       <div
         ref={popupRef}
-        className="fixed min-w-16 min-h-4 bg-white border border-neutral-2 z-50 max-w-64 p-2 flex flex-col gap-4"
+        className="fixed min-w-16 min-h-4 bg-white border border-neutral-2 z-50 max-w-64 p-2 flex flex-col gap-4 shadow-sm"
       >
         {currentStep.contents}
         <div className="flex items-center justify-between gap-2">

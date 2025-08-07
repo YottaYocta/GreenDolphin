@@ -50,8 +50,15 @@ function App() {
   };
 
   return loadedProps && playbackProps ? (
-    <div className="w-screen h-screen flex items-center justify-center bg-neutral-100">
-      <div className="w-full h-full flex items-center justify-center md:pb-8">
+    <div className="w-screen h-screen flex flex-col items-center justify-center bg-white md:bg-neutral-100 sm:p-0 pt-2">
+      <div className="w-full h-full flex flex-col items-center justify-between sm:justify-center pb-8">
+        <div className="sm:absolute z-10 right-3 top-3 h-min w-min">
+          <LoadButton handleLoaded={handleLoaded}></LoadButton>
+        </div>
+        <PlaybackProvider {...playbackProps}>
+          <Loaded {...loadedProps}></Loaded>
+        </PlaybackProvider>
+
         {showTutorial ? (
           <Tutorial
             handleTutorialFinished={() => {
@@ -88,7 +95,10 @@ function App() {
               {
                 htmlSelector: "#waveform-controls",
                 contents: (
-                  <p>You can also use these controls to do the same thing.</p>
+                  <p>
+                    You can also use these controls to navigate around the
+                    recording.
+                  </p>
                 ),
               },
             ]}
@@ -96,12 +106,6 @@ function App() {
         ) : (
           <></>
         )}
-        <PlaybackProvider {...playbackProps}>
-          <Loaded {...loadedProps}></Loaded>
-        </PlaybackProvider>
-      </div>
-      <div className="absolute z-10 right-3 top-3 h-min w-min">
-        <LoadButton handleLoaded={handleLoaded}></LoadButton>
       </div>
     </div>
   ) : (
