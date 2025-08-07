@@ -69,7 +69,7 @@ export function Landing({ handleLoaded }: LandingProps) {
       className="w-full min-h-screen flex flex-col"
       onClick={() => setShowMenu(false)}
     >
-      <div className="w-full flex items-center justify-center border-b border-neutral-2 p-2 sticky top-0 bg-white/10 backdrop-blur-lg">
+      <div className="w-full flex items-center justify-center border-b border-neutral-2 p-2 sticky top-0 from-white to-white/50 backdrop-blur-sm bg-gradient-to-b">
         <nav className="flex items-center justify-between max-w-2xl w-full pl-2">
           <a href="#" className="text-emerald-600 font-semibold">
             GreenDolphin
