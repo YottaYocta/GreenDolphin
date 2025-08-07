@@ -7,6 +7,7 @@ import {
   type FC,
   type ReactNode,
 } from "react";
+import { Button } from "./buttons";
 
 export interface TutorialStep {
   htmlSelector: string;
@@ -68,20 +69,28 @@ export const Tutorial: FC<TutorialProps> = ({ steps }) => {
   return currentStep ? (
     <div
       ref={containerRef}
-      className="fixed min-w-16 min-h-4 bg-white border border-neutral-2 z-50"
+      className="fixed min-w-16 min-h-4 bg-white border border-neutral-2 z-50 max-w-64 p-2 flex flex-col gap-4"
     >
       {currentStep.contents}
-      <button onClick={() => setCurrentStepIndex(null)}>Skip</button>
-      {currentStepIndex !== null && currentStepIndex > 0 ? (
-        <button onClick={() => advanceStep(-1)}>Previous</button>
-      ) : (
-        <></>
-      )}
-      <button onClick={() => advanceStep(1)}>
-        {currentStepIndex !== null && currentStepIndex === steps.length - 1
-          ? "Finish"
-          : "Next"}
-      </button>
+      <div className="flex items-center justify-between gap-2">
+        <Button onClick={() => setCurrentStepIndex(null)} text="Skip"></Button>
+        <div className="flex items-center gap-2">
+          {currentStepIndex !== null && currentStepIndex > 0 ? (
+            <Button text="Previous" onClick={() => advanceStep(-1)}></Button>
+          ) : (
+            <></>
+          )}
+          <Button
+            onClick={() => advanceStep(1)}
+            className="border border-emerald-500 rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+            text={
+              currentStepIndex !== null && currentStepIndex === steps.length - 1
+                ? "Finish"
+                : "Next"
+            }
+          ></Button>
+        </div>
+      </div>
     </div>
   ) : (
     <></>
