@@ -16,9 +16,13 @@ export interface TutorialStep {
 
 export interface TutorialProps {
   steps: TutorialStep[];
+  handleTutorialFinished?: () => void;
 }
 
-export const Tutorial: FC<TutorialProps> = ({ steps }) => {
+export const Tutorial: FC<TutorialProps> = ({
+  steps,
+  handleTutorialFinished,
+}) => {
   const HIGHLIGHT_OFFSET = 8;
 
   const [currentStepIndex, setCurrentStepIndex] = useState<number | null>(
@@ -29,6 +33,11 @@ export const Tutorial: FC<TutorialProps> = ({ steps }) => {
     if (steps.length === 0) setCurrentStepIndex(null);
     else setCurrentStepIndex(0);
   }, [steps]);
+
+  useEffect(() => {
+    if (handleTutorialFinished && currentStepIndex === null)
+      handleTutorialFinished();
+  }, [currentStepIndex, handleTutorialFinished]);
 
   const currentStep = useMemo<TutorialStep | null>(() => {
     if (currentStepIndex !== null && steps && steps[currentStepIndex]) {
@@ -45,7 +54,9 @@ export const Tutorial: FC<TutorialProps> = ({ steps }) => {
       setCurrentStepIndex((currentValue) => {
         if (currentValue !== null && steps[currentValue + amount])
           return currentValue + amount;
-        else return null;
+        else {
+          return null;
+        }
       });
     }
   };
