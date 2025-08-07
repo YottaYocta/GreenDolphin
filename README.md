@@ -43,6 +43,10 @@ Encounter some bugs or have feedback? Please fill out this form: https://forms.g
   - [x] shortcuts for navigation, playback control, and loop selection
   - [x] cross browser support (note: mobile playback will only be audible if you turn on notifications/ringer)
 
+## Tracking & Privacy
+
+GreenDolphin uses https://umami.is/ to measure traffic
+
 ## Attribution
 
 Demo recording is an excerpt from Wynton Kelly's recording of _On Green Dolphin Street_ in _Kelly Blue_.
