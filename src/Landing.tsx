@@ -1,4 +1,4 @@
-import { MenuIcon } from "lucide-react";
+import { AudioLinesIcon, MenuIcon } from "lucide-react";
 import { Button, LoadButton } from "./components/buttons";
 import { useMemo, useState } from "react";
 
@@ -81,12 +81,38 @@ export function Landing({ handleLoaded }: LandingProps) {
       </div>
       <main className="p-8 flex flex-col gap-20 sm:items-center">
         <div className="flex flex-col gap-16 max-w-2xl">
-          <div className="flex flex-col gap-4 sm:items-center">
+          <div className="flex flex-col gap-8 sm:items-center">
             <h1 className="text-3xl mt-8">Study Music Without Interruption</h1>
-            <LoadButton
-              handleLoaded={handleLoaded}
-              text="Load a recording to get started"
-            ></LoadButton>
+            <div className="flex md:flex-row flex-col items-start md:items-center justify-center gap-2">
+              <LoadButton
+                handleLoaded={handleLoaded}
+                text="Load recording"
+              ></LoadButton>
+              <Button
+                className="positive-button"
+                text="Try it out with a demo track"
+                icon={
+                  <AudioLinesIcon
+                    width={18}
+                    height={18}
+                    strokeWidth={1.5}
+                    className="text-emerald-700"
+                  ></AudioLinesIcon>
+                }
+                onClick={async () => {
+                  const res = await fetch(
+                    "Wynton Kelly - On Green Dolphin Street [EXCERPT].mp3"
+                  );
+                  const blob = await res.blob();
+                  const file = new File(
+                    [blob],
+                    "Wynton Kelly - On Green Dolphin Street [EXCERPT].mp3",
+                    { type: "audio/mp3" }
+                  );
+                  handleLoaded(file);
+                }}
+              ></Button>
+            </div>
           </div>
           <img
             src="/demoImage.png"
@@ -109,8 +135,7 @@ export function Landing({ handleLoaded }: LandingProps) {
             </p>
             <p>
               Unlike a conventional music player, GreenDolphin specializes in
-              looping and modifying small sections of a recording. With
-              GreenDolphin, you can:
+              looping small sections of a recording. With GreenDolphin, you can:
             </p>
           </div>
 

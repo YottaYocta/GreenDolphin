@@ -117,7 +117,7 @@ export const Tutorial: FC<TutorialProps> = ({
             )}
             <Button
               onClick={() => advanceStep(1)}
-              className="border border-emerald-500 rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+              className="positive-button"
               text={
                 currentStepIndex !== null &&
                 currentStepIndex === steps.length - 1

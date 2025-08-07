@@ -109,7 +109,7 @@ export const LoadButton: FC<LoadButtonProps> = ({ handleLoaded, text }) => {
   return (
     <>
       <Button
-        className="border-neutral-2 border pl-2 pr-3 bg-neutral-50 hover:bg-white"
+        className="border-neutral-2 border pl-2 pr-3 bg-white hover:bg-neutral-50"
         text={text || "Load Recording"}
         icon={<PlusIcon width={18} height={18} strokeWidth={1.5}></PlusIcon>}
         onClick={() => {
