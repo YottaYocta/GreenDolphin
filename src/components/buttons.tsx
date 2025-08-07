@@ -14,6 +14,7 @@ export interface ButtonProps {
   ariaLabel?: string;
   tooltip?: string;
   iconPlacement?: "left" | "right";
+  id?: string;
 }
 
 export const Button: FC<ButtonProps> = ({
@@ -24,6 +25,7 @@ export const Button: FC<ButtonProps> = ({
   ariaLabel,
   tooltip,
   iconPlacement = "left", // Default to left
+  id,
 }) => {
   return (
     <button
@@ -31,6 +33,7 @@ export const Button: FC<ButtonProps> = ({
       className={`bg-white hover:bg-neutral-100 p-1 px-2 rounded-full h-min w-min flex items-center justify-center text-center gap-1 flex-nowrap text-nowrap cursor-pointer ${className}`}
       onClick={onClick}
       title={tooltip}
+      id={id}
     >
       {iconPlacement === "left" && icon && (
         <span className="text-neutral-500 text-center flex items-center justify-center w-min">
@@ -57,6 +60,7 @@ export interface ToggleButtonProps {
   accent?: "positive" | "primary" | "negative";
   iconPlacement?: "left" | "right";
   tooltip?: string;
+  id?: string;
 }
 
 export const ToggleButton: FC<ToggleButtonProps> = ({
@@ -69,9 +73,11 @@ export const ToggleButton: FC<ToggleButtonProps> = ({
   accent,
   iconPlacement = "left",
   tooltip,
+  id,
 }) => {
   return (
     <button
+      id={id}
       aria-pressed={pressed}
       aria-label={ariaLabel}
       title={tooltip}

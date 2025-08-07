@@ -51,6 +51,7 @@ export const SliderInput: FC<SliderInputProps> = ({
         onClick={handleResetClick}
         title={`Reset ${forLabel}`}
         disabled={defaultValue === undefined}
+        id={`reset-${forLabel.toLowerCase()}`}
       >
         {isHovering && defaultValue !== undefined ? (
           <RotateCcwIcon

@@ -234,8 +234,14 @@ export const WaveformView: FC<WaveformViewProps> = ({
   ]);
 
   return (
-    <div className="relative w-full h-min flex flex-col gap-2">
-      <div className="group flex flex-row gap-2 absolute top-1 right-1 z-10 w-min opacity-70 hover:opacity-100 focus:opacity-100 focus-within:opacity-100">
+    <div
+      className="relative w-full h-min flex flex-col gap-2"
+      id="waveform-view"
+    >
+      <div
+        className="group flex flex-row gap-2 absolute top-1 right-1 z-10 w-min opacity-70 hover:opacity-100 focus:opacity-100 focus-within:opacity-100"
+        id="waveform-controls"
+      >
         <div className="flex border border-neutral-2 hover:border-neutral-2 rounded-xs p-1 items-center opacity-70 bg-white group-hover:opacity-100 duration-75">
           <Button
             ariaLabel="zoom out"

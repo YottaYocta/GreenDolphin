@@ -148,7 +148,10 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
           </div>
         </div>
         <div className="flex flex-col sm:gap-12 gap-8 md:flex-row w-full sm:h-full h-min justify-between items-center p-4 sm:p-8">
-          <div className="w-full h-full flex flex-col items-center sm:gap-6 gap-2 justify-center">
+          <div
+            className="w-full h-full flex flex-col items-center sm:gap-6 gap-2 justify-center"
+            id="recording-properties"
+          >
             <SliderInput
               icon={<MusicIcon width={18} height={18}></MusicIcon>}
               value={pitchShift}
@@ -189,7 +192,10 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
               valueRenderer={() => `${(gain * gain).toFixed(1)} db`}
             />
           </div>
-          <div className="flex md:flex-col flex-row justify-between items-center gap-2">
+          <div
+            className="flex md:flex-col flex-row justify-between items-center gap-2"
+            id="playback-controls"
+          >
             <div className="w-full flex gap-2 items-center justify-center">
               <ToggleButton
                 pressed={playState === "playing"}
@@ -204,6 +210,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
                 ariaLabel="play/pause"
                 tooltip="Play/Pause ( p )"
                 className="play-button"
+                id="play"
               ></ToggleButton>
               <ToggleButton
                 pressed={playState === "frozen"}
@@ -224,6 +231,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
                 ariaLabel="freeze"
                 tooltip="Freeze in Place ( f )"
                 className="play-button"
+                id="freeze"
               ></ToggleButton>
             </div>
             <div className="w-full flex justify-center items-center gap-2">
@@ -236,6 +244,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
                 ariaLabel="rewind 5 seconds"
                 className="play-button border border-neutral-2"
                 onClick={rewindFiveSeconds}
+                id="rewind"
               ></Button>
               <Button
                 icon={
@@ -247,6 +256,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
                 className="play-button flex-1 border border-neutral-2"
                 iconPlacement="right"
                 onClick={fastForwardFiveSeconds}
+                id="fast-forward"
               ></Button>
             </div>
             {/* <ToggleButton

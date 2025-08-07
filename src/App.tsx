@@ -8,6 +8,7 @@ import {
   type PlaybackProviderProps,
 } from "./PlaybackProvider";
 import * as Tone from "tone";
+import { Tutorial } from "./components/Tutorial";
 
 function App() {
   const [loadedProps, setLoadedProps] = useState<LoadedProps | undefined>();
@@ -47,6 +48,42 @@ function App() {
   return loadedProps && playbackProps ? (
     <div className="w-screen h-screen flex items-center justify-center bg-neutral-100">
       <div className="w-full h-full flex items-center justify-center md:pb-8">
+        <Tutorial
+          steps={[
+            {
+              htmlSelector: "#playback-controls",
+              contents: (
+                <p>
+                  Controls playback. Hover to see function and shortcut on
+                  desktop browsers.
+                </p>
+              ),
+            },
+            {
+              htmlSelector: "#recording-properties",
+              contents: <p>Adjust pitch, speed, and volume.</p>,
+            },
+            {
+              htmlSelector: "#reset-pitch",
+              contents: <p>Click to reset to default</p>,
+            },
+            {
+              htmlSelector: "#waveform-view",
+              contents: (
+                <p>
+                  Click to select playback start point. Drag to select loop.
+                  Scroll to zoom. Pan to move backwards/forwards
+                </p>
+              ),
+            },
+            {
+              htmlSelector: "#waveform-controls",
+              contents: (
+                <p>You can also use these controls to do the same thing.</p>
+              ),
+            },
+          ]}
+        ></Tutorial>
         <PlaybackProvider {...playbackProps}>
           <Loaded {...loadedProps}></Loaded>
         </PlaybackProvider>
