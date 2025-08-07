@@ -19,6 +19,8 @@ export interface TutorialProps {
 }
 
 export const Tutorial: FC<TutorialProps> = ({ steps }) => {
+  const HIGHLIGHT_OFFSET = 8;
+
   const [currentStepIndex, setCurrentStepIndex] = useState<number | null>(
     steps.length > 0 ? 0 : null
   );
@@ -34,7 +36,8 @@ export const Tutorial: FC<TutorialProps> = ({ steps }) => {
     } else return null;
   }, [currentStepIndex, steps]);
 
-  const containerRef = useRef<HTMLDivElement>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
+  const highlightRef = useRef<HTMLDivElement>(null);
 
   const advanceStep = (amount: number) => {
     if (steps.length === 0) setCurrentStepIndex(null);
@@ -48,12 +51,25 @@ export const Tutorial: FC<TutorialProps> = ({ steps }) => {
   };
 
   const updateContainerRef = useCallback(() => {
-    if (containerRef.current && currentStep) {
+    if (popupRef.current && highlightRef.current && currentStep) {
       const selection = document.querySelector(currentStep.htmlSelector);
       if (selection instanceof HTMLElement) {
         const rect = selection.getBoundingClientRect();
-        containerRef.current.style.left = `${rect.left + rect.width}px`;
-        containerRef.current.style.top = `${rect.top}px`;
+        popupRef.current.style.left = `${
+          rect.left + rect.width / 2 - popupRef.current.clientWidth / 2
+        }px`;
+        popupRef.current.style.top = `${
+          rect.top + rect.height + 2 * HIGHLIGHT_OFFSET
+        }px`;
+
+        highlightRef.current.style.left = `${rect.left - HIGHLIGHT_OFFSET}px`;
+        highlightRef.current.style.top = `${rect.top - HIGHLIGHT_OFFSET}px`;
+        highlightRef.current.style.width = `${
+          rect.width + HIGHLIGHT_OFFSET * 2
+        }px`;
+        highlightRef.current.style.height = `${
+          rect.height + HIGHLIGHT_OFFSET * 2
+        }px`;
       }
     }
   }, [currentStep]);
@@ -67,31 +83,41 @@ export const Tutorial: FC<TutorialProps> = ({ steps }) => {
   }, [updateContainerRef]);
 
   return currentStep ? (
-    <div
-      ref={containerRef}
-      className="fixed min-w-16 min-h-4 bg-white border border-neutral-2 z-50 max-w-64 p-2 flex flex-col gap-4"
-    >
-      {currentStep.contents}
-      <div className="flex items-center justify-between gap-2">
-        <Button onClick={() => setCurrentStepIndex(null)} text="Skip"></Button>
-        <div className="flex items-center gap-2">
-          {currentStepIndex !== null && currentStepIndex > 0 ? (
-            <Button text="Previous" onClick={() => advanceStep(-1)}></Button>
-          ) : (
-            <></>
-          )}
+    <>
+      <div
+        ref={highlightRef}
+        className="border-4 border-emerald-500 border-dashed pointer-events-none fixed z-50 animate-ping-custom"
+      ></div>
+      <div
+        ref={popupRef}
+        className="fixed min-w-16 min-h-4 bg-white border border-neutral-2 z-50 max-w-64 p-2 flex flex-col gap-4"
+      >
+        {currentStep.contents}
+        <div className="flex items-center justify-between gap-2">
           <Button
-            onClick={() => advanceStep(1)}
-            className="border border-emerald-500 rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-            text={
-              currentStepIndex !== null && currentStepIndex === steps.length - 1
-                ? "Finish"
-                : "Next"
-            }
+            onClick={() => setCurrentStepIndex(null)}
+            text="Skip"
           ></Button>
+          <div className="flex items-center gap-2">
+            {currentStepIndex !== null && currentStepIndex > 0 ? (
+              <Button text="Previous" onClick={() => advanceStep(-1)}></Button>
+            ) : (
+              <></>
+            )}
+            <Button
+              onClick={() => advanceStep(1)}
+              className="border border-emerald-500 rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+              text={
+                currentStepIndex !== null &&
+                currentStepIndex === steps.length - 1
+                  ? "Finish"
+                  : "Next"
+              }
+            ></Button>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   ) : (
     <></>
   );

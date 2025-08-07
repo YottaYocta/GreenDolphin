@@ -2,6 +2,15 @@
 
 @theme {
   --color-neutral-2: #c7c7c7;
+  --animate-ping-custom: ping-custom 2s ease-in-out infinite;
+  @keyframes ping-custom {
+    25% {
+      opacity: 1;
+    }
+    75% {
+      opacity: 0;
+    }
+  }
 }
 
 @layer utilities {
