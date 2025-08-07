@@ -2,9 +2,30 @@
 
 @theme {
   --color-neutral-2: #c7c7c7;
+  --animate-ping-custom: ping-custom 2s ease-in-out infinite;
+
+  @keyframes ping-custom {
+    25% {
+      opacity: 1;
+    }
+    75% {
+      opacity: 0;
+    }
+  }
 }
 
 @layer utilities {
+  .positive-button {
+    border: 1px solid var(--color-emerald-500);
+    border-radius: var(--radius-4xl);
+    background: var(--color-emerald-50);
+    color: var(--color-emerald-700);
+  }
+
+  .positive-button:hover {
+    background: var(--color-emerald-100);
+  }
+
   .play-button {
     width: 5em;
     min-width: 5em;

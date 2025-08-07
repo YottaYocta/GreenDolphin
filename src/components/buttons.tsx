@@ -1,19 +1,20 @@
 import { PlusIcon } from "lucide-react";
-import { useRef, type FC, type ReactNode } from "react";
+import { useRef, type FC, type MouseEventHandler, type ReactNode } from "react";
 
 export interface LoadButtonProps {
   handleLoaded: (file: File) => void;
-  buttonText?: string;
+  text?: string;
 }
 
 export interface ButtonProps {
   icon?: ReactNode;
   text?: string;
-  onClick?: () => void;
+  onClick?: MouseEventHandler<HTMLButtonElement>;
   className?: string;
   ariaLabel?: string;
   tooltip?: string;
   iconPlacement?: "left" | "right";
+  id?: string;
 }
 
 export const Button: FC<ButtonProps> = ({
@@ -24,6 +25,7 @@ export const Button: FC<ButtonProps> = ({
   ariaLabel,
   tooltip,
   iconPlacement = "left", // Default to left
+  id,
 }) => {
   return (
     <button
@@ -31,6 +33,7 @@ export const Button: FC<ButtonProps> = ({
       className={`bg-white hover:bg-neutral-100 p-1 px-2 rounded-full h-min w-min flex items-center justify-center text-center gap-1 flex-nowrap text-nowrap cursor-pointer ${className}`}
       onClick={onClick}
       title={tooltip}
+      id={id}
     >
       {iconPlacement === "left" && icon && (
         <span className="text-neutral-500 text-center flex items-center justify-center w-min">
@@ -57,6 +60,7 @@ export interface ToggleButtonProps {
   accent?: "positive" | "primary" | "negative";
   iconPlacement?: "left" | "right";
   tooltip?: string;
+  id?: string;
 }
 
 export const ToggleButton: FC<ToggleButtonProps> = ({
@@ -69,9 +73,11 @@ export const ToggleButton: FC<ToggleButtonProps> = ({
   accent,
   iconPlacement = "left",
   tooltip,
+  id,
 }) => {
   return (
     <button
+      id={id}
       aria-pressed={pressed}
       aria-label={ariaLabel}
       title={tooltip}
@@ -97,17 +103,14 @@ export const ToggleButton: FC<ToggleButtonProps> = ({
   );
 };
 
-export const LoadButton: FC<LoadButtonProps> = ({
-  handleLoaded,
-  buttonText,
-}) => {
+export const LoadButton: FC<LoadButtonProps> = ({ handleLoaded, text }) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
     <>
       <Button
-        className="border-neutral-2 border pl-2 pr-3 bg-neutral-50 hover:bg-white"
-        text={buttonText || "Load Recording"}
+        className="border-neutral-2 border pl-2 pr-3 bg-white hover:bg-neutral-50"
+        text={text || "Load Recording"}
         icon={<PlusIcon width={18} height={18} strokeWidth={1.5}></PlusIcon>}
         onClick={() => {
           if (inputRef.current) inputRef.current.click();
