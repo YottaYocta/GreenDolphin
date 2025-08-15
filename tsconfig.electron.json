@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "outDir": "dist-electron-compiled",
+    "esModuleInterop": true
+  },
+  "include": ["src/electron"]
+}

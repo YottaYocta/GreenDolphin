@@ -127,7 +127,7 @@ export function Landing({ handleLoaded }: LandingProps) {
             </div>
           </div>
           <img
-            src="/demoImage.png"
+            src="./demoImage.png"
             alt="Demo"
             className="max-w-3xl w-full h-auto shadow-md"
           />
@@ -154,7 +154,7 @@ export function Landing({ handleLoaded }: LandingProps) {
           <div className="flex flex-row flex-wrap justify-center items-start gap-8 sm:gap-16 pt-8">
             <div className="flex flex-col items-center gap-2 max-w-min">
               <img
-                src="/controls.png"
+                src="./controls.png"
                 alt="Fine-grain playback playback control"
                 className="sm:min-w-56 min-w-32 h-36 object-contain border border-neutral-2 rounded-xs bg-white"
               />
@@ -164,7 +164,7 @@ export function Landing({ handleLoaded }: LandingProps) {
             </div>
             <div className="flex flex-col items-center gap-2 max-w-min">
               <img
-                src="/loopfreeze.png"
+                src="./loopfreeze.png"
                 alt="Freeze and loop audio"
                 className="sm:min-w-56 min-w-32 h-36 object-contain border border-neutral-2 rounded-xs bg-white"
               />
@@ -174,7 +174,7 @@ export function Landing({ handleLoaded }: LandingProps) {
             </div>
             <div className="flex flex-col items-center gap-2 max-w-min">
               <img
-                src="/frequencies.png"
+                src="./frequencies.png"
                 alt="Visualize frequencies in real time"
                 className="sm:min-w-56 min-w-32 h-36 object-contain border border-neutral-2 rounded-xs bg-white"
               />
@@ -184,7 +184,7 @@ export function Landing({ handleLoaded }: LandingProps) {
             </div>
             <div className="flex flex-col items-center gap-2 max-w-min">
               <img
-                src="/filetype.png"
+                src="./filetype.png"
                 alt="Load audio and video files"
                 className="sm:min-w-56 min-w-32 h-36 object-contain border border-neutral-2 rounded-xs bg-white"
               />
@@ -194,7 +194,7 @@ export function Landing({ handleLoaded }: LandingProps) {
             </div>
             <div className="flex flex-col items-center gap-2 max-w-min">
               <img
-                src="/shortcuts.png"
+                src="./shortcuts.png"
                 alt="Shortcuts for everything"
                 className="sm:min-w-56 min-w-32 h-36 object-contain border border-neutral-2 rounded-xs bg-white"
               />

@@ -3,12 +3,24 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "dist-electron-compiled/main.cjs",
+  "build": {
+    "appId": "com.ryanwqiu.greendolphin",
+    "files": [
+      "dist/**/*",
+      "dist-electron-compiled/**/*"
+    ],
+    "directories": {
+      "output": "dist-electron"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "test": "vitest",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:electron": "npm run build && tsc -p tsconfig.electron.json && mv dist-electron-compiled/main.js dist-electron-compiled/main.cjs && electron-builder --mac"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.8",
@@ -23,6 +35,8 @@
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
+    "electron": "^37.3.0",
+    "electron-builder": "^26.0.12",
     "eslint": "^9.25.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
