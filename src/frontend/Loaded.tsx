@@ -1,4 +1,11 @@
-import { useCallback, useContext, useEffect, useState, type FC } from "react";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type FC,
+} from "react";
 import { formatSeconds } from "./lib/util";
 import { Button, ToggleButton } from "./components/buttons";
 import {
@@ -21,12 +28,41 @@ export interface LoadedProps {
 }
 
 export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
+  // acquiring wake lock to prevent screen from falling asleep
+
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
+  const [wakeLockStatus, setWakeLockStatus] = useState<
+    "Requesting Keep Awake" | "Keep Awake Error" | "Keep Awake Active"
+  >("Keep Awake Active");
+
+  useEffect(() => {
+    const requestWakeLock = async () => {
+      try {
+        setWakeLockStatus("Requesting Keep Awake");
+        wakeLockRef.current = await navigator.wakeLock.request("screen");
+        setWakeLockStatus("Keep Awake Active");
+      } catch (e: unknown) {
+        console.log(e);
+        setWakeLockStatus("Keep Awake Error");
+      }
+    };
+
+    const disableWakeLock = () => {
+      if (wakeLockRef.current !== null) {
+        wakeLockRef.current.release();
+      }
+    };
+    requestWakeLock();
+    return disableWakeLock;
+  }, []);
+
   const [triggerUpdate, setTriggerUpdate] = useState<boolean>(false);
 
   const playback = useContext(PlaybackContext);
   if (!playback) {
     throw new Error("Loaded must be used within a PlaybackProvider");
   }
+
   const {
     playbackPosition,
     playState,
@@ -269,6 +305,9 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
             ></ToggleButton> */}
         </div>
       </div>
+      <p className="fixed bottom-2 left-1/2 -translate-x-1/2 text-sm text-neutral-400">
+        {wakeLockStatus}
+      </p>
     </div>
   );
 };
