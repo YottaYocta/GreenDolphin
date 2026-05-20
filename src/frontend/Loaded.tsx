@@ -1,11 +1,4 @@
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-  type FC,
-} from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { formatSeconds } from "./lib/util";
 import { Button, ToggleButton } from "./components/buttons";
 import {
@@ -21,13 +14,12 @@ import { FrequencyCanvas } from "./components/FrequencyCanvas";
 import { PlaybackContext } from "./PlaybackContext";
 import { WaveformView } from "./components/WaveformView";
 import { SliderInput } from "./components/SliderInput";
+import { AudioStore } from "./AudioStore";
 
-export interface LoadedProps {
-  data: AudioBuffer;
-  filename: string;
-}
-
-export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
+export const Loaded = () => {
+  const { audio } = useContext(AudioStore);
+  if (!audio) throw new Error("Loaded must be rendered within an audio route");
+  const { buffer: data, filename } = audio;
   // acquiring wake lock to prevent screen from falling asleep
 
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
@@ -144,7 +136,7 @@ export const Loaded: FC<LoadedProps> = ({ data, filename }) => {
     const timeInMs = timeInSeconds * 1000;
     playbackPosition.current = Math.max(
       0,
-      Math.min(timeInMs, data.duration * 1000)
+      Math.min(timeInMs, data.duration * 1000),
     );
     setTriggerUpdate(true);
     setPosition(timeInMs);

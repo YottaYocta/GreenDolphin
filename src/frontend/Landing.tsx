@@ -1,12 +1,40 @@
 import { AudioLinesIcon, MenuIcon } from "lucide-react";
 import { Button, LoadButton } from "./components/buttons";
-import { useMemo, useState } from "react";
+import { useContext, useMemo, useState } from "react";
+import { useNavigate } from "react-router";
+import * as Tone from "tone";
+import { AudioStore } from "./AudioStore";
 
-interface LandingProps {
-  handleLoaded: (file: File) => void;
-}
+export function Landing() {
+  const { setAudio } = useContext(AudioStore);
+  const navigate = useNavigate();
 
-export function Landing({ handleLoaded }: LandingProps) {
+  const handleLoaded = (file: File) => {
+    const fileReader = new FileReader();
+    fileReader.addEventListener("loadend", async () => {
+      if (fileReader.result instanceof ArrayBuffer) {
+        const newAudioContext = new Tone.Context();
+        console.log(`[${new Date().toTimeString()}] AudioContext Created`);
+        console.log(`[${new Date().toTimeString()}] Start Loading File`);
+        const newData = await newAudioContext.decodeAudioData(
+          fileReader.result
+        );
+        console.log(
+          `[${new Date().toTimeString()}] Finished Loading Audio File!`
+        );
+        console.log(`[${new Date().toTimeString()}] Starting Tone.js`);
+        Tone.setContext(newAudioContext);
+        console.log(`[${new Date().toTimeString()}] Tone.js Started`);
+        setAudio({
+          audioCtx: newAudioContext.rawContext as AudioContext,
+          buffer: newData,
+          filename: file.name,
+        });
+        navigate("/app");
+      }
+    });
+    fileReader.readAsArrayBuffer(file);
+  };
   const [showMenu, setShowMenu] = useState(false);
 
   const navItems = useMemo(() => {

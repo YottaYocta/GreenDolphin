@@ -1,65 +1,50 @@
-import { useState } from "react";
-import { LoadButton } from "./components/buttons";
-import { Loaded, type LoadedProps } from "./Loaded";
-import { Landing } from "./Landing";
-
-import {
-  PlaybackProvider,
-  type PlaybackProviderProps,
-} from "./PlaybackProvider";
+import { useContext, useState } from "react";
+import { Navigate, Route, Routes } from "react-router";
 import * as Tone from "tone";
+import { LoadButton } from "./components/buttons";
 import { Tutorial } from "./components/Tutorial";
+import { Landing } from "./Landing";
+import { Loaded } from "./Loaded";
+import { PlaybackProvider } from "./PlaybackProvider";
+import { AudioStore } from "./AudioStore";
 
-function App() {
-  const [loadedProps, setLoadedProps] = useState<LoadedProps | undefined>();
-  const [playbackProps, setPlaybackProps] = useState<
-    PlaybackProviderProps | undefined
-  >();
-
+function AppView() {
+  const { audio, setAudio } = useContext(AudioStore);
   const [showTutorial, setShowTutorial] = useState(
-    localStorage.getItem("tutorial_shown") === "true" ? false : true
+    localStorage.getItem("tutorial_shown") !== "true"
   );
+
+  if (!audio) return <Navigate to="/" replace />;
 
   const handleLoaded = (file: File) => {
     const fileReader = new FileReader();
     fileReader.addEventListener("loadend", async () => {
       if (fileReader.result instanceof ArrayBuffer) {
         const newAudioContext = new Tone.Context();
-        console.log(`[${new Date().toTimeString()}] AudioContext Created`);
-        console.log(`[${new Date().toTimeString()}] Start Loading File`);
         const newData = await newAudioContext.decodeAudioData(
           fileReader.result
         );
-        console.log(
-          `[${new Date().toTimeString()}] Finished Loading Audio File!`
-        );
-        console.log(`[${new Date().toTimeString()}] Starting Tone.js`);
         Tone.setContext(newAudioContext);
-        console.log(`[${new Date().toTimeString()}] Tone.js Started`);
-        setLoadedProps({
-          data: newData,
+        setAudio({
+          audioCtx: newAudioContext.rawContext as AudioContext,
+          buffer: newData,
           filename: file.name,
-        });
-        setPlaybackProps({
-          context: newAudioContext.rawContext as AudioContext,
-          data: newData,
         });
       }
     });
     fileReader.readAsArrayBuffer(file);
   };
 
-  return loadedProps && playbackProps ? (
+  return (
     <div className="w-screen h-screen flex flex-col items-center justify-center bg-white md:bg-neutral-100 md:p-0 pt-2">
       <div className="w-full h-full flex flex-col items-center justify-between md:justify-center md:pb-0 pb-4">
         <div className="md:absolute z-10 right-3 top-3 h-min w-min">
-          <LoadButton handleLoaded={handleLoaded}></LoadButton>
+          <LoadButton handleLoaded={handleLoaded} />
         </div>
-        <PlaybackProvider {...playbackProps}>
-          <Loaded {...loadedProps}></Loaded>
+        <PlaybackProvider context={audio.audioCtx} data={audio.buffer}>
+          <Loaded />
         </PlaybackProvider>
-
-        {showTutorial ? (
+        {showTutorial && (
           <Tutorial
             handleTutorialFinished={() => {
               setShowTutorial(false);
@@ -102,15 +87,18 @@ function App() {
                 ),
               },
             ]}
-          ></Tutorial>
-        ) : (
-          <></>
+          />
         )}
       </div>
     </div>
-  ) : (
-    <Landing handleLoaded={handleLoaded}></Landing>
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Landing />} />
+      <Route path="/app" element={<AppView />} />
+    </Routes>
+  );
+}
