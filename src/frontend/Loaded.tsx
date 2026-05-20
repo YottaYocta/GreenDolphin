@@ -1,4 +1,5 @@
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { Tutorial } from "./components/Tutorial";
 import { formatSeconds } from "./lib/util";
 import { Button, ToggleButton } from "./components/buttons";
 import {
@@ -20,6 +21,10 @@ export const Loaded = () => {
   const { audio } = useContext(AudioStore);
   if (!audio) throw new Error("Loaded must be rendered within an audio route");
   const { buffer: data, filename } = audio;
+
+  const [showTutorial, setShowTutorial] = useState(
+    localStorage.getItem("tutorial_shown") !== "true"
+  );
   // acquiring wake lock to prevent screen from falling asleep
 
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
@@ -147,6 +152,7 @@ export const Loaded = () => {
   }, [triggerUpdate]);
 
   return (
+    <>
     <div className="w-full max-w-[800px] h-full md:h-min p-4 md:p-6 bg-white flex flex-col justify-center gap-6 md:border md:border-neutral-2 md:rounded-xs md:shadow-md">
       <div className="w-full flex justify-between items-baseline border-b border-neutral-2">
         <p className="max-w-1/2 text-nowrap text-ellipsis overflow-hidden">
@@ -301,5 +307,51 @@ export const Loaded = () => {
         {wakeLockStatus}
       </p>
     </div>
+    {showTutorial && (
+      <Tutorial
+        handleTutorialFinished={() => {
+          setShowTutorial(false);
+          localStorage.setItem("tutorial_shown", "true");
+        }}
+        steps={[
+          {
+            htmlSelector: "#playback-controls",
+            contents: (
+              <p>
+                Controls playback. Hover to see function and shortcut on
+                desktop browsers.
+              </p>
+            ),
+          },
+          {
+            htmlSelector: "#recording-properties",
+            contents: <p>Adjust pitch, speed, and volume.</p>,
+          },
+          {
+            htmlSelector: "#reset-pitch",
+            contents: <p>Click to reset to default</p>,
+          },
+          {
+            htmlSelector: "#waveform-view",
+            contents: (
+              <p>
+                Click to select playback start point. Drag to select loop.
+                Scroll to zoom. Pan to move backwards/forwards
+              </p>
+            ),
+          },
+          {
+            htmlSelector: "#waveform-controls",
+            contents: (
+              <p>
+                You can also use these controls to navigate around the
+                recording.
+              </p>
+            ),
+          },
+        ]}
+      />
+    )}
+    </>
   );
 };
