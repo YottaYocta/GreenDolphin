@@ -1,30 +1,15 @@
 import { AudioLinesIcon, MenuIcon } from "lucide-react";
 import { Button, LoadButton } from "./components/buttons";
-import { useContext, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import * as Tone from "tone";
-import { AudioStore } from "./AudioStore";
-import { saveToCache } from "./lib/audioCache";
+import { useDecodeFile } from "./lib/useDecodeFile";
 
 export function Landing() {
-  const { setAudio } = useContext(AudioStore);
+  const decodeFile = useDecodeFile();
   const navigate = useNavigate();
 
   const handleLoaded = async (file: File) => {
-    const newAudioContext = new Tone.Context();
-    const newData = await newAudioContext.decodeAudioData(
-      await file.arrayBuffer()
-    );
-    Tone.setContext(newAudioContext);
-    try {
-      await saveToCache(file);
-    } catch { /* storage quota or unavailable */ }
-    setAudio({
-      audioCtx: newAudioContext.rawContext as AudioContext,
-      buffer: newData,
-      filename: file.name,
-      fileSize: file.size,
-    });
+    await decodeFile(file);
     navigate("/app");
   };
   const [showMenu, setShowMenu] = useState(false);
@@ -89,7 +74,7 @@ export function Landing() {
       className="w-full min-h-screen flex flex-col"
       onClick={() => setShowMenu(false)}
     >
-      <div className="w-full flex items-center justify-center border-b border-neutral-2 p-2 sticky top-0 from-white to-white/50 backdrop-blur-sm bg-gradient-to-b">
+      <div className="w-full flex items-center justify-center border-b border-neutral-2 p-2 sticky top-0 from-white to-white/50 backdrop-blur-sm bg-linear-to-b">
         <nav className="flex items-center justify-between max-w-2xl w-full pl-2">
           <a href="#" className="text-emerald-600 font-semibold">
             GreenDolphin
@@ -133,13 +118,13 @@ export function Landing() {
                 }
                 onClick={async () => {
                   const res = await fetch(
-                    "Wynton Kelly - On Green Dolphin Street [EXCERPT].mp3"
+                    "Wynton Kelly - On Green Dolphin Street [EXCERPT].mp3",
                   );
                   const blob = await res.blob();
                   const file = new File(
                     [blob],
                     "Wynton Kelly - On Green Dolphin Street [EXCERPT].mp3",
-                    { type: "audio/mp3" }
+                    { type: "audio/mp3" },
                   );
                   handleLoaded(file);
                 }}
@@ -154,7 +139,7 @@ export function Landing() {
         </div>
         <div
           id="features-section"
-          className="flex-grow flex flex-col justify-center gap-8 max-w-2xl"
+          className="grow flex flex-col justify-center gap-8 max-w-2xl"
         >
           <h2 className="text-lg text-neutral-400 max-w-2xl w-full border-b border-neutral-2">
             What is GreenDolphin?
@@ -307,7 +292,7 @@ export function Landing() {
                 onClick={() =>
                   window.open(
                     "https://github.com/YottaYocta/GreenDolphin",
-                    "_blank"
+                    "_blank",
                   )
                 }
               />

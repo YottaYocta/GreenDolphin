@@ -2,13 +2,19 @@ const DB_NAME = "greendolphin-v1";
 const STORE = "files";
 const KEY = "current";
 
+let _db: IDBDatabase | null = null;
+
 function openDB(): Promise<IDBDatabase> {
+  if (_db) return Promise.resolve(_db);
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, 1);
     req.onupgradeneeded = () => {
       req.result.createObjectStore(STORE);
     };
-    req.onsuccess = () => resolve(req.result);
+    req.onsuccess = () => {
+      _db = req.result;
+      resolve(req.result);
+    };
     req.onerror = () => reject(req.error);
   });
 }
