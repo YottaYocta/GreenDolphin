@@ -6,6 +6,7 @@ import {
   ChevronsLeftIcon,
   ChevronsRightIcon,
   GaugeIcon,
+  HardDriveIcon,
   MegaphoneIcon,
   MusicIcon,
   PlayIcon,
@@ -18,9 +19,9 @@ import { SliderInput } from "./components/SliderInput";
 import { AudioStore } from "./AudioStore";
 
 export const Loaded = () => {
-  const { audio } = useContext(AudioStore);
+  const { audio, isCached } = useContext(AudioStore);
   if (!audio) throw new Error("Loaded must be rendered within an audio route");
-  const { buffer: data, filename } = audio;
+  const { buffer: data, filename, fileSize } = audio;
 
   const [showTutorial, setShowTutorial] = useState(
     localStorage.getItem("tutorial_shown") !== "true"
@@ -158,6 +159,12 @@ export const Loaded = () => {
         <p className="max-w-1/2 text-nowrap text-ellipsis overflow-hidden">
           {filename}
         </p>
+        {isCached && (
+          <span className="flex items-center gap-1 text-xs text-neutral-400 text-nowrap">
+            <HardDriveIcon size={13} />
+            {(fileSize / 1024 / 1024).toFixed(1)} MB · Saved to browser
+          </span>
+        )}
         <p className="max-w-1/2 text-nowrap text-ellipsis overflow-hidden">
           {formatSeconds(data.duration)}
         </p>

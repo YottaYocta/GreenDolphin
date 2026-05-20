@@ -4,36 +4,28 @@ import { useContext, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import * as Tone from "tone";
 import { AudioStore } from "./AudioStore";
+import { saveToCache } from "./lib/audioCache";
 
 export function Landing() {
   const { setAudio } = useContext(AudioStore);
   const navigate = useNavigate();
 
-  const handleLoaded = (file: File) => {
-    const fileReader = new FileReader();
-    fileReader.addEventListener("loadend", async () => {
-      if (fileReader.result instanceof ArrayBuffer) {
-        const newAudioContext = new Tone.Context();
-        console.log(`[${new Date().toTimeString()}] AudioContext Created`);
-        console.log(`[${new Date().toTimeString()}] Start Loading File`);
-        const newData = await newAudioContext.decodeAudioData(
-          fileReader.result
-        );
-        console.log(
-          `[${new Date().toTimeString()}] Finished Loading Audio File!`
-        );
-        console.log(`[${new Date().toTimeString()}] Starting Tone.js`);
-        Tone.setContext(newAudioContext);
-        console.log(`[${new Date().toTimeString()}] Tone.js Started`);
-        setAudio({
-          audioCtx: newAudioContext.rawContext as AudioContext,
-          buffer: newData,
-          filename: file.name,
-        });
-        navigate("/app");
-      }
+  const handleLoaded = async (file: File) => {
+    const newAudioContext = new Tone.Context();
+    const newData = await newAudioContext.decodeAudioData(
+      await file.arrayBuffer()
+    );
+    Tone.setContext(newAudioContext);
+    try {
+      await saveToCache(file);
+    } catch { /* storage quota or unavailable */ }
+    setAudio({
+      audioCtx: newAudioContext.rawContext as AudioContext,
+      buffer: newData,
+      filename: file.name,
+      fileSize: file.size,
     });
-    fileReader.readAsArrayBuffer(file);
+    navigate("/app");
   };
   const [showMenu, setShowMenu] = useState(false);
 
