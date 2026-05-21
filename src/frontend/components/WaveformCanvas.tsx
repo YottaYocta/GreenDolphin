@@ -8,6 +8,7 @@ import {
   type FC,
   type RefObject,
 } from "react";
+
 import {
   computeSampleIndex,
   type Section,
@@ -31,6 +32,7 @@ export interface WaveformCanvasProps {
   renderFunction: WaveformRenderFunction;
   positionReference?: RefObject<number>;
   allowZoomPan?: boolean;
+  showHandles?: boolean;
   handleRangeChange?: (newRange: Section) => void;
   handleSelection?: (selection: Section) => void;
   handlePosition?: (position: number) => void;
@@ -49,22 +51,38 @@ export const WaveformCanvas: FC<
   renderFunction,
   positionReference,
   allowZoomPan = true,
+  showHandles = false,
   handleRangeChange,
   handleSelection,
   handlePosition,
   ...props
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const [localData, setLocalData] = useState<WaveformData>({
     ...waveformData,
   });
+  const prevWaveformData = useRef(waveformData);
 
   useEffect(() => {
-    setLocalData(waveformData);
+    const prev = prevWaveformData.current;
+    prevWaveformData.current = waveformData;
+
+    if (waveformData.data !== prev.data) {
+      setLocalData(waveformData);
+    } else if (waveformData.section !== prev.section) {
+      setLocalData((prevLocal) => ({
+        ...prevLocal,
+        section: waveformData.section,
+      }));
+    }
   }, [waveformData]);
 
   const [selectRange, setSelectRange] = useState<Section | undefined>();
+  const [draggingHandle, setDraggingHandle] = useState<"start" | "end" | null>(
+    null,
+  );
 
   const clickSelectThresholdValue = useMemo(
     () =>
@@ -108,18 +126,24 @@ export const WaveformCanvas: FC<
     selectRange,
   ]);
 
-  useEffect(() => {
-    if (waveformData.section && waveformData.section !== localData.section)
-      setLocalData((prevData) => ({ ...waveformData, range: prevData.range }));
-    else if (waveformData.data !== localData.data) setLocalData(waveformData);
+  // useEffect(() => {
+  //   if (waveformData.section && waveformData.section !== localData.section) {
+  //     setLocalData((prevData) => ({ ...waveformData, range: prevData.range }));
+  //     console.log("a");
+  //   } else if (waveformData.data !== localData.data) {
+  //     setLocalData(waveformData);
+  //     console.log("b");
+  //   }
 
-    if (waveformData.section !== localData.section) {
-      setLocalData((prevData) => ({
-        ...prevData,
-        section: waveformData.section,
-      }));
-    }
-  }, [localData.data, localData.section, selectRange, waveformData]);
+  //   if (waveformData.section !== localData.section) {
+  //     setLocalData((prevData) => ({
+  //       ...prevData,
+  //       section: waveformData.section,
+  //     }));
+
+  //     console.log("c");
+  //   }
+  // }, [localData.data, localData.section, selectRange, waveformData]);
 
   useEffect(() => {
     updateWaveform();
@@ -352,9 +376,121 @@ export const WaveformCanvas: FC<
     updateWaveform,
   ]);
 
+  useEffect(() => {
+    console.log(localData.range, localData.section);
+  }, [localData.range, localData.section]);
+
+  const handlePositions = useMemo(() => {
+    const section = localData.section;
+    if (!section) return null;
+    const rangeLen = localData.range.end - localData.range.start;
+    if (rangeLen <= 0) return null;
+    return {
+      startPct: ((section.start - localData.range.start) / rangeLen) * 100,
+      endPct: ((section.end - localData.range.start) / rangeLen) * 100,
+    };
+  }, [localData.range, localData.section]);
+
+  useEffect(() => {
+    if (!draggingHandle) return;
+
+    const onMove = (clientX: number) => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const fraction = Math.max(
+        0,
+        Math.min(1, (clientX - rect.left) / rect.width),
+      );
+      const sampleIndex =
+        Math.round(fraction * (localData.range.end - localData.range.start)) +
+        localData.range.start;
+
+      setLocalData((prev) => {
+        if (!prev.section) return prev;
+        const newSection =
+          draggingHandle === "start"
+            ? {
+                start: Math.min(sampleIndex, prev.section.end - 1),
+                end: prev.section.end,
+              }
+            : {
+                start: prev.section.start,
+                end: Math.max(sampleIndex, prev.section.start + 1),
+              };
+        // console.log(newSection);
+        return { ...prev, section: newSection };
+      });
+    };
+
+    const onEnd = () => {
+      if (localData.section && handleSelection)
+        handleSelection(localData.section);
+      setDraggingHandle(null);
+    };
+
+    const onMouseMove = (e: MouseEvent) => onMove(e.clientX);
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches[0]) onMove(e.touches[0].clientX);
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onEnd);
+    window.addEventListener("touchmove", onTouchMove);
+    window.addEventListener("touchend", onEnd);
+    return () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onEnd);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchend", onEnd);
+    };
+  }, [
+    draggingHandle,
+    handleSelection,
+    localData.range,
+    localData.section,
+    setLocalData,
+  ]);
+
   return (
-    <div className="relative pixelated cursor-pointer select-none">
-      <canvas {...props} ref={canvasRef} draggable="false"></canvas>
+    <div ref={containerRef} className="flex flex-col pixelated select-none">
+      {showHandles && handlePositions && localData.section && (
+        <div className="relative w-full h-5 shrink-0">
+          <SectionHandle
+            pct={handlePositions.startPct}
+            onDragStart={() => setDraggingHandle("start")}
+          />
+          <SectionHandle
+            pct={handlePositions.endPct}
+            onDragStart={() => setDraggingHandle("end")}
+          />
+        </div>
+      )}
+      <canvas
+        {...props}
+        ref={canvasRef}
+        draggable="false"
+        className="cursor-pointer"
+      ></canvas>
     </div>
   );
 };
+
+const SectionHandle: FC<{ pct: number; onDragStart: () => void }> = ({
+  pct,
+  onDragStart,
+}) => (
+  <div
+    className="absolute top-0 w-5 h-full -translate-x-1/2 flex items-center justify-center cursor-ew-resize"
+    style={{ left: `${pct}%` }}
+    onMouseDown={(e) => {
+      e.stopPropagation();
+      onDragStart();
+    }}
+    onTouchStart={(e) => {
+      e.stopPropagation();
+      onDragStart();
+    }}
+  >
+    <div className="w-3 h-3 rounded-sm bg-emerald-400 opacity-90" />
+  </div>
+);
