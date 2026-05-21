@@ -468,7 +468,7 @@ export const WaveformCanvas: FC<
         {...props}
         ref={canvasRef}
         draggable="false"
-        className="cursor-pointer"
+        className="cursor-pointer border border-neutral-2"
       ></canvas>
       {showHandles && handlePositions && localData.section && (
         <div className="relative w-full h-7 shrink-0 overflow-hidden">
