@@ -57,18 +57,18 @@ export const WaveformView: FC<WaveformViewProps> = ({
     (
       waveformData: WaveformData,
       canvas: HTMLCanvasElement,
-      position?: number
+      position?: number,
     ) => {
       renderWaveform(waveformData, { resolution: 10000 }, canvas, position);
     },
-    []
+    [],
   );
 
   const navigationRenderFunction: WaveformRenderFunction = useCallback(
     (
       waveformData: WaveformData,
       canvas: HTMLCanvasElement,
-      position?: number
+      position?: number,
     ) => {
       renderWaveform(
         {
@@ -77,16 +77,16 @@ export const WaveformView: FC<WaveformViewProps> = ({
         },
         { resolution: 10000 },
         canvas,
-        position
+        position,
       );
       renderWaveformFrame(waveformData, localRange, canvas);
     },
-    [localRange]
+    [localRange],
   );
 
   const minRangeThresholdValue = useMemo(() => {
     const value = Math.floor(
-      MIN_RANGE_THRESHOLD * (initialData.range.end - initialData.range.start)
+      MIN_RANGE_THRESHOLD * (initialData.range.end - initialData.range.start),
     );
     return value;
   }, [initialData.range.end, initialData.range.start]);
@@ -126,7 +126,7 @@ export const WaveformView: FC<WaveformViewProps> = ({
           start: prevRange.start - scrollAmount,
           end: prevRange.end + scrollAmount,
         },
-        { start: 0, end: initialData.data.length }
+        { start: 0, end: initialData.data.length },
       );
     });
   }, [initialData.data.length]);
@@ -322,6 +322,7 @@ export const WaveformView: FC<WaveformViewProps> = ({
         handleSelection={handleSelection}
         className="border rounded-xs border-neutral-2 w-full"
         handleRangeChange={setLocalRange}
+        showHandles={true}
       ></WaveformCanvas>
       <WaveformCanvas
         waveformData={initialData}

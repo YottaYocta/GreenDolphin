@@ -6,6 +6,7 @@ import {
   ChevronsLeftIcon,
   ChevronsRightIcon,
   GaugeIcon,
+  HardDriveIcon,
   MegaphoneIcon,
   MusicIcon,
   PlayIcon,
@@ -18,12 +19,12 @@ import { SliderInput } from "./components/SliderInput";
 import { AudioStore } from "./AudioStore";
 
 export const Loaded = () => {
-  const { audio } = useContext(AudioStore);
+  const { audio, isCached } = useContext(AudioStore);
   if (!audio) throw new Error("Loaded must be rendered within an audio route");
-  const { buffer: data, filename } = audio;
+  const { buffer: data, filename, fileSize } = audio;
 
   const [showTutorial, setShowTutorial] = useState(
-    localStorage.getItem("tutorial_shown") !== "true"
+    localStorage.getItem("tutorial_shown") !== "true",
   );
   // acquiring wake lock to prevent screen from falling asleep
 
@@ -153,143 +154,151 @@ export const Loaded = () => {
 
   return (
     <>
-    <div className="w-full max-w-[800px] h-full md:h-min p-4 md:p-6 bg-white flex flex-col justify-center gap-6 md:border md:border-neutral-2 md:rounded-xs md:shadow-md">
-      <div className="w-full flex justify-between items-baseline border-b border-neutral-2">
-        <p className="max-w-1/2 text-nowrap text-ellipsis overflow-hidden">
-          {filename}
-        </p>
-        <p className="max-w-1/2 text-nowrap text-ellipsis overflow-hidden">
-          {formatSeconds(data.duration)}
-        </p>
-      </div>
-
-      <div className="flex flex-col gap-4">
-        <FrequencyCanvas></FrequencyCanvas>
-        <WaveformView
-          initialData={{
-            data: data,
-            range: { start: 0, end: data.length },
-            section: loop,
-          }}
-          positionReference={playbackPosition}
-          animate={playState === "playing" || triggerUpdate}
-          handlePosition={handlePosition}
-          handleSelection={(section) => {
-            setLoop(section);
-          }}
-        ></WaveformView>
-      </div>
-      <div className="flex flex-col md:gap-12 gap-6 md:flex-row w-full h-min justify-center items-center md:px-8 md:py-4">
-        <div
-          className="w-full h-full flex flex-col items-center md:gap-4 gap-1 justify-center "
-          id="recording-properties"
-        >
-          <SliderInput
-            icon={<MusicIcon width={18} height={18}></MusicIcon>}
-            value={pitchShift}
-            defaultValue={0}
-            step={0.2}
-            min={-10}
-            max={10}
-            handleChange={(value) => setPitchShift(Math.round(value * 10) / 10)}
-            for="Pitch"
-            valueRenderer={(currentValue) => `${currentValue} smt.`}
-          />
-          <SliderInput
-            icon={<GaugeIcon width={18} height={18}></GaugeIcon>}
-            value={playbackSpeed}
-            defaultValue={1}
-            step={0.1}
-            min={0.1}
-            max={1.9}
-            handleChange={(value) =>
-              setPlaybackSpeed(Math.round(value * 10) / 10)
-            }
-            for="Speed"
-            valueRenderer={(currentValue) => `${currentValue.toFixed(2)} x`}
-          />
-          <SliderInput
-            icon={<MegaphoneIcon width={18} height={18}></MegaphoneIcon>}
-            value={renderedGain}
-            defaultValue={1}
-            step={0.1}
-            min={0}
-            max={2}
-            handleChange={(value) => {
-              setRenderedGain(Math.round(value * 10) / 10);
-            }}
-            for="Volume"
-            valueRenderer={() => `${(gain * gain).toFixed(1)} db`}
-          />
+      <div className="w-full max-w-200 h-full md:h-min p-4 md:p-6 bg-white flex flex-col justify-center gap-6 md:border md:border-neutral-2 md:rounded-xs md:shadow-md">
+        <div className="w-full flex justify-between items-baseline border-b border-neutral-2">
+          <p className="max-w-1/2 text-nowrap text-ellipsis overflow-hidden">
+            {filename}
+          </p>
+          {isCached && (
+            <span className="flex items-center gap-1 text-xs text-neutral-400 text-nowrap">
+              <HardDriveIcon size={13} />
+              {(fileSize / 1024 / 1024).toFixed(1)} MB · Saved to browser
+            </span>
+          )}
+          <p className="max-w-1/2 text-nowrap text-ellipsis overflow-hidden">
+            {formatSeconds(data.duration)}
+          </p>
         </div>
-        <div
-          className="flex md:flex-col flex-row justify-between items-center gap-2 "
-          id="playback-controls"
-        >
-          <div className="w-full flex gap-2 items-center justify-center">
-            <ToggleButton
-              pressed={playState === "playing"}
-              onClick={() => {
-                if (playState === "playing") setPlayState("paused");
-                else setPlayState("playing");
-              }}
-              accent="negative"
-              icon={
-                <PlayIcon width={22} height={22} strokeWidth={1.5}></PlayIcon>
+
+        <div className="flex flex-col gap-4">
+          <FrequencyCanvas></FrequencyCanvas>
+          <WaveformView
+            initialData={{
+              data: data,
+              range: { start: 0, end: data.length },
+              section: loop,
+            }}
+            positionReference={playbackPosition}
+            animate={playState === "playing" || triggerUpdate}
+            handlePosition={handlePosition}
+            handleSelection={(section) => {
+              setLoop(section);
+            }}
+          ></WaveformView>
+        </div>
+        <div className="flex flex-col md:gap-12 gap-6 md:flex-row w-full h-min justify-center items-center md:px-8 md:py-4">
+          <div
+            className="w-full h-full flex flex-col items-center md:gap-4 gap-1 justify-center "
+            id="recording-properties"
+          >
+            <SliderInput
+              icon={<MusicIcon width={18} height={18}></MusicIcon>}
+              value={pitchShift}
+              defaultValue={0}
+              step={0.2}
+              min={-10}
+              max={10}
+              handleChange={(value) =>
+                setPitchShift(Math.round(value * 10) / 10)
               }
-              ariaLabel="play/pause"
-              tooltip="Play/Pause ( p )"
-              className="play-button"
-              id="play"
-            ></ToggleButton>
-            <ToggleButton
-              pressed={playState === "frozen"}
-              onClick={() => {
-                if (playState === "frozen") setPlayState("paused");
-                else {
-                  setPlayState("frozen");
+              for="Pitch"
+              valueRenderer={(currentValue) => `${currentValue} smt.`}
+            />
+            <SliderInput
+              icon={<GaugeIcon width={18} height={18}></GaugeIcon>}
+              value={playbackSpeed}
+              defaultValue={1}
+              step={0.1}
+              min={0.1}
+              max={1.9}
+              handleChange={(value) =>
+                setPlaybackSpeed(Math.round(value * 10) / 10)
+              }
+              for="Speed"
+              valueRenderer={(currentValue) => `${currentValue.toFixed(2)} x`}
+            />
+            <SliderInput
+              icon={<MegaphoneIcon width={18} height={18}></MegaphoneIcon>}
+              value={renderedGain}
+              defaultValue={1}
+              step={0.1}
+              min={0}
+              max={2}
+              handleChange={(value) => {
+                setRenderedGain(Math.round(value * 10) / 10);
+              }}
+              for="Volume"
+              valueRenderer={() => `${(gain * gain).toFixed(1)} db`}
+            />
+          </div>
+          <div
+            className="flex md:flex-col flex-row justify-between items-center gap-2 "
+            id="playback-controls"
+          >
+            <div className="w-full flex gap-2 items-center justify-center">
+              <ToggleButton
+                pressed={playState === "playing"}
+                onClick={() => {
+                  if (playState === "playing") setPlayState("paused");
+                  else setPlayState("playing");
+                }}
+                accent="negative"
+                icon={
+                  <PlayIcon width={22} height={22} strokeWidth={1.5}></PlayIcon>
                 }
-              }}
-              accent="primary"
-              icon={
-                <SnowflakeIcon
-                  width={24}
-                  height={24}
-                  strokeWidth={1.5}
-                ></SnowflakeIcon>
-              }
-              ariaLabel="freeze"
-              tooltip="Freeze in Place ( f )"
-              className="play-button"
-              id="freeze"
-            ></ToggleButton>
-          </div>
-          <div className="w-full flex justify-center items-center gap-2">
-            <Button
-              icon={
-                <ChevronsLeftIcon width={18} height={18}></ChevronsLeftIcon>
-              }
-              tooltip="Rewind 5s ( h )"
-              text="5s"
-              ariaLabel="rewind 5 seconds"
-              className="play-button border border-neutral-2"
-              onClick={rewindFiveSeconds}
-              id="rewind"
-            ></Button>
-            <Button
-              icon={
-                <ChevronsRightIcon width={18} height={18}></ChevronsRightIcon>
-              }
-              tooltip="Fast Forward 5s ( l )"
-              text="5s"
-              ariaLabel="fast forward 5 seconds"
-              className="play-button flex-1 border border-neutral-2"
-              iconPlacement="right"
-              onClick={fastForwardFiveSeconds}
-              id="fast-forward"
-            ></Button>
-          </div>
-          {/* <ToggleButton
+                ariaLabel="play/pause"
+                tooltip="Play/Pause ( p )"
+                className="play-button"
+                id="play"
+              ></ToggleButton>
+              <ToggleButton
+                pressed={playState === "frozen"}
+                onClick={() => {
+                  if (playState === "frozen") setPlayState("paused");
+                  else {
+                    setPlayState("frozen");
+                  }
+                }}
+                accent="primary"
+                icon={
+                  <SnowflakeIcon
+                    width={24}
+                    height={24}
+                    strokeWidth={1.5}
+                  ></SnowflakeIcon>
+                }
+                ariaLabel="freeze"
+                tooltip="Freeze in Place ( f )"
+                className="play-button"
+                id="freeze"
+              ></ToggleButton>
+            </div>
+            <div className="w-full flex justify-center items-center gap-2">
+              <Button
+                icon={
+                  <ChevronsLeftIcon width={18} height={18}></ChevronsLeftIcon>
+                }
+                tooltip="Rewind 5s ( h )"
+                text="5s"
+                ariaLabel="rewind 5 seconds"
+                className="play-button border border-neutral-2"
+                onClick={rewindFiveSeconds}
+                id="rewind"
+              ></Button>
+              <Button
+                icon={
+                  <ChevronsRightIcon width={18} height={18}></ChevronsRightIcon>
+                }
+                tooltip="Fast Forward 5s ( l )"
+                text="5s"
+                ariaLabel="fast forward 5 seconds"
+                className="play-button flex-1 border border-neutral-2"
+                iconPlacement="right"
+                onClick={fastForwardFiveSeconds}
+                id="fast-forward"
+              ></Button>
+            </div>
+            {/* <ToggleButton
               pressed={looping}
               accent="positive"
               icon={<RepeatIcon width={18} height={18}></RepeatIcon>}
@@ -301,57 +310,57 @@ export const Loaded = () => {
               tooltip="Toggle Loop (l)"
               className="h-10 min-h-10 min-w-full w-full justify-center"
             ></ToggleButton> */}
+          </div>
         </div>
+        <p className="fixed bottom-2 left-1/2 -translate-x-1/2 text-sm text-neutral-400">
+          {wakeLockStatus}
+        </p>
       </div>
-      <p className="fixed bottom-2 left-1/2 -translate-x-1/2 text-sm text-neutral-400">
-        {wakeLockStatus}
-      </p>
-    </div>
-    {showTutorial && (
-      <Tutorial
-        handleTutorialFinished={() => {
-          setShowTutorial(false);
-          localStorage.setItem("tutorial_shown", "true");
-        }}
-        steps={[
-          {
-            htmlSelector: "#playback-controls",
-            contents: (
-              <p>
-                Controls playback. Hover to see function and shortcut on
-                desktop browsers.
-              </p>
-            ),
-          },
-          {
-            htmlSelector: "#recording-properties",
-            contents: <p>Adjust pitch, speed, and volume.</p>,
-          },
-          {
-            htmlSelector: "#reset-pitch",
-            contents: <p>Click to reset to default</p>,
-          },
-          {
-            htmlSelector: "#waveform-view",
-            contents: (
-              <p>
-                Click to select playback start point. Drag to select loop.
-                Scroll to zoom. Pan to move backwards/forwards
-              </p>
-            ),
-          },
-          {
-            htmlSelector: "#waveform-controls",
-            contents: (
-              <p>
-                You can also use these controls to navigate around the
-                recording.
-              </p>
-            ),
-          },
-        ]}
-      />
-    )}
+      {showTutorial && (
+        <Tutorial
+          handleTutorialFinished={() => {
+            setShowTutorial(false);
+            localStorage.setItem("tutorial_shown", "true");
+          }}
+          steps={[
+            {
+              htmlSelector: "#playback-controls",
+              contents: (
+                <p>
+                  Controls playback. Hover to see function and shortcut on
+                  desktop browsers.
+                </p>
+              ),
+            },
+            {
+              htmlSelector: "#recording-properties",
+              contents: <p>Adjust pitch, speed, and volume.</p>,
+            },
+            {
+              htmlSelector: "#reset-pitch",
+              contents: <p>Click to reset to default</p>,
+            },
+            {
+              htmlSelector: "#waveform-view",
+              contents: (
+                <p>
+                  Click to select playback start point. Drag to select loop.
+                  Scroll to zoom. Pan to move backwards/forwards
+                </p>
+              ),
+            },
+            {
+              htmlSelector: "#waveform-controls",
+              contents: (
+                <p>
+                  You can also use these controls to navigate around the
+                  recording.
+                </p>
+              ),
+            },
+          ]}
+        />
+      )}
     </>
   );
 };
