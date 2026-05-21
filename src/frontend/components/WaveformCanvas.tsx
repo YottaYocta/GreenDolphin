@@ -464,24 +464,28 @@ export const WaveformCanvas: FC<
 
   return (
     <div ref={containerRef} className="flex flex-col pixelated select-none">
-      {showHandles && handlePositions && localData.section && (
-        <div className="relative w-full h-5 shrink-0">
-          <SectionHandle
-            pct={handlePositions.startPct}
-            onDragStart={() => setDraggingHandle("start")}
-          />
-          <SectionHandle
-            pct={handlePositions.endPct}
-            onDragStart={() => setDraggingHandle("end")}
-          />
-        </div>
-      )}
       <canvas
         {...props}
         ref={canvasRef}
         draggable="false"
         className="cursor-pointer"
       ></canvas>
+      {showHandles && handlePositions && localData.section && (
+        <div className="relative w-full h-7 shrink-0 overflow-hidden">
+          {handlePositions.startPct >= 0 && handlePositions.startPct <= 100 && (
+            <SectionHandle
+              pct={handlePositions.startPct}
+              onDragStart={() => setDraggingHandle("start")}
+            />
+          )}
+          {handlePositions.endPct >= 0 && handlePositions.endPct <= 100 && (
+            <SectionHandle
+              pct={handlePositions.endPct}
+              onDragStart={() => setDraggingHandle("end")}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 };
@@ -502,6 +506,6 @@ const SectionHandle: FC<{ pct: number; onDragStart: () => void }> = ({
       onDragStart();
     }}
   >
-    <div className="w-3 h-3 rounded-sm bg-emerald-400 opacity-90" />
+    <div className="w-4 h-5 rounded-sm bg-emerald-400 opacity-90" />
   </div>
 );
