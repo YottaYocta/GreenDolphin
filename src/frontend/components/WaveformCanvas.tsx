@@ -71,10 +71,21 @@ export const WaveformCanvas: FC<
 
     if (waveformData.data !== prev.data) {
       setLocalData(waveformData);
-    } else if (waveformData.section !== prev.section) {
+      return;
+    }
+
+    const rangeChanged =
+      waveformData.range.start !== prev.range.start ||
+      waveformData.range.end !== prev.range.end;
+    const sectionChanged =
+      waveformData.section?.start !== prev.section?.start ||
+      waveformData.section?.end !== prev.section?.end;
+
+    if (rangeChanged || sectionChanged) {
       setLocalData((prevLocal) => ({
         ...prevLocal,
-        section: waveformData.section,
+        ...(rangeChanged ? { range: waveformData.range } : {}),
+        ...(sectionChanged ? { section: waveformData.section } : {}),
       }));
     }
   }, [waveformData]);
