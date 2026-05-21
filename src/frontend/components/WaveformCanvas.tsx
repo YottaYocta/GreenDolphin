@@ -22,7 +22,7 @@ import {
 export type WaveformRenderFunction = (
   data: WaveformData,
   canvas: HTMLCanvasElement,
-  position?: number
+  position?: number,
 ) => void;
 
 export interface WaveformCanvasProps {
@@ -69,7 +69,7 @@ export const WaveformCanvas: FC<
   const clickSelectThresholdValue = useMemo(
     () =>
       CLICK_SELECTION_THRESHOLD * (localData.range.end - localData.range.start),
-    [localData.range.end, localData.range.start]
+    [localData.range.end, localData.range.start],
   );
 
   const minRangeThresholdValue = useMemo(() => {
@@ -96,9 +96,9 @@ export const WaveformCanvas: FC<
         positionReference && positionReference.current
           ? MStoSampleIndex(
               localData.data.sampleRate,
-              positionReference.current
+              positionReference.current,
             )
-          : undefined
+          : undefined,
       );
   }, [
     localData,
@@ -138,7 +138,7 @@ export const WaveformCanvas: FC<
         const targetEnd = targetStart + currentRangeLength;
         const clampedSection = clampSection(
           { start: targetStart, end: targetEnd },
-          { start: 0, end: localData.data.length }
+          { start: 0, end: localData.data.length },
         );
         if (handleRangeChange) handleRangeChange(clampedSection);
       } else if (sample < localData.range.start) {
@@ -147,7 +147,7 @@ export const WaveformCanvas: FC<
         const targetStart = targetEnd - currentRangeLength;
         const clampedSection = clampSection(
           { start: targetStart, end: targetEnd },
-          { start: 0, end: localData.data.length }
+          { start: 0, end: localData.data.length },
         );
         if (handleRangeChange) handleRangeChange(clampedSection);
       }
@@ -196,7 +196,7 @@ export const WaveformCanvas: FC<
           computeSampleIndex(
             e.offsetX,
             localData.range.end - localData.range.start,
-            canvasElement
+            canvasElement,
           ) + localData.range.start;
         setSelectRange({
           start: selectRange.start,
@@ -225,7 +225,7 @@ export const WaveformCanvas: FC<
         computeSampleIndex(
           e.offsetX,
           localData.range.end - localData.range.start,
-          canvasElement
+          canvasElement,
         ) + localData.range.start;
 
       setSelectRange({ start: sampleIndex, end: sampleIndex });
@@ -244,8 +244,8 @@ export const WaveformCanvas: FC<
           handleRangeChange(
             clampSection(
               { start: targetStart, end: targetEnd },
-              { start: 0, end: localData.data.length }
-            )
+              { start: 0, end: localData.data.length },
+            ),
           );
         } else {
           const currentRange = localData.range.end - localData.range.start;
@@ -258,8 +258,8 @@ export const WaveformCanvas: FC<
             Math.floor(minRangeThresholdValue),
             Math.min(
               localData.data.length,
-              currentRange * (1 + -e.deltaY / 1000)
-            )
+              currentRange * (1 + -e.deltaY / 1000),
+            ),
           );
 
           const targetBefore = targetRange * before;
@@ -271,7 +271,7 @@ export const WaveformCanvas: FC<
           handleRangeChange({
             start: Math.floor(Math.max(0, currentTarget - targetBefore)),
             end: Math.floor(
-              Math.min(currentTarget + targetAfter, localData.data.length)
+              Math.min(currentTarget + targetAfter, localData.data.length),
             ),
           });
         }

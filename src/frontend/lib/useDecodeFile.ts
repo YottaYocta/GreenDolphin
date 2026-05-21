@@ -16,9 +16,8 @@ export function useDecodeFile() {
         filename: file.name,
         fileSize: file.size,
       });
-      saveToCache(file)
-        .then(() => setIsCached(true))
-        .catch(() => setIsCached(false));
+      setIsCached(true);
+      saveToCache(file).catch(() => setIsCached(false));
     },
     [setAudio, setIsCached]
   );

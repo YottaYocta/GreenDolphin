@@ -35,7 +35,7 @@ export const PlaybackProvider = ({
 
   const triggerUpdate = useCallback(
     () => setTrigger((prevTrigger) => !prevTrigger),
-    []
+    [],
   );
 
   const setPosition = useCallback(
@@ -43,7 +43,7 @@ export const PlaybackProvider = ({
       playbackPosition.current = Math.min(Math.max(0, position), data.length);
       triggerUpdate();
     },
-    [data.length, triggerUpdate]
+    [data.length, triggerUpdate],
   );
 
   const setLoop = useCallback(
@@ -59,14 +59,14 @@ export const PlaybackProvider = ({
         setLocalLoop(undefined);
       }
     },
-    [data.length, data.sampleRate, setPosition]
+    [data.length, data.sampleRate, setPosition],
   );
 
   const ANALYZER_BUFFER_LENGTH = 8192 * 2;
 
   const analyzerNode = useRef<AnalyserNode | undefined>(undefined);
   const frequencyData = useRef<FrequencyData>(
-    new Float32Array(ANALYZER_BUFFER_LENGTH)
+    new Float32Array(ANALYZER_BUFFER_LENGTH),
   );
   const analyzerFrameId = useRef<number | undefined>(undefined);
 
@@ -85,7 +85,7 @@ export const PlaybackProvider = ({
       newAnalyzer.fftSize = ANALYZER_BUFFER_LENGTH;
       return newAnalyzer;
     },
-    [ANALYZER_BUFFER_LENGTH]
+    [ANALYZER_BUFFER_LENGTH],
   );
 
   const [pitchShift, setPitchShift] = useState<number>(0);
@@ -135,7 +135,7 @@ export const PlaybackProvider = ({
 
     const newAnalzyer = createAnalyzerNode(context);
     const newPitchShift = new PitchShift(
-      pitchShift - getInverseShift(playbackSpeed)
+      pitchShift - getInverseShift(playbackSpeed),
     );
     const newGain = context.createGain();
     newGain.gain.value = gain;
@@ -145,7 +145,7 @@ export const PlaybackProvider = ({
       newPitchShift,
       newGain,
       newAnalzyer,
-      context.destination
+      context.destination,
     );
 
     analyzerNode.current = newAnalzyer;
@@ -178,7 +178,7 @@ export const PlaybackProvider = ({
       }
       sourceNode.current = newSourceNode;
     },
-    [buildChain, destroyChain]
+    [buildChain, destroyChain],
   );
 
   useEffect(() => {
@@ -291,7 +291,7 @@ export const PlaybackProvider = ({
     } else if (playState === "frozen") {
       stopCount();
       const playbackPositionSamples = Math.floor(
-        (playbackPosition.current / 1000) * localData.sampleRate
+        (playbackPosition.current / 1000) * localData.sampleRate,
       );
       const FREEZE_RANGE = 4000;
       const clampedBufferRange = clampSection(
@@ -299,13 +299,13 @@ export const PlaybackProvider = ({
           start: playbackPositionSamples - FREEZE_RANGE,
           end: playbackPositionSamples + FREEZE_RANGE,
         },
-        { start: 0, end: localData.length }
+        { start: 0, end: localData.length },
       );
       const newBufferLength = clampedBufferRange.end - clampedBufferRange.start;
       const newBuffer = context.createBuffer(
         localData.numberOfChannels,
         newBufferLength,
-        localData.sampleRate
+        localData.sampleRate,
       );
 
       for (let i = 0; i < localData.numberOfChannels; i++) {
@@ -351,8 +351,8 @@ export const PlaybackProvider = ({
             0,
             Math.max(
               startSeconds,
-              Math.min(endSeconds, playbackPosition.current / 1000)
-            )
+              Math.min(endSeconds, playbackPosition.current / 1000),
+            ),
           );
         } else {
           newSourceNode.start(0, playbackPosition.current / 1000);

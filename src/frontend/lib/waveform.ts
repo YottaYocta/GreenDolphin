@@ -31,7 +31,7 @@ const computeFillStyle = (color: Color): string =>
 export const computePixel = (
   sampleIdx: number,
   rangeLength: number,
-  canvas: HTMLCanvasElement
+  canvas: HTMLCanvasElement,
 ) => {
   return canvas.width * (sampleIdx / rangeLength);
 };
@@ -39,7 +39,7 @@ export const computePixel = (
 export const computeSampleIndex = (
   pixel: number,
   rangeLength: number,
-  canvas: HTMLCanvasElement
+  canvas: HTMLCanvasElement,
 ) => {
   return Math.floor((pixel / canvas.width) * rangeLength);
 };
@@ -48,7 +48,7 @@ export const renderWaveformFrame = (
   { range }: WaveformData,
   frameRange: Section,
   canvas: HTMLCanvasElement,
-  primary = { r: 0, g: 100, b: 50, a: 100 }
+  primary = { r: 0, g: 100, b: 50, a: 100 },
   // primary = { r: 25, g: 202, b: 147, a: 100 }
 ) => {
   const fillStyle = computeFillStyle(primary);
@@ -58,12 +58,12 @@ export const renderWaveformFrame = (
   const frameStart = computePixel(
     frameRange.start - range.start,
     range.end - range.start,
-    canvas
+    canvas,
   );
   const frameEnd = computePixel(
     frameRange.end - range.start,
     range.end - range.start,
-    canvas
+    canvas,
   );
   const canvasCtx = canvas.getContext("2d")!;
   canvasCtx.fillStyle = fillStyle;
@@ -71,7 +71,7 @@ export const renderWaveformFrame = (
   canvasCtx.beginPath();
   canvasCtx.moveTo(
     frameStart,
-    canvas.height - verticalPadding - triangleHeight
+    canvas.height - verticalPadding - triangleHeight,
   );
   canvasCtx.lineTo(frameStart - barWidth / 2, canvas.height - verticalPadding);
   canvasCtx.lineTo(frameStart + barWidth / 2, canvas.height - verticalPadding);
@@ -109,7 +109,7 @@ export const renderWaveform = (
     background = { r: 256, g: 256, b: 256, a: 100 },
   }: WaveformStyle,
   canvas: HTMLCanvasElement,
-  position?: number
+  position?: number,
 ) => {
   const channelHeight = canvas.height / data.numberOfChannels;
   const canvasCtx = canvas.getContext("2d")!;
@@ -158,7 +158,7 @@ export const renderWaveform = (
         ((j - range.start) / samplesPerWave) * waveWidth,
         channelHeight * i + channelHeight / 2 - waveHeight / 2,
         waveWidth,
-        waveHeight
+        waveHeight,
       );
     }
   }
@@ -167,7 +167,7 @@ export const renderWaveform = (
     const startPos = computePixel(
       section.start - range.start,
       rangeLength,
-      canvas
+      canvas,
     );
 
     const endPos = computePixel(section.end - range.start, rangeLength, canvas);
@@ -178,10 +178,10 @@ export const renderWaveform = (
     canvasCtx.fillStyle = "rgb(0 0 0)";
     canvasCtx.fillText(
       `${formatSeconds(
-        Math.trunc((section.start / data.sampleRate) * 100) / 100
+        Math.trunc((section.start / data.sampleRate) * 100) / 100,
       )}`,
       startPos + 5,
-      10
+      10,
     );
 
     canvasCtx.fillStyle = primaryFill;
@@ -190,13 +190,13 @@ export const renderWaveform = (
 
     if (endPos - startPos > 70) {
       const endString = `${formatSeconds(
-        Math.trunc((section.end / data.sampleRate) * 100) / 100
+        Math.trunc((section.end / data.sampleRate) * 100) / 100,
       )}`;
       canvasCtx.fillStyle = "rgb(0 0 0)";
       canvasCtx.fillText(
         endString,
         endPos - 5 - canvasCtx.measureText(endString).width,
-        10
+        10,
       );
     }
   }
