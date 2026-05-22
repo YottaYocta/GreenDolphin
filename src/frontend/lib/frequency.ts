@@ -189,7 +189,8 @@ export const drawFrequencyNoteBars = (
 
 export const drawFrequencyPiano = (
   pitches: FrequencyData,
-  canvas: HTMLCanvasElement
+  canvas: HTMLCanvasElement,
+  activeKeyIndex: number | null = null
 ) => {
   const keyWidth = canvas.width / PITCH_BUCKETS.length;
   const blackKeyHeight = canvas.height / 3;
@@ -300,27 +301,19 @@ export const drawFrequencyPiano = (
           blackKeyHeight
         );
 
-        // const intensityScaled = Math.pow(
-        //   Math.max(0, Math.min(140, intensity)) / 140,
-        //   2
-        // );
-        // if (intensityScaled > 0.4) {
-        //   pitchCtx.fillStyle = "rgb(256 256 256)";
-        //   pitchCtx.fillRect(
-        //     idx * keyWidth,
-        //     canvas.height / 2,
-        //     keyWidth,
-        //     blackKeyHeight
-        //   );
-
-        //   pitchCtx.fillStyle = `rgba(25 202 147 / ${
-        //     intensityScaled * intensityScaled * 100
-        //   }%)`;
-        // } else {
-        //   pitchCtx.fillStyle = "rgb(50, 50, 50)";
-        // }
         break;
       }
+    }
+
+    if (idx === activeKeyIndex) {
+      const isBlack = [1, 3, 6, 8, 10].includes(idx % 12);
+      pitchCtx.fillStyle = "#38bdf8";
+      pitchCtx.fillRect(
+        idx * keyWidth,
+        canvas.height / 2,
+        keyWidth,
+        isBlack ? blackKeyHeight : whiteKeyHeight
+      );
     }
   });
 

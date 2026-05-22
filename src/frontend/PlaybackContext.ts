@@ -25,6 +25,8 @@ export interface PlaybackContextType {
   setLoopDelay: (seconds: number) => void;
   loopPauseStart: RefObject<number | null>;
   loopPauseEnd: RefObject<number | null>;
+  audioContext: AudioContext | null;
+  analyserNode: AnalyserNode | null;
 }
 
 export const PlaybackContext = createContext<PlaybackContextType | undefined>(

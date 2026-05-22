@@ -70,7 +70,7 @@ export const PlaybackProvider = ({
 
   const analyzerNode = useRef<AnalyserNode | undefined>(undefined);
   const frequencyData = useRef<FrequencyData>(
-    new Float32Array(ANALYZER_BUFFER_LENGTH),
+    new Float32Array(ANALYZER_BUFFER_LENGTH / 2),
   );
   const analyzerFrameId = useRef<number | undefined>(undefined);
 
@@ -436,6 +436,8 @@ export const PlaybackProvider = ({
         setLoopDelay,
         loopPauseStart,
         loopPauseEnd,
+        audioContext: context,
+        analyserNode: analyzerNode.current ?? null,
       }}
     >
       {children}
