@@ -11,13 +11,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@soundtouchjs/audio-worklet": "^2.0.3",
     "@tailwindcss/vite": "^4.1.8",
     "lucide-react": "^0.513.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router": "^7.15.1",
-    "tailwindcss": "^4.1.8",
-    "tone": "^15.1.22"
+    "tailwindcss": "^4.1.8"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
