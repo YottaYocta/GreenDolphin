@@ -533,13 +533,12 @@ export const WaveformCanvas: FC<
                     onDragStart={() => setDraggingHandle("start")}
                   />
                 )}
-              {handlePositions.endPct >= 0 &&
-                handlePositions.endPct <= 100 && (
-                  <SectionHandle
-                    pct={handlePositions.endPct}
-                    onDragStart={() => setDraggingHandle("end")}
-                  />
-                )}
+              {handlePositions.endPct >= 0 && handlePositions.endPct <= 100 && (
+                <SectionHandle
+                  pct={handlePositions.endPct}
+                  onDragStart={() => setDraggingHandle("end")}
+                />
+              )}
             </>
           )}
           {positionReference && (
