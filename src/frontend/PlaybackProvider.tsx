@@ -32,6 +32,10 @@ export const PlaybackProvider = ({
 
   const [looping, setLooping] = useState<boolean>(true);
   const [loop, setLocalLoop] = useState<undefined | Section>();
+  const [loopDelay, setLoopDelay] = useState<number>(0);
+  const loopDelayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const loopPauseStart = useRef<number | null>(null);
+  const loopPauseEnd = useRef<number | null>(null);
 
   const triggerUpdate = useCallback(
     () => setTrigger((prevTrigger) => !prevTrigger),
@@ -103,6 +107,12 @@ export const PlaybackProvider = ({
    * disposes of post-processing chain and source node
    */
   const destroyChain = useCallback(() => {
+    if (loopDelayTimerRef.current !== null) {
+      clearTimeout(loopDelayTimerRef.current);
+      loopDelayTimerRef.current = null;
+    }
+    loopPauseStart.current = null;
+    loopPauseEnd.current = null;
     if (sourceNode.current) {
       sourceNode.current.stop();
       sourceNode.current.disconnect();
@@ -202,8 +212,31 @@ export const PlaybackProvider = ({
       if (loop) {
         const startMS = (loop.start / localData.sampleRate) * 1000;
         const endMS = (loop.end / localData.sampleRate) * 1000;
-        const clampedNext = next > endMS ? startMS : Math.max(startMS, next);
 
+        if (next > endMS) {
+          if (loopDelay > 0) {
+            playbackPosition.current = endMS;
+            lastTimeStamp.current = performance.now();
+            const now = performance.now();
+            loopPauseStart.current = now;
+            loopPauseEnd.current = now + loopDelay * 1000;
+            setPlayState("paused");
+            loopDelayTimerRef.current = setTimeout(() => {
+              loopDelayTimerRef.current = null;
+              loopPauseStart.current = null;
+              loopPauseEnd.current = null;
+              playbackPosition.current = startMS;
+              setPlayState("playing");
+            }, loopDelay * 1000);
+          } else {
+            playbackPosition.current = startMS;
+            lastTimeStamp.current = performance.now();
+            animationFrameId.current = requestAnimationFrame(tick);
+          }
+          return;
+        }
+
+        const clampedNext = Math.max(startMS, next);
         playbackPosition.current = clampedNext;
         lastTimeStamp.current = performance.now();
 
@@ -248,7 +281,7 @@ export const PlaybackProvider = ({
         animationFrameId.current = requestAnimationFrame(tick);
       }
     }
-  }, [localData.duration, localData.sampleRate, loop, looping, playbackSpeed]);
+  }, [localData.duration, localData.sampleRate, loop, loopDelay, looping, playbackSpeed]);
 
   const startCount = useCallback(() => {
     stopCount();
@@ -340,7 +373,7 @@ export const PlaybackProvider = ({
       };
 
       if (looping) {
-        newSourceNode.loop = looping;
+        newSourceNode.loop = loopDelay === 0;
         if (loop) {
           const startSeconds = loop.start / localData.sampleRate;
           const endSeconds = loop.end / localData.sampleRate;
@@ -369,6 +402,7 @@ export const PlaybackProvider = ({
     context,
     localData,
     loop,
+    loopDelay,
     looping,
     playState,
     trigger,
@@ -398,6 +432,10 @@ export const PlaybackProvider = ({
         setPlaybackSpeed,
         gain,
         setGain,
+        loopDelay,
+        setLoopDelay,
+        loopPauseStart,
+        loopPauseEnd,
       }}
     >
       {children}

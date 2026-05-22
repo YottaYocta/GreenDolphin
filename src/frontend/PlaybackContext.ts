@@ -21,6 +21,10 @@ export interface PlaybackContextType {
   setPlaybackSpeed: (newPlaybackSpeed: number) => void;
   gain: number;
   setGain: (newGain: number) => void;
+  loopDelay: number;
+  setLoopDelay: (seconds: number) => void;
+  loopPauseStart: RefObject<number | null>;
+  loopPauseEnd: RefObject<number | null>;
 }
 
 export const PlaybackContext = createContext<PlaybackContextType | undefined>(
