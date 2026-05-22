@@ -76,10 +76,33 @@ export const FrequencyCanvas: FC = () => {
       stopTone();
     };
 
+    const handleTouchStart = (e: TouchEvent) => {
+      e.preventDefault();
+      isDraggingRef.current = true;
+      const idx = getKeyIndex(e.touches[0].clientX, canvas);
+      if (idx >= 0 && idx < PITCH_BUCKETS.length) startTone(idx);
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      const idx = getKeyIndex(e.touches[0].clientX, canvas);
+      if (idx >= 0 && idx < PITCH_BUCKETS.length && idx !== activeKeyRef.current)
+        startTone(idx);
+    };
+
+    const handleTouchEnd = () => {
+      isDraggingRef.current = false;
+      stopTone();
+    };
+
     canvas.addEventListener("mousedown", handleMouseDown);
     canvas.addEventListener("mousemove", handleMouseMove);
     canvas.addEventListener("mouseup", handleMouseUp);
     canvas.addEventListener("mouseleave", handleMouseLeave);
+    canvas.addEventListener("touchstart", handleTouchStart, { passive: false });
+    canvas.addEventListener("touchmove", handleTouchMove, { passive: false });
+    canvas.addEventListener("touchend", handleTouchEnd);
+    canvas.addEventListener("touchcancel", handleTouchEnd);
 
     let animationFrameId: number;
 
@@ -108,6 +131,10 @@ export const FrequencyCanvas: FC = () => {
       canvas.removeEventListener("mousemove", handleMouseMove);
       canvas.removeEventListener("mouseup", handleMouseUp);
       canvas.removeEventListener("mouseleave", handleMouseLeave);
+      canvas.removeEventListener("touchstart", handleTouchStart);
+      canvas.removeEventListener("touchmove", handleTouchMove);
+      canvas.removeEventListener("touchend", handleTouchEnd);
+      canvas.removeEventListener("touchcancel", handleTouchEnd);
       stopTone();
     };
   }, [frequencyDataRef, audioContext, analyserNode]);
