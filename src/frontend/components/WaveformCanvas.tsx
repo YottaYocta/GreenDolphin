@@ -94,6 +94,7 @@ export const WaveformCanvas: FC<
   const [draggingHandle, setDraggingHandle] = useState<"start" | "end" | null>(
     null,
   );
+  const [draggingPlayhead, setDraggingPlayhead] = useState(false);
 
   const clickSelectThresholdValue = useMemo(
     () =>
@@ -106,7 +107,24 @@ export const WaveformCanvas: FC<
     return value;
   }, [localData.data.length]);
 
+  const positionHandleRef = useRef<HTMLDivElement>(null);
+
   const updateWaveform = useCallback(() => {
+    if (positionHandleRef.current && positionReference?.current != null) {
+      const sampleIndex = MStoSampleIndex(
+        localData.data.sampleRate,
+        positionReference.current,
+      );
+      const rangeLen = localData.range.end - localData.range.start;
+      const pct = ((sampleIndex - localData.range.start) / rangeLen) * 100;
+      if (pct >= 0 && pct <= 100) {
+        positionHandleRef.current.style.left = `${pct}%`;
+        positionHandleRef.current.style.display = "";
+      } else {
+        positionHandleRef.current.style.display = "none";
+      }
+    }
+
     if (canvasRef.current)
       renderFunction(
         {
@@ -462,6 +480,40 @@ export const WaveformCanvas: FC<
     setLocalData,
   ]);
 
+  useEffect(() => {
+    if (!draggingPlayhead) return;
+
+    const onMove = (clientX: number) => {
+      if (!containerRef.current || !handlePosition) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const fraction = Math.max(
+        0,
+        Math.min(1, (clientX - rect.left) / rect.width),
+      );
+      const sampleIndex =
+        Math.round(fraction * (localData.range.end - localData.range.start)) +
+        localData.range.start;
+      handlePosition(sampleIndex);
+    };
+
+    const onEnd = () => setDraggingPlayhead(false);
+    const onMouseMove = (e: MouseEvent) => onMove(e.clientX);
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches[0]) onMove(e.touches[0].clientX);
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onEnd);
+    window.addEventListener("touchmove", onTouchMove);
+    window.addEventListener("touchend", onEnd);
+    return () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onEnd);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchend", onEnd);
+    };
+  }, [draggingPlayhead, handlePosition, localData.range]);
+
   return (
     <div ref={containerRef} className="flex flex-col pixelated select-none">
       <canvas
@@ -470,19 +522,41 @@ export const WaveformCanvas: FC<
         draggable="false"
         className="cursor-pointer border border-neutral-2"
       ></canvas>
-      {showHandles && handlePositions && localData.section && (
+      {showHandles && (handlePositions || positionReference) && (
         <div className="relative w-full h-7 shrink-0 overflow-hidden">
-          {handlePositions.startPct >= 0 && handlePositions.startPct <= 100 && (
-            <SectionHandle
-              pct={handlePositions.startPct}
-              onDragStart={() => setDraggingHandle("start")}
-            />
+          {handlePositions && localData.section && (
+            <>
+              {handlePositions.startPct >= 0 &&
+                handlePositions.startPct <= 100 && (
+                  <SectionHandle
+                    pct={handlePositions.startPct}
+                    onDragStart={() => setDraggingHandle("start")}
+                  />
+                )}
+              {handlePositions.endPct >= 0 && handlePositions.endPct <= 100 && (
+                <SectionHandle
+                  pct={handlePositions.endPct}
+                  onDragStart={() => setDraggingHandle("end")}
+                />
+              )}
+            </>
           )}
-          {handlePositions.endPct >= 0 && handlePositions.endPct <= 100 && (
-            <SectionHandle
-              pct={handlePositions.endPct}
-              onDragStart={() => setDraggingHandle("end")}
-            />
+          {positionReference && (
+            <div
+              ref={positionHandleRef}
+              className="absolute top-0 w-5 h-full -translate-x-1/2 flex items-center justify-center cursor-ew-resize z-10"
+              style={{ display: "none" }}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                setDraggingPlayhead(true);
+              }}
+              onTouchStart={(e) => {
+                e.stopPropagation();
+                setDraggingPlayhead(true);
+              }}
+            >
+              <div className="w-4 h-4 rounded-sm bg-sky-400 opacity-90" />
+            </div>
           )}
         </div>
       )}

@@ -1,4 +1,12 @@
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type FC,
+  type RefObject,
+} from "react";
 import { Tutorial } from "./components/Tutorial";
 import { formatSeconds } from "./lib/util";
 import { Button, ToggleButton } from "./components/buttons";
@@ -76,6 +84,10 @@ export const Loaded = () => {
     setPlaybackSpeed,
     gain,
     setGain,
+    loopDelay,
+    setLoopDelay,
+    loopPauseStart,
+    loopPauseEnd,
   } = playback;
 
   const [renderedGain, setRenderedGain] = useState<number>(1);
@@ -231,6 +243,28 @@ export const Loaded = () => {
               valueRenderer={() => `${(gain * gain).toFixed(1)} db`}
             />
           </div>
+          <div className="flex flex-col items-center gap-2 text-sm text-neutral-400 shrink-0">
+            <span>Loop pause</span>
+            <div className="flex items-center gap-1">
+              <input
+                type="number"
+                min={0}
+                max={30}
+                step={0.5}
+                value={loopDelay}
+                disabled={!looping || !loop}
+                onChange={(e) =>
+                  setLoopDelay(Math.max(0, Number(e.target.value)))
+                }
+                className="w-14 border border-neutral-2 rounded-xs px-1 py-0.5 text-center text-neutral-800 disabled:opacity-40"
+              />
+              <span>s</span>
+            </div>
+            <LoopPauseIndicator
+              pauseStart={loopPauseStart}
+              pauseEnd={loopPauseEnd}
+            />
+          </div>
           <div
             className="flex md:flex-col flex-row justify-between items-center gap-2 "
             id="playback-controls"
@@ -362,5 +396,55 @@ export const Loaded = () => {
         />
       )}
     </>
+  );
+};
+
+const LoopPauseIndicator: FC<{
+  pauseStart: RefObject<number | null>;
+  pauseEnd: RefObject<number | null>;
+}> = ({ pauseStart, pauseEnd }) => {
+  const pathRef = useRef<SVGPathElement>(null);
+
+  useEffect(() => {
+    const SIZE = 16;
+    const R = 6;
+    const CX = SIZE / 2;
+    const CY = SIZE / 2;
+
+    let rafId: number;
+
+    const tick = () => {
+      rafId = requestAnimationFrame(tick);
+      const path = pathRef.current;
+      if (!path) return;
+
+      const start = pauseStart.current;
+      const end = pauseEnd.current;
+
+      if (start === null || end === null) {
+        path.setAttribute("d", "");
+        return;
+      }
+
+      const fraction = Math.min(1, Math.max(0, (performance.now() - start) / (end - start)));
+      const angle = fraction * 2 * Math.PI;
+      const ex = CX + R * Math.sin(angle);
+      const ey = CY - R * Math.cos(angle);
+      const largeArc = angle > Math.PI ? 1 : 0;
+      path.setAttribute(
+        "d",
+        `M ${CX} ${CY} L ${CX} ${CY - R} A ${R} ${R} 0 ${largeArc} 1 ${ex} ${ey} Z`,
+      );
+    };
+
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, [pauseEnd, pauseStart]);
+
+  return (
+    <svg viewBox="0 0 16 16" className="w-20 h-20 shrink-0">
+      <circle cx="8" cy="8" r="6" className="fill-neutral-200" />
+      <path ref={pathRef} className="fill-emerald-400" />
+    </svg>
   );
 };
