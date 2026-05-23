@@ -7,6 +7,7 @@ import { clampSection, computeMS } from "./lib/util";
 import type { FrequencyData } from "./lib/frequency";
 import { SoundTouchNode } from "@soundtouchjs/audio-worklet";
 import soundTouchProcessorUrl from "@soundtouchjs/audio-worklet/processor?url";
+import { buildFreezeBuffer } from "./lib/freeze";
 
 export interface PlaybackProviderProps {
   context: AudioContext;
@@ -312,45 +313,13 @@ export const PlaybackProvider = ({
       }
     } else if (playState === "frozen") {
       stopCount();
-      const playbackPositionSamples = Math.floor(
+      const centerSample = Math.floor(
         (playbackPosition.current / 1000) * localData.sampleRate,
       );
-      const FREEZE_RANGE = 4000;
-      const clampedBufferRange = clampSection(
-        {
-          start: playbackPositionSamples - FREEZE_RANGE,
-          end: playbackPositionSamples + FREEZE_RANGE,
-        },
-        { start: 0, end: localData.length },
-      );
-      const newBufferLength = clampedBufferRange.end - clampedBufferRange.start;
-      const newBuffer = context.createBuffer(
-        localData.numberOfChannels,
-        newBufferLength,
-        localData.sampleRate,
-      );
-
-      for (let i = 0; i < localData.numberOfChannels; i++) {
-        const channelData = localData.getChannelData(i);
-        const newChannelData = newBuffer.getChannelData(i);
-        for (let j = 0; j < newBufferLength; j++) {
-          const blendShifted = Math.abs(j / newBufferLength - 0.5) * 2;
-          const blendSource = 1 - blendShifted;
-          const shiftedIntensity =
-            channelData[
-              clampedBufferRange.start +
-                ((j + Math.floor(newBufferLength / 2)) % newBufferLength)
-            ] * blendShifted;
-          const sourceIntensity =
-            channelData[clampedBufferRange.start + j] * blendSource;
-          newChannelData[j] = shiftedIntensity + sourceIntensity;
-        }
-      }
-
+      const newBuffer = buildFreezeBuffer(localData, centerSample, context);
       const newSourceNode = context.createBufferSource();
       newSourceNode.buffer = newBuffer;
       newSourceNode.loop = true;
-
       connectSource(newSourceNode);
       newSourceNode.start();
     } else {
