@@ -99,6 +99,7 @@ export const PlaybackProvider = ({
   const [workletReady, setWorkletReady] = useState<boolean>(false);
 
   useEffect(() => {
+    setWorkletReady(false);
     SoundTouchNode.register(context, soundTouchProcessorUrl).then(() =>
       setWorkletReady(true),
     );
@@ -183,11 +184,15 @@ export const PlaybackProvider = ({
     [buildChain],
   );
 
+  const buildChainRef = useRef(buildChain);
+  buildChainRef.current = buildChain;
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!workletReady) return;
-    buildChain();
+    buildChainRef.current();
     return () => destroyChain();
-  }, [workletReady, buildChain, destroyChain]);
+  }, [workletReady, destroyChain]);
 
   const stopCount = useCallback(() => {
     if (animationFrameId.current) {
