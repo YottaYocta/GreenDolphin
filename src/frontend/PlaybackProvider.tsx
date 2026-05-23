@@ -3,10 +3,11 @@ import type { ReactNode } from "react";
 import { PlaybackContext } from "./PlaybackContext";
 import type { PlayState } from "./PlaybackContext";
 import { type Section } from "./lib/waveform";
-import { clampSection, computeMS, getInverseShift } from "./lib/util";
+import { clampSection, computeMS } from "./lib/util";
 import type { FrequencyData } from "./lib/frequency";
-import { PitchShift } from "tone";
-import * as Tone from "tone";
+import { SoundTouchNode } from "@soundtouchjs/audio-worklet";
+import soundTouchProcessorUrl from "@soundtouchjs/audio-worklet/processor?url";
+import { buildFreezeBuffer } from "./lib/freeze";
 
 export interface PlaybackProviderProps {
   context: AudioContext;
@@ -74,7 +75,7 @@ export const PlaybackProvider = ({
   );
   const analyzerFrameId = useRef<number | undefined>(undefined);
 
-  const pitchShiftNode = useRef<PitchShift | undefined>(undefined);
+  const soundTouchNode = useRef<SoundTouchNode | undefined>(undefined);
 
   const gainNode = useRef<GainNode | undefined>(undefined);
 
@@ -95,6 +96,14 @@ export const PlaybackProvider = ({
   const [pitchShift, setPitchShift] = useState<number>(0);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
   const [gain, setGain] = useState<number>(1);
+  const [workletReady, setWorkletReady] = useState<boolean>(false);
+
+  useEffect(() => {
+    setWorkletReady(false);
+    SoundTouchNode.register(context, soundTouchProcessorUrl).then(() =>
+      setWorkletReady(true),
+    );
+  }, [context]);
 
   const getFrequencyLoop = useCallback(() => {
     if (analyzerNode.current) {
@@ -122,9 +131,9 @@ export const PlaybackProvider = ({
       analyzerNode.current.disconnect();
       analyzerNode.current = undefined;
     }
-    if (pitchShiftNode.current) {
-      pitchShiftNode.current.dispose();
-      pitchShiftNode.current = undefined;
+    if (soundTouchNode.current) {
+      soundTouchNode.current.disconnect();
+      soundTouchNode.current = undefined;
     }
     if (gainNode.current) {
       gainNode.current.disconnect();
@@ -138,39 +147,26 @@ export const PlaybackProvider = ({
   }, []);
 
   /**
-   * creates the post-processing chain (analyzer, pitchshift) and connects them
+   * creates the post-processing chain (soundtouch, gain, analyzer) and connects them
    */
-  const buildChain = useCallback((): [AnalyserNode, PitchShift] => {
+  const buildChain = useCallback((): [AnalyserNode, SoundTouchNode] => {
     destroyChain();
 
-    const newAnalzyer = createAnalyzerNode(context);
-    const newPitchShift = new PitchShift(
-      pitchShift - getInverseShift(playbackSpeed),
-    );
+    const newAnalyzer = createAnalyzerNode(context);
+    const newSoundTouch = new SoundTouchNode({ context });
     const newGain = context.createGain();
     newGain.gain.value = gain;
-    newPitchShift.windowSize = 0.1;
 
-    Tone.connectSeries(
-      newPitchShift,
-      newGain,
-      newAnalzyer,
-      context.destination,
-    );
+    newSoundTouch.connect(newGain);
+    newGain.connect(newAnalyzer);
+    newAnalyzer.connect(context.destination);
 
-    analyzerNode.current = newAnalzyer;
+    analyzerNode.current = newAnalyzer;
     analyzerFrameId.current = requestAnimationFrame(getFrequencyLoop);
-    pitchShiftNode.current = newPitchShift;
-    return [newAnalzyer, newPitchShift];
-  }, [
-    context,
-    createAnalyzerNode,
-    destroyChain,
-    gain,
-    getFrequencyLoop,
-    pitchShift,
-    playbackSpeed,
-  ]);
+    soundTouchNode.current = newSoundTouch;
+    gainNode.current = newGain;
+    return [newAnalyzer, newSoundTouch];
+  }, [context, createAnalyzerNode, destroyChain, gain, getFrequencyLoop]);
 
   const connectSource = useCallback(
     (newSourceNode: AudioBufferSourceNode) => {
@@ -179,22 +175,24 @@ export const PlaybackProvider = ({
         sourceNode.current = undefined;
       }
 
-      if (pitchShiftNode.current) {
-        Tone.connect(newSourceNode, pitchShiftNode.current);
-      } else {
-        destroyChain();
-        const [, newPitchShift] = buildChain();
-        Tone.connect(newSourceNode, newPitchShift);
+      if (!soundTouchNode.current) {
+        buildChain();
       }
+      newSourceNode.connect(soundTouchNode.current!);
       sourceNode.current = newSourceNode;
     },
-    [buildChain, destroyChain],
+    [buildChain],
   );
 
+  const buildChainRef = useRef(buildChain);
+  buildChainRef.current = buildChain;
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    buildChain();
+    if (!workletReady) return;
+    buildChainRef.current();
     return () => destroyChain();
-  }, [buildChain, destroyChain]);
+  }, [workletReady, destroyChain]);
 
   const stopCount = useCallback(() => {
     if (animationFrameId.current) {
@@ -281,7 +279,14 @@ export const PlaybackProvider = ({
         animationFrameId.current = requestAnimationFrame(tick);
       }
     }
-  }, [localData.duration, localData.sampleRate, loop, loopDelay, looping, playbackSpeed]);
+  }, [
+    localData.duration,
+    localData.sampleRate,
+    loop,
+    loopDelay,
+    looping,
+    playbackSpeed,
+  ]);
 
   const startCount = useCallback(() => {
     stopCount();
@@ -298,21 +303,11 @@ export const PlaybackProvider = ({
   }, [data, stopCount]);
 
   useEffect(() => {
-    if (pitchShiftNode.current) {
-      if (playState === "frozen") {
-        pitchShiftNode.current.pitch = pitchShift;
-      } else {
-        pitchShiftNode.current.pitch =
-          pitchShift + getInverseShift(playbackSpeed);
-      }
-    } else {
-      destroyChain();
-      const [, newPitchShift] = buildChain();
-      if (playState === "frozen") {
-        newPitchShift.pitch = pitchShift;
-      } else {
-        newPitchShift.pitch = pitchShift + getInverseShift(playbackSpeed);
-      }
+    if (!workletReady) return;
+
+    if (soundTouchNode.current) {
+      soundTouchNode.current.pitchSemitones.value = pitchShift;
+      soundTouchNode.current.playbackRate.value = playbackSpeed;
     }
 
     if (playState === "paused") {
@@ -323,45 +318,13 @@ export const PlaybackProvider = ({
       }
     } else if (playState === "frozen") {
       stopCount();
-      const playbackPositionSamples = Math.floor(
+      const centerSample = Math.floor(
         (playbackPosition.current / 1000) * localData.sampleRate,
       );
-      const FREEZE_RANGE = 4000;
-      const clampedBufferRange = clampSection(
-        {
-          start: playbackPositionSamples - FREEZE_RANGE,
-          end: playbackPositionSamples + FREEZE_RANGE,
-        },
-        { start: 0, end: localData.length },
-      );
-      const newBufferLength = clampedBufferRange.end - clampedBufferRange.start;
-      const newBuffer = context.createBuffer(
-        localData.numberOfChannels,
-        newBufferLength,
-        localData.sampleRate,
-      );
-
-      for (let i = 0; i < localData.numberOfChannels; i++) {
-        const channelData = localData.getChannelData(i);
-        const newChannelData = newBuffer.getChannelData(i);
-        for (let j = 0; j < newBufferLength; j++) {
-          const blendShifted = Math.abs(j / newBufferLength - 0.5) * 2;
-          const blendSource = 1 - blendShifted;
-          const shiftedIntensity =
-            channelData[
-              clampedBufferRange.start +
-                ((j + Math.floor(newBufferLength / 2)) % newBufferLength)
-            ] * blendShifted;
-          const sourceIntensity =
-            channelData[clampedBufferRange.start + j] * blendSource;
-          newChannelData[j] = shiftedIntensity + sourceIntensity;
-        }
-      }
-
+      const newBuffer = buildFreezeBuffer(localData, centerSample, context);
       const newSourceNode = context.createBufferSource();
       newSourceNode.buffer = newBuffer;
       newSourceNode.loop = true;
-
       connectSource(newSourceNode);
       newSourceNode.start();
     } else {
@@ -409,9 +372,8 @@ export const PlaybackProvider = ({
     startCount,
     stopCount,
     pitchShift,
-    destroyChain,
-    buildChain,
     playbackSpeed,
+    workletReady,
   ]);
 
   return (

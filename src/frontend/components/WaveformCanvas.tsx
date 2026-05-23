@@ -155,25 +155,6 @@ export const WaveformCanvas: FC<
     selectRange,
   ]);
 
-  // useEffect(() => {
-  //   if (waveformData.section && waveformData.section !== localData.section) {
-  //     setLocalData((prevData) => ({ ...waveformData, range: prevData.range }));
-  //     console.log("a");
-  //   } else if (waveformData.data !== localData.data) {
-  //     setLocalData(waveformData);
-  //     console.log("b");
-  //   }
-
-  //   if (waveformData.section !== localData.section) {
-  //     setLocalData((prevData) => ({
-  //       ...prevData,
-  //       section: waveformData.section,
-  //     }));
-
-  //     console.log("c");
-  //   }
-  // }, [localData.data, localData.section, selectRange, waveformData]);
-
   useEffect(() => {
     updateWaveform();
   }, [updateWaveform]);
@@ -213,8 +194,6 @@ export const WaveformCanvas: FC<
     positionReference,
     waveformData.data.sampleRate,
   ]);
-
-  // console.log("[WaveformCanvas] Rerender");
 
   useEffect(() => {
     let animationFrameId: number;
@@ -339,7 +318,6 @@ export const WaveformCanvas: FC<
 
     if (allowZoomPan) {
       canvasElement.addEventListener("wheel", handleWheel);
-      // console.log(`[ADD] Zoom/Pan on ${canvasElement.nodeName}`);
     }
 
     window.addEventListener("resize", handleResize);
@@ -373,12 +351,10 @@ export const WaveformCanvas: FC<
     canvasElement.addEventListener("touchstart", handleTouchStart);
     canvasElement.addEventListener("touchmove", handleTouchMove);
     canvasElement.addEventListener("touchend", handleMouseUp);
-    // console.log(`[ADD] Click/Press on ${canvasElement.nodeName}`);
 
     return () => {
       if (allowZoomPan) {
         canvasElement.removeEventListener("wheel", handleWheel);
-        // console.log(`[REMOVE] Zoom/Pan on ${canvasElement.nodeName}`);
       }
       window.removeEventListener("resize", handleResize);
       canvasElement.removeEventListener("mousedown", handleMouseDown);
@@ -388,8 +364,6 @@ export const WaveformCanvas: FC<
       canvasElement.removeEventListener("touchstart", handleTouchStart);
       canvasElement.removeEventListener("touchmove", handleTouchMove);
       canvasElement.removeEventListener("touchend", handleMouseUp);
-
-      // console.log(`[REMOVE] Click/Press on ${canvasElement.nodeName}`);
     };
   }, [
     allowZoomPan,
@@ -404,10 +378,6 @@ export const WaveformCanvas: FC<
     selectRange,
     updateWaveform,
   ]);
-
-  useEffect(() => {
-    console.log(localData.range, localData.section);
-  }, [localData.range, localData.section]);
 
   const handlePositions = useMemo(() => {
     const section = localData.section;
