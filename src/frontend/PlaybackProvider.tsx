@@ -318,6 +318,9 @@ export const PlaybackProvider = ({
       }
     } else if (playState === "frozen") {
       stopCount();
+      if (soundTouchNode.current) {
+        soundTouchNode.current.playbackRate.value = 1;
+      }
       const centerSample = Math.floor(
         (playbackPosition.current / 1000) * localData.sampleRate,
       );
