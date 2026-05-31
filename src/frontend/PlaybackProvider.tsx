@@ -40,6 +40,7 @@ export const PlaybackProvider = ({
     loopPauseEnd,
     stopClock,
     cancelLoopDelay,
+    isLoopDelayPending,
   } = usePlaybackClock({
     sampleRate: localData.sampleRate,
     duration: localData.duration,
@@ -149,10 +150,11 @@ export const PlaybackProvider = ({
 
     return () => {
       stopNode(node);
-      cancelLoopDelay();
+      if (!isLoopDelayPending()) cancelLoopDelay();
     };
   }, [
     cancelLoopDelay,
+    isLoopDelayPending,
     context,
     entryNode,
     localData,
