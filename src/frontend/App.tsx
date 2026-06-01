@@ -4,7 +4,7 @@ import { FileAudio2, X } from "lucide-react";
 import { Button, LoadButton } from "./components/buttons";
 import { Landing } from "./Landing";
 import { Loaded } from "./Loaded";
-import { PlaybackProvider } from "./PlaybackProvider";
+import { PlaybackProvider } from "./playback/PlaybackProvider";
 import { AudioStore } from "./AudioStore";
 import { deleteFromCache, loadAllFromCache } from "./lib/audioCache";
 import { useDecodeFile } from "./lib/useDecodeFile";

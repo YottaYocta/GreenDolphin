@@ -21,7 +21,7 @@ import {
   SnowflakeIcon,
 } from "lucide-react";
 import { FrequencyCanvas } from "./components/FrequencyCanvas";
-import { PlaybackContext } from "./PlaybackContext";
+import { PlaybackContext } from "./playback/PlaybackContext";
 import { WaveformView } from "./components/WaveformView";
 import { SliderInput } from "./components/SliderInput";
 import { AudioStore } from "./AudioStore";
@@ -75,8 +75,6 @@ export const Loaded = () => {
     setPlayState,
     setPosition,
     loop,
-    looping,
-    setLooping,
     setLoop,
     pitchShift,
     setPitchShift,
@@ -115,15 +113,12 @@ export const Loaded = () => {
         else setPlayState("frozen");
       }
 
-      // else if (e.key === "l") {
-      //   setLooping(!looping);
-      // }
     };
     window.addEventListener("keypress", handleKey);
     return () => {
       window.removeEventListener("keypress", handleKey);
     };
-  }, [loop, looping, playState, setLooping, setPlayState, setPosition]);
+  }, [loop, playState, setPlayState, setPosition]);
 
   const rewindFiveSeconds = useCallback(() => {
     const targetMS = Math.max(0, playbackPosition.current - 5000);
@@ -252,7 +247,7 @@ export const Loaded = () => {
                 max={30}
                 step={0.5}
                 value={loopDelay}
-                disabled={!looping || !loop}
+                disabled={!loop}
                 onChange={(e) =>
                   setLoopDelay(Math.max(0, Number(e.target.value)))
                 }
@@ -332,18 +327,6 @@ export const Loaded = () => {
                 id="fast-forward"
               ></Button>
             </div>
-            {/* <ToggleButton
-              pressed={looping}
-              accent="positive"
-              icon={<RepeatIcon width={18} height={18}></RepeatIcon>}
-              onClick={() => {
-                setLooping(!looping);
-              }}
-              ariaLabel="loop playback"
-              text={looping ? "Looping" : "Not Looping"}
-              tooltip="Toggle Loop (l)"
-              className="h-10 min-h-10 min-w-full w-full justify-center"
-            ></ToggleButton> */}
           </div>
         </div>
         <p className="fixed bottom-2 left-1/2 -translate-x-1/2 text-sm text-neutral-400">
