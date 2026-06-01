@@ -29,7 +29,7 @@ export const PlaybackProvider = ({
   const [pitchShift, setPitchShift] = useState<number>(0);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
   const [gain, setGain] = useState<number>(1);
-  const [workletReady, setWorkletReady] = useState(false);
+  const [readyContext, setReadyContext] = useState<AudioContext | null>(null);
 
   const {
     playState,
@@ -48,15 +48,15 @@ export const PlaybackProvider = ({
   });
 
   useEffect(() => {
-    setWorkletReady(false);
+    setReadyContext(null);
     SoundTouchNode.register(context, soundTouchProcessorUrl).then(() =>
-      setWorkletReady(true),
+      setReadyContext(context),
     );
   }, [context]);
 
   const { entryNode, analyserNode, frequencyData } = useAudioChain({
     context,
-    workletReady,
+    workletReady: readyContext === context,
     gain,
     pitchShift,
     playbackSpeed,
