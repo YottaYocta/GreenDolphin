@@ -130,7 +130,7 @@ function RecordingRow({
 
   return (
     <div
-      className="group flex items-center gap-6 w-full rounded-lg p-4 bg-white border border-[#0000001A] [box-shadow:#0000000D_0px_2px_3px]  cursor-pointer"
+      className="group flex items-center gap-6 w-full rounded-lg p-4 bg-white cursor-pointer"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onClick={handlePlay}
@@ -234,7 +234,7 @@ export function Landing() {
     <div className="[font-synthesis:none] min-h-screen flex flex-col items-center px-4 py-20 bg-[#F8F8F8] antialiased">
       <div className="flex flex-col items-center gap-10 w-full max-w-3xl">
         <div className="flex items-start self-stretch">
-          <div className="flex flex-col gap-6 flex-1 rounded-lg overflow-clip [box-shadow:#0000000D_0px_2px_3px] bg-white border border-[#0000001A]">
+          <div className="flex flex-col gap-6 flex-1 rounded-lg overflow-clip bg-white ">
             <div className="w-full h-32 bg-emerald-500 shrink-0" />
             <div className="flex flex-col items-start gap-6 px-6 pb-8">
               <img
@@ -242,17 +242,17 @@ export function Landing() {
                 alt="GreenDolphin"
                 className="-mt-18 w-24 h-24 rounded-[9px] shrink-0 border border-[#ffffff1A] [box-shadow:#FFFFFF_0px_0px_3px_1px_inset,#0000000D_0px_3px_4px] bg-white object-contain"
               />
-              <div className="font-['Inria_Sans',system-ui,sans-serif] font-bold text-black text-xl/6">
+              <div className="font-['Inria_Sans',system-ui,sans-serif] font-bold text-black text-2xl">
                 Welcome to GreenDolphin!
               </div>
               <div className="flex items-start gap-2 flex-col sm:flex-row w-full">
-                <div className="flex-1 opacity-50 font-['Inria_Sans',system-ui,sans-serif] text-black text-base/5 text-balance">
+                <div className="flex-1 opacity-50 font-['Inria_Sans',system-ui,sans-serif] text-black text-base/5 text-balance leading-6">
                   GreenDolphin is an open-source recording looper built for
                   musicians who want to transcribe music or learn songs by ear.
                   Loop any section, slow down playback, and shift pitch
                   independently.
                 </div>
-                <div className="flex-1 opacity-50 font-['Inria_Sans',system-ui,sans-serif] text-black text-base/5 text-balance">
+                <div className="flex-1 opacity-50 font-['Inria_Sans',system-ui,sans-serif] text-black text-base/5 text-balance leading-6">
                   Visualize frequencies in real time, load audio or video files,
                   and use keyboard shortcuts for everything. Your recordings
                   never leave your device.
