@@ -1,310 +1,322 @@
-import { AudioLinesIcon, MenuIcon } from "lucide-react";
-import { Button, LoadButton } from "./components/buttons";
-import { useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { useDecodeFile } from "./lib/useDecodeFile";
+import {
+  deleteFromCache,
+  loadAllFromCache,
+  loadMetaFromCache,
+  type FileMeta,
+} from "./lib/audioCache";
+
+const NOTE_COLORS = [
+  "#6366f1", // indigo
+  "#8b5cf6", // violet
+  "#ec4899", // pink
+  "#f97316", // orange
+  "#eab308", // yellow
+  "#22c55e", // green
+  "#06b6d4", // cyan
+  "#3b82f6", // blue
+  "#ef4444", // red
+  "#14b8a6", // teal
+];
+
+function hashFilename(name: string): number {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) {
+    h = (Math.imul(h, 31) + name.charCodeAt(i)) >>> 0;
+  }
+  return h;
+}
+
+function noteColor(filename: string): string {
+  return NOTE_COLORS[hashFilename(filename) % NOTE_COLORS.length];
+}
+
+function MusicNoteIcon({ color = "#000000" }: { color?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="32"
+      height="32"
+      viewBox="0 0 256 256"
+      fill={color}
+      style={{ opacity: 0.7, flexShrink: 0 }}
+    >
+      <path d="M210.3,56.34l-80-24A8,8,0,0,0,120,40V148.26A48,48,0,1,0,136,184V98.75l69.7,20.91A8,8,0,0,0,216,112V64A8,8,0,0,0,210.3,56.34Z" />
+    </svg>
+  );
+}
+
+function PlayIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="32"
+      height="32"
+      fill="#1CCA93"
+      viewBox="0 0 256 256"
+      style={{ width: 24, height: "auto", overflow: "visible", flexShrink: 0 }}
+    >
+      <path d="M240,128a15.74,15.74,0,0,1-7.6,13.51L88.32,229.65a16,16,0,0,1-16.2.3A15.86,15.86,0,0,1,64,216.13V39.87a15.86,15.86,0,0,1,8.12-13.82,16,16,0,0,1,16.2.3L232.4,114.49A15.74,15.74,0,0,1,240,128Z" />
+    </svg>
+  );
+}
+
+function Spinner() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="animate-spin opacity-40 shrink-0"
+    >
+      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+    </svg>
+  );
+}
+
+function relativeDate(ts: number): string {
+  const now = Date.now();
+  const diffMs = now - ts;
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (diffDays === 0) return "Added today";
+  if (diffDays === 1) return "Added yesterday";
+  if (diffDays < 7) return `Added ${diffDays} days ago`;
+  const diffWeeks = Math.floor(diffDays / 7);
+  if (diffWeeks === 1) return "Added 1 week ago";
+  if (diffWeeks < 5) return `Added ${diffWeeks} weeks ago`;
+  const diffMonths = Math.floor(diffDays / 30);
+  if (diffMonths === 1) return "Added 1 month ago";
+  return `Added ${diffMonths} months ago`;
+}
+
+function formatSize(bytes: number) {
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+function RecordingRow({
+  file,
+  uploadedAt,
+  onPlay,
+  onDelete,
+}: {
+  file: File;
+  uploadedAt: number | undefined;
+  onPlay: () => Promise<void>;
+  onDelete: () => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handlePlay = async () => {
+    if (isLoading) return;
+    setIsLoading(true);
+    try {
+      await onPlay();
+    } catch (e) {
+      console.error(e);
+      setIsLoading(false);
+    }
+  };
+
+  const playButtonVisible = isLoading || hovered;
+
+  return (
+    <div
+      className="group flex items-center gap-6 w-full rounded-lg p-4 bg-white border border-[#0000001A] [box-shadow:#0000000D_0px_2px_3px]  cursor-pointer"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={handlePlay}
+    >
+      <div
+        className={`w-15 h-15 flex overflow-clip rounded-sm inset-0 items-center justify-center [box-shadow:#FFFFFF_0px_2px_3px_1px_inset,#0000000D_0px_2px_3px] bg-[#fafafa] border border-[#0000001A]  transition-transform duration-150 hover:rotate-4 origin-center`}
+      >
+        <MusicNoteIcon color={noteColor(file.name)} />
+      </div>
+
+      {/* file name + size */}
+      <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+        <div className="font-['Inria_Sans',system-ui,sans-serif] font-bold text-black text-base/5 truncate">
+          {file.name}
+        </div>
+        <div className="opacity-50 font-['Inria_Sans',system-ui,sans-serif] text-black text-base/5">
+          {formatSize(file.size)}
+        </div>
+      </div>
+
+      <div className="flex-1 min-w-0 flex flex-col gap-1.5 pl-6">
+        <div className="font-['Inria_Sans',system-ui,sans-serif] font-bold text-black text-base/5">
+          {uploadedAt != null ? relativeDate(uploadedAt) : ""}
+        </div>
+        <button
+          className="opacity-50 font-['Inria_Sans',system-ui,sans-serif] text-black text-base/5 text-left w-fit hover:opacity-100 hover:text-red-500"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+        >
+          Remove
+        </button>
+      </div>
+
+      <button
+        disabled={isLoading}
+        onClick={(e) => {
+          e.stopPropagation();
+          handlePlay();
+        }}
+        className="flex overflow-clip rounded-md items-center justify-center w-41.5 h-12 shrink-0 [box-shadow:#FFFFFF_0px_0px_3px_1px_inset,#0000000D_0px_3px_4px] bg-[#fafafa] border border-[#0000001A] hover:bg-white active:bg-neutral-100 disabled:cursor-default transition-opacity duration-100"
+        style={{ opacity: playButtonVisible ? 1 : 0 }}
+      >
+        {isLoading ? <Spinner /> : <PlayIcon />}
+      </button>
+    </div>
+  );
+}
 
 export function Landing() {
   const decodeFile = useDecodeFile();
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [cachedFiles, setCachedFiles] = useState<File[]>([]);
+  const [fileMeta, setFileMeta] = useState<Map<string, FileMeta>>(new Map());
+  const [isUploading, setIsUploading] = useState(false);
 
-  const handleLoaded = async (file: File) => {
+  useEffect(() => {
+    let mounted = true;
+    Promise.all([loadAllFromCache(), loadMetaFromCache()])
+      .then(([files, meta]) => {
+        if (mounted) {
+          setCachedFiles(files);
+          setFileMeta(meta);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handlePlay = async (file: File) => {
     await decodeFile(file);
     navigate("/app");
   };
-  const [showMenu, setShowMenu] = useState(false);
 
-  const navItems = useMemo(() => {
-    return [
-      <a
-        href="#features-section"
-        className="text-neutral-600 hover:text-emerald-600 text-nowrap"
-        onClick={(e) => {
-          e.preventDefault();
-          document.getElementById("features-section")?.scrollIntoView({
-            behavior: "smooth",
-          });
-        }}
-      >
-        Features
-      </a>,
-      <a
-        href="#faq-section"
-        className="text-neutral-600 hover:text-emerald-600 text-nowrap"
-        onClick={(e) => {
-          e.preventDefault();
-          document.getElementById("features-section")?.scrollIntoView({
-            behavior: "smooth",
-          });
-        }}
-      >
-        FAQs
-      </a>,
-      <a
-        href="#report-bug-section"
-        className="text-neutral-600 hover:text-emerald-600 text-nowrap"
-        onClick={(e) => {
-          e.preventDefault();
-          document.getElementById("report-bug-section")?.scrollIntoView({
-            behavior: "smooth",
-            block: "center",
-          });
-        }}
-      >
-        Report a Bug
-      </a>,
-      <a
-        href="#support-section"
-        className="text-neutral-600 hover:text-emerald-600 text-nowrap"
-        onClick={(e) => {
-          e.preventDefault();
-          document.getElementById("support-section")?.scrollIntoView({
-            behavior: "smooth",
-            block: "center",
-          });
-        }}
-      >
-        Support
-      </a>,
-    ];
-  }, []);
+  const handleUpload = async (file: File) => {
+    setIsUploading(true);
+    try {
+      await decodeFile(file);
+      navigate("/app");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDelete = async (filename: string) => {
+    await deleteFromCache(filename).catch(() => {});
+    setCachedFiles((prev) => prev.filter((f) => f.name !== filename));
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleUpload(file).catch(console.error);
+    e.target.value = "";
+  };
 
   return (
-    <div
-      className="w-full min-h-screen flex flex-col"
-      onClick={() => setShowMenu(false)}
-    >
-      <div className="w-full flex items-center justify-center border-b border-neutral-2 p-2 sticky top-0 from-white to-white/50 backdrop-blur-sm bg-linear-to-b">
-        <nav className="flex items-center justify-between max-w-2xl w-full pl-2">
-          <a href="#" className="text-emerald-600 font-semibold">
-            GreenDolphin
-          </a>
-          <div className="sm:flex flex-row hidden gap-8">{...navItems}</div>
-          <div className="relative sm:hidden">
-            <Button
-              icon={<MenuIcon></MenuIcon>}
-              onClick={(e) => {
-                setShowMenu(!showMenu);
-                e.stopPropagation();
-              }}
-            ></Button>
-            {showMenu && (
-              <div className="absolute top-full right-0 bg-white rounded-sm flex flex-col gap-2 items-end p-2 border border-neutral-2">
-                {...navItems}
+    <div className="[font-synthesis:none] min-h-screen flex flex-col items-center px-4 py-20 bg-[#F8F8F8] antialiased">
+      <div className="flex flex-col items-center gap-10 w-full max-w-3xl">
+        <div className="flex items-start self-stretch">
+          <div className="flex flex-col gap-6 flex-1 rounded-lg overflow-clip [box-shadow:#0000000D_0px_2px_3px] bg-white border border-[#0000001A]">
+            <div className="w-full h-32 bg-emerald-500 shrink-0" />
+            <div className="flex flex-col items-start gap-6 px-6 pb-8">
+              <img
+                src="/favicon/favicon.svg"
+                alt="GreenDolphin"
+                className="-mt-18 w-24 h-24 rounded-[9px] shrink-0 border border-[#ffffff1A] [box-shadow:#FFFFFF_0px_0px_3px_1px_inset,#0000000D_0px_3px_4px] bg-white object-contain"
+              />
+              <div className="font-['Inria_Sans',system-ui,sans-serif] font-bold text-black text-xl/6">
+                Welcome to GreenDolphin!
               </div>
+              <div className="flex items-start gap-2 flex-col sm:flex-row w-full">
+                <div className="flex-1 opacity-50 font-['Inria_Sans',system-ui,sans-serif] text-black text-base/5 text-balance">
+                  GreenDolphin is an open-source recording looper built for
+                  musicians who want to transcribe music or learn songs by ear.
+                  Loop any section, slow down playback, and shift pitch
+                  independently.
+                </div>
+                <div className="flex-1 opacity-50 font-['Inria_Sans',system-ui,sans-serif] text-black text-base/5 text-balance">
+                  Visualize frequencies in real time, load audio or video files,
+                  and use keyboard shortcuts for everything. Your recordings
+                  never leave your device.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col items-start gap-5 self-stretch">
+          <div className="flex items-center gap-4 justify-between self-stretch">
+            <div className="font-['Inria_Sans',system-ui,sans-serif] font-bold text-black text-2xl/8">
+              My Recordings
+            </div>
+            <button
+              disabled={isUploading}
+              className="flex overflow-clip rounded-md items-center gap-3 px-5 h-12 justify-center shrink-0 [box-shadow:#FFFFFF_0px_0px_3px_1px_inset,#0000000D_0px_3px_4px] bg-[#fafafa] border border-[#0000001A] hover:bg-white active:bg-neutral-100 disabled:opacity-60 disabled:cursor-not-allowed"
+              onClick={() => !isUploading && fileInputRef.current?.click()}
+            >
+              {isUploading ? (
+                <Spinner />
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="32"
+                  height="32"
+                  viewBox="0 0 256 256"
+                  style={{ width: 20, opacity: 0.5, flexShrink: 0 }}
+                >
+                  <path d="M232,48a8,8,0,0,1-8,8H208V72a8,8,0,0,1-16,0V56H176a8,8,0,0,1,0-16h16V24a8,8,0,0,1,16,0V40h16A8,8,0,0,1,232,48ZM160.6,77.86l-6.76-6.76A32.85,32.85,0,0,1,144,49.33a31.87,31.87,0,0,1,1.67-11.66,4,4,0,0,0-4.76-5.14L78.06,48.25A8,8,0,0,0,72,56V166.1A36,36,0,1,0,52.42,232C72.25,231.77,88,215.13,88,195.3V102.25l70.74-17.69A4,4,0,0,0,160.6,77.86Zm50.11,24.31a31.91,31.91,0,0,1-7.14,1.63,4,4,0,0,0-3.57,4V134.1A36,36,0,1,0,180.42,200c19.83-.23,35.58-16.86,35.58-36.7V106A4,4,0,0,0,210.71,102.17Z" />
+                </svg>
+              )}
+              <span className="opacity-40 font-['Inria_Sans',system-ui,sans-serif] text-black text-base/5 whitespace-nowrap">
+                {isUploading ? "Processing…" : "Upload File"}
+              </span>
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="audio/*,video/*"
+              className="hidden"
+              onChange={handleFileChange}
+            />
+          </div>
+
+          <div className="flex flex-col items-start gap-2 self-stretch">
+            {cachedFiles.length === 0 ? (
+              <div className="w-full rounded-lg px-6 py-8 bg-white text-center opacity-50 font-['Inria_Sans',system-ui,sans-serif] text-black text-base/5">
+                No recordings yet. Upload a file to get started.
+              </div>
+            ) : (
+              cachedFiles.map((file) => (
+                <RecordingRow
+                  key={file.name}
+                  file={file}
+                  uploadedAt={fileMeta.get(file.name)?.uploadedAt}
+                  onPlay={() => handlePlay(file)}
+                  onDelete={() => handleDelete(file.name)}
+                />
+              ))
             )}
           </div>
-        </nav>
+        </div>
       </div>
-      <main className="p-8 flex flex-col gap-20 sm:items-center">
-        <div className="flex flex-col gap-16 max-w-2xl">
-          <div className="flex flex-col gap-8 sm:items-center">
-            <h1 className="text-3xl mt-8">Study Music Without Interruption</h1>
-            <div className="flex md:flex-row flex-col items-start md:items-center justify-center gap-2">
-              <LoadButton
-                handleLoaded={handleLoaded}
-                text="Load recording"
-              ></LoadButton>
-              <Button
-                className="positive-button"
-                text="Try it out with a demo track"
-                icon={
-                  <AudioLinesIcon
-                    width={18}
-                    height={18}
-                    strokeWidth={1.5}
-                    className="text-emerald-700"
-                  ></AudioLinesIcon>
-                }
-                onClick={async () => {
-                  const res = await fetch(
-                    "Wynton Kelly - On Green Dolphin Street [EXCERPT].mp3",
-                  );
-                  const blob = await res.blob();
-                  const file = new File(
-                    [blob],
-                    "Wynton Kelly - On Green Dolphin Street [EXCERPT].mp3",
-                    { type: "audio/mp3" },
-                  );
-                  handleLoaded(file);
-                }}
-              ></Button>
-            </div>
-          </div>
-          <img
-            src="./demoImage.png"
-            alt="Demo"
-            className="max-w-3xl w-full h-auto shadow-md"
-          />
-        </div>
-        <div
-          id="features-section"
-          className="grow flex flex-col justify-center gap-8 max-w-2xl"
-        >
-          <h2 className="text-lg text-neutral-400 max-w-2xl w-full border-b border-neutral-2">
-            What is GreenDolphin?
-          </h2>
-          <div className="flex flex-col items-center justify-center gap-4 text-neutral-600">
-            <p>
-              GreenDolphin is an open-source recording looper and analysis tool,
-              built for musicians who want to transcribe music or learn songs by
-              ear.
-            </p>
-            <p>
-              Unlike a conventional music player, GreenDolphin specializes in
-              looping small sections of a recording. With GreenDolphin, you can:
-            </p>
-          </div>
-
-          <div className="flex flex-row flex-wrap justify-center items-start gap-8 sm:gap-16 pt-8">
-            <div className="flex flex-col items-center gap-2 max-w-min">
-              <img
-                src="./controls.png"
-                alt="Fine-grain playback playback control"
-                className="sm:min-w-56 min-w-32 h-36 object-contain border border-neutral-2 rounded-xs bg-white"
-              />
-              <p className="text-center text-neutral-400 text-sm">
-                Adjust playback properties like speed and pitch
-              </p>
-            </div>
-            <div className="flex flex-col items-center gap-2 max-w-min">
-              <img
-                src="./loopfreeze.png"
-                alt="Freeze and loop audio"
-                className="sm:min-w-56 min-w-32 h-36 object-contain border border-neutral-2 rounded-xs bg-white"
-              />
-              <p className="text-center text-neutral-400 text-sm">
-                Freeze and loop audio
-              </p>
-            </div>
-            <div className="flex flex-col items-center gap-2 max-w-min">
-              <img
-                src="./frequencies.png"
-                alt="Visualize frequencies in real time"
-                className="sm:min-w-56 min-w-32 h-36 object-contain border border-neutral-2 rounded-xs bg-white"
-              />
-              <p className="text-center text-neutral-400 text-sm">
-                Visualize frequencies in real time
-              </p>
-            </div>
-            <div className="flex flex-col items-center gap-2 max-w-min">
-              <img
-                src="./filetype.png"
-                alt="Load audio and video files"
-                className="sm:min-w-56 min-w-32 h-36 object-contain border border-neutral-2 rounded-xs bg-white"
-              />
-              <p className="text-center text-neutral-400 text-sm">
-                Load audio and video files
-              </p>
-            </div>
-            <div className="flex flex-col items-center gap-2 max-w-min">
-              <img
-                src="./shortcuts.png"
-                alt="Shortcuts for everything"
-                className="sm:min-w-56 min-w-32 h-36 object-contain border border-neutral-2 rounded-xs bg-white"
-              />
-              <p className="text-center text-neutral-400 text-sm">
-                Use shortcuts for everything
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <section
-          className="flex flex-wrap items-start w-full max-w-2xl justify-between gap-8"
-          id="faq-section"
-        >
-          <h2 className="text-lg text-neutral-400  max-w-2xl w-full border-b border-neutral-2">
-            FAQs
-          </h2>
-
-          <div className="flex flex-col w-full gap-2">
-            <h3 className="text-neutral-600">
-              Does GreenDolphin convert recordings to sheet music automatically?
-            </h3>
-            <span className="text-neutral-400 flex flex-col gap-2">
-              <p>No, GreenDolphin is a tool to help you do that yourself :)</p>
-              <p>
-                Learning music by ear is an invaluable skill for any musician,
-                and automatic transcription (while convenient) takes away the
-                practice you get from closely studying a recording.
-              </p>
-            </span>
-          </div>
-          <div className="flex flex-col w-full gap-2">
-            <h3 className="text-neutral-600">
-              How does the frequency visualization work?
-            </h3>
-            <span className="text-neutral-400 flex flex-col gap-2">
-              <p>
-                The frequency visualization uses Fast Fourier Transform (FFT) to
-                estimate which 'notes' are being played at any given time.
-                Likely pitches are the highest peaks above the piano.
-              </p>
-              <p>
-                Freezing the playback may be helpful in seeing the notes of a
-                chord
-              </p>
-            </span>
-          </div>
-        </section>
-
-        <section
-          id="report-bug-section"
-          className="w-full max-w-2xl flex flex-col justify-between gap-8"
-        >
-          <h2 className="text-lg text-neutral-400  max-w-2xl w-full border-b border-neutral-2">
-            Encounter a Bug? Have Feedback?
-          </h2>
-          <div className="flex flex-wrap gap-2 text-neutral-600 items-center">
-            <p>Please fill out</p>
-            <Button
-              className="border border-emerald-500 rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-              text="This Google Form"
-              onClick={() =>
-                window.open("https://forms.gle/XmVubjrPpvwwXJ7U7", "_blank")
-              }
-            />
-            <p>or contact me</p>
-            <a href="mailto:rwq3@cornell.edu">
-              <Button
-                className="border border-emerald-500 rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                text="Via Email"
-              />
-            </a>
-          </div>
-        </section>
-
-        <section
-          id="support-section"
-          className="w-full max-w-2xl gap-8 flex flex-col justify-between"
-        >
-          <h2 className="text-lg text-neutral-400 max-w-2xl w-full border-b border-neutral-2">
-            Like What You See?
-          </h2>
-          <div className="flex flex-wrap gap-1 text-neutral-600 items-center gap-y-2">
-            <p>Consider sharing GreenDolphin</p>
-            <span className="flex items-center gap-2">
-              with friends or
-              <Button
-                className="border border-emerald-500 rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                text="Starring the GitHub"
-                onClick={() =>
-                  window.open(
-                    "https://github.com/YottaYocta/GreenDolphin",
-                    "_blank",
-                  )
-                }
-              />
-            </span>
-          </div>
-        </section>
-        <div className="w-full flex items-center justify-center">
-          <p className="text-neutral-400">
-            Source code licensed under <em>GPL 3</em>
-          </p>
-        </div>
-      </main>
     </div>
   );
 }

@@ -62,7 +62,11 @@ export const FrequencyCanvas: FC = () => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDraggingRef.current) return;
       const idx = getKeyIndex(e.clientX, canvas);
-      if (idx >= 0 && idx < PITCH_BUCKETS.length && idx !== activeKeyRef.current)
+      if (
+        idx >= 0 &&
+        idx < PITCH_BUCKETS.length &&
+        idx !== activeKeyRef.current
+      )
         startTone(idx);
     };
 
@@ -86,7 +90,11 @@ export const FrequencyCanvas: FC = () => {
     const handleTouchMove = (e: TouchEvent) => {
       e.preventDefault();
       const idx = getKeyIndex(e.touches[0].clientX, canvas);
-      if (idx >= 0 && idx < PITCH_BUCKETS.length && idx !== activeKeyRef.current)
+      if (
+        idx >= 0 &&
+        idx < PITCH_BUCKETS.length &&
+        idx !== activeKeyRef.current
+      )
         startTone(idx);
     };
 
@@ -114,7 +122,7 @@ export const FrequencyCanvas: FC = () => {
         const groupedPitchData = groupFrequencies(
           frequencyData,
           sampleRate / 2,
-          PITCH_BUCKETS
+          PITCH_BUCKETS,
         );
         drawFrequencyPiano(groupedPitchData, canvas, activeKeyRef.current);
       }
