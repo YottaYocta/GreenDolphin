@@ -68,19 +68,16 @@ export function useAudioChain({
   }, [context, workletReady]);
 
   useEffect(() => {
-    if (chain) chain.gainNode.gain.value = gain;
-  }, [chain, gain]);
-
-  useEffect(() => {
     if (!chain) return;
+    chain.gainNode.gain.value = gain;
     chain.soundTouch.pitchSemitones.value = pitchShift;
     chain.soundTouch.playbackRate.value =
       playState === "frozen" ? 1 : playbackSpeed;
-  }, [chain, pitchShift, playbackSpeed, playState]);
+  }, [chain, gain, pitchShift, playbackSpeed, playState]);
 
   useEffect(() => {
     const analyzer = chain?.analyzer;
-    if (!analyzer) return;
+    if (!analyzer || playState !== "playing") return;
     let frameId: number;
     const tick = () => {
       frameId = requestAnimationFrame(tick);
@@ -88,7 +85,7 @@ export function useAudioChain({
     };
     frameId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frameId);
-  }, [chain]);
+  }, [chain, playState]);
 
   return {
     entryNode: chain?.soundTouch ?? null,

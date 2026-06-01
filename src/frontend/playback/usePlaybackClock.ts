@@ -20,7 +20,6 @@ export interface PlaybackClockResult {
   loopPauseEnd: RefObject<number | null>;
   stopClock: () => void;
   cancelLoopDelay: () => void;
-  isLoopDelayActive: () => boolean;
 }
 
 export function usePlaybackClock({
@@ -104,11 +103,6 @@ export function usePlaybackClock({
     return stopClock;
   }, [playState, startClock, stopClock]);
 
-  const isLoopDelayActive = useCallback(
-    () => loopDelayTimerRef.current !== null,
-    [],
-  );
-
   return {
     playState,
     setPlayState,
@@ -117,6 +111,5 @@ export function usePlaybackClock({
     loopPauseEnd,
     stopClock,
     cancelLoopDelay,
-    isLoopDelayActive,
   };
 }

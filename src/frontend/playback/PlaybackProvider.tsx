@@ -5,7 +5,7 @@ import { type Section } from "../lib/waveform";
 import { clampSection, computeMS } from "../lib/util";
 import { SoundTouchNode } from "@soundtouchjs/audio-worklet";
 import soundTouchProcessorUrl from "@soundtouchjs/audio-worklet/processor?url";
-import { buildFreezeBuffer } from "../lib/freeze";
+import { buildSourceNode } from "./sourceNode";
 import { useAudioChain } from "./useAudioChain";
 import { usePlaybackClock } from "./usePlaybackClock";
 
@@ -21,7 +21,7 @@ export const PlaybackProvider = ({
   data,
 }: PlaybackProviderProps) => {
   const [localData, setLocalData] = useState<AudioBuffer>(data);
-  const [startPosition, setStartPosition] = useState<number>(0);
+  const [seekVersion, setSeekVersion] = useState(0);
 
   const [loop, setLocalLoop] = useState<undefined | Section>();
   const [loopDelay, setLoopDelay] = useState<number>(0);
@@ -29,7 +29,7 @@ export const PlaybackProvider = ({
   const [pitchShift, setPitchShift] = useState<number>(0);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
   const [gain, setGain] = useState<number>(1);
-  const [readyContext, setReadyContext] = useState<AudioContext | null>(null);
+  const [workletReady, setWorkletReady] = useState(false);
 
   const {
     playState,
@@ -48,15 +48,15 @@ export const PlaybackProvider = ({
   });
 
   useEffect(() => {
-    setReadyContext(null);
+    setWorkletReady(false);
     SoundTouchNode.register(context, soundTouchProcessorUrl).then(() =>
-      setReadyContext(context),
+      setWorkletReady(true),
     );
   }, [context]);
 
   const { entryNode, analyserNode, frequencyData } = useAudioChain({
     context,
-    workletReady: readyContext === context,
+    workletReady,
     gain,
     pitchShift,
     playbackSpeed,
@@ -67,7 +67,7 @@ export const PlaybackProvider = ({
     (position: number) => {
       cancelLoopDelay();
       playbackPosition.current = Math.min(Math.max(0, position), data.length);
-      setStartPosition(playbackPosition.current);
+      setSeekVersion((v) => v + 1);
     },
     [cancelLoopDelay, data.length, playbackPosition],
   );
@@ -97,55 +97,26 @@ export const PlaybackProvider = ({
     playbackPosition.current = 0;
   }, [cancelLoopDelay, data, playbackPosition, setPlayState, stopClock]);
 
-  const stopNode = useCallback((node: AudioBufferSourceNode) => {
-    node.onended = null;
-    try {
-      node.stop();
-    } catch {}
-    node.disconnect();
-  }, []);
-
   useEffect(() => {
     if (!entryNode || playState === "paused") return;
 
-    let node: AudioBufferSourceNode;
-
-    if (playState === "frozen") {
-      const centerSample = Math.floor(
-        (playbackPosition.current / 1000) * localData.sampleRate,
-      );
-      const buf = buildFreezeBuffer(localData, centerSample, context);
-      node = context.createBufferSource();
-      node.buffer = buf;
-      node.loop = true;
-      node.connect(entryNode);
-      node.start();
-    } else {
-      node = context.createBufferSource();
-      node.buffer = localData;
-      // when loopDelay > 0 the tick owns the boundary; onended would race and
-      // pause without triggering the delay
-      node.loop = loopDelay === 0;
-      node.playbackRate.value = playbackSpeed;
-
-      if (loop) {
-        const startSec = loop.start / localData.sampleRate;
-        const endSec = loop.end / localData.sampleRate;
-        node.loopStart = startSec;
-        node.loopEnd = endSec;
-        node.start(
-          0,
-          Math.max(startSec, Math.min(endSec, playbackPosition.current / 1000)),
-        );
-      } else {
-        node.start(0, playbackPosition.current / 1000);
-      }
-
-      node.connect(entryNode);
-    }
+    const node = buildSourceNode({
+      context,
+      data: localData,
+      positionMS: playbackPosition.current,
+      frozen: playState === "frozen",
+      loop,
+      loopDelay,
+      playbackSpeed,
+    });
+    node.connect(entryNode);
 
     return () => {
-      stopNode(node);
+      node.onended = null;
+      try {
+        node.stop();
+      } catch {}
+      node.disconnect();
     };
   }, [
     context,
@@ -156,9 +127,7 @@ export const PlaybackProvider = ({
     playbackSpeed,
     playState,
     playbackPosition,
-    setPlayState,
-    startPosition,
-    stopNode,
+    seekVersion,
   ]);
 
   return (
