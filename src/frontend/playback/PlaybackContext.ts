@@ -10,8 +10,6 @@ export interface PlaybackContextType {
   playState: PlayState;
   setPlayState: (state: PlayState) => void;
   setPosition: (position: number) => void;
-  looping: boolean;
-  setLooping: (looping: boolean) => void;
   loop: Section | undefined;
   setLoop: (section: Section | undefined) => void;
   frequencyData: RefObject<FrequencyData | undefined>;

@@ -23,7 +23,6 @@ export const PlaybackProvider = ({
   const [localData, setLocalData] = useState<AudioBuffer>(data);
   const [startPosition, setStartPosition] = useState<number>(0);
 
-  const [looping, setLooping] = useState<boolean>(true);
   const [loop, setLocalLoop] = useState<undefined | Section>();
   const [loopDelay, setLoopDelay] = useState<number>(0);
 
@@ -44,7 +43,6 @@ export const PlaybackProvider = ({
     sampleRate: localData.sampleRate,
     duration: localData.duration,
     loop,
-    looping,
     loopDelay,
     playbackSpeed,
   });
@@ -125,28 +123,20 @@ export const PlaybackProvider = ({
     } else {
       node = context.createBufferSource();
       node.buffer = localData;
-      // when looping with a delay, the tick owns the boundary and schedules the
-      // delay; onended would race and pause without triggering it
-      if (!looping) node.onended = () => setPlayState("paused");
+      // when loopDelay > 0 the tick owns the boundary; onended would race and
+      // pause without triggering the delay
+      node.loop = loopDelay === 0;
       node.playbackRate.value = playbackSpeed;
 
-      if (looping) {
-        node.loop = loopDelay === 0;
-        if (loop) {
-          const startSec = loop.start / localData.sampleRate;
-          const endSec = loop.end / localData.sampleRate;
-          node.loopStart = startSec;
-          node.loopEnd = endSec;
-          node.start(
-            0,
-            Math.max(
-              startSec,
-              Math.min(endSec, playbackPosition.current / 1000),
-            ),
-          );
-        } else {
-          node.start(0, playbackPosition.current / 1000);
-        }
+      if (loop) {
+        const startSec = loop.start / localData.sampleRate;
+        const endSec = loop.end / localData.sampleRate;
+        node.loopStart = startSec;
+        node.loopEnd = endSec;
+        node.start(
+          0,
+          Math.max(startSec, Math.min(endSec, playbackPosition.current / 1000)),
+        );
       } else {
         node.start(0, playbackPosition.current / 1000);
       }
@@ -163,7 +153,6 @@ export const PlaybackProvider = ({
     localData,
     loop,
     loopDelay,
-    looping,
     playbackSpeed,
     playState,
     playbackPosition,
@@ -179,8 +168,6 @@ export const PlaybackProvider = ({
         setPlayState,
         playbackPosition,
         setPosition,
-        looping,
-        setLooping,
         loop,
         setLoop,
         frequencyData,

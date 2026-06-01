@@ -8,7 +8,6 @@ export interface UsePlaybackClockProps {
   sampleRate: number;
   duration: number;
   loop: Section | undefined;
-  looping: boolean;
   loopDelay: number;
   playbackSpeed: number;
 }
@@ -28,7 +27,6 @@ export function usePlaybackClock({
   sampleRate,
   duration,
   loop,
-  looping,
   loopDelay,
   playbackSpeed,
 }: UsePlaybackClockProps): PlaybackClockResult {
@@ -65,45 +63,31 @@ export function usePlaybackClock({
     const startMS = loop ? computeMS(sampleRate, loop.start) : 0;
     const endMS = loop ? computeMS(sampleRate, loop.end) : duration * 1000;
 
-    if (looping) {
-      if (next > endMS) {
-        if (loopDelay > 0) {
-          playbackPosition.current = endMS;
-          lastTimeStamp.current = now;
-          loopPauseStart.current = now;
-          loopPauseEnd.current = now + loopDelay * 1000;
-          setPlayState("paused");
-          loopDelayTimerRef.current = setTimeout(() => {
-            loopDelayTimerRef.current = null;
-            loopPauseStart.current = null;
-            loopPauseEnd.current = null;
-            playbackPosition.current = startMS;
-            setPlayState("playing");
-          }, loopDelay * 1000);
-        } else {
-          playbackPosition.current = startMS;
-          lastTimeStamp.current = now;
-          animationFrameId.current = requestAnimationFrame(tick);
-        }
-        return;
-      }
-      playbackPosition.current = Math.max(startMS, next);
-      lastTimeStamp.current = now;
-      animationFrameId.current = requestAnimationFrame(tick);
-    } else {
-      if (next > endMS) {
-        playbackPosition.current = startMS;
+    if (next > endMS) {
+      if (loopDelay > 0) {
+        playbackPosition.current = endMS;
+        lastTimeStamp.current = now;
+        loopPauseStart.current = now;
+        loopPauseEnd.current = now + loopDelay * 1000;
         setPlayState("paused");
-      } else if (next < startMS) {
-        playbackPosition.current = startMS;
-        animationFrameId.current = requestAnimationFrame(tick);
+        loopDelayTimerRef.current = setTimeout(() => {
+          loopDelayTimerRef.current = null;
+          loopPauseStart.current = null;
+          loopPauseEnd.current = null;
+          playbackPosition.current = startMS;
+          setPlayState("playing");
+        }, loopDelay * 1000);
       } else {
-        playbackPosition.current = next;
+        playbackPosition.current = startMS;
+        lastTimeStamp.current = now;
         animationFrameId.current = requestAnimationFrame(tick);
       }
-      lastTimeStamp.current = now;
+      return;
     }
-  }, [duration, loop, loopDelay, looping, playbackSpeed, sampleRate]);
+    playbackPosition.current = Math.max(startMS, next);
+    lastTimeStamp.current = now;
+    animationFrameId.current = requestAnimationFrame(tick);
+  }, [duration, loop, loopDelay, playbackSpeed, sampleRate]);
 
   const startClock = useCallback(() => {
     stopClock();
