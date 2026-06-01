@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import type { ReactNode } from "react";
 import { PlaybackContext } from "./PlaybackContext";
-import { type Section } from "./lib/waveform";
-import { clampSection, computeMS } from "./lib/util";
+import { type Section } from "../lib/waveform";
+import { clampSection, computeMS } from "../lib/util";
 import { SoundTouchNode } from "@soundtouchjs/audio-worklet";
 import soundTouchProcessorUrl from "@soundtouchjs/audio-worklet/processor?url";
-import { buildFreezeBuffer } from "./lib/freeze";
+import { buildFreezeBuffer } from "../lib/freeze";
 import { useAudioChain } from "./useAudioChain";
 import { usePlaybackClock } from "./usePlaybackClock";
 
@@ -40,7 +40,6 @@ export const PlaybackProvider = ({
     loopPauseEnd,
     stopClock,
     cancelLoopDelay,
-    isLoopDelayPending,
   } = usePlaybackClock({
     sampleRate: localData.sampleRate,
     duration: localData.duration,
@@ -68,10 +67,11 @@ export const PlaybackProvider = ({
 
   const setPosition = useCallback(
     (position: number) => {
+      cancelLoopDelay();
       playbackPosition.current = Math.min(Math.max(0, position), data.length);
       setStartPosition(playbackPosition.current);
     },
-    [data.length, playbackPosition],
+    [cancelLoopDelay, data.length, playbackPosition],
   );
 
   const setLoop = useCallback(
@@ -92,11 +92,12 @@ export const PlaybackProvider = ({
 
   useEffect(() => {
     stopClock();
+    cancelLoopDelay();
     setPlayState("paused");
     setLocalData(data);
     setLocalLoop(undefined);
     playbackPosition.current = 0;
-  }, [data, playbackPosition, setPlayState, stopClock]);
+  }, [cancelLoopDelay, data, playbackPosition, setPlayState, stopClock]);
 
   const stopNode = useCallback((node: AudioBufferSourceNode) => {
     node.onended = null;
@@ -124,7 +125,9 @@ export const PlaybackProvider = ({
     } else {
       node = context.createBufferSource();
       node.buffer = localData;
-      node.onended = () => setPlayState("paused");
+      // when looping with a delay, the tick owns the boundary and schedules the
+      // delay; onended would race and pause without triggering it
+      if (!looping) node.onended = () => setPlayState("paused");
       node.playbackRate.value = playbackSpeed;
 
       if (looping) {
@@ -136,7 +139,10 @@ export const PlaybackProvider = ({
           node.loopEnd = endSec;
           node.start(
             0,
-            Math.max(startSec, Math.min(endSec, playbackPosition.current / 1000)),
+            Math.max(
+              startSec,
+              Math.min(endSec, playbackPosition.current / 1000),
+            ),
           );
         } else {
           node.start(0, playbackPosition.current / 1000);
@@ -150,11 +156,8 @@ export const PlaybackProvider = ({
 
     return () => {
       stopNode(node);
-      if (!isLoopDelayPending()) cancelLoopDelay();
     };
   }, [
-    cancelLoopDelay,
-    isLoopDelayPending,
     context,
     entryNode,
     localData,

@@ -21,7 +21,7 @@ import {
   SnowflakeIcon,
 } from "lucide-react";
 import { FrequencyCanvas } from "./components/FrequencyCanvas";
-import { PlaybackContext } from "./PlaybackContext";
+import { PlaybackContext } from "./playback/PlaybackContext";
 import { WaveformView } from "./components/WaveformView";
 import { SliderInput } from "./components/SliderInput";
 import { AudioStore } from "./AudioStore";

@@ -1,5 +1,5 @@
 import { useContext, type FC, useRef, useEffect } from "react";
-import { PlaybackContext } from "../PlaybackContext";
+import { PlaybackContext } from "../playback/PlaybackContext";
 import {
   drawFrequencyPiano,
   groupFrequencies,

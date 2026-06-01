@@ -1,6 +1,6 @@
-import { useMemo, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { SoundTouchNode } from "@soundtouchjs/audio-worklet";
-import type { FrequencyData } from "./lib/frequency";
+import type { FrequencyData } from "../lib/frequency";
 import type { PlayState } from "./PlaybackContext";
 
 const ANALYZER_BUFFER_LENGTH = 8192 * 2;
@@ -20,6 +20,12 @@ export interface AudioChainResult {
   frequencyData: React.RefObject<FrequencyData>;
 }
 
+type Chain = {
+  analyzer: AnalyserNode;
+  soundTouch: SoundTouchNode;
+  gainNode: GainNode;
+};
+
 export function useAudioChain({
   context,
   workletReady,
@@ -32,8 +38,10 @@ export function useAudioChain({
     new Float32Array(ANALYZER_BUFFER_LENGTH / 2),
   );
 
-  const chain = useMemo(() => {
-    if (!workletReady) return null;
+  const [chain, setChain] = useState<Chain | null>(null);
+
+  useEffect(() => {
+    if (!workletReady) return;
 
     const analyzer = context.createAnalyser();
     analyzer.minDecibels = -140;
@@ -48,16 +56,16 @@ export function useAudioChain({
     gainNode.connect(analyzer);
     analyzer.connect(context.destination);
 
-    return { analyzer, soundTouch, gainNode };
-  }, [context, workletReady]);
+    const newChain = { analyzer, soundTouch, gainNode };
+    setChain(newChain);
 
-  useEffect(() => {
     return () => {
-      chain?.soundTouch.disconnect();
-      chain?.gainNode.disconnect();
-      chain?.analyzer.disconnect();
+      soundTouch.disconnect();
+      gainNode.disconnect();
+      analyzer.disconnect();
+      setChain(null);
     };
-  }, [chain]);
+  }, [context, workletReady]);
 
   useEffect(() => {
     if (chain) chain.gainNode.gain.value = gain;

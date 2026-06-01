@@ -1,7 +1,7 @@
 import { createContext } from "react";
 import type { RefObject } from "react";
-import type { Section } from "./lib/waveform";
-import type { FrequencyData } from "./lib/frequency";
+import type { Section } from "../lib/waveform";
+import type { FrequencyData } from "../lib/frequency";
 
 export type PlayState = "playing" | "paused" | "frozen";
 
