@@ -1,12 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { useDecodeFile } from "./lib/useDecodeFile";
-import {
-  deleteFromCache,
-  loadAllFromCache,
-  loadMetaFromCache,
-  type FileMeta,
-} from "./lib/audioCache";
+import { RecordingsStore } from "./RecordingsStore";
 
 const NOTE_COLORS = [
   "#6366f1", // indigo
@@ -185,24 +180,12 @@ export function Landing() {
   const decodeFile = useDecodeFile();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [cachedFiles, setCachedFiles] = useState<File[]>([]);
-  const [fileMeta, setFileMeta] = useState<Map<string, FileMeta>>(new Map());
+  const { cachedFiles, fileMeta, deleteFile, reload } = useContext(RecordingsStore);
   const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
-    let mounted = true;
-    Promise.all([loadAllFromCache(), loadMetaFromCache()])
-      .then(([files, meta]) => {
-        if (mounted) {
-          setCachedFiles(files);
-          setFileMeta(meta);
-        }
-      })
-      .catch(() => {});
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    reload().catch(() => {});
+  }, [reload]);
 
   const handlePlay = async (file: File) => {
     await decodeFile(file);
@@ -220,8 +203,7 @@ export function Landing() {
   };
 
   const handleDelete = async (filename: string) => {
-    await deleteFromCache(filename).catch(() => {});
-    setCachedFiles((prev) => prev.filter((f) => f.name !== filename));
+    await deleteFile(filename);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
