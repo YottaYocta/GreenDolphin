@@ -80,7 +80,6 @@ export const PlaybackProvider = ({
           end: data.length,
         });
         setLocalLoop(clampedSection);
-        setPosition(computeMS(data.sampleRate, clampedSection.start));
       } else {
         setLocalLoop(undefined);
       }
