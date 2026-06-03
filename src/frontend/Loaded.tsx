@@ -7,29 +7,29 @@ import {
   type FC,
   type RefObject,
 } from "react";
+import { useNavigate } from "react-router";
 import { Tutorial } from "./components/Tutorial";
-import { formatSeconds } from "./lib/util";
 import { Button, ToggleButton } from "./components/buttons";
 import {
   ChevronsLeftIcon,
   ChevronsRightIcon,
   GaugeIcon,
-  HardDriveIcon,
   MegaphoneIcon,
   MusicIcon,
   PlayIcon,
   SnowflakeIcon,
 } from "lucide-react";
-import { FrequencyCanvas } from "./components/FrequencyCanvas";
+import { PianoRoll } from "./components/PianoRoll";
 import { PlaybackContext } from "./playback/PlaybackContext";
 import { WaveformView } from "./components/WaveformView";
 import { SliderInput } from "./components/SliderInput";
 import { AudioStore } from "./AudioStore";
 
 export const Loaded = () => {
-  const { audio, isCached } = useContext(AudioStore);
+  const { audio } = useContext(AudioStore);
   if (!audio) throw new Error("Loaded must be rendered within an audio route");
-  const { buffer: data, filename, fileSize } = audio;
+  const { buffer: data, filename } = audio;
+  const navigate = useNavigate();
 
   const [showTutorial, setShowTutorial] = useState(
     localStorage.getItem("tutorial_shown") !== "true",
@@ -162,23 +162,43 @@ export const Loaded = () => {
   return (
     <>
       <div className="w-full max-w-200 h-full md:h-min p-4 md:p-6 bg-white flex flex-col justify-center gap-6 md:border md:border-neutral-2 md:rounded-xs md:shadow-md">
-        <div className="w-full flex justify-between items-baseline border-b border-neutral-2">
-          <p className="max-w-1/2 text-nowrap text-ellipsis overflow-hidden">
-            {filename}
-          </p>
-          {isCached && (
-            <span className="flex items-center gap-1 text-xs text-neutral-400 text-nowrap">
-              <HardDriveIcon size={13} />
-              {(fileSize / 1024 / 1024).toFixed(1)} MB · Saved to browser
+        <div className="[font-synthesis:none] flex items-center gap-4 justify-between self-stretch antialiased">
+          <div className="flex items-start gap-4 min-w-0">
+            {/* filename chip */}
+            <div className="flex overflow-clip rounded-lg items-center gap-3 px-3.25 py-3.25 justify-center self-stretch [box-shadow:#FFFFFF_0px_0px_4px_1px_inset,#0000000D_0px_2px_3px] bg-[#FDFDFD] border border-[#0000001A] hover:bg-white active:bg-neutral-100 min-w-0">
+              <span className="font-['Inria_Sans',system-ui,sans-serif] text-black text-base/5 truncate min-w-0">
+                {filename}
+              </span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256" style={{ width: 21, height: "auto", overflow: "visible", flexShrink: 0 }}>
+                <path d="M156,128a28,28,0,1,1-28-28A28,28,0,0,1,156,128ZM48,100a28,28,0,1,0,28,28A28,28,0,0,0,48,100Zm160,0a28,28,0,1,0,28,28A28,28,0,0,0,208,100Z" fill="#666666" />
+              </svg>
+            </div>
+            {/* file info button */}
+            <button className="flex overflow-clip rounded-lg items-center gap-3 px-3.25 py-3.25 justify-center self-stretch w-40 shrink-0 [box-shadow:#FFFFFF_0px_0px_4px_1px_inset,#0000000D_0px_2px_3px] bg-[#FDFDFD] border border-[#0000001A] hover:bg-white active:bg-neutral-100">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256" style={{ width: 21, height: "auto", opacity: 0.54, overflow: "visible", flexShrink: 0 }}>
+                <path d="M144,148a20,20,0,1,1-20-20A20,20,0,0,1,144,148Zm72-60V216a16,16,0,0,1-16,16H56a16,16,0,0,1-16-16V40A16,16,0,0,1,56,24h96a8,8,0,0,1,5.66,2.34l56,56A8,8,0,0,1,216,88Zm-50.34,90.34-11.2-11.19a36.05,36.05,0,1,0-11.31,11.31l11.19,11.2a8,8,0,0,0,11.32-11.32ZM196,88,152,44V88Z" fill="#000000" />
+              </svg>
+              <span className="opacity-40 font-['Inria_Sans',system-ui,sans-serif] text-black text-base/5 whitespace-nowrap">
+                File Info
+              </span>
+            </button>
+          </div>
+          {/* home button */}
+          <button
+            onClick={() => navigate("/")}
+            className="flex overflow-clip rounded-lg items-center gap-3 px-3.25 py-3.25 justify-center w-43.5 h-11.25 shrink-0 [box-shadow:#FFFFFF_0px_0px_4px_1px_inset,#0000000D_0px_2px_3px] bg-[#FDFDFD] border border-[#0000001A] hover:bg-white active:bg-neutral-100"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256" style={{ width: 18, height: "auto", opacity: 0.5, overflow: "visible", flexShrink: 0 }}>
+              <path d="M224,120v96a8,8,0,0,1-8,8H160a8,8,0,0,1-8-8V164a4,4,0,0,0-4-4H108a4,4,0,0,0-4,4v52a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V120a16,16,0,0,1,4.69-11.31l80-80a16,16,0,0,1,22.62,0l80,80A16,16,0,0,1,224,120Z" fill="#000000" />
+            </svg>
+            <span className="opacity-40 font-['Inria_Sans',system-ui,sans-serif] text-black text-base/5 whitespace-nowrap">
+              Home
             </span>
-          )}
-          <p className="max-w-1/2 text-nowrap text-ellipsis overflow-hidden">
-            {formatSeconds(data.duration)}
-          </p>
+          </button>
         </div>
 
         <div className="flex flex-col gap-4">
-          <FrequencyCanvas></FrequencyCanvas>
+          <PianoRoll />
           <WaveformView
             initialData={{
               data: data,
