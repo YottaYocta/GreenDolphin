@@ -95,6 +95,14 @@ export const WaveformCanvas: FC<
     null,
   );
   const [draggingPlayhead, setDraggingPlayhead] = useState(false);
+  const [draggingPan, setDraggingPan] = useState(false);
+  const lastPanX = useRef(0);
+  const dragDistanceRef = useRef(0);
+  const barContainerRef = useRef<HTMLDivElement>(null);
+  const localDataRef = useRef(localData);
+  useEffect(() => {
+    localDataRef.current = localData;
+  }, [localData]);
 
   const clickSelectThresholdValue = useMemo(
     () =>
@@ -484,51 +492,139 @@ export const WaveformCanvas: FC<
     };
   }, [draggingPlayhead, handlePosition, localData.range]);
 
+  useEffect(() => {
+    if (!draggingPan) return;
+
+    const MAX_BAR_OFFSET = 20;
+    const RUBBER_SCALE = 80;
+
+    const onMove = (clientX: number) => {
+      const deltaX = clientX - lastPanX.current;
+      lastPanX.current = clientX;
+      if (deltaX === 0 || !containerRef.current) return;
+      const width = containerRef.current.getBoundingClientRect().width;
+      if (width === 0) return;
+      const { range, data } = localDataRef.current;
+      const rangeLen = range.end - range.start;
+      const deltaSamples = Math.round(-deltaX * (rangeLen / width));
+      const newStart = Math.max(
+        0,
+        Math.min(data.length - rangeLen, range.start + deltaSamples),
+      );
+      const newRange = { start: newStart, end: newStart + rangeLen };
+      setLocalData((prev) => ({ ...prev, range: newRange }));
+      handleRangeChange?.(newRange);
+
+      dragDistanceRef.current += deltaX;
+      const d = dragDistanceRef.current;
+      const visualOffset =
+        Math.sign(d) * MAX_BAR_OFFSET * Math.tanh(Math.abs(d) / RUBBER_SCALE);
+      if (barContainerRef.current) {
+        barContainerRef.current.style.transform = `translateX(${visualOffset}px)`;
+      }
+    };
+
+    const onEnd = () => {
+      setDraggingPan(false);
+      if (barContainerRef.current) {
+        barContainerRef.current.style.transition =
+          "transform 0.45s cubic-bezier(0.34,1.56,0.64,1)";
+        barContainerRef.current.style.transform = "translateX(0)";
+      }
+    };
+    const onMouseMove = (e: MouseEvent) => onMove(e.clientX);
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches[0]) onMove(e.touches[0].clientX);
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onEnd);
+    window.addEventListener("touchmove", onTouchMove);
+    window.addEventListener("touchend", onEnd);
+    return () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onEnd);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchend", onEnd);
+    };
+  }, [draggingPan, handleRangeChange]);
+
   return (
     <div ref={containerRef} className="flex flex-col pixelated select-none">
       <canvas
         {...props}
         ref={canvasRef}
         draggable="false"
-        className="cursor-pointer border border-neutral-2"
+        className="cursor-pointer w-full"
       ></canvas>
       {showHandles && (handlePositions || positionReference) && (
-        <div className="relative w-full h-7 shrink-0 overflow-hidden">
-          {handlePositions && localData.section && (
-            <>
-              {handlePositions.startPct >= 0 &&
-                handlePositions.startPct <= 100 && (
-                  <SectionHandle
-                    pct={handlePositions.startPct}
-                    onDragStart={() => setDraggingHandle("start")}
-                  />
-                )}
-              {handlePositions.endPct >= 0 && handlePositions.endPct <= 100 && (
-                <SectionHandle
-                  pct={handlePositions.endPct}
-                  onDragStart={() => setDraggingHandle("end")}
-                />
-              )}
-            </>
-          )}
-          {positionReference && (
-            <div
-              ref={positionHandleRef}
-              className="absolute top-0 w-5 h-full -translate-x-1/2 flex items-center justify-center cursor-ew-resize z-10"
-              style={{ display: "none" }}
-              onMouseDown={(e) => {
-                e.stopPropagation();
-                setDraggingPlayhead(true);
-              }}
-              onTouchStart={(e) => {
-                e.stopPropagation();
-                setDraggingPlayhead(true);
-              }}
-            >
-              <div className="w-4 h-4 rounded-sm bg-sky-400 opacity-90" />
+        <>
+          <div className="relative z-10 w-full h-8 shrink-0 -mt-4">
+            <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-1.5 border-t border-b border-[#0000001A]" />
+            {handlePositions && localData.section && (
+              <>
+                {handlePositions.startPct >= 0 &&
+                  handlePositions.startPct <= 100 && (
+                    <SectionHandle
+                      pct={handlePositions.startPct}
+                      onDragStart={() => setDraggingHandle("start")}
+                    />
+                  )}
+                {handlePositions.endPct >= 0 &&
+                  handlePositions.endPct <= 100 && (
+                    <SectionHandle
+                      pct={handlePositions.endPct}
+                      onDragStart={() => setDraggingHandle("end")}
+                    />
+                  )}
+              </>
+            )}
+            {positionReference && (
+              <div
+                ref={positionHandleRef}
+                className="absolute top-1/2 -translate-y-1/2 w-5 h-5.75 -translate-x-1/2 cursor-ew-resize z-10 rounded-sm bg-[#19CA93] border border-[#00000033] [box-shadow:#FFFFFF80_0px_0px_3px_inset,#00000033_0px_2px_3px]"
+                style={{ display: "none" }}
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  setDraggingPlayhead(true);
+                }}
+                onTouchStart={(e) => {
+                  e.stopPropagation();
+                  setDraggingPlayhead(true);
+                }}
+              />
+            )}
+          </div>
+          <div
+            className="-mt-4 w-full h-16 cursor-grab active:cursor-grabbing select-none flex items-center justify-center overflow-hidden"
+            onMouseDown={(e) => {
+              dragDistanceRef.current = 0;
+              if (barContainerRef.current) {
+                barContainerRef.current.style.transition = "none";
+                barContainerRef.current.style.transform = "translateX(0)";
+              }
+              setDraggingPan(true);
+              lastPanX.current = e.clientX;
+            }}
+            onTouchStart={(e) => {
+              if (e.touches[0]) {
+                dragDistanceRef.current = 0;
+                if (barContainerRef.current) {
+                  barContainerRef.current.style.transition = "none";
+                  barContainerRef.current.style.transform = "translateX(0)";
+                }
+                setDraggingPan(true);
+                lastPanX.current = e.touches[0].clientX;
+              }
+            }}
+          >
+            <div ref={barContainerRef} className="flex gap-1.5">
+              <div className="w-0.5 h-4 rounded-full bg-[#00000020]" />
+              <div className="w-0.5 h-4 rounded-full bg-[#00000020]" />
+              <div className="w-0.5 h-4 rounded-full bg-[#00000020]" />
             </div>
-          )}
-        </div>
+          </div>
+        </>
       )}
     </div>
   );
@@ -539,7 +635,7 @@ const SectionHandle: FC<{ pct: number; onDragStart: () => void }> = ({
   onDragStart,
 }) => (
   <div
-    className="absolute top-0 w-5 h-full -translate-x-1/2 flex items-center justify-center cursor-ew-resize"
+    className="absolute top-1/2 -translate-y-1/2 w-7 h-7.75 -translate-x-1/2 cursor-ew-resize z-10 rounded-sm bg-[#FDFDFD] border border-[#0000001A] [box-shadow:#FFFFFF_0px_0px_4px_1px_inset,#0000000D_0px_2px_3px]"
     style={{ left: `${pct}%` }}
     onMouseDown={(e) => {
       e.stopPropagation();
@@ -549,7 +645,5 @@ const SectionHandle: FC<{ pct: number; onDragStart: () => void }> = ({
       e.stopPropagation();
       onDragStart();
     }}
-  >
-    <div className="w-4 h-5 rounded-sm bg-emerald-400 opacity-90" />
-  </div>
+  />
 );
