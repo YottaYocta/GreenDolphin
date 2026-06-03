@@ -54,12 +54,12 @@ function CdeGroup({ startBucket, onDown, onEnter }: GroupProps) {
           />
         ))}
       </div>
-      <div className="flex items-start gap-1.5 h-6.25 left-2 top-2 absolute">
+      <div className="flex items-start gap-1.5 h-6.25 left-2 top-2 absolute pointer-events-none">
         {CDE_BLACK.map((offset) => (
           <div
             key={offset}
             data-bucket={startBucket + offset}
-            className={BLACK_NORMAL}
+            className={`${BLACK_NORMAL} pointer-events-auto`}
             onMouseDown={() => onDown(startBucket + offset)}
             onMouseEnter={() => onEnter(startBucket + offset)}
             onTouchStart={() => onDown(startBucket + offset)}
@@ -85,12 +85,12 @@ function FgabGroup({ startBucket, onDown, onEnter }: GroupProps) {
           />
         ))}
       </div>
-      <div className="flex items-start gap-1.5 h-6.25 top-2 left-1.75 absolute">
+      <div className="flex items-start gap-1.5 h-6.25 top-2 left-1.75 absolute pointer-events-none">
         {FGAB_BLACK.map((offset) => (
           <div
             key={offset}
             data-bucket={startBucket + offset}
-            className={BLACK_NORMAL}
+            className={`${BLACK_NORMAL} pointer-events-auto`}
             onMouseDown={() => onDown(startBucket + offset)}
             onMouseEnter={() => onEnter(startBucket + offset)}
             onTouchStart={() => onDown(startBucket + offset)}
@@ -181,7 +181,7 @@ export function PianoRoll() {
     let scrolling = false;
 
     const onMouseDown = (e: MouseEvent) => {
-      if ((e.target as HTMLElement).closest("[data-bucket]")) return;
+      if ((e.target as HTMLElement).closest("[data-piano]")) return;
       startX = e.clientX;
       startScrollLeft = el.scrollLeft;
       dragging = true;
@@ -259,6 +259,7 @@ export function PianoRoll() {
           className="shrink-0 [image-rendering:pixelated]"
         />
         <div
+          data-piano
           className="flex items-end justify-center h-13.5 shrink-0"
           onDragStart={(e) => e.preventDefault()}
         >
