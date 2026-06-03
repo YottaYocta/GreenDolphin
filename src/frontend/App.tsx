@@ -16,9 +16,13 @@ function AudioLoader() {
   useEffect(() => {
     let mounted = true;
     loadAllFromCache()
-      .then((files) => { if (mounted) setCachedFiles(files); })
+      .then((files) => {
+        if (mounted) setCachedFiles(files);
+      })
       .catch(() => {});
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const handleDelete = async (filename: string) => {
