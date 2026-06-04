@@ -14,6 +14,31 @@
   }
 }
 
+@utility btn-surface {
+  display: flex;
+  overflow: clip;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background-color: #fdfdfd;
+  border: 1px solid #0000001a;
+  box-shadow: #ffffff 0px 0px 4px 1px inset, #0000000d 0px 2px 3px;
+  &:hover {
+    background-color: white;
+  }
+  &:active {
+    background-color: var(--color-neutral-100);
+  }
+}
+
+@utility font-inria {
+  font-family: 'Inria Sans', system-ui, sans-serif;
+}
+
+@utility font-space-mono {
+  font-family: 'Space Mono', monospace;
+}
+
 @layer utilities {
   .positive-button {
     border: 1px solid var(--color-emerald-500);

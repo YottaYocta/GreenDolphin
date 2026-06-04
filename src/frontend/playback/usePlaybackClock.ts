@@ -66,9 +66,11 @@ export function usePlaybackClock({
       if (loopDelay > 0) {
         playbackPosition.current = endMS;
         lastTimeStamp.current = now;
+        setPlayState("paused");
+        cancelLoopDelay();
         loopPauseStart.current = now;
         loopPauseEnd.current = now + loopDelay * 1000;
-        setPlayState("paused");
+
         loopDelayTimerRef.current = setTimeout(() => {
           loopDelayTimerRef.current = null;
           loopPauseStart.current = null;
@@ -86,7 +88,15 @@ export function usePlaybackClock({
     playbackPosition.current = Math.max(startMS, next);
     lastTimeStamp.current = now;
     animationFrameId.current = requestAnimationFrame(tick);
-  }, [duration, loop, loopDelay, playbackSpeed, sampleRate]);
+  }, [
+    duration,
+    loop,
+    loopDelay,
+    playbackSpeed,
+    sampleRate,
+    stopClock,
+    cancelLoopDelay,
+  ]);
 
   const startClock = useCallback(() => {
     stopClock();

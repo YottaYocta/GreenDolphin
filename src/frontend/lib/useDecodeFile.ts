@@ -3,7 +3,7 @@ import { AudioStore } from "../AudioStore";
 import { saveToCache } from "./audioCache";
 
 export function useDecodeFile() {
-  const { setAudio, setIsCached } = useContext(AudioStore);
+  const { setAudio } = useContext(AudioStore);
   return useCallback(
     async (file: File) => {
       const ctx = new AudioContext();
@@ -14,9 +14,8 @@ export function useDecodeFile() {
         filename: file.name,
         fileSize: file.size,
       });
-      setIsCached(true);
-      saveToCache(file).catch(() => setIsCached(false));
+      saveToCache(file).catch(() => {});
     },
-    [setAudio, setIsCached]
+    [setAudio]
   );
 }
