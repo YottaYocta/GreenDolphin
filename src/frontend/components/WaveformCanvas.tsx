@@ -90,13 +90,8 @@ export const WaveformCanvas: FC<
     }
   }, [waveformData]);
 
-  const [selectRange, setSelectRange] = useState<Section | undefined>();
-  const [draggingHandle, setDraggingHandle] = useState<"start" | "end" | null>(
-    null,
-  );
-  const [draggingPlayhead, setDraggingPlayhead] = useState(false);
-  const [draggingPan, setDraggingPan] = useState(false);
-  const lastPanX = useRef(0);
+  const selectRangeRef = useRef<Section | undefined>(undefined);
+  const draggingHandleRef = useRef<"start" | "end" | null>(null);
   const dragDistanceRef = useRef(0);
   const barContainerRef = useRef<HTMLDivElement>(null);
 
@@ -129,17 +124,17 @@ export const WaveformCanvas: FC<
       }
     }
 
-    if (canvasRef.current)
+    if (canvasRef.current) {
+      const sr = selectRangeRef.current;
       renderFunction(
         {
           ...localData,
           section:
-            selectRange &&
-            Math.abs(selectRange.end - selectRange.start) >
-              minRangeThresholdValue
+            sr &&
+            Math.abs(sr.end - sr.start) > minRangeThresholdValue
               ? {
-                  start: Math.min(selectRange.end, selectRange.start),
-                  end: Math.max(selectRange.end, selectRange.start),
+                  start: Math.min(sr.end, sr.start),
+                  end: Math.max(sr.end, sr.start),
                 }
               : localData.section,
         },
@@ -151,21 +146,18 @@ export const WaveformCanvas: FC<
             )
           : undefined,
       );
+    }
   }, [
     localData,
     minRangeThresholdValue,
     positionReference,
     renderFunction,
-    selectRange,
   ]);
 
   useEffect(() => {
     updateWaveform();
   }, [updateWaveform]);
 
-  /**
-   * if cursor position is outside of range, scroll to include cursor position
-   */
   const checkScroll = useCallback(() => {
     if (positionReference && positionReference.current) {
       const sample =
@@ -203,9 +195,7 @@ export const WaveformCanvas: FC<
     let animationFrameId: number;
 
     const renderLoop = () => {
-      if (canvasRef.current) {
-        updateWaveform();
-      }
+      if (canvasRef.current) updateWaveform();
       if (animate) {
         checkScroll();
         animationFrameId = requestAnimationFrame(renderLoop);
@@ -217,10 +207,103 @@ export const WaveformCanvas: FC<
       animationFrameId = requestAnimationFrame(renderLoop);
     }
 
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-    };
+    return () => { cancelAnimationFrame(animationFrameId); };
   }, [animate, checkScroll, updateWaveform]);
+
+  const [startSelectDrag, endSelectDrag] = useDrag(
+    ({ clientX }) => {
+      const canvas = canvasRef.current;
+      if (!canvas || selectRangeRef.current === undefined) return;
+      const rangeLen = localData.range.end - localData.range.start;
+      const rawSample = computeSampleIndex(clientX - canvas.getBoundingClientRect().left, rangeLen, canvas) + localData.range.start;
+      const endSample = Math.max(localData.range.start, Math.min(localData.range.end, rawSample));
+      selectRangeRef.current = { start: selectRangeRef.current.start, end: endSample };
+      updateWaveform();
+    },
+    () => {
+      const sr = selectRangeRef.current;
+      if (sr !== undefined) {
+        const min = Math.min(sr.start, sr.end);
+        const max = Math.max(sr.start, sr.end);
+        if (max - min > clickSelectThresholdValue) {
+          setLocalData((prev) => ({ ...prev, section: { start: min, end: max } }));
+          handleSelection?.({ start: min, end: max });
+        } else {
+          handlePosition?.(sr.start);
+        }
+      }
+      selectRangeRef.current = undefined;
+      updateWaveform();
+    },
+  );
+
+  const [startHandleDrag, endHandleDrag] = useDrag(
+    ({ clientX }) => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const fraction = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      const sampleIndex = Math.round(fraction * (localData.range.end - localData.range.start)) + localData.range.start;
+      setLocalData((prev) => {
+        if (!prev.section) return prev;
+        return draggingHandleRef.current === "start"
+          ? { ...prev, section: { start: Math.min(sampleIndex, prev.section.end - 1), end: prev.section.end } }
+          : { ...prev, section: { start: prev.section.start, end: Math.max(sampleIndex, prev.section.start + 1) } };
+      });
+    },
+    () => {
+      if (localData.section && handleSelection) handleSelection(localData.section);
+      draggingHandleRef.current = null;
+    },
+  );
+
+  const [startPlayheadDrag, endPlayheadDrag] = useDrag(
+    ({ clientX }) => {
+      if (!containerRef.current || !handlePosition) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const fraction = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      handlePosition(Math.round(fraction * (localData.range.end - localData.range.start)) + localData.range.start);
+    },
+  );
+
+  const [startPanDrag, endPanDrag] = useDrag(
+    ({ dx }) => {
+      if (!containerRef.current) return;
+      const width = containerRef.current.getBoundingClientRect().width;
+      if (width === 0) return;
+      const { range, data } = localData;
+      const rangeLen = range.end - range.start;
+      const newStart = Math.max(0, Math.min(data.length - rangeLen, range.start + Math.round(-dx * (rangeLen / width))));
+      const newRange = { start: newStart, end: newStart + rangeLen };
+      setLocalData((prev) => ({ ...prev, range: newRange }));
+      handleRangeChange?.(newRange);
+      dragDistanceRef.current += dx;
+      const d = dragDistanceRef.current;
+      if (barContainerRef.current)
+        barContainerRef.current.style.transform = `translateX(${Math.sign(d) * MAX_BAR_OFFSET * Math.tanh(Math.abs(d) / RUBBER_SCALE)}px)`;
+    },
+    () => {
+      if (barContainerRef.current) {
+        barContainerRef.current.style.transition = "transform 0.45s cubic-bezier(0.34,1.56,0.64,1)";
+        barContainerRef.current.style.transform = "translateX(0)";
+      }
+    },
+  );
+
+  // End all drags on window mouseup/touchend
+  useEffect(() => {
+    const endAll = () => {
+      endSelectDrag();
+      endHandleDrag();
+      endPlayheadDrag();
+      endPanDrag();
+    };
+    window.addEventListener("mouseup", endAll);
+    window.addEventListener("touchend", endAll);
+    return () => {
+      window.removeEventListener("mouseup", endAll);
+      window.removeEventListener("touchend", endAll);
+    };
+  }, [endSelectDrag, endHandleDrag, endPlayheadDrag, endPanDrag]);
 
   useEffect(() => {
     const canvasElement = canvasRef.current;
@@ -229,14 +312,21 @@ export const WaveformCanvas: FC<
     const toSample = (offsetX: number) =>
       computeSampleIndex(offsetX, localData.range.end - localData.range.start, canvasElement) + localData.range.start;
 
-    const onMouseDown = (e: MouseEvent) =>
-      setSelectRange({ start: toSample(e.offsetX), end: toSample(e.offsetX) });
+    const onMouseDown = (e: MouseEvent) => {
+      const start = toSample(e.offsetX);
+      selectRangeRef.current = { start, end: start };
+      startSelectDrag(e.clientX);
+    };
 
     const onTouchStart = (e: TouchEvent) => {
       if (!e.touches[0]) return;
       const offsetX = e.touches[0].clientX - canvasElement.getBoundingClientRect().left;
-      setSelectRange({ start: toSample(offsetX), end: toSample(offsetX) });
+      const start = toSample(offsetX);
+      selectRangeRef.current = { start, end: start };
+      startSelectDrag(e.touches[0].clientX);
     };
+
+    const onMouseLeave = () => endSelectDrag();
 
     const handleWheel = (e: WheelEvent) => {
       e.stopPropagation();
@@ -274,21 +364,25 @@ export const WaveformCanvas: FC<
     window.addEventListener("resize", handleResize);
     handleResize();
     canvasElement.addEventListener("mousedown", onMouseDown);
+    canvasElement.addEventListener("mouseleave", onMouseLeave);
     canvasElement.addEventListener("touchstart", onTouchStart);
 
     return () => {
       if (allowZoomPan) canvasElement.removeEventListener("wheel", handleWheel);
       window.removeEventListener("resize", handleResize);
       canvasElement.removeEventListener("mousedown", onMouseDown);
+      canvasElement.removeEventListener("mouseleave", onMouseLeave);
       canvasElement.removeEventListener("touchstart", onTouchStart);
     };
   }, [
     allowZoomPan,
+    endSelectDrag,
     handleRangeChange,
     localData.data.length,
     localData.range.end,
     localData.range.start,
     minRangeThresholdValue,
+    startSelectDrag,
     updateWaveform,
   ]);
 
@@ -302,90 +396,6 @@ export const WaveformCanvas: FC<
       endPct: ((section.end - localData.range.start) / rangeLen) * 100,
     };
   }, [localData.range, localData.section]);
-
-  useDrag(
-    selectRange !== undefined,
-    (clientX) => {
-      const canvas = canvasRef.current;
-      if (!canvas || selectRange === undefined) return;
-      const endSample =
-        computeSampleIndex(clientX - canvas.getBoundingClientRect().left, localData.range.end - localData.range.start, canvas) +
-        localData.range.start;
-      setSelectRange({ start: selectRange.start, end: endSample });
-    },
-    () => {
-      if (selectRange !== undefined) {
-        const min = Math.min(selectRange.start, selectRange.end);
-        const max = Math.max(selectRange.start, selectRange.end);
-        if (max - min > clickSelectThresholdValue) {
-          setLocalData((prev) => ({ ...prev, section: { start: min, end: max } }));
-          handleSelection?.({ start: min, end: max });
-        } else {
-          handlePosition?.(selectRange.start);
-        }
-      }
-      setSelectRange(undefined);
-    },
-  );
-
-  useDrag(
-    !!draggingHandle,
-    (clientX) => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const fraction = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-      const sampleIndex = Math.round(fraction * (localData.range.end - localData.range.start)) + localData.range.start;
-      setLocalData((prev) => {
-        if (!prev.section) return prev;
-        return draggingHandle === "start"
-          ? { ...prev, section: { start: Math.min(sampleIndex, prev.section.end - 1), end: prev.section.end } }
-          : { ...prev, section: { start: prev.section.start, end: Math.max(sampleIndex, prev.section.start + 1) } };
-      });
-    },
-    () => {
-      if (localData.section && handleSelection) handleSelection(localData.section);
-      setDraggingHandle(null);
-    },
-  );
-
-  useDrag(
-    draggingPlayhead,
-    (clientX) => {
-      if (!containerRef.current || !handlePosition) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const fraction = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-      handlePosition(Math.round(fraction * (localData.range.end - localData.range.start)) + localData.range.start);
-    },
-    () => setDraggingPlayhead(false),
-  );
-
-  useDrag(
-    draggingPan,
-    (clientX) => {
-      const deltaX = clientX - lastPanX.current;
-      lastPanX.current = clientX;
-      if (deltaX === 0 || !containerRef.current) return;
-      const width = containerRef.current.getBoundingClientRect().width;
-      if (width === 0) return;
-      const { range, data } = localData;
-      const rangeLen = range.end - range.start;
-      const newStart = Math.max(0, Math.min(data.length - rangeLen, range.start + Math.round(-deltaX * (rangeLen / width))));
-      const newRange = { start: newStart, end: newStart + rangeLen };
-      setLocalData((prev) => ({ ...prev, range: newRange }));
-      handleRangeChange?.(newRange);
-      dragDistanceRef.current += deltaX;
-      const d = dragDistanceRef.current;
-      if (barContainerRef.current)
-        barContainerRef.current.style.transform = `translateX(${Math.sign(d) * MAX_BAR_OFFSET * Math.tanh(Math.abs(d) / RUBBER_SCALE)}px)`;
-    },
-    () => {
-      setDraggingPan(false);
-      if (barContainerRef.current) {
-        barContainerRef.current.style.transition = "transform 0.45s cubic-bezier(0.34,1.56,0.64,1)";
-        barContainerRef.current.style.transform = "translateX(0)";
-      }
-    },
-  );
 
   return (
     <div ref={containerRef} className="flex flex-col pixelated select-none">
@@ -405,14 +415,20 @@ export const WaveformCanvas: FC<
                   handlePositions.startPct <= 100 && (
                     <SectionHandle
                       pct={handlePositions.startPct}
-                      onDragStart={() => setDraggingHandle("start")}
+                      onDragStart={(clientX) => {
+                        draggingHandleRef.current = "start";
+                        startHandleDrag(clientX);
+                      }}
                     />
                   )}
                 {handlePositions.endPct >= 0 &&
                   handlePositions.endPct <= 100 && (
                     <SectionHandle
                       pct={handlePositions.endPct}
-                      onDragStart={() => setDraggingHandle("end")}
+                      onDragStart={(clientX) => {
+                        draggingHandleRef.current = "end";
+                        startHandleDrag(clientX);
+                      }}
                     />
                   )}
               </>
@@ -422,27 +438,20 @@ export const WaveformCanvas: FC<
                 ref={positionHandleRef}
                 className="absolute top-1/2 -translate-y-1/2 w-5 h-5.75 -translate-x-1/2 cursor-ew-resize z-10 rounded-sm bg-[#19CA93] border border-[#00000033] [box-shadow:#FFFFFF80_0px_0px_3px_inset,#00000033_0px_2px_3px]"
                 style={{ display: "none" }}
-                onMouseDown={(e) => {
-                  e.stopPropagation();
-                  setDraggingPlayhead(true);
-                }}
-                onTouchStart={(e) => {
-                  e.stopPropagation();
-                  setDraggingPlayhead(true);
-                }}
+                onMouseDown={(e) => startPlayheadDrag(e.clientX)}
+                onTouchStart={(e) => { if (e.touches[0]) startPlayheadDrag(e.touches[0].clientX); }}
               />
             )}
           </div>
           <div
-            className="-mt-4 w-full h-16 cursor-grab active:cursor-grabbing select-none flex items-center justify-center overflow-hidden"
+            className="-mt-4 w-full h-16 cursor-grab select-none flex items-center justify-center overflow-hidden"
             onMouseDown={(e) => {
               dragDistanceRef.current = 0;
               if (barContainerRef.current) {
                 barContainerRef.current.style.transition = "none";
                 barContainerRef.current.style.transform = "translateX(0)";
               }
-              setDraggingPan(true);
-              lastPanX.current = e.clientX;
+              startPanDrag(e.clientX);
             }}
             onTouchStart={(e) => {
               if (e.touches[0]) {
@@ -451,8 +460,7 @@ export const WaveformCanvas: FC<
                   barContainerRef.current.style.transition = "none";
                   barContainerRef.current.style.transform = "translateX(0)";
                 }
-                setDraggingPan(true);
-                lastPanX.current = e.touches[0].clientX;
+                startPanDrag(e.touches[0].clientX);
               }
             }}
           >
@@ -468,20 +476,14 @@ export const WaveformCanvas: FC<
   );
 };
 
-const SectionHandle: FC<{ pct: number; onDragStart: () => void }> = ({
+const SectionHandle: FC<{ pct: number; onDragStart: (clientX: number) => void }> = ({
   pct,
   onDragStart,
 }) => (
   <div
     className="absolute top-1/2 -translate-y-1/2 w-7 h-7.75 -translate-x-1/2 cursor-ew-resize z-10 rounded-sm bg-[#FDFDFD] border border-[#0000001A] [box-shadow:#FFFFFF_0px_0px_4px_1px_inset,#0000000D_0px_2px_3px]"
     style={{ left: `${pct}%` }}
-    onMouseDown={(e) => {
-      e.stopPropagation();
-      onDragStart();
-    }}
-    onTouchStart={(e) => {
-      e.stopPropagation();
-      onDragStart();
-    }}
+    onMouseDown={(e) => onDragStart(e.clientX)}
+    onTouchStart={(e) => { if (e.touches[0]) onDragStart(e.touches[0].clientX); }}
   />
 );
