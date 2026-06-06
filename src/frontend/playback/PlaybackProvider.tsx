@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import type { ReactNode } from "react";
 import { PlaybackContext } from "./PlaybackContext";
 import { type Section } from "../lib/waveform";
-import { clampSection, computeMS } from "../lib/util";
+import { clampSection } from "../lib/util";
 import { SoundTouchNode } from "@soundtouchjs/audio-worklet";
 import soundTouchProcessorUrl from "@soundtouchjs/audio-worklet/processor?url";
 import { buildSourceNode } from "./sourceNode";

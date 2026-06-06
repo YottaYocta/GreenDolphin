@@ -129,7 +129,7 @@ export function Landing() {
   const decodeFile = useDecodeFile();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { cachedFiles, fileMeta, deleteFile } = useContext(RecordingsStore);
+  const { cachedFiles, fileMeta, deleteFile, cacheFile } = useContext(RecordingsStore);
   const [isUploading, setIsUploading] = useState(false);
 
   const handlePlay = async (file: File) => {
@@ -141,6 +141,7 @@ export function Landing() {
     setIsUploading(true);
     try {
       await decodeFile(file);
+      await cacheFile(file);
       navigate("/app");
     } finally {
       setIsUploading(false);

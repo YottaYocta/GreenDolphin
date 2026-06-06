@@ -43,7 +43,7 @@ export const Loaded = () => {
   const { buffer: data, filename, fileSize } = audio;
   const navigate = useNavigate();
   const decodeFile = useDecodeFile();
-  const { cachedFiles, fileMeta, reload } = useContext(RecordingsStore);
+  const { cachedFiles, fileMeta, cacheFile } = useContext(RecordingsStore);
   const uploadInputRef = useRef<HTMLInputElement>(null);
 
   const [showTutorial, setShowTutorial] = useState(
@@ -181,8 +181,17 @@ export const Loaded = () => {
                 <span className="font-inria text-black text-base/5 truncate min-w-0">
                   {filename}
                 </span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 256 256" style={{ flexShrink: 0 }}>
-                  <path d="M156,128a28,28,0,1,1-28-28A28,28,0,0,1,156,128ZM48,100a28,28,0,1,0,28,28A28,28,0,0,0,48,100Zm160,0a28,28,0,1,0,28,28A28,28,0,0,0,208,100Z" fill="#666666" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="21"
+                  height="21"
+                  viewBox="0 0 256 256"
+                  style={{ flexShrink: 0 }}
+                >
+                  <path
+                    d="M156,128a28,28,0,1,1-28-28A28,28,0,0,1,156,128ZM48,100a28,28,0,1,0,28,28A28,28,0,0,0,48,100Zm160,0a28,28,0,1,0,28,28A28,28,0,0,0,208,100Z"
+                    fill="#666666"
+                  />
                 </svg>
               </Menu.Trigger>
               <Menu.Portal>
@@ -194,7 +203,13 @@ export const Loaded = () => {
                       closeOnClick={false}
                       onClick={() => uploadInputRef.current?.click()}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 256 256" style={{ opacity: 0.5, flexShrink: 0 }}>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="18"
+                        height="18"
+                        viewBox="0 0 256 256"
+                        style={{ opacity: 0.5, flexShrink: 0 }}
+                      >
                         <path d="M232,48a8,8,0,0,1-8,8H208V72a8,8,0,0,1-16,0V56H176a8,8,0,0,1,0-16h16V24a8,8,0,0,1,16,0V40h16A8,8,0,0,1,232,48ZM160.6,77.86l-6.76-6.76A32.85,32.85,0,0,1,144,49.33a31.87,31.87,0,0,1,1.67-11.66,4,4,0,0,0-4.76-5.14L78.06,48.25A8,8,0,0,0,72,56V166.1A36,36,0,1,0,52.42,232C72.25,231.77,88,215.13,88,195.3V102.25l70.74-17.69A4,4,0,0,0,160.6,77.86Zm50.11,24.31a31.91,31.91,0,0,1-7.14,1.63,4,4,0,0,0-3.57,4V134.1A36,36,0,1,0,180.42,200c19.83-.23,35.58-16.86,35.58-36.7V106A4,4,0,0,0,210.71,102.17Z" />
                       </svg>
                       <span className="font-inria text-black text-base/5">
@@ -212,17 +227,34 @@ export const Loaded = () => {
                           <Menu.Item
                             key={file.name}
                             className="flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-neutral-50 active:bg-neutral-100"
-                            onClick={() => decodeFile(file)}
+                            onClick={async () => await decodeFile(file)}
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 256 256" style={{ opacity: 0.4, flexShrink: 0 }}>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="18"
+                              height="18"
+                              viewBox="0 0 256 256"
+                              style={{ opacity: 0.4, flexShrink: 0 }}
+                            >
                               <path d="M210.3,56.34l-80-24A8,8,0,0,0,120,40V148.26A48,48,0,1,0,136,184V98.75l69.7,20.91A8,8,0,0,0,216,112V64A8,8,0,0,0,210.3,56.34Z" />
                             </svg>
-                            <span className={`flex-1 min-w-0 font-inria text-base/5 truncate ${file.name === filename ? "font-bold text-black" : "text-black"}`}>
+                            <span
+                              className={`flex-1 min-w-0 font-inria text-base/5 truncate ${file.name === filename ? "font-bold text-black" : "text-black"}`}
+                            >
                               {file.name}
                             </span>
                             {file.name === filename && (
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 256 256" style={{ flexShrink: 0 }}>
-                                <path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z" fill="#1CCA93" />
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 256 256"
+                                style={{ flexShrink: 0 }}
+                              >
+                                <path
+                                  d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"
+                                  fill="#1CCA93"
+                                />
                               </svg>
                             )}
                           </Menu.Item>
@@ -237,8 +269,17 @@ export const Loaded = () => {
             {/* File info dialog */}
             <Dialog.Root>
               <Dialog.Trigger className="btn-surface rounded-lg gap-3 px-3.25 py-3.25 self-stretch w-40 shrink-0 cursor-pointer">
-                <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 256 256" style={{ opacity: 0.54, flexShrink: 0 }}>
-                  <path d="M144,148a20,20,0,1,1-20-20A20,20,0,0,1,144,148Zm72-60V216a16,16,0,0,1-16,16H56a16,16,0,0,1-16-16V40A16,16,0,0,1,56,24h96a8,8,0,0,1,5.66,2.34l56,56A8,8,0,0,1,216,88Zm-50.34,90.34-11.2-11.19a36.05,36.05,0,1,0-11.31,11.31l11.19,11.2a8,8,0,0,0,11.32-11.32ZM196,88,152,44V88Z" fill="#000000" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="21"
+                  height="21"
+                  viewBox="0 0 256 256"
+                  style={{ opacity: 0.54, flexShrink: 0 }}
+                >
+                  <path
+                    d="M144,148a20,20,0,1,1-20-20A20,20,0,0,1,144,148Zm72-60V216a16,16,0,0,1-16,16H56a16,16,0,0,1-16-16V40A16,16,0,0,1,56,24h96a8,8,0,0,1,5.66,2.34l56,56A8,8,0,0,1,216,88Zm-50.34,90.34-11.2-11.19a36.05,36.05,0,1,0-11.31,11.31l11.19,11.2a8,8,0,0,0,11.32-11.32ZM196,88,152,44V88Z"
+                    fill="#000000"
+                  />
                 </svg>
                 <span className="opacity-40 font-inria text-black text-base/5 whitespace-nowrap">
                   File Info
@@ -252,21 +293,51 @@ export const Loaded = () => {
                       File Info
                     </Dialog.Title>
                     <Dialog.Close className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-neutral-100 active:bg-neutral-200 cursor-pointer outline-none -mt-0.5 -mr-0.5">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 256 256">
-                        <path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z" fill="#666" />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 256 256"
+                      >
+                        <path
+                          d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"
+                          fill="#666"
+                        />
                       </svg>
                     </Dialog.Close>
                   </div>
                   <div className="flex flex-col gap-3">
                     <FileInfoRow label="Name" value={filename} mono={false} />
-                    <FileInfoRow label="Size" value={formatSize(fileSize)} mono />
-                    <FileInfoRow label="Duration" value={formatSeconds(data.duration)} mono />
-                    <FileInfoRow label="Sample rate" value={`${data.sampleRate.toLocaleString()} Hz`} mono />
-                    <FileInfoRow label="Channels" value={String(data.numberOfChannels)} mono />
+                    <FileInfoRow
+                      label="Size"
+                      value={formatSize(fileSize)}
+                      mono
+                    />
+                    <FileInfoRow
+                      label="Duration"
+                      value={formatSeconds(data.duration)}
+                      mono
+                    />
+                    <FileInfoRow
+                      label="Sample rate"
+                      value={`${data.sampleRate.toLocaleString()} Hz`}
+                      mono
+                    />
+                    <FileInfoRow
+                      label="Channels"
+                      value={String(data.numberOfChannels)}
+                      mono
+                    />
                     {fileMeta.get(filename)?.uploadedAt != null && (
                       <FileInfoRow
                         label="Added"
-                        value={new Date(fileMeta.get(filename)!.uploadedAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}
+                        value={new Date(
+                          fileMeta.get(filename)!.uploadedAt,
+                        ).toLocaleDateString(undefined, {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
                         mono={false}
                       />
                     )}
@@ -286,12 +357,14 @@ export const Loaded = () => {
                 if (!file) return;
                 e.target.value = "";
                 await decodeFile(file);
-                await reload();
+                await cacheFile(file);
               }}
             />
           </div>
           <button
-            onClick={() => navigate("/")}
+            onClick={() => {
+              navigate("/");
+            }}
             className="btn-surface rounded-lg gap-3 px-3.25 py-3.25 w-43.5 h-11.25 shrink-0 cursor-pointer"
           >
             <svg
@@ -560,7 +633,9 @@ const LoopDelaySlider: FC<{
     const track = trackRef.current;
     if (!track) return;
     const rect = track.getBoundingClientRect();
-    onChange(Math.max(0.05, Math.min(0.95, (clientX - rect.left) / rect.width)));
+    onChange(
+      Math.max(0.05, Math.min(0.95, (clientX - rect.left) / rect.width)),
+    );
   };
 
   const [startDrag] = useDrag(({ clientX }) => updateRatio(clientX));
@@ -597,8 +672,16 @@ const LoopDelaySlider: FC<{
       <div
         ref={trackRef}
         className="relative flex-1 h-1.5 cursor-pointer"
-        onMouseDown={(e) => { updateRatio(e.clientX); startDrag(e.clientX); }}
-        onTouchStart={(e) => { if (e.touches[0]) { updateRatio(e.touches[0].clientX); startDrag(e.touches[0].clientX); } }}
+        onMouseDown={(e) => {
+          updateRatio(e.clientX);
+          startDrag(e.clientX);
+        }}
+        onTouchStart={(e) => {
+          if (e.touches[0]) {
+            updateRatio(e.touches[0].clientX);
+            startDrag(e.touches[0].clientX);
+          }
+        }}
       >
         {/* Fill area — overflow-hidden clips both fills */}
         <div className="absolute inset-0 rounded-[3px] overflow-hidden bg-[#F5F5F5] border border-[#0000000D]">
@@ -665,8 +748,16 @@ const AudioSlider: FC<{
       <div
         ref={trackRef}
         className="relative flex-1 h-5 rounded-[3px] bg-[#F5F5F5] border border-[#0000000D] cursor-pointer"
-        onMouseDown={(e) => { setValue(e.clientX); startDrag(e.clientX); }}
-        onTouchStart={(e) => { if (e.touches[0]) { setValue(e.touches[0].clientX); startDrag(e.touches[0].clientX); } }}
+        onMouseDown={(e) => {
+          setValue(e.clientX);
+          startDrag(e.clientX);
+        }}
+        onTouchStart={(e) => {
+          if (e.touches[0]) {
+            setValue(e.touches[0].clientX);
+            startDrag(e.touches[0].clientX);
+          }
+        }}
       >
         <div
           className="absolute top-1/2 -translate-y-1/2 w-2.5 h-6.5 rounded-xs [box-shadow:#FFFFFF_0px_0px_4px_1px_inset,#0000000D_0px_2px_3px] bg-[#FDFDFD] border border-[#0000001A]"
@@ -679,9 +770,7 @@ const AudioSlider: FC<{
             {formatValue(value)}
           </span>
         </div>
-        <span className="font-space-mono text-black text-base/5">
-          {unit}
-        </span>
+        <span className="font-space-mono text-black text-base/5">{unit}</span>
       </div>
     </div>
   );
