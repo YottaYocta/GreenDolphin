@@ -308,83 +308,15 @@ export const WaveformCanvas: FC<
   useEffect(() => {
     const canvasElement = canvasRef.current;
     if (!canvasElement) return;
-
-    const toSample = (offsetX: number) =>
-      computeSampleIndex(offsetX, localData.range.end - localData.range.start, canvasElement) + localData.range.start;
-
-    const onMouseDown = (e: MouseEvent) => {
-      const start = toSample(e.offsetX);
-      selectRangeRef.current = { start, end: start };
-      startSelectDrag(e.clientX);
-    };
-
-    const onTouchStart = (e: TouchEvent) => {
-      if (!e.touches[0]) return;
-      const offsetX = e.touches[0].clientX - canvasElement.getBoundingClientRect().left;
-      const start = toSample(offsetX);
-      selectRangeRef.current = { start, end: start };
-      startSelectDrag(e.touches[0].clientX);
-    };
-
-    const onMouseLeave = () => endSelectDrag();
-
-    const handleWheel = (e: WheelEvent) => {
-      e.stopPropagation();
-      e.preventDefault();
-      if (!handleRangeChange) return;
-      const rangeLength = localData.range.end - localData.range.start;
-      if ((Math.abs(e.deltaX) + 0.001) / (Math.abs(e.deltaY) + 0.001) > 0.5) {
-        const targetStart = localData.range.start + e.deltaX * (rangeLength / 400);
-        handleRangeChange(clampSection(
-          { start: targetStart, end: targetStart + rangeLength },
-          { start: 0, end: localData.data.length },
-        ));
-      } else {
-        const currentRange = localData.range.end - localData.range.start;
-        const before = computeSampleIndex(e.offsetX, currentRange, canvasElement) / currentRange;
-        const targetRange = Math.max(
-          Math.floor(minRangeThresholdValue),
-          Math.min(localData.data.length, currentRange * (1 + -e.deltaY / 1000)),
-        );
-        const currentTarget = computeSampleIndex(e.offsetX, currentRange, canvasElement) + localData.range.start;
-        handleRangeChange({
-          start: Math.floor(Math.max(0, currentTarget - targetRange * before)),
-          end: Math.floor(Math.min(currentTarget + targetRange * (1 - before), localData.data.length)),
-        });
-      }
-    };
-
     const handleResize = () => {
       canvasElement.width = canvasElement.clientWidth;
       canvasElement.height = canvasElement.clientHeight;
       updateWaveform();
     };
-
-    if (allowZoomPan) canvasElement.addEventListener("wheel", handleWheel);
     window.addEventListener("resize", handleResize);
     handleResize();
-    canvasElement.addEventListener("mousedown", onMouseDown);
-    canvasElement.addEventListener("mouseleave", onMouseLeave);
-    canvasElement.addEventListener("touchstart", onTouchStart);
-
-    return () => {
-      if (allowZoomPan) canvasElement.removeEventListener("wheel", handleWheel);
-      window.removeEventListener("resize", handleResize);
-      canvasElement.removeEventListener("mousedown", onMouseDown);
-      canvasElement.removeEventListener("mouseleave", onMouseLeave);
-      canvasElement.removeEventListener("touchstart", onTouchStart);
-    };
-  }, [
-    allowZoomPan,
-    endSelectDrag,
-    handleRangeChange,
-    localData.data.length,
-    localData.range.end,
-    localData.range.start,
-    minRangeThresholdValue,
-    startSelectDrag,
-    updateWaveform,
-  ]);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [updateWaveform]);
 
   const handlePositions = useMemo(() => {
     const section = localData.section;
@@ -404,6 +336,51 @@ export const WaveformCanvas: FC<
         ref={canvasRef}
         draggable="false"
         className="cursor-pointer w-full"
+        onMouseDown={(e) => {
+          const canvas = canvasRef.current;
+          if (!canvas) return;
+          const rangeLen = localData.range.end - localData.range.start;
+          const start = computeSampleIndex(e.nativeEvent.offsetX, rangeLen, canvas) + localData.range.start;
+          selectRangeRef.current = { start, end: start };
+          startSelectDrag(e.clientX);
+        }}
+        onMouseLeave={() => endSelectDrag()}
+        onTouchStart={(e) => {
+          const canvas = canvasRef.current;
+          if (!e.touches[0] || !canvas) return;
+          const offsetX = e.touches[0].clientX - canvas.getBoundingClientRect().left;
+          const rangeLen = localData.range.end - localData.range.start;
+          const start = computeSampleIndex(offsetX, rangeLen, canvas) + localData.range.start;
+          selectRangeRef.current = { start, end: start };
+          startSelectDrag(e.touches[0].clientX);
+        }}
+        onWheel={allowZoomPan ? (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          if (!handleRangeChange) return;
+          const canvas = canvasRef.current;
+          if (!canvas) return;
+          const rangeLength = localData.range.end - localData.range.start;
+          if ((Math.abs(e.deltaX) + 0.001) / (Math.abs(e.deltaY) + 0.001) > 0.5) {
+            const targetStart = localData.range.start + e.deltaX * (rangeLength / 400);
+            handleRangeChange(clampSection(
+              { start: targetStart, end: targetStart + rangeLength },
+              { start: 0, end: localData.data.length },
+            ));
+          } else {
+            const currentRange = localData.range.end - localData.range.start;
+            const before = computeSampleIndex(e.nativeEvent.offsetX, currentRange, canvas) / currentRange;
+            const targetRange = Math.max(
+              Math.floor(minRangeThresholdValue),
+              Math.min(localData.data.length, currentRange * (1 + -e.deltaY / 1000)),
+            );
+            const currentTarget = computeSampleIndex(e.nativeEvent.offsetX, currentRange, canvas) + localData.range.start;
+            handleRangeChange({
+              start: Math.floor(Math.max(0, currentTarget - targetRange * before)),
+              end: Math.floor(Math.min(currentTarget + targetRange * (1 - before), localData.data.length)),
+            });
+          }
+        } : undefined}
       ></canvas>
       {showHandles && (handlePositions || positionReference) && (
         <>
