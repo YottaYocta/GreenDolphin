@@ -19,6 +19,10 @@ import {
   CLICK_SELECTION_THRESHOLD,
   MIN_RANGE_THRESHOLD,
 } from "../lib/constants";
+import { useDrag } from "../lib/useDrag";
+
+const MAX_BAR_OFFSET = 20;
+const RUBBER_SCALE = 80;
 
 export type WaveformRenderFunction = (
   data: WaveformData,
@@ -99,10 +103,6 @@ export const WaveformCanvas: FC<
   const lastPanX = useRef(0);
   const dragDistanceRef = useRef(0);
   const barContainerRef = useRef<HTMLDivElement>(null);
-  const localDataRef = useRef(localData);
-  useEffect(() => {
-    localDataRef.current = localData;
-  }, [localData]);
 
   const clickSelectThresholdValue = useMemo(
     () =>
@@ -398,156 +398,64 @@ export const WaveformCanvas: FC<
     };
   }, [localData.range, localData.section]);
 
-  useEffect(() => {
-    if (!draggingHandle) return;
-
-    const onMove = (clientX: number) => {
+  useDrag(
+    !!draggingHandle,
+    (clientX) => {
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
-      const fraction = Math.max(
-        0,
-        Math.min(1, (clientX - rect.left) / rect.width),
-      );
-      const sampleIndex =
-        Math.round(fraction * (localData.range.end - localData.range.start)) +
-        localData.range.start;
-
+      const fraction = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      const sampleIndex = Math.round(fraction * (localData.range.end - localData.range.start)) + localData.range.start;
       setLocalData((prev) => {
         if (!prev.section) return prev;
-        const newSection =
-          draggingHandle === "start"
-            ? {
-                start: Math.min(sampleIndex, prev.section.end - 1),
-                end: prev.section.end,
-              }
-            : {
-                start: prev.section.start,
-                end: Math.max(sampleIndex, prev.section.start + 1),
-              };
-        // console.log(newSection);
-        return { ...prev, section: newSection };
+        return draggingHandle === "start"
+          ? { ...prev, section: { start: Math.min(sampleIndex, prev.section.end - 1), end: prev.section.end } }
+          : { ...prev, section: { start: prev.section.start, end: Math.max(sampleIndex, prev.section.start + 1) } };
       });
-    };
-
-    const onEnd = () => {
-      if (localData.section && handleSelection)
-        handleSelection(localData.section);
+    },
+    () => {
+      if (localData.section && handleSelection) handleSelection(localData.section);
       setDraggingHandle(null);
-    };
+    },
+  );
 
-    const onMouseMove = (e: MouseEvent) => onMove(e.clientX);
-    const onTouchMove = (e: TouchEvent) => {
-      if (e.touches[0]) onMove(e.touches[0].clientX);
-    };
-
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onEnd);
-    window.addEventListener("touchmove", onTouchMove);
-    window.addEventListener("touchend", onEnd);
-    return () => {
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onEnd);
-      window.removeEventListener("touchmove", onTouchMove);
-      window.removeEventListener("touchend", onEnd);
-    };
-  }, [
-    draggingHandle,
-    handleSelection,
-    localData.range,
-    localData.section,
-    setLocalData,
-  ]);
-
-  useEffect(() => {
-    if (!draggingPlayhead) return;
-
-    const onMove = (clientX: number) => {
+  useDrag(
+    draggingPlayhead,
+    (clientX) => {
       if (!containerRef.current || !handlePosition) return;
       const rect = containerRef.current.getBoundingClientRect();
-      const fraction = Math.max(
-        0,
-        Math.min(1, (clientX - rect.left) / rect.width),
-      );
-      const sampleIndex =
-        Math.round(fraction * (localData.range.end - localData.range.start)) +
-        localData.range.start;
-      handlePosition(sampleIndex);
-    };
+      const fraction = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      handlePosition(Math.round(fraction * (localData.range.end - localData.range.start)) + localData.range.start);
+    },
+    () => setDraggingPlayhead(false),
+  );
 
-    const onEnd = () => setDraggingPlayhead(false);
-    const onMouseMove = (e: MouseEvent) => onMove(e.clientX);
-    const onTouchMove = (e: TouchEvent) => {
-      if (e.touches[0]) onMove(e.touches[0].clientX);
-    };
-
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onEnd);
-    window.addEventListener("touchmove", onTouchMove);
-    window.addEventListener("touchend", onEnd);
-    return () => {
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onEnd);
-      window.removeEventListener("touchmove", onTouchMove);
-      window.removeEventListener("touchend", onEnd);
-    };
-  }, [draggingPlayhead, handlePosition, localData.range]);
-
-  useEffect(() => {
-    if (!draggingPan) return;
-
-    const MAX_BAR_OFFSET = 20;
-    const RUBBER_SCALE = 80;
-
-    const onMove = (clientX: number) => {
+  useDrag(
+    draggingPan,
+    (clientX) => {
       const deltaX = clientX - lastPanX.current;
       lastPanX.current = clientX;
       if (deltaX === 0 || !containerRef.current) return;
       const width = containerRef.current.getBoundingClientRect().width;
       if (width === 0) return;
-      const { range, data } = localDataRef.current;
+      const { range, data } = localData;
       const rangeLen = range.end - range.start;
-      const deltaSamples = Math.round(-deltaX * (rangeLen / width));
-      const newStart = Math.max(
-        0,
-        Math.min(data.length - rangeLen, range.start + deltaSamples),
-      );
+      const newStart = Math.max(0, Math.min(data.length - rangeLen, range.start + Math.round(-deltaX * (rangeLen / width))));
       const newRange = { start: newStart, end: newStart + rangeLen };
       setLocalData((prev) => ({ ...prev, range: newRange }));
       handleRangeChange?.(newRange);
-
       dragDistanceRef.current += deltaX;
       const d = dragDistanceRef.current;
-      const visualOffset =
-        Math.sign(d) * MAX_BAR_OFFSET * Math.tanh(Math.abs(d) / RUBBER_SCALE);
-      if (barContainerRef.current) {
-        barContainerRef.current.style.transform = `translateX(${visualOffset}px)`;
-      }
-    };
-
-    const onEnd = () => {
+      if (barContainerRef.current)
+        barContainerRef.current.style.transform = `translateX(${Math.sign(d) * MAX_BAR_OFFSET * Math.tanh(Math.abs(d) / RUBBER_SCALE)}px)`;
+    },
+    () => {
       setDraggingPan(false);
       if (barContainerRef.current) {
-        barContainerRef.current.style.transition =
-          "transform 0.45s cubic-bezier(0.34,1.56,0.64,1)";
+        barContainerRef.current.style.transition = "transform 0.45s cubic-bezier(0.34,1.56,0.64,1)";
         barContainerRef.current.style.transform = "translateX(0)";
       }
-    };
-    const onMouseMove = (e: MouseEvent) => onMove(e.clientX);
-    const onTouchMove = (e: TouchEvent) => {
-      if (e.touches[0]) onMove(e.touches[0].clientX);
-    };
-
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onEnd);
-    window.addEventListener("touchmove", onTouchMove);
-    window.addEventListener("touchend", onEnd);
-    return () => {
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onEnd);
-      window.removeEventListener("touchmove", onTouchMove);
-      window.removeEventListener("touchend", onEnd);
-    };
-  }, [draggingPan, handleRangeChange]);
+    },
+  );
 
   return (
     <div ref={containerRef} className="flex flex-col pixelated select-none">
