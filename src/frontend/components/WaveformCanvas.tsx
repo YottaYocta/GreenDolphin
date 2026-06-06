@@ -237,7 +237,7 @@ export const WaveformCanvas: FC<
     },
   );
 
-  const [startHandleDrag, endHandleDrag] = useDrag(
+  const [startHandleDrag] = useDrag(
     ({ clientX }) => {
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
@@ -256,7 +256,7 @@ export const WaveformCanvas: FC<
     },
   );
 
-  const [startPlayheadDrag, endPlayheadDrag] = useDrag(
+  const [startPlayheadDrag] = useDrag(
     ({ clientX }) => {
       if (!containerRef.current || !handlePosition) return;
       const rect = containerRef.current.getBoundingClientRect();
@@ -265,7 +265,7 @@ export const WaveformCanvas: FC<
     },
   );
 
-  const [startPanDrag, endPanDrag] = useDrag(
+  const [startPanDrag] = useDrag(
     ({ dx }) => {
       if (!containerRef.current) return;
       const width = containerRef.current.getBoundingClientRect().width;
@@ -289,21 +289,6 @@ export const WaveformCanvas: FC<
     },
   );
 
-  // End all drags on window mouseup/touchend
-  useEffect(() => {
-    const endAll = () => {
-      endSelectDrag();
-      endHandleDrag();
-      endPlayheadDrag();
-      endPanDrag();
-    };
-    window.addEventListener("mouseup", endAll);
-    window.addEventListener("touchend", endAll);
-    return () => {
-      window.removeEventListener("mouseup", endAll);
-      window.removeEventListener("touchend", endAll);
-    };
-  }, [endSelectDrag, endHandleDrag, endPlayheadDrag, endPanDrag]);
 
   useEffect(() => {
     const canvasElement = canvasRef.current;

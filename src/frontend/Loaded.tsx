@@ -8,6 +8,7 @@ import {
   type RefObject,
 } from "react";
 import { useNavigate } from "react-router";
+import { useDrag } from "./lib/useDrag";
 import { Menu } from "@base-ui/react/menu";
 import { Dialog } from "@base-ui/react/dialog";
 import { Tutorial } from "./components/Tutorial";
@@ -554,7 +555,15 @@ const LoopDelaySlider: FC<{
 }> = ({ ratio, onChange, pauseStart, pauseEnd }) => {
   const trackRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
-  const dragging = useRef(false);
+
+  const updateRatio = (clientX: number) => {
+    const track = trackRef.current;
+    if (!track) return;
+    const rect = track.getBoundingClientRect();
+    onChange(Math.max(0.05, Math.min(0.95, (clientX - rect.left) / rect.width)));
+  };
+
+  const [startDrag] = useDrag(({ clientX }) => updateRatio(clientX));
 
   // Animate the green progress fill during the delay pause
   useEffect(() => {
@@ -579,17 +588,6 @@ const LoopDelaySlider: FC<{
     return () => cancelAnimationFrame(rafId);
   }, [pauseStart, pauseEnd]);
 
-  const updateRatio = (clientX: number) => {
-    const track = trackRef.current;
-    if (!track) return;
-    const rect = track.getBoundingClientRect();
-    const pct = Math.max(
-      0.05,
-      Math.min(0.95, (clientX - rect.left) / rect.width),
-    );
-    onChange(pct);
-  };
-
   return (
     <div className="flex items-center h-9.5 px-3 self-stretch rounded-xl gap-3 shrink-0 [box-shadow:#0000000D_0px_2px_3px] bg-white border border-[#0000001A]">
       <span className="shrink-0 font-inria text-black text-base/5">
@@ -599,20 +597,8 @@ const LoopDelaySlider: FC<{
       <div
         ref={trackRef}
         className="relative flex-1 h-1.5 cursor-pointer"
-        onPointerDown={(e) => {
-          dragging.current = true;
-          e.currentTarget.setPointerCapture(e.pointerId);
-          updateRatio(e.clientX);
-        }}
-        onPointerMove={(e) => {
-          if (dragging.current) updateRatio(e.clientX);
-        }}
-        onPointerUp={() => {
-          dragging.current = false;
-        }}
-        onPointerCancel={() => {
-          dragging.current = false;
-        }}
+        onMouseDown={(e) => { updateRatio(e.clientX); startDrag(e.clientX); }}
+        onTouchStart={(e) => { if (e.touches[0]) { updateRatio(e.touches[0].clientX); startDrag(e.touches[0].clientX); } }}
       >
         {/* Fill area — overflow-hidden clips both fills */}
         <div className="absolute inset-0 rounded-[3px] overflow-hidden bg-[#F5F5F5] border border-[#0000000D]">
@@ -656,7 +642,6 @@ const AudioSlider: FC<{
   unit: string;
 }> = ({ label, value, min, max, step, onChange, formatValue, unit }) => {
   const trackRef = useRef<HTMLDivElement>(null);
-  const dragging = useRef(false);
 
   const setValue = (clientX: number) => {
     const track = trackRef.current;
@@ -668,6 +653,8 @@ const AudioSlider: FC<{
     onChange(Math.max(min, Math.min(max, snapped)));
   };
 
+  const [startDrag] = useDrag(({ clientX }) => setValue(clientX));
+
   const thumbPct = (value - min) / (max - min);
 
   return (
@@ -678,20 +665,8 @@ const AudioSlider: FC<{
       <div
         ref={trackRef}
         className="relative flex-1 h-5 rounded-[3px] bg-[#F5F5F5] border border-[#0000000D] cursor-pointer"
-        onPointerDown={(e) => {
-          dragging.current = true;
-          e.currentTarget.setPointerCapture(e.pointerId);
-          setValue(e.clientX);
-        }}
-        onPointerMove={(e) => {
-          if (dragging.current) setValue(e.clientX);
-        }}
-        onPointerUp={() => {
-          dragging.current = false;
-        }}
-        onPointerCancel={() => {
-          dragging.current = false;
-        }}
+        onMouseDown={(e) => { setValue(e.clientX); startDrag(e.clientX); }}
+        onTouchStart={(e) => { if (e.touches[0]) { setValue(e.touches[0].clientX); startDrag(e.touches[0].clientX); } }}
       >
         <div
           className="absolute top-1/2 -translate-y-1/2 w-2.5 h-6.5 rounded-xs [box-shadow:#FFFFFF_0px_0px_4px_1px_inset,#0000000D_0px_2px_3px] bg-[#FDFDFD] border border-[#0000001A]"

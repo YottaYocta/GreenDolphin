@@ -47,10 +47,14 @@ export function useDrag(
 
     window.addEventListener("mousemove", onMM);
     window.addEventListener("touchmove", onTM);
+    window.addEventListener("mouseup", endDrag);
+    window.addEventListener("touchend", endDrag);
 
     cleanupRef.current = () => {
       window.removeEventListener("mousemove", onMM);
       window.removeEventListener("touchmove", onTM);
+      window.removeEventListener("mouseup", endDrag);
+      window.removeEventListener("touchend", endDrag);
     };
   }, [endDrag]);
 

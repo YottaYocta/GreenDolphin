@@ -90,7 +90,7 @@ export function PianoRoll() {
   const startScrollLeftRef = useRef(0);
   const scrollingRef = useRef(false);
 
-  const [startScrollDrag, endScrollDrag] = useDrag(
+  const [startScrollDrag] = useDrag(
     ({ totalDx }) => {
       const el = scrollRef.current;
       if (!el) return;
@@ -144,19 +144,11 @@ export function PianoRoll() {
     el?.closest("[data-bucket]")?.getAttribute("data-bucket");
 
   useEffect(() => {
-    const onUp = () => {
-      isDraggingRef.current = false;
-      stopTone();
-      endScrollDrag();
-    };
+    const onUp = () => { isDraggingRef.current = false; stopTone(); };
     window.addEventListener("mouseup", onUp);
     window.addEventListener("touchend", onUp);
-    return () => {
-      window.removeEventListener("mouseup", onUp);
-      window.removeEventListener("touchend", onUp);
-      stopTone();
-    };
-  }, [stopTone, endScrollDrag]);
+    return () => { window.removeEventListener("mouseup", onUp); window.removeEventListener("touchend", onUp); stopTone(); };
+  }, [stopTone]);
 
   useEffect(() => {
     let rafId: number;
