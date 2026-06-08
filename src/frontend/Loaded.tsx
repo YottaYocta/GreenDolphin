@@ -79,17 +79,14 @@ export const Loaded = () => {
     throw new Error("Loaded must be used within a PlaybackProvider");
   }
 
-  const { playbackPosition, playState, setPosition, loop, setLoop } = playback;
+  const { playbackPosition, playState, triggerAction, playbackSettings, setAudioSettings } = playback;
+  const { loop } = playbackSettings;
 
   const handlePosition = (sampleIndex: number) => {
     const timeInSeconds = sampleIndex / data.sampleRate;
     const timeInMs = timeInSeconds * 1000;
-    playbackPosition.current = Math.max(
-      0,
-      Math.min(timeInMs, data.duration * 1000),
-    );
     setTriggerUpdate(true);
-    setPosition(timeInMs);
+    triggerAction({ type: "move", position: timeInMs });
   };
 
   useEffect(() => {
@@ -331,7 +328,7 @@ export const Loaded = () => {
               positionReference={playbackPosition}
               animate={playState === "playing" || triggerUpdate}
               handlePosition={handlePosition}
-              handleSelection={(section) => setLoop(section)}
+              handleSelection={(section) => setAudioSettings({ loop: section })}
             />
           </div>
         </div>

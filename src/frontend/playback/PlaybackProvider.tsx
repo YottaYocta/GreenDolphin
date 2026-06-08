@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type { ReactNode } from "react";
 import { PlaybackContext } from "./PlaybackContext";
-import { type Section } from "../lib/waveform";
+import type { PlaybackSettings, PlaybackAction } from "./PlaybackContext";
 import { clampSection } from "../lib/util";
 import { SoundTouchNode } from "@soundtouchjs/audio-worklet";
 import soundTouchProcessorUrl from "@soundtouchjs/audio-worklet/processor?url";
@@ -15,6 +15,14 @@ export interface PlaybackProviderProps {
   children?: ReactNode;
 }
 
+const DEFAULT_SETTINGS: PlaybackSettings = {
+  pitchShift: 0,
+  playbackSpeed: 1,
+  gain: 1,
+  loopDelay: 0,
+  loop: undefined,
+};
+
 export const PlaybackProvider = ({
   children,
   context,
@@ -22,21 +30,16 @@ export const PlaybackProvider = ({
 }: PlaybackProviderProps) => {
   const [localData, setLocalData] = useState<AudioBuffer>(data);
   const [seekVersion, setSeekVersion] = useState(0);
-
-  const [loop, setLocalLoop] = useState<undefined | Section>();
-  const [loopDelay, setLoopDelay] = useState<number>(0);
-
-  const [pitchShift, setPitchShift] = useState<number>(0);
-  const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
-  const [gain, setGain] = useState<number>(1);
+  const [playbackSettings, setPlaybackSettings] =
+    useState<PlaybackSettings>(DEFAULT_SETTINGS);
   const [readyContext, setReadyContext] = useState<AudioContext | null>(null);
+
+  const { loop, loopDelay, playbackSpeed } = playbackSettings;
 
   const {
     playState,
     setPlayState,
     playbackPosition,
-    loopPauseStart,
-    loopPauseEnd,
     stopClock,
     cancelLoopDelay,
   } = usePlaybackClock({
@@ -57,42 +60,96 @@ export const PlaybackProvider = ({
   const { entryNode, analyserNode, frequencyData } = useAudioChain({
     context,
     workletReady: readyContext === context,
-    gain,
-    pitchShift,
+    gain: playbackSettings.gain,
+    pitchShift: playbackSettings.pitchShift,
     playbackSpeed,
     playState,
   });
 
-  const setPosition = useCallback(
-    (position: number) => {
-      cancelLoopDelay();
-      playbackPosition.current = Math.min(Math.max(0, position), data.length);
-      setSeekVersion((v) => v + 1);
+  const setAudioSettings = useCallback(
+    (settings: Partial<PlaybackSettings>) => {
+      setPlaybackSettings((prev) => {
+        const next = { ...prev, ...settings };
+        if (settings.loop !== undefined) {
+          const newLoop = settings.loop;
+          if (newLoop !== undefined) {
+            next.loop = clampSection(newLoop, { start: 0, end: data.length });
+          }
+        }
+        return next;
+      });
     },
-    [cancelLoopDelay, data.length, playbackPosition],
+    [data.length],
   );
 
-  const setLoop = useCallback(
-    (newLoop: Section | undefined) => {
-      if (newLoop !== undefined) {
-        const clampedSection = clampSection(newLoop, {
-          start: 0,
-          end: data.length,
-        });
-        setLocalLoop(clampedSection);
-      } else {
-        setLocalLoop(undefined);
+  const triggerAction = useCallback(
+    (action: PlaybackAction) => {
+      if (action === "play") {
+        setPlayState("playing");
+      } else if (action === "pause") {
+        setPlayState("paused");
+      } else if (action === "freeze") {
+        setPlayState("frozen");
+      } else if (action.type === "move") {
+        cancelLoopDelay();
+        playbackPosition.current = Math.min(
+          Math.max(0, action.position),
+          data.length,
+        );
+        setSeekVersion((v) => v + 1);
       }
     },
-    [data.length, data.sampleRate, setPosition],
+    [cancelLoopDelay, data.length, playbackPosition, setPlayState],
   );
+
+  const loopLength = loop
+    ? (loop.end - loop.start) / localData.sampleRate
+    : localData.duration;
+
+  // loopPosition: elapsed seconds from loop start.
+  // During the delay period, continues ticking past loopLength so consumers
+  // can compute delay progress as (loopPosition - loopLength) / loopDelay.
+  const loopPosition = useRef<number>(0);
+  const lastPlaybackPosRef = useRef<number>(-1);
+  const delayStartTimeRef = useRef<number | null>(null);
+  useEffect(() => {
+    let rafId: number;
+    const update = () => {
+      rafId = requestAnimationFrame(update);
+      const loopStartMS = loop
+        ? (loop.start / localData.sampleRate) * 1000
+        : 0;
+      const loopEndMS = loop
+        ? (loop.end / localData.sampleRate) * 1000
+        : localData.duration * 1000;
+      const currentPos = playbackPosition.current;
+
+      if (currentPos !== lastPlaybackPosRef.current) {
+        // Position is advancing — normal playback or seek
+        delayStartTimeRef.current = null;
+        lastPlaybackPosRef.current = currentPos;
+        loopPosition.current = (currentPos - loopStartMS) / 1000;
+      } else if (loopDelay > 0 && Math.abs(currentPos - loopEndMS) < 1) {
+        // Position stuck at loop end with a delay configured — we're in the delay period
+        if (delayStartTimeRef.current === null) {
+          delayStartTimeRef.current = performance.now();
+        }
+        loopPosition.current =
+          loopLength + (performance.now() - delayStartTimeRef.current) / 1000;
+      }
+    };
+    lastPlaybackPosRef.current = -1;
+    delayStartTimeRef.current = null;
+    rafId = requestAnimationFrame(update);
+    return () => cancelAnimationFrame(rafId);
+  }, [localData.sampleRate, localData.duration, loop, loopDelay, loopLength, playbackPosition]);
 
   useEffect(() => {
     stopClock();
     cancelLoopDelay();
     setPlayState("paused");
     setLocalData(data);
-    setLocalLoop(undefined);
+    setPlaybackSettings((prev) => ({ ...prev, loop: undefined }));
     playbackPosition.current = 0;
   }, [cancelLoopDelay, data, playbackPosition, setPlayState, stopClock]);
 
@@ -133,22 +190,13 @@ export const PlaybackProvider = ({
     <PlaybackContext.Provider
       value={{
         playState,
-        setPlayState,
         playbackPosition,
-        setPosition,
-        loop,
-        setLoop,
+        loopPosition,
+        loopLength,
+        playbackSettings,
+        setAudioSettings,
+        triggerAction,
         frequencyData,
-        pitchShift,
-        setPitchShift,
-        playbackSpeed,
-        setPlaybackSpeed,
-        gain,
-        setGain,
-        loopDelay,
-        setLoopDelay,
-        loopPauseStart,
-        loopPauseEnd,
         audioContext: context,
         analyserNode,
       }}

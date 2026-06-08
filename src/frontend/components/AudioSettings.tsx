@@ -6,53 +6,39 @@ import {
   type FC,
   type RefObject,
 } from "react";
-import { AudioStore } from "../AudioStore";
 import { PlaybackContext } from "../playback/PlaybackContext";
 import { useDrag } from "../lib/useDrag";
 
 export function AudioSettings() {
-  const { audio } = useContext(AudioStore);
-  if (!audio) throw new Error("AudioSettings must be rendered within an audio route");
-  const { buffer: data } = audio;
-
   const playback = useContext(PlaybackContext);
   if (!playback) throw new Error("AudioSettings must be used within a PlaybackProvider");
-  const {
-    pitchShift,
-    setPitchShift,
-    playbackSpeed,
-    setPlaybackSpeed,
-    setGain,
-    loop,
-    setLoopDelay,
-    loopPauseStart,
-    loopPauseEnd,
-  } = playback;
+  const { playbackSettings, setAudioSettings, loopLength, loopPosition } = playback;
+  const { pitchShift, playbackSpeed } = playbackSettings;
 
   const [renderedGain, setRenderedGain] = useState(1);
   useEffect(() => {
-    setGain(renderedGain * renderedGain);
-  }, [renderedGain, setGain]);
+    setAudioSettings({ gain: renderedGain * renderedGain });
+  }, [renderedGain, setAudioSettings]);
 
-  // delayRatio: fraction of the cycle that is recording (0.05–0.95).
+  // delayRatio: fraction of the cycle that is playing (0.05–0.95).
   // loopDelay seconds = loopDuration * (1 - ratio) / ratio
   const [delayRatio, setDelayRatio] = useState(0.5);
   useEffect(() => {
-    if (!loop) {
-      setLoopDelay(0);
+    if (!playbackSettings.loop) {
+      setAudioSettings({ loopDelay: 0 });
       return;
     }
-    const loopDurationS = (loop.end - loop.start) / data.sampleRate;
-    setLoopDelay((loopDurationS * (1 - delayRatio)) / delayRatio);
-  }, [loop, delayRatio, data.sampleRate, setLoopDelay]);
+    setAudioSettings({ loopDelay: (loopLength * (1 - delayRatio)) / delayRatio });
+  }, [playbackSettings.loop, delayRatio, loopLength, setAudioSettings]);
 
   return (
     <div className="flex flex-col items-end gap-3.25 flex-1">
       <LoopDelaySlider
         ratio={delayRatio}
         onChange={setDelayRatio}
-        pauseStart={loopPauseStart}
-        pauseEnd={loopPauseEnd}
+        loopPosition={loopPosition}
+        loopLength={loopLength}
+        loopDelay={playbackSettings.loopDelay}
       />
       <div className="flex flex-col justify-center self-stretch rounded-xl py-5 px-4 gap-4 shrink-0 [box-shadow:#0000000D_0px_2px_3px] bg-white border border-[#0000001A]">
         <AudioSlider
@@ -61,7 +47,7 @@ export function AudioSettings() {
           min={-10}
           max={10}
           step={0.2}
-          onChange={(v) => setPitchShift(Math.round(v * 10) / 10)}
+          onChange={(v) => setAudioSettings({ pitchShift: Math.round(v * 10) / 10 })}
           formatValue={(v) => `${v >= 0 ? "+" : ""}${Math.round(v * 10) / 10}`}
           unit="smt"
         />
@@ -71,7 +57,7 @@ export function AudioSettings() {
           min={0.1}
           max={1.9}
           step={0.1}
-          onChange={(v) => setPlaybackSpeed(Math.round(v * 10) / 10)}
+          onChange={(v) => setAudioSettings({ playbackSpeed: Math.round(v * 10) / 10 })}
           formatValue={(v) => `${Math.round(v * 100)}`}
           unit="%"
         />
@@ -95,9 +81,10 @@ export function AudioSettings() {
 const LoopDelaySlider: FC<{
   ratio: number;
   onChange: (ratio: number) => void;
-  pauseStart: RefObject<number | null>;
-  pauseEnd: RefObject<number | null>;
-}> = ({ ratio, onChange, pauseStart, pauseEnd }) => {
+  loopPosition: RefObject<number>;
+  loopLength: number;
+  loopDelay: number;
+}> = ({ ratio, onChange, loopPosition, loopLength, loopDelay }) => {
   const trackRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
 
@@ -118,21 +105,15 @@ const LoopDelaySlider: FC<{
       rafId = requestAnimationFrame(tick);
       const el = progressRef.current;
       if (!el) return;
-      const start = pauseStart.current;
-      const end = pauseEnd.current;
-      if (start === null || end === null) {
-        el.style.width = "0%";
-        return;
-      }
-      const fraction = Math.min(
-        1,
-        Math.max(0, (performance.now() - start) / (end - start)),
-      );
+      const excess = loopPosition.current - loopLength;
+      const fraction = loopDelay > 0
+        ? Math.min(1, Math.max(0, excess / loopDelay))
+        : 0;
       el.style.width = `${fraction * 100}%`;
     };
     rafId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafId);
-  }, [pauseStart, pauseEnd]);
+  }, [loopPosition, loopLength, loopDelay]);
 
   return (
     <div className="flex items-center h-9.5 px-3 self-stretch rounded-xl gap-3 shrink-0 [box-shadow:#0000000D_0px_2px_3px] bg-white border border-[#0000001A]">

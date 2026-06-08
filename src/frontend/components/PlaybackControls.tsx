@@ -4,36 +4,37 @@ import { PlaybackContext } from "../playback/PlaybackContext";
 export function PlaybackControls() {
   const playback = useContext(PlaybackContext);
   if (!playback) throw new Error("PlaybackControls must be used within a PlaybackProvider");
-  const { playbackPosition, playState, setPlayState, setPosition, loop } = playback;
+  const { playbackPosition, playState, triggerAction, playbackSettings } = playback;
+  const { loop } = playbackSettings;
 
   const rewindFiveSeconds = useCallback(() => {
-    setPosition(Math.max(0, playbackPosition.current - 5000));
-  }, [playbackPosition, setPosition]);
+    triggerAction({ type: "move", position: Math.max(0, playbackPosition.current - 5000) });
+  }, [playbackPosition, triggerAction]);
 
   const fastForwardFiveSeconds = useCallback(() => {
-    setPosition(Math.max(0, playbackPosition.current + 5000));
-  }, [playbackPosition, setPosition]);
+    triggerAction({ type: "move", position: Math.max(0, playbackPosition.current + 5000) });
+  }, [playbackPosition, triggerAction]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "0") {
         const currentStart = loop ? loop.start : 0;
-        setPosition(currentStart);
-        setPlayState("playing");
+        triggerAction({ type: "move", position: currentStart });
+        triggerAction("play");
       } else if (e.key === "p") {
         if (playState === "paused" || playState === "frozen") {
-          setPlayState("playing");
+          triggerAction("play");
         } else {
-          setPlayState("paused");
+          triggerAction("pause");
         }
       } else if (e.key === "f") {
-        if (playState === "frozen") setPlayState("paused");
-        else setPlayState("frozen");
+        if (playState === "frozen") triggerAction("pause");
+        else triggerAction("freeze");
       }
     };
     window.addEventListener("keypress", handleKey);
     return () => window.removeEventListener("keypress", handleKey);
-  }, [loop, playState, setPlayState, setPosition]);
+  }, [loop, playState, triggerAction]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -51,8 +52,8 @@ export function PlaybackControls() {
         <button
           onClick={() =>
             playState === "playing"
-              ? setPlayState("paused")
-              : setPlayState("playing")
+              ? triggerAction("pause")
+              : triggerAction("play")
           }
           className={`btn-surface p-3.25 flex-1 self-stretch cursor-pointer ${playState === "playing" ? "bg-[#1CCA93] hover:bg-[#3DD4A3] active:bg-[#17A87A] [box-shadow:#FFFFFF40_0px_0px_4px_1px_inset,#0000000D_0px_2px_3px]" : ""}`}
         >
@@ -88,8 +89,8 @@ export function PlaybackControls() {
         <button
           onClick={() =>
             playState === "frozen"
-              ? setPlayState("paused")
-              : setPlayState("frozen")
+              ? triggerAction("pause")
+              : triggerAction("freeze")
           }
           className={`btn-surface p-3.25 flex-1 self-stretch cursor-pointer ${playState === "frozen" ? "bg-[#0099DC] hover:bg-[#33ADDE] active:bg-[#007AB0] [box-shadow:#FFFFFF40_0px_0px_4px_1px_inset,#0000000D_0px_2px_3px]" : ""}`}
         >
