@@ -24,6 +24,7 @@ export interface PlaybackContextType {
   loopPosition: RefObject<number>;
   loopLength: number;
   playState: PlayState;
+  lastStartPosition: number;
   playbackSettings: PlaybackSettings;
   setAudioSettings: (settings: Partial<PlaybackSettings>) => void;
   triggerAction: (action: PlaybackAction) => void;

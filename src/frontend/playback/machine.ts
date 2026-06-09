@@ -7,6 +7,7 @@ export interface MachineContext {
   duration: number;
   loop: Section | undefined;
   loopDelay: number;
+  currentPositionMS: number;
 }
 
 export type UserEvent =
@@ -46,8 +47,14 @@ export function reduce(
         case "playing":
           return { nextState: "paused" };
         case "frozen":
-        case "paused":
+        case "paused": {
+          const pos = ctx.currentPositionMS;
+          if (pos >= endMS)
+            return { nextState: hasDelay ? "waiting" : "playing", nextPositionMS: startMS };
+          if (pos < startMS)
+            return { nextState: "playing", nextPositionMS: startMS };
           return { nextState: "playing" };
+        }
         case "waiting":
           return { nextState: "paused", nextPositionMS: startMS };
       }
@@ -94,7 +101,7 @@ export function reduce(
         case "paused":
         case "frozen":
         case "waiting":
-          throw "Should not be possible to reach end in these states. Something has gone wrong";
+          throw new Error(`reach-end fired in state "${state}" — rAF should not be running here. ctx: ${JSON.stringify(ctx)}`);
       }
       break;
     case "delay-end":
@@ -102,7 +109,7 @@ export function reduce(
         case "playing":
         case "paused":
         case "frozen":
-          throw "Shoud not be possible to reach delay end in these states. Something has gone wrong";
+          throw new Error(`delay-end fired in state "${state}" — timer should not be running here. ctx: ${JSON.stringify(ctx)}`);
         case "waiting":
           return { nextState: "playing", nextPositionMS: startMS };
       }

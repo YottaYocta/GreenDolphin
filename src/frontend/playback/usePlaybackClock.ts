@@ -18,6 +18,7 @@ export interface PlaybackClockResult {
   playState: PlayState;
   lastStartPosition: number;
   playbackPosition: RefObject<number>;
+  timerStartedAt: RefObject<number | null>;
   dispatch: (event: UserEvent) => void;
   reset: () => void;
 }
@@ -38,6 +39,7 @@ export function usePlaybackClock({
   const lastTimeStamp = useRef<number>(0);
   const rafRef = useRef<number | undefined>(undefined);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timerStartedAt = useRef<number | null>(null);
 
   const stopPlaying = useCallback(() => {
     if (rafRef.current !== undefined) {
@@ -51,6 +53,7 @@ export function usePlaybackClock({
       clearTimeout(timerRef.current);
       timerRef.current = null;
     }
+    timerStartedAt.current = null;
   }, []);
 
   const tick = useCallback(
@@ -85,6 +88,7 @@ export function usePlaybackClock({
 
   const startTimer = useCallback(
     (onDelayEnd: () => void) => {
+      timerStartedAt.current = performance.now();
       timerRef.current = setTimeout(() => {
         timerRef.current = null;
         onDelayEnd();
@@ -92,6 +96,11 @@ export function usePlaybackClock({
     },
     [loopDelay],
   );
+
+  const dispatchRef = useRef<(event: ClockEvent) => void>(null!);
+
+  const onEnd = useCallback(() => dispatchRef.current({ type: "reach-end" }), []);
+  const onDelayEnd = useCallback(() => dispatchRef.current({ type: "delay-end" }), []);
 
   const applyTransition = useApplyTransition({
     playState,
@@ -105,8 +114,8 @@ export function usePlaybackClock({
     startTimer,
     cancelTimer,
     setPlayState,
-    onEnd: () => dispatch({ type: "reach-end" }),
-    onDelayEnd: () => dispatch({ type: "delay-end" }),
+    onEnd,
+    onDelayEnd,
   });
 
   const dispatch = useCallback(
@@ -117,7 +126,9 @@ export function usePlaybackClock({
         duration,
         loop,
         loopDelay,
+        currentPositionMS: playbackPosition.current,
       });
+      console.log(result);
       if (result.nextPositionMS !== undefined)
         setLastStartPosition(result.nextPositionMS);
       applyTransition(result);
@@ -133,6 +144,8 @@ export function usePlaybackClock({
     ],
   );
 
+  dispatchRef.current = dispatch;
+
   const reset = useCallback(() => {
     stopPlaying();
     cancelTimer();
@@ -140,5 +153,12 @@ export function usePlaybackClock({
     setPlayState("paused");
   }, [stopPlaying, cancelTimer, setPlayState]);
 
-  return { playState, playbackPosition, dispatch, reset, lastStartPosition };
+  return {
+    playState,
+    playbackPosition,
+    timerStartedAt,
+    dispatch,
+    reset,
+    lastStartPosition,
+  };
 }

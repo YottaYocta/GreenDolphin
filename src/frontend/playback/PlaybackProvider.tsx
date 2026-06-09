@@ -36,7 +36,7 @@ export const PlaybackProvider = ({
 
   const { loop, loopDelay, playbackSpeed } = playbackSettings;
 
-  const { playState, playbackPosition, dispatch, reset } = usePlaybackClock({
+  const { playState, playbackPosition, timerStartedAt, dispatch, reset, lastStartPosition } = usePlaybackClock({
     sampleRate: localData.sampleRate,
     duration: localData.duration,
     loop,
@@ -95,7 +95,6 @@ export const PlaybackProvider = ({
     : localData.duration;
 
   const loopPosition = useRef<number>(0);
-  const delayStartTimeRef = useRef<number | null>(null);
 
   useEffect(() => {
     const loopStartMS = loop ? (loop.start / localData.sampleRate) * 1000 : 0;
@@ -103,26 +102,25 @@ export const PlaybackProvider = ({
     const update = () => {
       rafId = requestAnimationFrame(update);
       if (playState === "waiting") {
-        if (delayStartTimeRef.current === null) {
-          delayStartTimeRef.current = performance.now();
-        }
-        loopPosition.current =
-          loopLength + (performance.now() - delayStartTimeRef.current) / 1000;
+        const startedAt = timerStartedAt.current ?? performance.now();
+        loopPosition.current = loopLength + (performance.now() - startedAt) / 1000;
       } else {
-        delayStartTimeRef.current = null;
         loopPosition.current = (playbackPosition.current - loopStartMS) / 1000;
       }
     };
-    delayStartTimeRef.current = null;
     rafId = requestAnimationFrame(update);
     return () => cancelAnimationFrame(rafId);
-  }, [localData.sampleRate, loop, loopLength, playbackPosition, playState]);
+  }, [localData.sampleRate, loop, loopLength, playbackPosition, playState, timerStartedAt]);
 
   useEffect(() => {
     reset();
     setLocalData(data);
     setPlaybackSettings((prev) => ({ ...prev, loop: undefined }));
   }, [data, reset]);
+
+  useEffect(() => {
+    reset();
+  }, [loop, loopDelay, playbackSpeed, reset]);
 
   useEffect(() => {
     if (!entryNode || playState === "paused" || playState === "waiting") return;
@@ -163,6 +161,7 @@ export const PlaybackProvider = ({
     <PlaybackContext.Provider
       value={{
         playState,
+        lastStartPosition,
         playbackPosition,
         loopPosition,
         loopLength,
