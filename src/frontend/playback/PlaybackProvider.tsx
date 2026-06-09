@@ -142,7 +142,9 @@ export const PlaybackProvider = ({
       node.onended = null;
       try {
         node.stop();
-      } catch {}
+      } catch (e) {
+        console.error(e);
+      }
       node.disconnect();
     };
   }, [

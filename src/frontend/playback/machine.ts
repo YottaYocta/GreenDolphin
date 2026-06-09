@@ -14,7 +14,7 @@ export type UserEvent =
   | { type: "freeze" }
   | { type: "move"; positionMS: number };
 
-type InternalEvent = { type: "reach-end" } | { type: "delay-end" };
+export type InternalEvent = { type: "reach-end" } | { type: "delay-end" };
 
 export type ClockEvent = UserEvent | InternalEvent;
 
@@ -44,36 +44,46 @@ export function reduce(
     case "play-pause":
       switch (state) {
         case "playing":
-        case "frozen":
           return { nextState: "paused" };
+        case "frozen":
         case "paused":
           return { nextState: "playing" };
         case "waiting":
           return { nextState: "paused", nextPositionMS: startMS };
       }
+      break;
     case "freeze":
       switch (state) {
         case "frozen":
           return { nextState: "paused" };
-        default:
+        case "playing":
+        case "paused":
+        case "waiting":
           return { nextState: "frozen" };
       }
-    case "move": {
-      const pos = Math.max(0, Math.min(event.positionMS, ctx.duration * 1000));
+      break;
+    case "move":
+      {
+        const pos = Math.max(
+          0,
+          Math.min(event.positionMS, ctx.duration * 1000),
+        );
 
-      switch (state) {
-        case "frozen":
-        case "paused":
-          return { nextState: "frozen", nextPositionMS: pos };
-        case "playing":
-        case "waiting":
-          if (pos >= startMS && pos < endMS)
-            return { nextState: "playing", nextPositionMS: pos };
-          else if (pos < startMS)
-            return { nextState: "playing", nextPositionMS: startMS };
-          else return { nextState: "waiting", nextPositionMS: startMS };
+        switch (state) {
+          case "frozen":
+            return { nextState: "frozen", nextPositionMS: pos };
+          case "paused":
+            return { nextState: "paused", nextPositionMS: pos };
+          case "playing":
+          case "waiting":
+            if (pos >= startMS && pos < endMS)
+              return { nextState: "playing", nextPositionMS: pos };
+            else if (pos < startMS)
+              return { nextState: "playing", nextPositionMS: startMS };
+            else return { nextState: "waiting", nextPositionMS: startMS };
+        }
       }
-    }
+      break;
     case "reach-end":
       switch (state) {
         case "playing":
@@ -86,7 +96,7 @@ export function reduce(
         case "waiting":
           throw "Should not be possible to reach end in these states. Something has gone wrong";
       }
-
+      break;
     case "delay-end":
       switch (state) {
         case "playing":
