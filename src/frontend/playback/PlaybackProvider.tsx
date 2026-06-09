@@ -36,13 +36,7 @@ export const PlaybackProvider = ({
 
   const { loop, loopDelay, playbackSpeed } = playbackSettings;
 
-  const {
-    playState,
-    setPlayState,
-    playbackPosition,
-    stopClock,
-    cancelLoopDelay,
-  } = usePlaybackClock({
+  const { playState, playbackPosition, dispatch, reset } = usePlaybackClock({
     sampleRate: localData.sampleRate,
     duration: localData.duration,
     loop,
@@ -84,77 +78,54 @@ export const PlaybackProvider = ({
 
   const triggerAction = useCallback(
     (action: PlaybackAction) => {
-      if (action === "play") {
-        setPlayState("playing");
-      } else if (action === "pause") {
-        setPlayState("paused");
+      if (action === "play" || action === "pause") {
+        dispatch({ type: "play-pause" });
       } else if (action === "freeze") {
-        setPlayState("frozen");
+        dispatch({ type: "freeze" });
       } else if (action.type === "move") {
-        cancelLoopDelay();
-        playbackPosition.current = Math.min(
-          Math.max(0, action.position),
-          data.length,
-        );
+        dispatch({ type: "move", positionMS: Math.max(0, action.position) });
         setSeekVersion((v) => v + 1);
       }
     },
-    [cancelLoopDelay, data.length, playbackPosition, setPlayState],
+    [dispatch],
   );
 
   const loopLength = loop
     ? (loop.end - loop.start) / localData.sampleRate
     : localData.duration;
 
-  // loopPosition: elapsed seconds from loop start.
-  // During the delay period, continues ticking past loopLength so consumers
-  // can compute delay progress as (loopPosition - loopLength) / loopDelay.
   const loopPosition = useRef<number>(0);
-  const lastPlaybackPosRef = useRef<number>(-1);
   const delayStartTimeRef = useRef<number | null>(null);
+
   useEffect(() => {
+    const loopStartMS = loop ? (loop.start / localData.sampleRate) * 1000 : 0;
     let rafId: number;
     const update = () => {
       rafId = requestAnimationFrame(update);
-      const loopStartMS = loop
-        ? (loop.start / localData.sampleRate) * 1000
-        : 0;
-      const loopEndMS = loop
-        ? (loop.end / localData.sampleRate) * 1000
-        : localData.duration * 1000;
-      const currentPos = playbackPosition.current;
-
-      if (currentPos !== lastPlaybackPosRef.current) {
-        // Position is advancing — normal playback or seek
-        delayStartTimeRef.current = null;
-        lastPlaybackPosRef.current = currentPos;
-        loopPosition.current = (currentPos - loopStartMS) / 1000;
-      } else if (loopDelay > 0 && Math.abs(currentPos - loopEndMS) < 1) {
-        // Position stuck at loop end with a delay configured — we're in the delay period
+      if (playState === "waiting") {
         if (delayStartTimeRef.current === null) {
           delayStartTimeRef.current = performance.now();
         }
         loopPosition.current =
           loopLength + (performance.now() - delayStartTimeRef.current) / 1000;
+      } else {
+        delayStartTimeRef.current = null;
+        loopPosition.current = (playbackPosition.current - loopStartMS) / 1000;
       }
     };
-    lastPlaybackPosRef.current = -1;
     delayStartTimeRef.current = null;
     rafId = requestAnimationFrame(update);
     return () => cancelAnimationFrame(rafId);
-  }, [localData.sampleRate, localData.duration, loop, loopDelay, loopLength, playbackPosition]);
+  }, [localData.sampleRate, loop, loopLength, playbackPosition, playState]);
 
   useEffect(() => {
-    stopClock();
-    cancelLoopDelay();
-    setPlayState("paused");
+    reset();
     setLocalData(data);
     setPlaybackSettings((prev) => ({ ...prev, loop: undefined }));
-    playbackPosition.current = 0;
-  }, [cancelLoopDelay, data, playbackPosition, setPlayState, stopClock]);
+  }, [data, reset]);
 
   useEffect(() => {
-    if (!entryNode || playState === "paused") return;
+    if (!entryNode || playState === "paused" || playState === "waiting") return;
 
     const node = buildSourceNode({
       context,
