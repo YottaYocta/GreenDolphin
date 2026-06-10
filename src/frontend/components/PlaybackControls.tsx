@@ -56,16 +56,15 @@ export function PlaybackControls() {
   return (
     <div className="flex overflow-clip items-start gap-4 flex-col p-4 rounded-xl flex-1 [box-shadow:#0000000D_0px_2px_3px] bg-white border border-solid border-[#0000001A]">
       <div className="flex items-start gap-4 flex-1 self-stretch">
-        {/* Play / Pause */}
         <button
           onClick={() =>
-            playState === "playing"
+            playState === "playing" || playState === "waiting"
               ? triggerAction("pause")
               : triggerAction("play")
           }
-          className={`btn-surface p-3.25 flex-1 self-stretch cursor-pointer ${playState === "playing" ? "bg-[#1CCA93] hover:bg-[#3DD4A3] active:bg-[#17A87A] [box-shadow:#FFFFFF40_0px_0px_4px_1px_inset,#0000000D_0px_2px_3px]" : ""}`}
+          className={`btn-surface p-3.25 flex-1 self-stretch cursor-pointer ${playState === "playing" || playState === "waiting" ? "bg-[#1CCA93] hover:bg-[#3DD4A3] active:bg-[#17A87A] [box-shadow:#FFFFFF40_0px_0px_4px_1px_inset,#0000000D_0px_2px_3px]" : ""}`}
         >
-          {playState === "playing" ? (
+          {playState === "playing" || playState === "waiting" ? (
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="32"
