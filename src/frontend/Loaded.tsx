@@ -334,7 +334,7 @@ export const Loaded = () => {
         </div>
 
         {/* Controls */}
-        <div className="[font-synthesis:none] flex items-stretch gap-7 self-stretch antialiased max-md:flex-col">
+        <div className="[font-synthesis:none] flex items-stretch gap-7 self-stretch antialiased max-md:flex-col-reverse">
           <PlaybackControls />
           <AudioSettings />
         </div>

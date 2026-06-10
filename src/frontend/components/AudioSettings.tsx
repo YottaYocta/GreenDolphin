@@ -11,8 +11,10 @@ import { useDrag } from "../lib/useDrag";
 
 export function AudioSettings() {
   const playback = useContext(PlaybackContext);
-  if (!playback) throw new Error("AudioSettings must be used within a PlaybackProvider");
-  const { playbackSettings, setAudioSettings, loopLength, loopPosition } = playback;
+  if (!playback)
+    throw new Error("AudioSettings must be used within a PlaybackProvider");
+  const { playbackSettings, setAudioSettings, loopLength, loopPosition } =
+    playback;
   const { pitchShift, playbackSpeed } = playbackSettings;
 
   const [renderedGain, setRenderedGain] = useState(1);
@@ -28,7 +30,9 @@ export function AudioSettings() {
       setAudioSettings({ loopDelay: 0 });
       return;
     }
-    setAudioSettings({ loopDelay: (loopLength * (1 - delayRatio)) / delayRatio });
+    setAudioSettings({
+      loopDelay: (loopLength * (1 - delayRatio)) / delayRatio,
+    });
   }, [playbackSettings.loop, delayRatio, loopLength, setAudioSettings]);
 
   return (
@@ -47,7 +51,9 @@ export function AudioSettings() {
           min={-10}
           max={10}
           step={0.2}
-          onChange={(v) => setAudioSettings({ pitchShift: Math.round(v * 10) / 10 })}
+          onChange={(v) =>
+            setAudioSettings({ pitchShift: Math.round(v * 10) / 10 })
+          }
           formatValue={(v) => `${v >= 0 ? "+" : ""}${Math.round(v * 10) / 10}`}
           unit="smt"
         />
@@ -57,7 +63,9 @@ export function AudioSettings() {
           min={0.1}
           max={1.9}
           step={0.1}
-          onChange={(v) => setAudioSettings({ playbackSpeed: Math.round(v * 10) / 10 })}
+          onChange={(v) =>
+            setAudioSettings({ playbackSpeed: Math.round(v * 10) / 10 })
+          }
           formatValue={(v) => `${Math.round(v * 100)}`}
           unit="%"
         />
@@ -75,8 +83,6 @@ export function AudioSettings() {
     </div>
   );
 }
-
-// ─── Loop Delay Slider ────────────────────────────────────────────────────────
 
 const LoopDelaySlider: FC<{
   ratio: number;
@@ -106,9 +112,8 @@ const LoopDelaySlider: FC<{
       const el = progressRef.current;
       if (!el) return;
       const excess = loopPosition.current - loopLength;
-      const fraction = loopDelay > 0
-        ? Math.min(1, Math.max(0, excess / loopDelay))
-        : 0;
+      const fraction =
+        loopDelay > 0 ? Math.min(1, Math.max(0, excess / loopDelay)) : 0;
       el.style.width = `${fraction * 100}%`;
     };
     rafId = requestAnimationFrame(tick);
@@ -158,8 +163,6 @@ const LoopDelaySlider: FC<{
     </div>
   );
 };
-
-// ─── Audio Slider (Pitch / Speed / Volume) ────────────────────────────────────
 
 const AudioSlider: FC<{
   label: string;
