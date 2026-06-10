@@ -36,7 +36,7 @@ export const PlaybackProvider = ({
 
   const { loop, loopDelay, playbackSpeed } = playbackSettings;
 
-  const { playState, playbackPosition, timerStartedAt, dispatch, reset, lastStartPosition } = usePlaybackClock({
+  const { playState, playbackPosition, timerStartedAtMS, dispatch, reset, lastStartPosition } = usePlaybackClock({
     sampleRate: localData.sampleRate,
     duration: localData.duration,
     loop,
@@ -102,7 +102,7 @@ export const PlaybackProvider = ({
     const update = () => {
       rafId = requestAnimationFrame(update);
       if (playState === "waiting") {
-        const startedAt = timerStartedAt.current ?? performance.now();
+        const startedAt = timerStartedAtMS ?? performance.now();
         loopPosition.current = loopLength + (performance.now() - startedAt) / 1000;
       } else {
         loopPosition.current = (playbackPosition.current - loopStartMS) / 1000;
@@ -110,7 +110,7 @@ export const PlaybackProvider = ({
     };
     rafId = requestAnimationFrame(update);
     return () => cancelAnimationFrame(rafId);
-  }, [localData.sampleRate, loop, loopLength, playbackPosition, playState, timerStartedAt]);
+  }, [localData.sampleRate, loop, loopLength, playbackPosition, playState, timerStartedAtMS]);
 
   useEffect(() => {
     reset();

@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import type { RefObject } from "react";
 import type { Section } from "../lib/waveform";
 import type { PlayState } from "./PlaybackContext";
@@ -18,7 +18,7 @@ export interface PlaybackClockResult {
   playState: PlayState;
   lastStartPosition: number;
   playbackPosition: RefObject<number>;
-  timerStartedAt: RefObject<number | null>;
+  timerStartedAtMS: number | null;
   dispatch: (event: UserEvent) => void;
   reset: () => void;
 }
@@ -36,91 +36,28 @@ export function usePlaybackClock({
   );
 
   const playbackPosition = useRef<number>(0);
-  const lastTimeStamp = useRef<number>(0);
-  const rafRef = useRef<number | undefined>(undefined);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const timerStartedAt = useRef<number | null>(null);
+  const [playbackStartTimestamp, setPlaybackStartTimestamp] = useState<
+    number | null
+  >(null);
+  const [timerStartedAtMS, setTimerStartedAtMS] = useState<number | null>(null);
 
-  const stopPlaying = useCallback(() => {
-    if (rafRef.current !== undefined) {
-      cancelAnimationFrame(rafRef.current);
-      rafRef.current = undefined;
-    }
-  }, []);
-
-  const cancelTimer = useCallback(() => {
-    if (timerRef.current !== null) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-    timerStartedAt.current = null;
-  }, []);
-
-  const tick = useCallback(
-    (onEnd: () => void) => {
-      const now = performance.now();
-      const startMS = loop ? computeMS(sampleRate, loop.start) : 0;
-      const endMS = loop ? computeMS(sampleRate, loop.end) : duration * 1000;
-
-      const next =
-        playbackPosition.current +
-        (now - lastTimeStamp.current) * playbackSpeed;
-      lastTimeStamp.current = now;
-
-      if (next >= endMS) {
-        onEnd();
-        return;
-      }
-
-      playbackPosition.current = Math.max(startMS, next);
-      rafRef.current = requestAnimationFrame(() => tick(onEnd));
-    },
-    [sampleRate, duration, loop, playbackSpeed],
-  );
-
-  const startPlaying = useCallback(
-    (onEnd: () => void) => {
-      lastTimeStamp.current = performance.now();
-      rafRef.current = requestAnimationFrame(() => tick(onEnd));
-    },
-    [tick],
-  );
-
-  const startTimer = useCallback(
-    (onDelayEnd: () => void) => {
-      timerStartedAt.current = performance.now();
-      timerRef.current = setTimeout(() => {
-        timerRef.current = null;
-        onDelayEnd();
-      }, loopDelay * 1000);
-    },
-    [loopDelay],
-  );
-
-  const dispatchRef = useRef<(event: ClockEvent) => void>(null!);
-
-  const onEnd = useCallback(() => dispatchRef.current({ type: "reach-end" }), []);
-  const onDelayEnd = useCallback(() => dispatchRef.current({ type: "delay-end" }), []);
+  const startPlaying = useCallback(() => setPlaybackStartTimestamp(performance.now()), []);
+  const stopPlaying = useCallback(() => setPlaybackStartTimestamp(null), []);
+  const startTimer = useCallback(() => setTimerStartedAtMS(performance.now()), []);
+  const cancelTimer = useCallback(() => setTimerStartedAtMS(null), []);
 
   const applyTransition = useApplyTransition({
     playState,
-    sampleRate,
-    duration,
-    loop,
-    loopDelay,
     playbackPosition,
     startPlaying,
     stopPlaying,
     startTimer,
     cancelTimer,
-    setPlayState,
-    onEnd,
-    onDelayEnd,
   });
 
   const dispatch = useCallback(
     (event: ClockEvent) => {
-      cancelTimer();
+      setTimerStartedAtMS(null);
       const result = reduce(playState, event, {
         sampleRate,
         duration,
@@ -131,32 +68,52 @@ export function usePlaybackClock({
       console.log(result);
       if (result.nextPositionMS !== undefined)
         setLastStartPosition(result.nextPositionMS);
+      setPlayState(result.nextState);
       applyTransition(result);
     },
-    [
-      playState,
-      sampleRate,
-      duration,
-      loop,
-      loopDelay,
-      cancelTimer,
-      applyTransition,
-    ],
+    [playState, sampleRate, duration, loop, loopDelay, applyTransition],
   );
 
-  dispatchRef.current = dispatch;
+  useEffect(() => {
+    if (playbackStartTimestamp === null) return;
+    let lastTs = performance.now();
+    let rafId: number;
+    const tick = () => {
+      const now = performance.now();
+      const startMS = loop ? computeMS(sampleRate, loop.start) : 0;
+      const endMS = loop ? computeMS(sampleRate, loop.end) : duration * 1000;
+      const next = playbackPosition.current + (now - lastTs) * playbackSpeed;
+      lastTs = now;
+      if (next >= endMS) {
+        dispatch({ type: "reach-end" });
+        return;
+      }
+      playbackPosition.current = Math.max(startMS, next);
+      rafId = requestAnimationFrame(tick);
+    };
+    rafId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafId);
+  }, [playbackStartTimestamp, sampleRate, duration, loop, playbackSpeed, dispatch]);
+
+  useEffect(() => {
+    if (timerStartedAtMS === null) return;
+    const id = setTimeout(() => {
+      dispatch({ type: "delay-end" });
+    }, loopDelay * 1000);
+    return () => clearTimeout(id);
+  }, [timerStartedAtMS, loopDelay, dispatch]);
 
   const reset = useCallback(() => {
-    stopPlaying();
-    cancelTimer();
+    setPlaybackStartTimestamp(null);
+    setTimerStartedAtMS(null);
     playbackPosition.current = 0;
     setPlayState("paused");
-  }, [stopPlaying, cancelTimer, setPlayState]);
+  }, []);
 
   return {
     playState,
     playbackPosition,
-    timerStartedAt,
+    timerStartedAtMS,
     dispatch,
     reset,
     lastStartPosition,

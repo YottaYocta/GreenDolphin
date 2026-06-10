@@ -79,7 +79,7 @@ export const Loaded = () => {
     throw new Error("Loaded must be used within a PlaybackProvider");
   }
 
-  const { playbackPosition, playState, lastStartPosition, triggerAction, playbackSettings, setAudioSettings } = playback;
+  const { playbackPosition, playState, triggerAction, playbackSettings, setAudioSettings } = playback;
   const { loop } = playbackSettings;
 
   const handlePosition = (sampleIndex: number) => {

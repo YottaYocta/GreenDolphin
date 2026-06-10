@@ -1,23 +1,15 @@
 import { useCallback } from "react";
 import type { RefObject } from "react";
-import type { Section } from "../lib/waveform";
 import type { PlayState } from "./PlaybackContext";
 import type { Transition } from "./machine";
 
 export interface UseApplyTransitionProps {
   playState: PlayState;
-  sampleRate: number;
-  duration: number;
-  loop: Section | undefined;
-  loopDelay: number;
   playbackPosition: RefObject<number>;
-  startPlaying: (onEnd: () => void) => void;
+  startPlaying: () => void;
   stopPlaying: () => void;
-  startTimer: (onDelayEnd: () => void) => void;
+  startTimer: () => void;
   cancelTimer: () => void;
-  setPlayState: (s: PlayState) => void;
-  onEnd: () => void;
-  onDelayEnd: () => void;
 }
 
 export function useApplyTransition({
@@ -27,9 +19,6 @@ export function useApplyTransition({
   stopPlaying,
   startTimer,
   cancelTimer,
-  setPlayState,
-  onEnd,
-  onDelayEnd,
 }: UseApplyTransitionProps): (t: Transition) => void {
   return useCallback(
     (t: Transition) => {
@@ -39,20 +28,19 @@ export function useApplyTransition({
 
       const prev = playState;
       const next = t.nextState;
-      setPlayState(next);
 
       switch (prev) {
         case "playing":
           stopPlaying();
           switch (next) {
             case "playing":
-              startPlaying(onEnd);
+              startPlaying();
               break;
             case "paused":
             case "frozen":
               break;
             case "waiting":
-              startTimer(onDelayEnd);
+              startTimer();
               break;
           }
           break;
@@ -61,13 +49,13 @@ export function useApplyTransition({
         case "frozen":
           switch (next) {
             case "playing":
-              startPlaying(onEnd);
+              startPlaying();
               break;
             case "paused":
             case "frozen":
               break;
             case "waiting":
-              startTimer(onDelayEnd);
+              startTimer();
               break;
           }
           break;
@@ -76,13 +64,13 @@ export function useApplyTransition({
           cancelTimer();
           switch (next) {
             case "playing":
-              startPlaying(onEnd);
+              startPlaying();
               break;
             case "paused":
             case "frozen":
               break;
             case "waiting":
-              startTimer(onDelayEnd);
+              startTimer();
               break;
           }
           break;
@@ -95,9 +83,6 @@ export function useApplyTransition({
       stopPlaying,
       startTimer,
       cancelTimer,
-      setPlayState,
-      onEnd,
-      onDelayEnd,
     ],
   );
 }
