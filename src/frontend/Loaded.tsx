@@ -1,10 +1,4 @@
-import {
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-  type FC,
-} from "react";
+import { useContext, useEffect, useRef, useState, type FC } from "react";
 import { useNavigate } from "react-router";
 import { Menu } from "@base-ui/react/menu";
 import { Dialog } from "@base-ui/react/dialog";
@@ -79,7 +73,13 @@ export const Loaded = () => {
     throw new Error("Loaded must be used within a PlaybackProvider");
   }
 
-  const { playbackPosition, playState, triggerAction, playbackSettings, setAudioSettings } = playback;
+  const {
+    playbackPosition,
+    playState,
+    triggerAction,
+    playbackSettings,
+    setAudioSettings,
+  } = playback;
   const { loop } = playbackSettings;
 
   const handlePosition = (sampleIndex: number) => {
@@ -334,7 +334,7 @@ export const Loaded = () => {
         </div>
 
         {/* Controls */}
-        <div className="[font-synthesis:none] flex items-stretch gap-7 self-stretch antialiased">
+        <div className="[font-synthesis:none] flex items-stretch gap-7 self-stretch antialiased max-md:flex-col">
           <PlaybackControls />
           <AudioSettings />
         </div>

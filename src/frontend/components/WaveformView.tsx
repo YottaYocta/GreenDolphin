@@ -262,58 +262,6 @@ export const WaveformView: FC<WaveformViewProps> = ({
             </svg>
           </button>
         </div>
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={handleScrollLeft}
-            title="Scroll left (H)"
-            aria-label="scroll left"
-            className="cursor-pointer hover:opacity-70"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="32"
-              height="32"
-              viewBox="0 0 256 256"
-              style={{
-                width: 20,
-                height: 20,
-                overflow: "visible",
-                flexShrink: 0,
-              }}
-            >
-              <path
-                d="M48,40V216a8,8,0,0,1-16,0V40a8,8,0,0,1,16,0Zm176,80H152V56a8,8,0,0,0-13.66-5.66l-72,72a8,8,0,0,0,0,11.32l72,72A8,8,0,0,0,152,200V136h72a8,8,0,0,0,0-16Z"
-                fill="#525252"
-              />
-            </svg>
-          </button>
-          <button
-            onClick={handleScrollRight}
-            title="Scroll right (L)"
-            aria-label="scroll right"
-            className="cursor-pointer hover:opacity-70"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="32"
-              height="32"
-              viewBox="0 0 256 256"
-              style={{
-                width: 20,
-                height: 20,
-                rotate: "180deg",
-                overflow: "visible",
-                flexShrink: 0,
-                transformOrigin: "50% 50%",
-              }}
-            >
-              <path
-                d="M48,40V216a8,8,0,0,1-16,0V40a8,8,0,0,1,16,0Zm176,80H152V56a8,8,0,0,0-13.66-5.66l-72,72a8,8,0,0,0,0,11.32l72,72A8,8,0,0,0,152,200V136h72a8,8,0,0,0,0-16Z"
-                fill="#525252"
-              />
-            </svg>
-          </button>
-        </div>
       </div>
 
       {/* left: clear + shift selection (only when section selected) */}
