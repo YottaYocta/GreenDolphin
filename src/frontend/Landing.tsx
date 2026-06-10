@@ -80,7 +80,7 @@ function RecordingRow({
   return (
     <article
       data-loading={isLoading}
-      className="group flex items-center gap-6 w-full rounded-lg p-4 bg-white cursor-pointer"
+      className="group flex items-center gap-6 w-full rounded-lg p-4 bg-white cursor-pointer max-md:flex-col max-md:items-start"
       onClick={handlePlay}
     >
       <div className="w-15 h-15 flex overflow-clip rounded-sm items-center justify-center [box-shadow:#FFFFFF_0px_2px_3px_1px_inset,#0000000D_0px_2px_3px] bg-[#fafafa] border border-[#0000001A] transition-transform duration-150 hover:rotate-4 origin-center">
@@ -88,15 +88,15 @@ function RecordingRow({
       </div>
 
       <div className="flex-1 min-w-0 flex flex-col gap-1.5">
-        <span className="font-inria font-bold text-black text-base/5 truncate">
+        <span className="font-inria font-bold text-black text-base/5 max-md:wrap-break-word max-md:max-w-full md:truncate">
           {file.name}
         </span>
-        <span className="opacity-50 font-inria text-black text-base/5">
+        <span className="opacity-50 font-inria text-black text-base/5 max-w-full">
           {formatSize(file.size)}
         </span>
       </div>
 
-      <div className="flex-1 min-w-0 flex flex-col gap-1.5 pl-6">
+      <div className="flex-1 min-w-0 flex flex-col gap-1.5 pl-6 max-md:pl-0">
         <span className="font-inria font-bold text-black text-base/5">
           {uploadedAt != null ? relativeDate(uploadedAt) : ""}
         </span>
@@ -117,7 +117,7 @@ function RecordingRow({
           e.stopPropagation();
           handlePlay();
         }}
-        className="btn-surface w-41.5 h-12 shrink-0 opacity-0 group-hover:opacity-100 group-data-[loading=true]:opacity-100 disabled:cursor-default transition-opacity duration-100"
+        className="btn-surface w-41.5 h-12 shrink-0 opacity-0 group-hover:opacity-100 group-data-[loading=true]:opacity-100 disabled:cursor-default transition-opacity duration-100 max-md:opacity-100"
       >
         {isLoading ? <Spinner /> : <PlayIcon />}
       </button>
@@ -129,7 +129,8 @@ export function Landing() {
   const decodeFile = useDecodeFile();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { cachedFiles, fileMeta, deleteFile, cacheFile } = useContext(RecordingsStore);
+  const { cachedFiles, fileMeta, deleteFile, cacheFile } =
+    useContext(RecordingsStore);
   const [isUploading, setIsUploading] = useState(false);
 
   const handlePlay = async (file: File) => {
