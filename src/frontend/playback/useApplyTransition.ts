@@ -9,7 +9,6 @@ export interface UseApplyTransitionProps {
   startPlaying: () => void;
   stopPlaying: () => void;
   startTimer: () => void;
-  cancelTimer: () => void;
 }
 
 export function useApplyTransition({
@@ -18,7 +17,6 @@ export function useApplyTransition({
   startPlaying,
   stopPlaying,
   startTimer,
-  cancelTimer,
 }: UseApplyTransitionProps): (t: Transition) => void {
   return useCallback(
     (t: Transition) => {
@@ -61,7 +59,6 @@ export function useApplyTransition({
           break;
 
         case "waiting":
-          cancelTimer();
           switch (next) {
             case "playing":
               startPlaying();
@@ -82,7 +79,6 @@ export function useApplyTransition({
       startPlaying,
       stopPlaying,
       startTimer,
-      cancelTimer,
     ],
   );
 }

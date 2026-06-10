@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import type { ReactNode } from "react";
 import { PlaybackContext } from "./PlaybackContext";
 import type { PlaybackSettings, PlaybackAction } from "./PlaybackContext";
-import { clampSection } from "../lib/util";
+import { clampSection, computeMS } from "../lib/util";
 import { SoundTouchNode } from "@soundtouchjs/audio-worklet";
 import soundTouchProcessorUrl from "@soundtouchjs/audio-worklet/processor?url";
 import { buildSourceNode } from "./sourceNode";
@@ -36,7 +36,14 @@ export const PlaybackProvider = ({
 
   const { loop, loopDelay, playbackSpeed } = playbackSettings;
 
-  const { playState, playbackPosition, timerStartedAtMS, dispatch, reset, lastStartPosition } = usePlaybackClock({
+  const {
+    playState,
+    playbackPosition,
+    timerStartedAtMS,
+    dispatch,
+    reset,
+    lastStartPosition,
+  } = usePlaybackClock({
     sampleRate: localData.sampleRate,
     duration: localData.duration,
     loop,
@@ -65,10 +72,10 @@ export const PlaybackProvider = ({
       setPlaybackSettings((prev) => {
         const next = { ...prev, ...settings };
         if (settings.loop !== undefined) {
-          const newLoop = settings.loop;
-          if (newLoop !== undefined) {
-            next.loop = clampSection(newLoop, { start: 0, end: data.length });
-          }
+          next.loop = clampSection(settings.loop, {
+            start: 0,
+            end: data.length,
+          });
         }
         return next;
       });
@@ -97,20 +104,28 @@ export const PlaybackProvider = ({
   const loopPosition = useRef<number>(0);
 
   useEffect(() => {
-    const loopStartMS = loop ? (loop.start / localData.sampleRate) * 1000 : 0;
+    const loopStartMS = loop ? computeMS(localData.sampleRate, loop.start) : 0;
     let rafId: number;
     const update = () => {
       rafId = requestAnimationFrame(update);
       if (playState === "waiting") {
-        const startedAt = timerStartedAtMS ?? performance.now();
-        loopPosition.current = loopLength + (performance.now() - startedAt) / 1000;
+        const startedAt = timerStartedAtMS!;
+        loopPosition.current =
+          loopLength + (performance.now() - startedAt) / 1000;
       } else {
         loopPosition.current = (playbackPosition.current - loopStartMS) / 1000;
       }
     };
     rafId = requestAnimationFrame(update);
     return () => cancelAnimationFrame(rafId);
-  }, [localData.sampleRate, loop, loopLength, playbackPosition, playState, timerStartedAtMS]);
+  }, [
+    localData.sampleRate,
+    loop,
+    loopLength,
+    playbackPosition,
+    playState,
+    timerStartedAtMS,
+  ]);
 
   useEffect(() => {
     reset();

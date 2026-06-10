@@ -41,10 +41,15 @@ export function usePlaybackClock({
   >(null);
   const [timerStartedAtMS, setTimerStartedAtMS] = useState<number | null>(null);
 
-  const startPlaying = useCallback(() => setPlaybackStartTimestamp(performance.now()), []);
+  const startPlaying = useCallback(
+    () => setPlaybackStartTimestamp(performance.now()),
+    [],
+  );
   const stopPlaying = useCallback(() => setPlaybackStartTimestamp(null), []);
-  const startTimer = useCallback(() => setTimerStartedAtMS(performance.now()), []);
-  const cancelTimer = useCallback(() => setTimerStartedAtMS(null), []);
+  const startTimer = useCallback(
+    () => setTimerStartedAtMS(performance.now()),
+    [],
+  );
 
   const applyTransition = useApplyTransition({
     playState,
@@ -52,7 +57,6 @@ export function usePlaybackClock({
     startPlaying,
     stopPlaying,
     startTimer,
-    cancelTimer,
   });
 
   const dispatch = useCallback(
@@ -65,7 +69,6 @@ export function usePlaybackClock({
         loopDelay,
         currentPositionMS: playbackPosition.current,
       });
-      console.log(result);
       if (result.nextPositionMS !== undefined)
         setLastStartPosition(result.nextPositionMS);
       setPlayState(result.nextState);
@@ -76,12 +79,12 @@ export function usePlaybackClock({
 
   useEffect(() => {
     if (playbackStartTimestamp === null) return;
+    const startMS = loop ? computeMS(sampleRate, loop.start) : 0;
+    const endMS = loop ? computeMS(sampleRate, loop.end) : duration * 1000;
     let lastTs = performance.now();
     let rafId: number;
     const tick = () => {
       const now = performance.now();
-      const startMS = loop ? computeMS(sampleRate, loop.start) : 0;
-      const endMS = loop ? computeMS(sampleRate, loop.end) : duration * 1000;
       const next = playbackPosition.current + (now - lastTs) * playbackSpeed;
       lastTs = now;
       if (next >= endMS) {
@@ -93,7 +96,14 @@ export function usePlaybackClock({
     };
     rafId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafId);
-  }, [playbackStartTimestamp, sampleRate, duration, loop, playbackSpeed, dispatch]);
+  }, [
+    playbackStartTimestamp,
+    sampleRate,
+    duration,
+    loop,
+    playbackSpeed,
+    dispatch,
+  ]);
 
   useEffect(() => {
     if (timerStartedAtMS === null) return;
