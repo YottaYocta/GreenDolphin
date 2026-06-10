@@ -54,7 +54,7 @@ export function PlaybackControls() {
   }, [rewindFiveSeconds, fastForwardFiveSeconds]);
 
   return (
-    <div className="flex overflow-clip items-start gap-4 flex-col p-4 rounded-xl flex-1 [box-shadow:#0000000D_0px_2px_3px] bg-white border border-solid border-[#0000001A] grow">
+    <div className="flex overflow-clip items-start gap-4 flex-col p-4 rounded-xl flex-1 [box-shadow:#0000000D_0px_2px_3px] bg-white border border-solid border-[#0000001A]">
       <div className="flex items-start gap-4 flex-1 self-stretch">
         {/* Play / Pause */}
         <button

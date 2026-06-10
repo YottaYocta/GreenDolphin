@@ -207,7 +207,7 @@ export function PianoRoll() {
         startScrollDrag(e.clientX);
       }}
     >
-      <div className="flex flex-col items-center w-fit mx-auto px-12.5">
+      <div className="flex flex-col items-center w-fit mx-auto px-12.5 pt-4">
         <canvas
           ref={canvasRef}
           style={{ width: PIANO_WIDTH_PX, height: BAR_AREA_H_PX }}

@@ -37,7 +37,7 @@ export function AudioSettings() {
   }, [playbackSettings.loop, delayRatio, loopLength, setAudioSettings]);
 
   return (
-    <div className="flex flex-col items-end gap-3.25 flex-1 w-full">
+    <div className="flex flex-col items-end gap-3.25 flex-1 max-md:grow-0 w-full">
       <div className="w-full flex gap-4">
         <Menu.Root>
           <Menu.Trigger className="btn-surface rounded-lg gap-3 w-24 h-12 shrink-0 cursor-pointer max-md:flex hidden">

@@ -352,15 +352,12 @@ export const WaveformCanvas: FC<
   }, [localData.range, localData.section]);
 
   return (
-    <div
-      ref={containerRef}
-      className="flex flex-col pixelated select-none grow h-full"
-    >
+    <div ref={containerRef} className="flex flex-col pixelated select-none">
       <canvas
         {...props}
         ref={canvasRef}
         draggable="false"
-        className="cursor-pointer w-full max-md:grow"
+        className="cursor-pointer w-full max-md:min-h-64"
         onMouseDown={(e) => {
           const canvas = canvasRef.current;
           if (!canvas) return;
@@ -484,7 +481,7 @@ export const WaveformCanvas: FC<
             )}
           </div>
           <div
-            className="-mt-4 w-full h-16 cursor-grab select-none flex items-center justify-center overflow-hidden"
+            className="-mt-4 w-full min-h-16 cursor-grab select-none flex items-center justify-center overflow-hidden"
             onMouseDown={(e) => {
               dragDistanceRef.current = 0;
               if (barContainerRef.current) {

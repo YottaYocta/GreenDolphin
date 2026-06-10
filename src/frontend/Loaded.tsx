@@ -44,19 +44,13 @@ export const Loaded = () => {
   );
 
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
-  const [wakeLockStatus, setWakeLockStatus] = useState<
-    "Requesting Keep Awake" | "Keep Awake Error" | "Keep Awake Active"
-  >("Keep Awake Active");
 
   useEffect(() => {
     const requestWakeLock = async () => {
       try {
-        setWakeLockStatus("Requesting Keep Awake");
         wakeLockRef.current = await navigator.wakeLock.request("screen");
-        setWakeLockStatus("Keep Awake Active");
       } catch (e: unknown) {
         console.log(e);
-        setWakeLockStatus("Keep Awake Error");
       }
     };
     const disableWakeLock = () => {
@@ -95,7 +89,7 @@ export const Loaded = () => {
 
   return (
     <>
-      <div className="w-full max-w-240 h-full md:h-min p-4 md:p-6 flex flex-col justify-center gap-8.5">
+      <div className="w-full max-w-240 h-full md:h-min p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4">
         {/* Header */}
         <div className="[font-synthesis:none] flex items-center gap-4 justify-between self-stretch antialiased">
           <div className="flex items-start gap-4 min-w-0">
@@ -192,7 +186,7 @@ export const Loaded = () => {
 
             {/* File info dialog */}
             <Dialog.Root>
-              <Dialog.Trigger className="btn-surface rounded-lg gap-3 px-3.25 py-3.25 self-stretch max-md:w-12 w-40 shrink-0 cursor-pointer ">
+              <Dialog.Trigger className="btn-surface rounded-lg gap-3 px-3.25 py-3.25 self-stretch max-md:w-12 h-12 w-40 shrink-0 cursor-pointer ">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="21"
@@ -314,9 +308,9 @@ export const Loaded = () => {
           </button>
         </div>
 
-        <div className="flex flex-col rounded-xl overflow-hidden self-stretch [box-shadow:#0000000D_0px_2px_3px] bg-white border border-[#0000001A] max-md:grow">
+        <div className="flex flex-col rounded-xl overflow-x-hidden overflow-y-clip self-stretch [box-shadow:#0000000D_0px_2px_3px] bg-white border border-[#0000001A] ">
           <PianoRoll />
-          <div className="border-t border-[#0000001A] max-md:grow">
+          <div className="border-t border-[#0000001A] max-md:grow hoverf">
             <WaveformView
               initialData={{
                 data: data,
@@ -331,14 +325,12 @@ export const Loaded = () => {
           </div>
         </div>
 
-        <div className="[font-synthesis:none] flex items-stretch gap-7 self-stretch antialiased max-md:flex-col-reverse max-md:grow">
+        <div className="[font-synthesis:none] flex items-stretch self-stretch antialiased max-md:flex-col-reverse max-md:flex-1 gap-8 max-md:gap-4">
           <PlaybackControls />
           <AudioSettings />
         </div>
 
-        <p className="fixed bottom-2 left-1/2 -translate-x-1/2 text-sm text-neutral-400">
-          {wakeLockStatus}
-        </p>
+
       </div>
 
       {showTutorial && (
