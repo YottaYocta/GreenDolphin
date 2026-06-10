@@ -144,10 +144,17 @@ export function PianoRoll() {
     el?.closest("[data-bucket]")?.getAttribute("data-bucket");
 
   useEffect(() => {
-    const onUp = () => { isDraggingRef.current = false; stopTone(); };
+    const onUp = () => {
+      isDraggingRef.current = false;
+      stopTone();
+    };
     window.addEventListener("mouseup", onUp);
     window.addEventListener("touchend", onUp);
-    return () => { window.removeEventListener("mouseup", onUp); window.removeEventListener("touchend", onUp); stopTone(); };
+    return () => {
+      window.removeEventListener("mouseup", onUp);
+      window.removeEventListener("touchend", onUp);
+      stopTone();
+    };
   }, [stopTone]);
 
   useEffect(() => {
@@ -192,7 +199,7 @@ export function PianoRoll() {
   return (
     <div
       ref={scrollRef}
-      className="self-stretch overflow-x-auto shrink-0"
+      className="self-stretch overflow-x-auto shrink-0 "
       onMouseDown={(e) => {
         if ((e.target as HTMLElement).closest("[data-piano]")) return;
         startScrollLeftRef.current = scrollRef.current!.scrollLeft;

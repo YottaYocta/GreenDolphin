@@ -8,6 +8,7 @@ import {
 } from "react";
 import { PlaybackContext } from "../playback/PlaybackContext";
 import { useDrag } from "../lib/useDrag";
+import { Menu } from "@base-ui/react/menu";
 
 export function AudioSettings() {
   const playback = useContext(PlaybackContext);
@@ -36,15 +37,84 @@ export function AudioSettings() {
   }, [playbackSettings.loop, delayRatio, loopLength, setAudioSettings]);
 
   return (
-    <div className="flex flex-col items-end gap-3.25 flex-1">
-      <LoopDelaySlider
-        ratio={delayRatio}
-        onChange={setDelayRatio}
-        loopPosition={loopPosition}
-        loopLength={loopLength}
-        loopDelay={playbackSettings.loopDelay}
-      />
-      <div className="flex flex-col justify-center self-stretch rounded-xl py-5 px-4 gap-4 shrink-0 [box-shadow:#0000000D_0px_2px_3px] bg-white border border-[#0000001A]">
+    <div className="flex flex-col items-end gap-3.25 flex-1 w-full">
+      <div className="w-full flex gap-4">
+        <Menu.Root>
+          <Menu.Trigger className="btn-surface rounded-lg gap-3 w-24 h-12 shrink-0 cursor-pointer max-md:flex hidden">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 256 256"
+              style={{ opacity: 0.54, flexShrink: 0 }}
+            >
+              <path
+                d="M84,136a28,28,0,0,1-20,26.83V216a8,8,0,0,1-16,0V162.83a28,28,0,0,1,0-53.66V40a8,8,0,0,1,16,0v69.17A28,28,0,0,1,84,136Zm52-74.83V40a8,8,0,0,0-16,0V61.17a28,28,0,0,0,0,53.66V216a8,8,0,0,0,16,0V114.83a28,28,0,0,0,0-53.66Zm72,80V40a8,8,0,0,0-16,0V141.17a28,28,0,0,0,0,53.66V216a8,8,0,0,0,16,0V194.83a28,28,0,0,0,0-53.66Z"
+                fill="#000000"
+              />
+            </svg>
+          </Menu.Trigger>
+
+          <Menu.Portal>
+            <Menu.Positioner side="bottom" align="start" sideOffset={8}>
+              <Menu.Popup
+                className="z-50 rounded-xl py-5 px-4 shrink-0 [box-shadow:#0000000D_0px_2px_3px] bg-white border border-[#0000001A] w-min
+              "
+              >
+                <div className=" flex flex-col justify-center self-stretch gap-2 w-[calc(100vw-4rem)] px-4">
+                  <AudioSlider
+                    label="Pitch"
+                    value={pitchShift}
+                    min={-10}
+                    max={10}
+                    step={0.2}
+                    onChange={(v) =>
+                      setAudioSettings({ pitchShift: Math.round(v * 10) / 10 })
+                    }
+                    formatValue={(v) =>
+                      `${v >= 0 ? "+" : ""}${Math.round(v * 10) / 10}`
+                    }
+                    unit="smt"
+                  />
+                  <AudioSlider
+                    label="Speed"
+                    value={playbackSpeed}
+                    min={0.1}
+                    max={1.9}
+                    step={0.1}
+                    onChange={(v) =>
+                      setAudioSettings({
+                        playbackSpeed: Math.round(v * 10) / 10,
+                      })
+                    }
+                    formatValue={(v) => `${Math.round(v * 100)}`}
+                    unit="%"
+                  />
+                  <AudioSlider
+                    label="Volume"
+                    value={renderedGain}
+                    min={0}
+                    max={2}
+                    step={0.1}
+                    onChange={(v) => setRenderedGain(Math.round(v * 10) / 10)}
+                    formatValue={(v) => `${Math.round(v * 100)}`}
+                    unit="%"
+                  />
+                </div>
+              </Menu.Popup>
+            </Menu.Positioner>
+          </Menu.Portal>
+        </Menu.Root>
+
+        <LoopDelaySlider
+          ratio={delayRatio}
+          onChange={setDelayRatio}
+          loopPosition={loopPosition}
+          loopLength={loopLength}
+          loopDelay={playbackSettings.loopDelay}
+        />
+      </div>
+      <div className="flex flex-col justify-center self-stretch rounded-xl py-5 px-4 gap-4 shrink-0 [box-shadow:#0000000D_0px_2px_3px] bg-white border border-[#0000001A] max-md:hidden">
         <AudioSlider
           label="Pitch"
           value={pitchShift}
@@ -121,13 +191,13 @@ const LoopDelaySlider: FC<{
   }, [loopPosition, loopLength, loopDelay]);
 
   return (
-    <div className="flex items-center h-9.5 px-3 self-stretch rounded-xl gap-3 shrink-0 [box-shadow:#0000000D_0px_2px_3px] bg-white border border-[#0000001A]">
-      <span className="shrink-0 font-inria text-black text-base/5">
+    <div className="flex grow items-center max-md:h-12 h-10 px-3 self-stretch rounded-xl gap-3 shrink-0 [box-shadow:#0000000D_0px_2px_3px] bg-white border border-[#0000001A]">
+      <span className="shrink-0 font-inria text-black text-base/5 max-md:hidden">
         Loop Delay
       </span>
       <div
         ref={trackRef}
-        className="relative flex-1 h-1.5 cursor-pointer"
+        className="relative flex-1 h-3 max-md:h-5 cursor-pointer"
         onMouseDown={(e) => {
           updateRatio(e.clientX);
           startDrag(e.clientX);
@@ -156,7 +226,7 @@ const LoopDelaySlider: FC<{
           </div>
         </div>
         <div
-          className="absolute top-1/2 z-10 w-6 h-5.5 rounded-[5px] -translate-x-1/2 -translate-y-1/2 [box-shadow:#FFFFFF_0px_0px_4px_1px_inset,#0000000D_0px_2px_3px] bg-[#FDFDFD] border border-[#0000001A] pointer-events-none"
+          className="absolute top-1/2 z-10 w-6 h-5.5 max-md:h-7 rounded-[5px] -translate-x-1/2 -translate-y-1/2 [box-shadow:#FFFFFF_0px_0px_4px_1px_inset,#0000000D_0px_2px_3px] bg-[#FDFDFD] border border-[#0000001A] pointer-events-none"
           style={{ left: `${ratio * 100}%` }}
         />
       </div>

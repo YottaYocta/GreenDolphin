@@ -192,7 +192,7 @@ export const Loaded = () => {
 
             {/* File info dialog */}
             <Dialog.Root>
-              <Dialog.Trigger className="btn-surface rounded-lg gap-3 px-3.25 py-3.25 self-stretch w-40 shrink-0 cursor-pointer">
+              <Dialog.Trigger className="btn-surface rounded-lg gap-3 px-3.25 py-3.25 self-stretch max-md:w-12 w-40 shrink-0 cursor-pointer ">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="21"
@@ -205,7 +205,7 @@ export const Loaded = () => {
                     fill="#000000"
                   />
                 </svg>
-                <span className="opacity-40 font-inria text-black text-base/5 whitespace-nowrap">
+                <span className="opacity-40 font-inria text-black text-base/5 whitespace-nowrap max-md:hidden">
                   File Info
                 </span>
               </Dialog.Trigger>
@@ -270,7 +270,6 @@ export const Loaded = () => {
               </Dialog.Portal>
             </Dialog.Root>
 
-            {/* Hidden upload input used by the menu */}
             <input
               ref={uploadInputRef}
               type="file"
@@ -289,7 +288,7 @@ export const Loaded = () => {
             onClick={() => {
               navigate("/");
             }}
-            className="btn-surface rounded-lg gap-3 px-3.25 py-3.25 w-43.5 h-11.25 shrink-0 cursor-pointer"
+            className="btn-surface rounded-lg gap-3 px-3.25 py-3.25 w-43.5 h-12 shrink-0 cursor-pointer max-md:w-12 "
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -309,16 +308,15 @@ export const Loaded = () => {
                 fill="#000000"
               />
             </svg>
-            <span className="opacity-40 font-inria text-black text-base/5 whitespace-nowrap">
+            <span className="opacity-40 font-inria text-black text-base/5 whitespace-nowrap max-md:hidden">
               Home
             </span>
           </button>
         </div>
 
-        {/* Waveform card */}
-        <div className="flex flex-col rounded-xl overflow-hidden self-stretch [box-shadow:#0000000D_0px_2px_3px] bg-white border border-[#0000001A]">
+        <div className="flex flex-col rounded-xl overflow-hidden self-stretch [box-shadow:#0000000D_0px_2px_3px] bg-white border border-[#0000001A] max-md:grow">
           <PianoRoll />
-          <div className="border-t border-[#0000001A]">
+          <div className="border-t border-[#0000001A] max-md:grow">
             <WaveformView
               initialData={{
                 data: data,
@@ -333,8 +331,7 @@ export const Loaded = () => {
           </div>
         </div>
 
-        {/* Controls */}
-        <div className="[font-synthesis:none] flex items-stretch gap-7 self-stretch antialiased max-md:flex-col-reverse">
+        <div className="[font-synthesis:none] flex items-stretch gap-7 self-stretch antialiased max-md:flex-col-reverse max-md:grow">
           <PlaybackControls />
           <AudioSettings />
         </div>

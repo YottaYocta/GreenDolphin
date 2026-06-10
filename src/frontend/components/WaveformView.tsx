@@ -204,10 +204,9 @@ export const WaveformView: FC<WaveformViewProps> = ({
 
   return (
     <div
-      className="relative w-full h-min flex flex-col gap-2"
+      className="relative w-full h-min flex flex-col gap-2 max-md:grow"
       id="waveform-view"
     >
-      {/* right: zoom + scroll controls */}
       <div
         className="flex absolute top-2.75 right-3.25  items-center gap-4 p-2 rounded-lg bg-white border border-[#0000001A]"
         id="waveform-controls"
@@ -264,7 +263,6 @@ export const WaveformView: FC<WaveformViewProps> = ({
         </div>
       </div>
 
-      {/* left: clear + shift selection (only when section selected) */}
       {initialData.section && (
         <div className="flex absolute top-2.25 left-2.75  items-center gap-4 p-2 rounded-lg bg-white border border-[#0000001A]">
           <button
