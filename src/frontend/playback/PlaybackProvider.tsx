@@ -134,10 +134,6 @@ export const PlaybackProvider = ({
   }, [data, reset]);
 
   useEffect(() => {
-    reset();
-  }, [loop, loopDelay, playbackSpeed, reset]);
-
-  useEffect(() => {
     if (!entryNode || playState === "paused" || playState === "waiting") return;
 
     const node = buildSourceNode({

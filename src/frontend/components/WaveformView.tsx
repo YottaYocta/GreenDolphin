@@ -209,30 +209,108 @@ export const WaveformView: FC<WaveformViewProps> = ({
     >
       {/* right: zoom + scroll controls */}
       <div
-        className="flex absolute top-2.75 right-3.25 z-10 items-center gap-4 p-2 rounded-lg bg-white border border-[#0000001A]"
+        className="flex absolute top-2.75 right-3.25  items-center gap-4 p-2 rounded-lg bg-white border border-[#0000001A]"
         id="waveform-controls"
       >
         <div className="flex items-center gap-2">
-          <button onClick={handleZoomOut} title="Zoom out (j)" aria-label="zoom out" className="cursor-pointer hover:opacity-70">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256" style={{ width: 20, height: 20, overflow: "visible", flexShrink: 0 }}>
-              <path d="M229.66,218.34,179.6,168.28a88.21,88.21,0,1,0-11.32,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM144,120H80a8,8,0,0,1,0-16h64a8,8,0,0,1,0,16Z" fill="#525252" />
+          <button
+            onClick={handleZoomOut}
+            title="Zoom out (j)"
+            aria-label="zoom out"
+            className="cursor-pointer hover:opacity-70"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 256 256"
+              style={{
+                width: 20,
+                height: 20,
+                overflow: "visible",
+                flexShrink: 0,
+              }}
+            >
+              <path
+                d="M229.66,218.34,179.6,168.28a88.21,88.21,0,1,0-11.32,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM144,120H80a8,8,0,0,1,0-16h64a8,8,0,0,1,0,16Z"
+                fill="#525252"
+              />
             </svg>
           </button>
-          <button onClick={handleZoomIn} title="Zoom in (k)" aria-label="zoom in" className="cursor-pointer hover:opacity-70">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256" style={{ width: 20, height: 20, overflow: "visible", flexShrink: 0 }}>
-              <path d="M229.66,218.34,179.6,168.28a88.21,88.21,0,1,0-11.32,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM144,120H120v24a8,8,0,0,1-16,0V120H80a8,8,0,0,1,0-16h24V80a8,8,0,0,1,16,0v24h24a8,8,0,0,1,0,16Z" fill="#525252" />
+          <button
+            onClick={handleZoomIn}
+            title="Zoom in (k)"
+            aria-label="zoom in"
+            className="cursor-pointer hover:opacity-70"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 256 256"
+              style={{
+                width: 20,
+                height: 20,
+                overflow: "visible",
+                flexShrink: 0,
+              }}
+            >
+              <path
+                d="M229.66,218.34,179.6,168.28a88.21,88.21,0,1,0-11.32,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM144,120H120v24a8,8,0,0,1-16,0V120H80a8,8,0,0,1,0-16h24V80a8,8,0,0,1,16,0v24h24a8,8,0,0,1,0,16Z"
+                fill="#525252"
+              />
             </svg>
           </button>
         </div>
         <div className="flex items-center gap-1.5">
-          <button onClick={handleScrollLeft} title="Scroll left (H)" aria-label="scroll left" className="cursor-pointer hover:opacity-70">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256" style={{ width: 20, height: 20, overflow: "visible", flexShrink: 0 }}>
-              <path d="M48,40V216a8,8,0,0,1-16,0V40a8,8,0,0,1,16,0Zm176,80H152V56a8,8,0,0,0-13.66-5.66l-72,72a8,8,0,0,0,0,11.32l72,72A8,8,0,0,0,152,200V136h72a8,8,0,0,0,0-16Z" fill="#525252" />
+          <button
+            onClick={handleScrollLeft}
+            title="Scroll left (H)"
+            aria-label="scroll left"
+            className="cursor-pointer hover:opacity-70"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 256 256"
+              style={{
+                width: 20,
+                height: 20,
+                overflow: "visible",
+                flexShrink: 0,
+              }}
+            >
+              <path
+                d="M48,40V216a8,8,0,0,1-16,0V40a8,8,0,0,1,16,0Zm176,80H152V56a8,8,0,0,0-13.66-5.66l-72,72a8,8,0,0,0,0,11.32l72,72A8,8,0,0,0,152,200V136h72a8,8,0,0,0,0-16Z"
+                fill="#525252"
+              />
             </svg>
           </button>
-          <button onClick={handleScrollRight} title="Scroll right (L)" aria-label="scroll right" className="cursor-pointer hover:opacity-70">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256" style={{ width: 20, height: 20, rotate: "180deg", overflow: "visible", flexShrink: 0, transformOrigin: "50% 50%" }}>
-              <path d="M48,40V216a8,8,0,0,1-16,0V40a8,8,0,0,1,16,0Zm176,80H152V56a8,8,0,0,0-13.66-5.66l-72,72a8,8,0,0,0,0,11.32l72,72A8,8,0,0,0,152,200V136h72a8,8,0,0,0,0-16Z" fill="#525252" />
+          <button
+            onClick={handleScrollRight}
+            title="Scroll right (L)"
+            aria-label="scroll right"
+            className="cursor-pointer hover:opacity-70"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 256 256"
+              style={{
+                width: 20,
+                height: 20,
+                rotate: "180deg",
+                overflow: "visible",
+                flexShrink: 0,
+                transformOrigin: "50% 50%",
+              }}
+            >
+              <path
+                d="M48,40V216a8,8,0,0,1-16,0V40a8,8,0,0,1,16,0Zm176,80H152V56a8,8,0,0,0-13.66-5.66l-72,72a8,8,0,0,0,0,11.32l72,72A8,8,0,0,0,152,200V136h72a8,8,0,0,0,0-16Z"
+                fill="#525252"
+              />
             </svg>
           </button>
         </div>
@@ -240,21 +318,80 @@ export const WaveformView: FC<WaveformViewProps> = ({
 
       {/* left: clear + shift selection (only when section selected) */}
       {initialData.section && (
-        <div className="flex absolute top-2.25 left-2.75 z-10 items-center gap-4 p-2 rounded-lg bg-white border border-[#0000001A]">
-          <button onClick={handleClearSelection} title="Clear Selection (Escape)" aria-label="Clear Selection" className="cursor-pointer hover:opacity-70">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256" style={{ width: 20, height: 20, overflow: "visible", flexShrink: 0 }}>
-              <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm37.66,130.34a8,8,0,0,1-11.32,11.32L128,139.31l-26.34,26.35a8,8,0,0,1-11.32-11.32L116.69,128,90.34,101.66a8,8,0,0,1,11.32-11.32L128,116.69l26.34-26.35a8,8,0,0,1,11.32,11.32L139.31,128Z" fill="#525252" />
+        <div className="flex absolute top-2.25 left-2.75  items-center gap-4 p-2 rounded-lg bg-white border border-[#0000001A]">
+          <button
+            onClick={handleClearSelection}
+            title="Clear Selection (Escape)"
+            aria-label="Clear Selection"
+            className="cursor-pointer hover:opacity-70"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 256 256"
+              style={{
+                width: 20,
+                height: 20,
+                overflow: "visible",
+                flexShrink: 0,
+              }}
+            >
+              <path
+                d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm37.66,130.34a8,8,0,0,1-11.32,11.32L128,139.31l-26.34,26.35a8,8,0,0,1-11.32-11.32L116.69,128,90.34,101.66a8,8,0,0,1,11.32-11.32L128,116.69l26.34-26.35a8,8,0,0,1,11.32,11.32L139.31,128Z"
+                fill="#525252"
+              />
             </svg>
           </button>
           <div className="flex items-center gap-2">
-            <button onClick={handleBackUpSelection} title="Back Up Selection ([)" aria-label="Back Up Selection" className="cursor-pointer hover:opacity-70">
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256" style={{ width: 20, height: 20, overflow: "visible", flexShrink: 0 }}>
-                <path d="M208,32H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM168,136H107.31l18.35,18.34a8,8,0,0,1-11.32,11.32l-32-32a8,8,0,0,1,0-11.32l32-32a8,8,0,0,1,11.32,11.32L107.31,120H168a8,8,0,0,1,0,16Z" fill="#525252" />
+            <button
+              onClick={handleBackUpSelection}
+              title="Back Up Selection ([)"
+              aria-label="Back Up Selection"
+              className="cursor-pointer hover:opacity-70"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="32"
+                height="32"
+                viewBox="0 0 256 256"
+                style={{
+                  width: 20,
+                  height: 20,
+                  overflow: "visible",
+                  flexShrink: 0,
+                }}
+              >
+                <path
+                  d="M208,32H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM168,136H107.31l18.35,18.34a8,8,0,0,1-11.32,11.32l-32-32a8,8,0,0,1,0-11.32l32-32a8,8,0,0,1,11.32,11.32L107.31,120H168a8,8,0,0,1,0,16Z"
+                  fill="#525252"
+                />
               </svg>
             </button>
-            <button onClick={handleAdvanceSelection} title="Advance Selection (])" aria-label="Advance Selection" className="cursor-pointer hover:opacity-70">
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256" style={{ width: 20, height: 20, rotate: "180deg", overflow: "visible", flexShrink: 0, transformOrigin: "50% 50%" }}>
-                <path d="M208,32H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM168,136H107.31l18.35,18.34a8,8,0,0,1-11.32,11.32l-32-32a8,8,0,0,1,0-11.32l32-32a8,8,0,0,1,11.32,11.32L107.31,120H168a8,8,0,0,1,0,16Z" fill="#525252" />
+            <button
+              onClick={handleAdvanceSelection}
+              title="Advance Selection (])"
+              aria-label="Advance Selection"
+              className="cursor-pointer hover:opacity-70"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="32"
+                height="32"
+                viewBox="0 0 256 256"
+                style={{
+                  width: 20,
+                  height: 20,
+                  rotate: "180deg",
+                  overflow: "visible",
+                  flexShrink: 0,
+                  transformOrigin: "50% 50%",
+                }}
+              >
+                <path
+                  d="M208,32H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM168,136H107.31l18.35,18.34a8,8,0,0,1-11.32,11.32l-32-32a8,8,0,0,1,0-11.32l32-32a8,8,0,0,1,11.32,11.32L107.31,120H168a8,8,0,0,1,0,16Z"
+                  fill="#525252"
+                />
               </svg>
             </button>
           </div>
