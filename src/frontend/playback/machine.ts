@@ -13,6 +13,7 @@ export interface MachineContext {
 export type UserEvent =
   | { type: "play-pause" }
   | { type: "freeze" }
+  | { type: "setting-update" }
   | { type: "move"; positionMS: number };
 
 export type InternalEvent = { type: "reach-end" } | { type: "delay-end" };
@@ -80,6 +81,12 @@ export function reduce(
           case "paused":
             return { nextState: "paused", nextPositionMS: pos };
           case "playing":
+            if (pos >= startMS && pos < endMS)
+              return { nextState: "playing", nextPositionMS: pos };
+            else if (pos >= endMS)
+              return { nextState: "waiting", nextPositionMS: endMS };
+            else return { nextState: "playing", nextPositionMS: startMS };
+
           case "waiting":
             if (pos >= startMS && pos < endMS)
               return { nextState: "playing", nextPositionMS: pos };
@@ -112,5 +119,8 @@ export function reduce(
         case "waiting":
           return { nextState: "playing", nextPositionMS: startMS };
       }
+      break;
+    case "setting-update":
+      return { nextState: state, nextPositionMS: startMS };
   }
 }

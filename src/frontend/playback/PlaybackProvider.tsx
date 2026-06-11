@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import type { ReactNode } from "react";
 import { PlaybackContext } from "./PlaybackContext";
 import type { PlaybackSettings, PlaybackAction } from "./PlaybackContext";
+import type { AudioSettingsUpdate } from "./usePlaybackClock";
 import { clampSection, computeMS } from "../lib/util";
 import { SoundTouchNode } from "@soundtouchjs/audio-worklet";
 import soundTouchProcessorUrl from "@soundtouchjs/audio-worklet/processor?url";
@@ -15,14 +16,6 @@ export interface PlaybackProviderProps {
   children?: ReactNode;
 }
 
-const DEFAULT_SETTINGS: PlaybackSettings = {
-  pitchShift: 0,
-  playbackSpeed: 1,
-  gain: 1,
-  loopDelay: 0,
-  loop: undefined,
-};
-
 export const PlaybackProvider = ({
   children,
   context,
@@ -30,13 +23,15 @@ export const PlaybackProvider = ({
 }: PlaybackProviderProps) => {
   const [localData, setLocalData] = useState<AudioBuffer>(data);
   const [seekVersion, setSeekVersion] = useState(0);
-  const [playbackSettings, setPlaybackSettings] =
-    useState<PlaybackSettings>(DEFAULT_SETTINGS);
+  const [chainSettings, setChainSettings] = useState({
+    pitchShift: 0,
+    gain: 1,
+  });
   const [readyContext, setReadyContext] = useState<AudioContext | null>(null);
 
-  const { loop, loopDelay, playbackSpeed } = playbackSettings;
-
   const {
+    audioSettings,
+    updateSettings,
     playState,
     playbackPosition,
     timerStartedAtMS,
@@ -44,12 +39,11 @@ export const PlaybackProvider = ({
     reset,
     lastStartPosition,
   } = usePlaybackClock({
-    sampleRate: localData.sampleRate,
     duration: localData.duration,
-    loop,
-    loopDelay,
-    playbackSpeed,
+    initialSettings: { sampleRate: localData.sampleRate },
   });
+
+  const { loop, loopDelay, playbackSpeed } = audioSettings;
 
   useEffect(() => {
     setReadyContext(null);
@@ -61,26 +55,34 @@ export const PlaybackProvider = ({
   const { entryNode, analyserNode, frequencyData } = useAudioChain({
     context,
     workletReady: readyContext === context,
-    gain: playbackSettings.gain,
-    pitchShift: playbackSettings.pitchShift,
+    gain: chainSettings.gain,
+    pitchShift: chainSettings.pitchShift,
     playbackSpeed,
     playState,
   });
 
   const setAudioSettings = useCallback(
     (settings: Partial<PlaybackSettings>) => {
-      setPlaybackSettings((prev) => {
-        const next = { ...prev, ...settings };
-        if (settings.loop !== undefined) {
-          next.loop = clampSection(settings.loop, {
-            start: 0,
-            end: data.length,
-          });
-        }
-        return next;
-      });
+      const clockUpdates: AudioSettingsUpdate = {};
+      if (settings.loop !== undefined)
+        clockUpdates.loop = clampSection(settings.loop, {
+          start: 0,
+          end: data.length,
+        });
+      if (settings.loopDelay !== undefined)
+        clockUpdates.loopDelay = settings.loopDelay;
+      if (settings.playbackSpeed !== undefined)
+        clockUpdates.playbackSpeed = settings.playbackSpeed;
+      if (Object.keys(clockUpdates).length) updateSettings(clockUpdates);
+
+      const chainUpdates: Partial<typeof chainSettings> = {};
+      if (settings.pitchShift !== undefined)
+        chainUpdates.pitchShift = settings.pitchShift;
+      if (settings.gain !== undefined) chainUpdates.gain = settings.gain;
+      if (Object.keys(chainUpdates).length)
+        setChainSettings((prev) => ({ ...prev, ...chainUpdates }));
     },
-    [data.length],
+    [data.length, updateSettings],
   );
 
   const triggerAction = useCallback(
@@ -130,7 +132,6 @@ export const PlaybackProvider = ({
   useEffect(() => {
     reset();
     setLocalData(data);
-    setPlaybackSettings((prev) => ({ ...prev, loop: undefined }));
   }, [data, reset]);
 
   useEffect(() => {
@@ -167,6 +168,14 @@ export const PlaybackProvider = ({
     playbackPosition,
     seekVersion,
   ]);
+
+  const playbackSettings: PlaybackSettings = {
+    pitchShift: chainSettings.pitchShift,
+    gain: chainSettings.gain,
+    loop,
+    loopDelay,
+    playbackSpeed,
+  };
 
   return (
     <PlaybackContext.Provider

@@ -69,7 +69,6 @@ export const Loaded = () => {
 
   const {
     playbackPosition,
-    playState,
     triggerAction,
     playbackSettings,
     setAudioSettings,
