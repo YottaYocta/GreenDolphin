@@ -50,8 +50,6 @@ export function reduce(
         case "paused": {
           const pos = ctx.currentPositionMS;
           if (pos >= endMS)
-            return { nextState: hasDelay ? "waiting" : "playing", nextPositionMS: startMS };
-          if (pos < startMS)
             return { nextState: "playing", nextPositionMS: startMS };
           return { nextState: "playing" };
         }
@@ -85,23 +83,22 @@ export function reduce(
           case "waiting":
             if (pos >= startMS && pos < endMS)
               return { nextState: "playing", nextPositionMS: pos };
-            else if (pos < startMS)
-              return { nextState: "playing", nextPositionMS: startMS };
-            else return { nextState: "waiting", nextPositionMS: startMS };
+            else return { nextState: "playing", nextPositionMS: startMS };
         }
       }
       break;
     case "reach-end":
       switch (state) {
         case "playing":
-          if (hasDelay)
-            return { nextState: "waiting", nextPositionMS: startMS };
+          if (hasDelay) return { nextState: "waiting", nextPositionMS: endMS };
           return { nextState: "playing", nextPositionMS: startMS };
 
         case "paused":
         case "frozen":
         case "waiting":
-          throw new Error(`reach-end fired in state "${state}" — rAF should not be running here. ctx: ${JSON.stringify(ctx)}`);
+          throw new Error(
+            `reach-end fired in state "${state}" — rAF should not be running here. ctx: ${JSON.stringify(ctx)}`,
+          );
       }
       break;
     case "delay-end":
@@ -109,7 +106,9 @@ export function reduce(
         case "playing":
         case "paused":
         case "frozen":
-          throw new Error(`delay-end fired in state "${state}" — timer should not be running here. ctx: ${JSON.stringify(ctx)}`);
+          throw new Error(
+            `delay-end fired in state "${state}" — timer should not be running here. ctx: ${JSON.stringify(ctx)}`,
+          );
         case "waiting":
           return { nextState: "playing", nextPositionMS: startMS };
       }

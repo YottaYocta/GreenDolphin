@@ -147,10 +147,6 @@ export const WaveformCanvas: FC<
     }
   }, [localData, minRangeThresholdValue, positionReference, renderFunction]);
 
-  useEffect(() => {
-    updateWaveform();
-  }, [updateWaveform]);
-
   const checkScroll = useCallback(() => {
     if (positionReference && positionReference.current) {
       const sample =

@@ -318,7 +318,7 @@ export const Loaded = () => {
                 section: loop,
               }}
               positionReference={playbackPosition}
-              animate={playState === "playing" || triggerUpdate}
+              animate={true}
               handlePosition={handlePosition}
               handleSelection={(section) => setAudioSettings({ loop: section })}
             />
@@ -329,8 +329,6 @@ export const Loaded = () => {
           <PlaybackControls />
           <AudioSettings />
         </div>
-
-
       </div>
 
       {showTutorial && (
