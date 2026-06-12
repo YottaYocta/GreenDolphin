@@ -1,0 +1,360 @@
+Need to install the following packages:
+fallow@2.94.0
+Ok to proceed? (y) 
+── Unused Code ─────────────────────────────────────
+
+● Unused files (3)
+  src/frontend/components/FrequencyCanvas.tsx
+  src/frontend/components/NumberInput.tsx
+  src/frontend/components/SliderInput.tsx
+  Files not reachable from any entry point — https://docs.fallow.tools/explanations/dead-code#unused-files
+  To suppress: // fallow-ignore-next-line unused-files
+
+● Unused exports (13)
+  src/frontend/lib/frequency.ts (7)
+    :8 createFrequencyData
+    :19 setAmplitude
+    :28 addAmplitude
+    :37 getAmplitude
+    :41 fromArray
+    ... and 2 more (--format json for full list)
+  src/frontend/components/buttons.tsx (2)
+    :66 ToggleButton
+    :106 LoadButton
+  src/frontend/lib/util.ts (2)
+    :3 NOTE_COLORS
+    :16 hashFilename
+  src/frontend/lib/waveform.ts (2)
+    :31 computePixel
+    :47 renderWaveformFrame
+  Exported symbols with no known consumers — https://docs.fallow.tools/explanations/dead-code#unused-exports
+  To auto-fix: fallow fix --dry-run
+  To suppress: // fallow-ignore-next-line unused-exports
+
+● Unused type exports (2)
+  src/frontend/AudioStore.tsx
+    :3 AudioState
+  src/frontend/playback/PlaybackContext.ts
+    :22 PlaybackContextType
+  Type exports with no known consumers — https://docs.fallow.tools/explanations/dead-code#unused-types
+
+── Dependencies ─────────────────────────────────────
+
+● Unresolved imports (6)
+  test/frequency.test.ts (6)
+    :3 ../src/lib/frequency
+    :4 ../src/lib/frequency
+    :5 ../src/lib/frequency
+    :6 ../src/lib/frequency
+    :7 ../src/lib/frequency
+    ... and 1 more (--format json for full list)
+  Import paths that could not be resolved — check for missing packages or broken paths. Framework-specific imports may need a plugin: https://docs.fallow.tools/plugins — https://docs.fallow.tools/explanations/dead-code#unresolved-imports
+  To suppress: // fallow-ignore-next-line unresolved-imports
+
+● Test-only production dependencies (consider moving to devDependencies) (1)
+  @tailwindcss/vite
+
+● Duplicates (1 clone groups)
+
+     13 lines  2 instances  dup:3c73691a
+    src/frontend/lib/frequency.ts:155-166
+    src/frontend/lib/frequency.ts:197-209
+
+  Identical code blocks detected via suffix-array analysis — https://docs.fallow.tools/explanations/duplication#clone-groups
+
+■ Metrics: 4,975 LOC · dead files 8.1% · dead exports 15.8% · avg cyclomatic 2.4 · p90 cyclomatic 5 · maintainability 88.2 (good) · 0 churn hotspots (since 6 months)
+
+  Function size: 76% low · 10% medium · 6% high · 7% very high  (1-15 / 16-30 / 31-60 / >60 LOC)
+  Parameters:    96% low · 4% medium · 0% high · 0% very high  (0-2 / 3-4 / 5-6 / >=7 params)
+
+● Large functions (10 shown, 23 total)
+  src/frontend/components/WaveformCanvas.tsx
+    :47 WaveformCanvas  464 lines
+  src/frontend/Loaded.tsx
+    :36 Loaded  321 lines
+  src/frontend/components/WaveformView.tsx
+    :28 WaveformView  311 lines
+  src/frontend/playback/usePlaybackClock.ts
+    :44 usePlaybackClock  194 lines
+  src/frontend/playback/PlaybackProvider.tsx
+    :19 PlaybackProvider  181 lines
+  src/frontend/components/PianoRoll.tsx
+    :82 PianoRoll  176 lines
+  src/frontend/components/PlaybackControls.tsx
+    :6 PlaybackControls  152 lines
+  src/frontend/components/FrequencyCanvas.tsx
+    :9 FrequencyCanvas  151 lines
+  src/frontend/lib/frequency.ts
+    :190 drawFrequencyPiano  137 lines
+  src/frontend/components/Tutorial.tsx
+    :22 Tutorial  127 lines
+  Functions exceeding 60 lines of code (very high risk): https://docs.fallow.tools/explanations/health#unit-size
+  use --top 23 to see all
+
+● High complexity functions (38)
+  CRAP scores are estimated from export references; run `fallow health --coverage <coverage-final.json>` for exact scores.
+  src/frontend/playback/machine.ts
+    :37 reduce CRITICAL
+          34 cyclomatic   28 cognitive   90 lines
+         1190.0 CRAP
+  src/frontend/playback/usePlaybackClock.ts
+    :125 updateSettings CRITICAL
+          18 cyclomatic   21 cognitive   56 lines
+         342.0 CRAP
+  src/frontend/playback/useApplyTransition.ts
+    :24 <arrow> CRITICAL
+          18 cyclomatic    8 cognitive   55 lines
+         342.0 CRAP
+  src/frontend/lib/waveform.ts
+    :103 renderWaveform CRITICAL
+          14 cyclomatic   23 cognitive  109 lines
+         210.0 CRAP
+  src/frontend/lib/frequency.ts
+    :204 <arrow> CRITICAL
+          12 cyclomatic    8 cognitive  115 lines
+         156.0 CRAP
+  src/frontend/components/WaveformCanvas.tsx
+    :47 WaveformCanvas CRITICAL
+          12 cyclomatic    7 cognitive  464 lines
+         156.0 CRAP
+    :110 updateWaveform CRITICAL
+          11 cyclomatic   13 cognitive   39 lines
+         132.0 CRAP
+  src/frontend/playback/usePlaybackClock.ts
+    :44 usePlaybackClock CRITICAL
+          11 cyclomatic    5 cognitive  194 lines
+         132.0 CRAP
+  src/frontend/components/WaveformCanvas.tsx
+    :67 <arrow> CRITICAL
+          10 cyclomatic    5 cognitive   24 lines
+         110.0 CRAP
+  src/frontend/components/NumberInput.tsx
+    :16 NumberInput HIGH
+           9 cyclomatic    8 cognitive  105 lines
+          90.0 CRAP
+  src/frontend/components/PianoRoll.tsx
+    :169 tick HIGH
+           9 cyclomatic    7 cognitive   26 lines
+          90.0 CRAP
+  src/frontend/lib/freeze.ts
+    :15 granularFreeze HIGH
+           9 cyclomatic   13 cognitive   62 lines
+          90.0 CRAP
+  src/frontend/components/buttons.tsx
+    :66 ToggleButton HIGH
+           8 cyclomatic   13 cognitive   39 lines
+          72.0 CRAP
+  src/frontend/lib/frequency.ts
+    :121 isLocalMax HIGH
+           8 cyclomatic   12 cognitive   29 lines
+          72.0 CRAP
+  src/frontend/components/SliderInput.tsx
+    :16 SliderInput HIGH
+           8 cyclomatic    8 cognitive   76 lines
+          72.0 CRAP
+  src/frontend/components/WaveformView.tsx
+    :164 handleKeyDown HIGH
+           8 cyclomatic    1 cognitive   29 lines
+          72.0 CRAP
+  src/frontend/playback/PlaybackProvider.tsx
+    :65 setAudioSettings HIGH
+           8 cyclomatic    7 cognitive   20 lines
+          72.0 CRAP
+  src/frontend/components/PlaybackControls.tsx
+    :29 handleKey HIGH
+           8 cyclomatic   12 cognitive   16 lines
+          72.0 CRAP
+    :6 PlaybackControls HIGH
+           8 cyclomatic    7 cognitive  152 lines
+          72.0 CRAP
+  src/frontend/components/Tutorial.tsx
+    :22 Tutorial HIGH
+           7 cyclomatic    8 cognitive  127 lines
+          56.0 CRAP
+  src/frontend/lib/util.ts
+    :28 relativeDate HIGH
+           7 cyclomatic    6 cognitive   14 lines
+          56.0 CRAP
+  src/frontend/components/WaveformCanvas.tsx
+    :150 checkScroll HIGH
+           7 cyclomatic   11 cognitive   25 lines
+          56.0 CRAP
+  src/frontend/Loaded.tsx
+    :36 Loaded HIGH
+           7 cyclomatic    5 cognitive  321 lines
+          56.0 CRAP
+  src/frontend/components/buttons.tsx
+    :20 Button
+           6 cyclomatic    3 cognitive   32 lines
+          42.0 CRAP
+  src/frontend/components/Tutorial.tsx
+    :64 updateContainerRef
+           6 cyclomatic    7 cognitive   36 lines
+          42.0 CRAP
+  src/frontend/components/FrequencyCanvas.tsx
+    :117 render
+           6 cyclomatic    3 cognitive   15 lines
+          42.0 CRAP
+    :9 FrequencyCanvas
+           6 cyclomatic    2 cognitive  151 lines
+          42.0 CRAP
+  src/frontend/lib/frequency.ts
+    :47 groupFrequencies
+           6 cyclomatic    8 cognitive   31 lines
+          42.0 CRAP
+  src/frontend/components/NumberInput.tsx
+    :32 updateValue
+           6 cyclomatic    8 cognitive   14 lines
+          42.0 CRAP
+  src/frontend/components/PianoRoll.tsx
+    :126 startTone
+           6 cyclomatic    2 cognitive   14 lines
+          42.0 CRAP
+  src/frontend/components/FrequencyCanvas.tsx
+    :62 handleMouseMove
+           5 cyclomatic    3 cognitive   10 lines
+          30.0 CRAP
+  src/frontend/playback/useAudioChain.ts
+    :29 useAudioChain
+           5 cyclomatic    2 cognitive   67 lines
+          30.0 CRAP
+  src/frontend/components/WaveformCanvas.tsx
+    :225 <arrow>
+           5 cyclomatic    4 cognitive   18 lines
+          30.0 CRAP
+    :296 <arrow>
+           5 cyclomatic    3 cognitive   21 lines
+          30.0 CRAP
+  src/frontend/components/PianoRoll.tsx
+    :94 <arrow>
+           5 cyclomatic    4 cognitive   12 lines
+          30.0 CRAP
+    :82 PianoRoll
+           5 cyclomatic    0 cognitive  176 lines
+          30.0 CRAP
+  src/frontend/playback/PlaybackProvider.tsx
+    :89 triggerAction
+           5 cyclomatic    4 cognitive   10 lines
+          30.0 CRAP
+  src/frontend/lib/audioCache.ts
+    :11 <arrow>
+           5 cyclomatic    4 cognitive   12 lines
+          30.0 CRAP
+  Functions exceeding cyclomatic, cognitive, or CRAP thresholds (https://docs.fallow.tools/explanations/health#complexity-metrics)
+  To suppress: // fallow-ignore-next-line complexity
+
+● File health scores (29 files) · sorted by triage concern
+
+   85.8    src/frontend/playback/machine.ts                risk
+            127 LOC    2 fan-in    3 fan-out    0% dead  0.29 density  >999 risk
+
+   86.8    src/frontend/playback/usePlaybackClock.ts       risk
+            238 LOC    1 fan-in    5 fan-out    0% dead  0.20 density  342.0 risk
+
+   89.3    src/frontend/playback/useApplyTransition.ts     risk
+             89 LOC    1 fan-in    2 fan-out    0% dead  0.21 density  342.0 risk
+
+   84.8    src/frontend/lib/waveform.ts                    risk
+            212 LOC    7 fan-in    1 fan-out   50% dead  0.08 density  210.0 risk
+
+   82.1    src/frontend/lib/frequency.ts                   risk
+            327 LOC    4 fan-in    0 fan-out   70% dead  0.13 density  156.0 risk
+
+   87.3    src/frontend/components/WaveformCanvas.tsx      risk
+            525 LOC    1 fan-in    4 fan-out    0% dead  0.21 density  156.0 risk
+
+   70.9    src/frontend/components/NumberInput.tsx         risk
+            121 LOC    0 fan-in    1 fan-out  100% dead  0.21 density  90.0 risk
+
+   87.9    src/frontend/components/PianoRoll.tsx           risk
+            258 LOC    1 fan-in    3 fan-out    0% dead  0.22 density  90.0 risk
+
+   95.5    src/frontend/lib/freeze.ts                      risk
+            108 LOC    1 fan-in    0 fan-out    0% dead  0.15 density  90.0 risk
+
+   75.5    src/frontend/components/SliderInput.tsx         risk
+             92 LOC    0 fan-in    0 fan-out  100% dead  0.15 density  72.0 risk
+
+  ... and 19 more files (--format json for full list)
+
+  Sorted by triage concern: the larger of low-MI concern and CRAP risk. The risk / structure tag marks which one placed each file. MI reflects complexity, coupling, and dead code; risk reflects untested complexity (CRAP) and can diverge from MI. Risk: low <15, moderate 15-30, high >=30. CRAP estimated from export references (85% direct, 40% indirect, 0% untested). Run `fallow health --coverage <coverage-final.json>` for exact scores. https://docs.fallow.tools/explanations/health#file-health-scores
+
+● Hotspots (18 files, since 6 months)
+
+   41.2 ─  src/frontend/components/WaveformCanvas.tsx
+          17 commits   1546 churn  0.21 density   1 fan-in  ─ stable
+
+   27.3 ▲  src/frontend/playback/PlaybackProvider.tsx
+          14 commits    665 churn  0.16 density   1 fan-in  ▲ accelerating
+
+   24.4 ─  src/frontend/playback/usePlaybackClock.ts
+          10 commits    917 churn  0.20 density   1 fan-in  ─ stable
+
+   22.9 ▲  src/frontend/Loaded.tsx
+          24 commits   2221 churn  0.08 density   1 fan-in  ▲ accelerating
+
+   18.7 ▼  src/frontend/components/PianoRoll.tsx
+           7 commits    783 churn  0.22 density   1 fan-in  ▼ cooling
+
+   18.1 ▼  src/frontend/playback/machine.ts
+           5 commits    186 churn  0.29 density   2 fan-in  ▼ cooling
+
+   16.6 ▲  src/frontend/components/PlaybackControls.tsx
+           7 commits    277 churn  0.19 density   1 fan-in  ▲ accelerating
+
+   15.3 ▼  src/frontend/lib/audioCache.ts
+           4 commits    126 churn  0.35 density   1 fan-in  ▼ cooling
+
+   11.6 ▲  src/frontend/Landing.tsx
+          10 commits    884 churn  0.10 density   1 fan-in  ▲ accelerating
+
+   11.2 ▼  src/frontend/lib/useDecodeFile.ts
+           5 commits     51 churn  0.20 density   2 fan-in  ▼ cooling
+
+   10.8 ─  src/frontend/components/FrequencyCanvas.tsx
+           4 commits    115 churn  0.24 density   0 fan-in  ─ stable
+
+   10.5 ▼  src/frontend/playback/useApplyTransition.ts
+           4 commits    144 churn  0.21 density   1 fan-in  ▼ cooling
+
+    9.0 ▲  src/frontend/components/AudioSettings.tsx
+           6 commits    551 churn  0.12 density   1 fan-in  ▲ accelerating
+
+    8.9 ▼  src/frontend/App.tsx
+           8 commits    407 churn  0.10 density   1 fan-in  ▼ cooling
+
+    8.4 ▲  src/frontend/lib/useDrag.ts
+           3 commits    108 churn  0.23 density   3 fan-in  ▲ accelerating
+
+    6.5 ▲  src/frontend/components/WaveformView.tsx
+           6 commits    442 churn  0.09 density   1 fan-in  ▲ accelerating
+
+    6.0 ▼  src/frontend/playback/useAudioChain.ts
+           3 commits    111 churn  0.17 density   1 fan-in  ▼ cooling
+
+    2.3 ▼  src/frontend/AudioStore.tsx
+           3 commits     41 churn  0.07 density   4 fan-in  ▼ cooling
+
+  6 files excluded (< 3 commits)
+
+  Files with high churn and high complexity: https://docs.fallow.tools/explanations/health#hotspot-metrics
+
+● Refactoring targets (3)
+  2 medium · 1 high
+    score = quick-win ROI (higher = better) · pri = absolute priority
+
+   13.3  pri:26.5    src/frontend/lib/frequency.ts
+         dead code · effort:medium · confidence:high  Remove 7 unused exports to reduce surface area (70% dead)
+         importers: src/frontend/components/FrequencyCanvas.tsx (PITCH_BUCKETS, drawFrequencyPiano, groupFrequencies); src/frontend/components/PianoRoll.tsx (PITCH_BUCKETS, groupFrequencies); src/frontend/playback/PlaybackContext.ts (FrequencyData); src/frontend/playback/useAudioChain.ts (FrequencyData)
+         clones: src/frontend/lib/frequency.ts:155-166 dup:3c73691a; src/frontend/lib/frequency.ts:197-209 dup:3c73691a
+
+   11.3  pri:22.5    src/frontend/components/buttons.tsx
+         dead code · effort:medium · confidence:high  Remove 2 unused exports to reduce surface area (67% dead)
+         importers: src/frontend/components/NumberInput.tsx (Button); src/frontend/components/Tutorial.tsx (Button)
+
+    9.6  pri:28.7    src/frontend/lib/waveform.ts
+         dead code · effort:high · confidence:high  Remove 2 unused exports to reduce surface area (50% dead)
+         importers: src/frontend/components/WaveformCanvas.tsx (Section, WaveformData, computeSampleIndex); src/frontend/components/WaveformView.tsx (Section, WaveformData, renderWaveform); src/frontend/lib/util.ts (Section); src/frontend/playback/PlaybackContext.ts (Section); src/frontend/playback/machine.ts (Section)
+
+  Prioritized refactoring recommendations based on complexity, churn, and coupling signals: https://docs.fallow.tools/explanations/health#refactoring-targets
+

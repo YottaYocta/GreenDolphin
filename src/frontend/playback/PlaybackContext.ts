@@ -19,7 +19,7 @@ export type PlaybackAction =
   | "freeze"
   | { type: "move"; position: number };
 
-export interface PlaybackContextType {
+interface PlaybackContextType {
   playbackPosition: RefObject<number>;
   loopPosition: RefObject<number>;
   loopLength: number;

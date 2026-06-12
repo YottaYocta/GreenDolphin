@@ -1,10 +1,4 @@
-import { PlusIcon } from "lucide-react";
-import { useRef, type FC, type MouseEventHandler, type ReactNode } from "react";
-
-export interface LoadButtonProps {
-  handleLoaded: (file: File) => void;
-  text?: string;
-}
+import { type FC, type MouseEventHandler, type ReactNode } from "react";
 
 export interface ButtonProps {
   icon?: ReactNode;
@@ -24,7 +18,7 @@ export const Button: FC<ButtonProps> = ({
   className,
   ariaLabel,
   tooltip,
-  iconPlacement = "left", // Default to left
+  iconPlacement = "left",
   id,
 }) => {
   return (
@@ -47,88 +41,5 @@ export const Button: FC<ButtonProps> = ({
         </span>
       )}
     </button>
-  );
-};
-
-export interface ToggleButtonProps {
-  pressed: boolean;
-  icon?: ReactNode;
-  text?: string;
-  onClick?: () => void;
-  className?: string;
-  ariaLabel?: string;
-  accent?: "positive" | "primary" | "negative";
-  iconPlacement?: "left" | "right";
-  tooltip?: string;
-  id?: string;
-}
-
-export const ToggleButton: FC<ToggleButtonProps> = ({
-  pressed,
-  icon,
-  text,
-  onClick,
-  className,
-  ariaLabel,
-  accent,
-  iconPlacement = "left",
-  tooltip,
-  id,
-}) => {
-  return (
-    <button
-      id={id}
-      aria-pressed={pressed}
-      aria-label={ariaLabel}
-      title={tooltip}
-      className={`${
-        pressed
-          ? accent === "positive"
-            ? `hover:bg-emerald-100 bg-emerald-50 border-emerald-500 text-emerald-700`
-            : accent === "negative"
-            ? `hover:bg-rose-100 bg-rose-50 border-rose-400 text-rose-700`
-            : `hover:bg-blue-100 bg-blue-100 border-blue-400 text-blue-600`
-          : accent === "positive"
-          ? "hover:bg-neutral-100 border-neutral-2 text-emerald-600 bg-white"
-          : accent === "negative"
-          ? "hover:bg-neutral-100 border-neutral-2 text-rose-500 bg-white"
-          : "hover:bg-neutral-100 border-neutral-2 text-blue-500 bg-white"
-      } p-2 rounded-full border h-min w-min flex items-center justify-center gap-2 flex-nowrap text-nowrap cursor-pointer ${className}`}
-      onClick={onClick}
-    >
-      {iconPlacement === "left" && icon}
-      {text}
-      {iconPlacement === "right" && icon}
-    </button>
-  );
-};
-
-export const LoadButton: FC<LoadButtonProps> = ({ handleLoaded, text }) => {
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  return (
-    <>
-      <Button
-        className="border-neutral-2 border pl-2 pr-3 bg-white hover:bg-neutral-50"
-        text={text || "Load Recording"}
-        icon={<PlusIcon width={18} height={18} strokeWidth={1.5}></PlusIcon>}
-        onClick={() => {
-          if (inputRef.current) inputRef.current.click();
-        }}
-      ></Button>
-      <input
-        type="file"
-        ref={inputRef}
-        onChange={() => {
-          if (
-            inputRef.current &&
-            inputRef.current.files &&
-            inputRef.current.files.length > 0
-          )
-            handleLoaded(inputRef.current.files[0]);
-        }}
-        className="hidden"
-      ></input>
-    </>
   );
 };

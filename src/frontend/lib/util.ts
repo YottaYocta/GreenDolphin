@@ -1,6 +1,6 @@
 import { type Section } from "./waveform";
 
-export const NOTE_COLORS = [
+const NOTE_COLORS = [
   "#6366f1",
   "#8b5cf6",
   "#ec4899",
@@ -13,7 +13,7 @@ export const NOTE_COLORS = [
   "#14b8a6",
 ];
 
-export function hashFilename(name: string): number {
+function hashFilename(name: string): number {
   let h = 0;
   for (let i = 0; i < name.length; i++) {
     h = (Math.imul(h, 31) + name.charCodeAt(i)) >>> 0;

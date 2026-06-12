@@ -28,7 +28,7 @@ export interface WaveformData {
 const computeFillStyle = (color: Color): string =>
   `rgb(${color.r} ${color.g} ${color.b} / ${color.a}%)`;
 
-export const computePixel = (
+const computePixel = (
   sampleIdx: number,
   rangeLength: number,
   canvas: HTMLCanvasElement,
@@ -42,62 +42,6 @@ export const computeSampleIndex = (
   canvas: HTMLCanvasElement,
 ) => {
   return Math.floor((pixel / canvas.width) * rangeLength);
-};
-
-export const renderWaveformFrame = (
-  { range }: WaveformData,
-  frameRange: Section,
-  canvas: HTMLCanvasElement,
-  primary = { r: 0, g: 100, b: 50, a: 100 },
-  // primary = { r: 25, g: 202, b: 147, a: 100 }
-) => {
-  const fillStyle = computeFillStyle(primary);
-  const triangleHeight = Math.floor(canvas.height * 0.2);
-  const verticalPadding = 0;
-  const barWidth = 4;
-  const frameStart = computePixel(
-    frameRange.start - range.start,
-    range.end - range.start,
-    canvas,
-  );
-  const frameEnd = computePixel(
-    frameRange.end - range.start,
-    range.end - range.start,
-    canvas,
-  );
-  const canvasCtx = canvas.getContext("2d")!;
-  canvasCtx.fillStyle = fillStyle;
-  canvasCtx.imageSmoothingEnabled = false;
-  canvasCtx.beginPath();
-  canvasCtx.moveTo(
-    frameStart,
-    canvas.height - verticalPadding - triangleHeight,
-  );
-  canvasCtx.lineTo(frameStart - barWidth / 2, canvas.height - verticalPadding);
-  canvasCtx.lineTo(frameStart + barWidth / 2, canvas.height - verticalPadding);
-  canvasCtx.closePath();
-  canvasCtx.fill();
-
-  canvasCtx.beginPath();
-  canvasCtx.moveTo(frameEnd, canvas.height - verticalPadding - triangleHeight);
-  canvasCtx.lineTo(frameEnd - barWidth / 2, canvas.height - verticalPadding);
-  canvasCtx.lineTo(frameEnd + barWidth / 2, canvas.height - verticalPadding);
-  canvasCtx.closePath();
-  canvasCtx.fill();
-
-  canvasCtx.beginPath();
-  canvasCtx.moveTo(frameStart, verticalPadding + triangleHeight);
-  canvasCtx.lineTo(frameStart - barWidth / 2, verticalPadding);
-  canvasCtx.lineTo(frameStart + barWidth / 2, verticalPadding);
-  canvasCtx.closePath();
-  canvasCtx.fill();
-
-  canvasCtx.beginPath();
-  canvasCtx.moveTo(frameEnd, verticalPadding + triangleHeight);
-  canvasCtx.lineTo(frameEnd - barWidth / 2, verticalPadding);
-  canvasCtx.lineTo(frameEnd + barWidth / 2, verticalPadding);
-  canvasCtx.closePath();
-  canvasCtx.fill();
 };
 
 export const renderWaveform = (
@@ -174,7 +118,6 @@ export const renderWaveform = (
 
     canvasCtx.fillStyle = primaryFill;
     canvasCtx.fillRect(startPos, 0, 1, canvas.height);
-    // canvasCtx.fillText(`sample ${section.start}`, startPos + 5, 10);
     canvasCtx.fillStyle = "rgb(0 0 0)";
     canvasCtx.fillText(
       `${formatSeconds(
@@ -186,7 +129,6 @@ export const renderWaveform = (
 
     canvasCtx.fillStyle = primaryFill;
     canvasCtx.fillRect(endPos, 0, 1, canvas.height);
-    // canvasCtx.fillText(`sample ${section.end}`, endPos + 5, 10);
 
     if (endPos - startPos > 70) {
       const endString = `${formatSeconds(
