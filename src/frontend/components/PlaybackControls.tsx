@@ -1,9 +1,11 @@
 import { useCallback, useContext, useEffect } from "react";
 import { PlaybackContext } from "../playback/PlaybackContext";
+import { usePostHog } from "@posthog/react";
 
 const iconStyle = { width: 24, height: "auto", overflow: "visible", flexShrink: 0 } as const;
 
 export function PlaybackControls() {
+  const posthog = usePostHog();
   const playback = useContext(PlaybackContext);
   if (!playback)
     throw new Error("PlaybackControls must be used within a PlaybackProvider");
@@ -59,11 +61,14 @@ export function PlaybackControls() {
     <div className="flex overflow-clip items-start gap-4 flex-col p-4 rounded-xl flex-1 [box-shadow:#0000000D_0px_2px_3px] bg-white border border-solid border-[#0000001A]">
       <div className="flex items-start gap-4 flex-1 self-stretch">
         <button
-          onClick={() =>
-            playState === "playing" || playState === "waiting"
-              ? triggerAction("pause")
-              : triggerAction("play")
-          }
+          onClick={() => {
+            if (playState === "playing" || playState === "waiting") {
+              triggerAction("pause");
+            } else {
+              posthog?.capture("playback_started");
+              triggerAction("play");
+            }
+          }}
           className={`btn-surface p-3.25 flex-1 self-stretch cursor-pointer ${playState === "playing" || playState === "waiting" ? "bg-[#1CCA93] hover:bg-[#3DD4A3] active:bg-[#17A87A] [box-shadow:#FFFFFF40_0px_0px_4px_1px_inset,#0000000D_0px_2px_3px]" : ""}`}
         >
           {playState === "playing" || playState === "waiting" ? (
@@ -95,11 +100,14 @@ export function PlaybackControls() {
           )}
         </button>
         <button
-          onClick={() =>
-            playState === "frozen"
-              ? triggerAction("pause")
-              : triggerAction("freeze")
-          }
+          onClick={() => {
+            if (playState === "frozen") {
+              triggerAction("pause");
+            } else {
+              posthog?.capture("playback_frozen");
+              triggerAction("freeze");
+            }
+          }}
           className={`btn-surface p-3.25 flex-1 self-stretch cursor-pointer ${playState === "frozen" ? "bg-[#0099DC] hover:bg-[#33ADDE] active:bg-[#007AB0] [box-shadow:#FFFFFF40_0px_0px_4px_1px_inset,#0000000D_0px_2px_3px]" : ""}`}
         >
           <svg

@@ -12,6 +12,7 @@ import { useDecodeFile } from "./lib/useDecodeFile";
 import { formatSeconds, formatSize } from "./lib/util";
 import { PlaybackControls } from "./components/PlaybackControls";
 import { AudioSettings } from "./components/AudioSettings";
+import { usePostHog } from "@posthog/react";
 
 const FileInfoRow: FC<{ label: string; value: string; mono: boolean }> = ({
   label,
@@ -34,6 +35,7 @@ const headerBtn = "btn-surface rounded-lg gap-3 px-3.25 py-3.25";
 const headerBtnLabel = "opacity-40 font-inria text-black text-base/5 whitespace-nowrap max-md:hidden";
 
 export const Loaded = () => {
+  const posthog = usePostHog();
   const { audio } = useContext(AudioStore);
   if (!audio) throw new Error("Loaded must be rendered within an audio route");
   const { buffer: data, filename, fileSize } = audio;
@@ -45,6 +47,16 @@ export const Loaded = () => {
   const [showTutorial, setShowTutorial] = useState(
     localStorage.getItem("tutorial_shown") !== "true",
   );
+
+  useEffect(() => {
+    posthog?.capture("app_viewed", {
+      file_name: filename,
+      file_size_bytes: fileSize,
+      duration_seconds: data.duration,
+      sample_rate: data.sampleRate,
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
 
@@ -143,7 +155,13 @@ export const Loaded = () => {
                           <Menu.Item
                             key={file.name}
                             className="flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-neutral-50 active:bg-neutral-100"
-                            onClick={async () => await decodeFile(file)}
+                            onClick={async () => {
+                              posthog?.capture("recording_switched", {
+                                file_name: file.name,
+                                file_size_bytes: file.size,
+                              });
+                              await decodeFile(file);
+                            }}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -313,7 +331,16 @@ export const Loaded = () => {
               positionReference={playbackPosition}
               animate={true}
               handlePosition={handlePosition}
-              handleSelection={(section) => setAudioSettings({ loop: section })}
+              handleSelection={(section) => {
+            setAudioSettings({ loop: section });
+            if (section) {
+              posthog?.capture("loop_region_set", {
+                loop_start_ms: section.start,
+                loop_end_ms: section.end,
+                loop_duration_ms: section.end - section.start,
+              });
+            }
+          }}
             />
           </div>
         </div>
