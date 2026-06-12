@@ -75,7 +75,7 @@ export const renderWaveform = (
   for (let i = 0; i < data.numberOfChannels; i++) {
     const channelData = data.getChannelData(i);
 
-    const subsamplingRate = Math.max(0, samplesPerWave / 10);
+    const subsamplingRate = Math.max(1, samplesPerWave / 10);
     for (
       let j = range.start;
       j < channelData.length && j < range.end;
@@ -143,7 +143,7 @@ export const renderWaveform = (
     }
   }
 
-  if (position) {
+  if (position !== null) {
     const pos = computePixel(position - range.start, rangeLength, canvas);
     if (pos > 0 && pos < canvas.width) {
       canvasCtx.fillStyle = "rgb(10 150 100)";

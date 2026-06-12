@@ -134,7 +134,7 @@ export const isLocalMax = (
     if (frequencies.length > 1) {
       return (
         Math.abs(frequencies[frequencies.length - 1] * threshold) >
-        Math.abs(frequencies[length - 2])
+        Math.abs(frequencies[frequencies.length - 2])
       );
     } else {
       return true;
@@ -142,8 +142,8 @@ export const isLocalMax = (
   } else {
     const current = Math.abs(frequencies[index]);
     return (
-      current < Math.abs(frequencies[index - 1] * threshold) ||
-      current < Math.abs(frequencies[index + 1] * threshold)
+      current > Math.abs(frequencies[index - 1] * threshold) &&
+      current > Math.abs(frequencies[index + 1] * threshold)
     );
   }
 };
