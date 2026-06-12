@@ -143,7 +143,7 @@ export const renderWaveform = (
     }
   }
 
-  if (position !== null) {
+  if (position !== undefined) {
     const pos = computePixel(position - range.start, rangeLength, canvas);
     if (pos > 0 && pos < canvas.width) {
       canvasCtx.fillStyle = "rgb(10 150 100)";
