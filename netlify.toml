@@ -1,0 +1,4 @@
+[[headers]]  
+ for = "/*"  
+ [headers.values]  
+ Content-Security-Policy = "default-src 'self'; script-src 'self' https://*.posthog.com; connect-src 'self' https://*.posthog.com; worker-src 'self' blob: data:;"  
