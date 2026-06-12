@@ -1,6 +1,6 @@
 import { createContext, useState, type ReactNode } from "react";
 
-export type AudioState = {
+type AudioState = {
   audioCtx: AudioContext;
   buffer: AudioBuffer;
   filename: string;
