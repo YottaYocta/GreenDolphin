@@ -23,8 +23,6 @@ export function AudioSettings() {
     setAudioSettings({ gain: renderedGain * renderedGain });
   }, [renderedGain, setAudioSettings]);
 
-  // delayRatio: fraction of the cycle that is playing (0.05–0.95).
-  // loopDelay seconds = loopDuration * (1 - ratio) / ratio
   const [delayRatio, setDelayRatio] = useState(0.5);
   useEffect(() => {
     if (!playbackSettings.loop) {
@@ -35,6 +33,41 @@ export function AudioSettings() {
       loopDelay: (loopLength * (1 - delayRatio)) / delayRatio,
     });
   }, [playbackSettings.loop, delayRatio, loopLength, setAudioSettings]);
+
+  const sliders = (
+    <>
+      <AudioSlider
+        label="Pitch"
+        value={pitchShift}
+        min={-10}
+        max={10}
+        step={0.2}
+        onChange={(v) => setAudioSettings({ pitchShift: Math.round(v * 10) / 10 })}
+        formatValue={(v) => `${v >= 0 ? "+" : ""}${Math.round(v * 10) / 10}`}
+        unit="smt"
+      />
+      <AudioSlider
+        label="Speed"
+        value={playbackSpeed}
+        min={0.1}
+        max={1.9}
+        step={0.1}
+        onChange={(v) => setAudioSettings({ playbackSpeed: Math.round(v * 10) / 10 })}
+        formatValue={(v) => `${Math.round(v * 100)}`}
+        unit="%"
+      />
+      <AudioSlider
+        label="Volume"
+        value={renderedGain}
+        min={0}
+        max={2}
+        step={0.1}
+        onChange={(v) => setRenderedGain(Math.round(v * 10) / 10)}
+        formatValue={(v) => `${Math.round(v * 100)}`}
+        unit="%"
+      />
+    </>
+  );
 
   return (
     <div className="flex flex-col items-end gap-3.25 flex-1 max-md:grow-0 w-full">
@@ -57,49 +90,9 @@ export function AudioSettings() {
 
           <Menu.Portal>
             <Menu.Positioner side="bottom" align="start" sideOffset={8}>
-              <Menu.Popup
-                className="z-50 rounded-xl py-5 px-4 shrink-0 [box-shadow:#0000000D_0px_2px_3px] bg-white border border-[#0000001A] w-min
-              "
-              >
-                <div className=" flex flex-col justify-center self-stretch gap-2 w-[calc(100vw-4rem)] px-4">
-                  <AudioSlider
-                    label="Pitch"
-                    value={pitchShift}
-                    min={-10}
-                    max={10}
-                    step={0.2}
-                    onChange={(v) =>
-                      setAudioSettings({ pitchShift: Math.round(v * 10) / 10 })
-                    }
-                    formatValue={(v) =>
-                      `${v >= 0 ? "+" : ""}${Math.round(v * 10) / 10}`
-                    }
-                    unit="smt"
-                  />
-                  <AudioSlider
-                    label="Speed"
-                    value={playbackSpeed}
-                    min={0.1}
-                    max={1.9}
-                    step={0.1}
-                    onChange={(v) =>
-                      setAudioSettings({
-                        playbackSpeed: Math.round(v * 10) / 10,
-                      })
-                    }
-                    formatValue={(v) => `${Math.round(v * 100)}`}
-                    unit="%"
-                  />
-                  <AudioSlider
-                    label="Volume"
-                    value={renderedGain}
-                    min={0}
-                    max={2}
-                    step={0.1}
-                    onChange={(v) => setRenderedGain(Math.round(v * 10) / 10)}
-                    formatValue={(v) => `${Math.round(v * 100)}`}
-                    unit="%"
-                  />
+              <Menu.Popup className="z-50 rounded-xl py-5 px-4 shrink-0 [box-shadow:#0000000D_0px_2px_3px] bg-white border border-[#0000001A] w-min">
+                <div className="flex flex-col justify-center self-stretch gap-2 w-[calc(100vw-4rem)] px-4">
+                  {sliders}
                 </div>
               </Menu.Popup>
             </Menu.Positioner>
@@ -115,40 +108,7 @@ export function AudioSettings() {
         />
       </div>
       <div className="flex flex-col justify-center self-stretch rounded-xl py-5 px-4 gap-4 shrink-0 [box-shadow:#0000000D_0px_2px_3px] bg-white border border-[#0000001A] max-md:hidden">
-        <AudioSlider
-          label="Pitch"
-          value={pitchShift}
-          min={-10}
-          max={10}
-          step={0.2}
-          onChange={(v) =>
-            setAudioSettings({ pitchShift: Math.round(v * 10) / 10 })
-          }
-          formatValue={(v) => `${v >= 0 ? "+" : ""}${Math.round(v * 10) / 10}`}
-          unit="smt"
-        />
-        <AudioSlider
-          label="Speed"
-          value={playbackSpeed}
-          min={0.1}
-          max={1.9}
-          step={0.1}
-          onChange={(v) =>
-            setAudioSettings({ playbackSpeed: Math.round(v * 10) / 10 })
-          }
-          formatValue={(v) => `${Math.round(v * 100)}`}
-          unit="%"
-        />
-        <AudioSlider
-          label="Volume"
-          value={renderedGain}
-          min={0}
-          max={2}
-          step={0.1}
-          onChange={(v) => setRenderedGain(Math.round(v * 10) / 10)}
-          formatValue={(v) => `${Math.round(v * 100)}`}
-          unit="%"
-        />
+        {sliders}
       </div>
     </div>
   );

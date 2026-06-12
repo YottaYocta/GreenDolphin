@@ -30,6 +30,9 @@ const FileInfoRow: FC<{ label: string; value: string; mono: boolean }> = ({
   </div>
 );
 
+const headerBtn = "btn-surface rounded-lg gap-3 px-3.25 py-3.25";
+const headerBtnLabel = "opacity-40 font-inria text-black text-base/5 whitespace-nowrap max-md:hidden";
+
 export const Loaded = () => {
   const { audio } = useContext(AudioStore);
   if (!audio) throw new Error("Loaded must be rendered within an audio route");
@@ -89,12 +92,10 @@ export const Loaded = () => {
   return (
     <>
       <div className="w-full max-w-240 h-full md:h-min p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4">
-        {/* Header */}
         <div className="[font-synthesis:none] flex items-center gap-4 justify-between self-stretch antialiased">
           <div className="flex items-start gap-4 min-w-0">
-            {/* Song title — opens recent-songs menu */}
             <Menu.Root>
-              <Menu.Trigger className="btn-surface rounded-lg gap-3 px-3.25 py-3.25 self-stretch cursor-pointer min-w-0">
+              <Menu.Trigger className={`${headerBtn} self-stretch cursor-pointer min-w-0`}>
                 <span className="font-inria text-black text-base/5 truncate min-w-0">
                   {filename}
                 </span>
@@ -114,7 +115,6 @@ export const Loaded = () => {
               <Menu.Portal>
                 <Menu.Positioner side="bottom" align="start" sideOffset={8}>
                   <Menu.Popup className="z-50 w-80 rounded-xl bg-white border border-[#0000001A] [box-shadow:#0000001A_0px_4px_16px] overflow-hidden flex flex-col outline-none">
-                    {/* Sticky: upload option */}
                     <Menu.Item
                       className="shrink-0 flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-neutral-50 active:bg-neutral-100 border-b border-[#0000001A]"
                       closeOnClick={false}
@@ -133,7 +133,6 @@ export const Loaded = () => {
                         Upload a Recording
                       </span>
                     </Menu.Item>
-                    {/* Scrollable recordings list */}
                     <div className="overflow-y-auto max-h-72 flex flex-col">
                       {cachedFiles.length === 0 ? (
                         <div className="px-4 py-4 opacity-40 font-inria text-black text-sm text-center">
@@ -183,9 +182,8 @@ export const Loaded = () => {
               </Menu.Portal>
             </Menu.Root>
 
-            {/* File info dialog */}
             <Dialog.Root>
-              <Dialog.Trigger className="btn-surface rounded-lg gap-3 px-3.25 py-3.25 self-stretch max-md:w-12 h-12 w-40 shrink-0 cursor-pointer ">
+              <Dialog.Trigger className={`${headerBtn} self-stretch max-md:w-12 h-12 w-40 shrink-0 cursor-pointer`}>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="21"
@@ -198,9 +196,7 @@ export const Loaded = () => {
                     fill="#000000"
                   />
                 </svg>
-                <span className="opacity-40 font-inria text-black text-base/5 whitespace-nowrap max-md:hidden">
-                  File Info
-                </span>
+                <span className={headerBtnLabel}>File Info</span>
               </Dialog.Trigger>
               <Dialog.Portal>
                 <Dialog.Backdrop className="fixed inset-0 bg-black/20 z-40" />
@@ -281,7 +277,7 @@ export const Loaded = () => {
             onClick={() => {
               navigate("/");
             }}
-            className="btn-surface rounded-lg gap-3 px-3.25 py-3.25 w-43.5 h-12 shrink-0 cursor-pointer max-md:w-12 "
+            className={`${headerBtn} w-43.5 h-12 shrink-0 cursor-pointer max-md:w-12`}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -301,9 +297,7 @@ export const Loaded = () => {
                 fill="#000000"
               />
             </svg>
-            <span className="opacity-40 font-inria text-black text-base/5 whitespace-nowrap max-md:hidden">
-              Home
-            </span>
+            <span className={headerBtnLabel}>Home</span>
           </button>
         </div>
 

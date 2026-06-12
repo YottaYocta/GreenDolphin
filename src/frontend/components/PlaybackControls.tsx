@@ -1,6 +1,8 @@
 import { useCallback, useContext, useEffect } from "react";
 import { PlaybackContext } from "../playback/PlaybackContext";
 
+const iconStyle = { width: 24, height: "auto", overflow: "visible", flexShrink: 0 } as const;
+
 export function PlaybackControls() {
   const playback = useContext(PlaybackContext);
   if (!playback)
@@ -70,12 +72,7 @@ export function PlaybackControls() {
               width="32"
               height="32"
               viewBox="0 0 256 256"
-              style={{
-                width: 24,
-                height: "auto",
-                overflow: "visible",
-                flexShrink: 0,
-              }}
+              style={iconStyle}
             >
               <path
                 d="M216,48H168a16,16,0,0,0-16,16V192a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V64A16,16,0,0,0,216,48ZM88,48H40A16,16,0,0,0,24,64V192a16,16,0,0,0,16,16H88a16,16,0,0,0,16-16V64A16,16,0,0,0,88,48Z"
@@ -88,12 +85,7 @@ export function PlaybackControls() {
               width="32"
               height="32"
               viewBox="0 0 256 256"
-              style={{
-                width: 24,
-                height: "auto",
-                overflow: "visible",
-                flexShrink: 0,
-              }}
+              style={iconStyle}
             >
               <path
                 d="M240,128a15.74,15.74,0,0,1-7.6,13.51L88.32,229.65a16,16,0,0,1-16.2.3A15.86,15.86,0,0,1,64,216.13V39.87a15.86,15.86,0,0,1,8.12-13.82,16,16,0,0,1,16.2.3L232.4,114.49A15.74,15.74,0,0,1,240,128Z"
@@ -102,7 +94,6 @@ export function PlaybackControls() {
             </svg>
           )}
         </button>
-        {/* Freeze */}
         <button
           onClick={() =>
             playState === "frozen"
@@ -135,13 +126,7 @@ export function PlaybackControls() {
             width="32"
             height="32"
             viewBox="0 0 256 256"
-            style={{
-              width: 24,
-              height: "auto",
-              opacity: 0.67,
-              overflow: "visible",
-              flexShrink: 0,
-            }}
+            style={{ ...iconStyle, opacity: 0.67 }}
           >
             <path
               d="M208,47.88V208.12a16,16,0,0,1-24.43,13.43L64,146.77V216a8,8,0,0,1-16,0V40a8,8,0,0,1,16,0v69.23L183.57,34.45A15.95,15.95,0,0,1,208,47.88Z"
@@ -158,15 +143,7 @@ export function PlaybackControls() {
             width="32"
             height="32"
             viewBox="0 0 256 256"
-            style={{
-              width: 24,
-              height: "auto",
-              opacity: 0.67,
-              overflow: "visible",
-              flexShrink: 0,
-              rotate: "180deg",
-              transformOrigin: "50% 50%",
-            }}
+            style={{ ...iconStyle, opacity: 0.67, rotate: "180deg", transformOrigin: "50% 50%" }}
           >
             <path
               d="M208,47.88V208.12a16,16,0,0,1-24.43,13.43L64,146.77V216a8,8,0,0,1-16,0V40a8,8,0,0,1,16,0v69.23L183.57,34.45A15.95,15.95,0,0,1,208,47.88Z"

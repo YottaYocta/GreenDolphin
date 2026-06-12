@@ -15,6 +15,8 @@ import { WaveformCanvas, type WaveformRenderFunction } from "./WaveformCanvas";
 import { MIN_RANGE_THRESHOLD } from "../lib/constants";
 import { clampSection } from "../lib/util";
 
+const iconStyle = { width: 20, height: 20, overflow: "visible", flexShrink: 0 } as const;
+
 export interface WaveformViewProps {
   initialData: WaveformData;
   positionReference: RefObject<number>;
@@ -223,12 +225,7 @@ export const WaveformView: FC<WaveformViewProps> = ({
               width="32"
               height="32"
               viewBox="0 0 256 256"
-              style={{
-                width: 20,
-                height: 20,
-                overflow: "visible",
-                flexShrink: 0,
-              }}
+              style={iconStyle}
             >
               <path
                 d="M229.66,218.34,179.6,168.28a88.21,88.21,0,1,0-11.32,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM144,120H80a8,8,0,0,1,0-16h64a8,8,0,0,1,0,16Z"
@@ -247,12 +244,7 @@ export const WaveformView: FC<WaveformViewProps> = ({
               width="32"
               height="32"
               viewBox="0 0 256 256"
-              style={{
-                width: 20,
-                height: 20,
-                overflow: "visible",
-                flexShrink: 0,
-              }}
+              style={iconStyle}
             >
               <path
                 d="M229.66,218.34,179.6,168.28a88.21,88.21,0,1,0-11.32,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM144,120H120v24a8,8,0,0,1-16,0V120H80a8,8,0,0,1,0-16h24V80a8,8,0,0,1,16,0v24h24a8,8,0,0,1,0,16Z"
@@ -276,12 +268,7 @@ export const WaveformView: FC<WaveformViewProps> = ({
               width="32"
               height="32"
               viewBox="0 0 256 256"
-              style={{
-                width: 20,
-                height: 20,
-                overflow: "visible",
-                flexShrink: 0,
-              }}
+              style={iconStyle}
             >
               <path
                 d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm37.66,130.34a8,8,0,0,1-11.32,11.32L128,139.31l-26.34,26.35a8,8,0,0,1-11.32-11.32L116.69,128,90.34,101.66a8,8,0,0,1,11.32-11.32L128,116.69l26.34-26.35a8,8,0,0,1,11.32,11.32L139.31,128Z"
@@ -301,12 +288,7 @@ export const WaveformView: FC<WaveformViewProps> = ({
                 width="32"
                 height="32"
                 viewBox="0 0 256 256"
-                style={{
-                  width: 20,
-                  height: 20,
-                  overflow: "visible",
-                  flexShrink: 0,
-                }}
+                style={iconStyle}
               >
                 <path
                   d="M208,32H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM168,136H107.31l18.35,18.34a8,8,0,0,1-11.32,11.32l-32-32a8,8,0,0,1,0-11.32l32-32a8,8,0,0,1,11.32,11.32L107.31,120H168a8,8,0,0,1,0,16Z"
@@ -325,14 +307,7 @@ export const WaveformView: FC<WaveformViewProps> = ({
                 width="32"
                 height="32"
                 viewBox="0 0 256 256"
-                style={{
-                  width: 20,
-                  height: 20,
-                  rotate: "180deg",
-                  overflow: "visible",
-                  flexShrink: 0,
-                  transformOrigin: "50% 50%",
-                }}
+                style={{ ...iconStyle, rotate: "180deg", transformOrigin: "50% 50%" }}
               >
                 <path
                   d="M208,32H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM168,136H107.31l18.35,18.34a8,8,0,0,1-11.32,11.32l-32-32a8,8,0,0,1,0-11.32l32-32a8,8,0,0,1,11.32,11.32L107.31,120H168a8,8,0,0,1,0,16Z"
