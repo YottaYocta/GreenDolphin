@@ -181,17 +181,15 @@ export function Landing() {
               <h1 className="font-inria font-bold text-black text-2xl">
                 Welcome to GreenDolphin!
               </h1>
-              <div className="flex items-start gap-2 flex-col sm:flex-row w-full max-md:gap-8">
-                <p className="flex-1 opacity-50 font-inria text-black text-base/5 text-balance leading-6">
+              <div className="flex items-start gap-4 flex-col sm:flex-row w-full max-md:gap-8">
+                <p className="flex-1 opacity-50 font-inria text-black text-base/5 text-pretty leading-6">
                   GreenDolphin is an open-source recording looper built for
                   musicians who want to transcribe music or learn songs by ear.
-                  independently.
                 </p>
-                <p className="flex-1 opacity-50 font-inria text-black text-base/5 text-balance leading-6">
+                <p className="flex-1 opacity-50 font-inria text-black text-base/5 text-pretty leading-6">
                   It lets you loop short sections of audio, visualize
-                  frequencies in real time, and load local audio files. never
-                  leave your device. It works offline; no data leaves your
-                  device.
+                  frequencies in real time, and load local audio files. It works
+                  offline.
                 </p>
               </div>
             </div>
