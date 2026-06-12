@@ -9,8 +9,10 @@ import {
 import { PlaybackContext } from "../playback/PlaybackContext";
 import { useDrag } from "../lib/useDrag";
 import { Menu } from "@base-ui/react/menu";
+import { usePostHog } from "@posthog/react";
 
 export function AudioSettings() {
+  const posthog = usePostHog();
   const playback = useContext(PlaybackContext);
   if (!playback)
     throw new Error("AudioSettings must be used within a PlaybackProvider");
@@ -42,7 +44,11 @@ export function AudioSettings() {
         min={-10}
         max={10}
         step={0.2}
-        onChange={(v) => setAudioSettings({ pitchShift: Math.round(v * 10) / 10 })}
+        onChange={(v) => {
+          const rounded = Math.round(v * 10) / 10;
+          setAudioSettings({ pitchShift: rounded });
+          posthog?.capture("pitch_changed", { pitch_semitones: rounded });
+        }}
         formatValue={(v) => `${v >= 0 ? "+" : ""}${Math.round(v * 10) / 10}`}
         unit="smt"
       />
@@ -52,7 +58,11 @@ export function AudioSettings() {
         min={0.1}
         max={1.9}
         step={0.1}
-        onChange={(v) => setAudioSettings({ playbackSpeed: Math.round(v * 10) / 10 })}
+        onChange={(v) => {
+          const rounded = Math.round(v * 10) / 10;
+          setAudioSettings({ playbackSpeed: rounded });
+          posthog?.capture("speed_changed", { speed_percent: Math.round(rounded * 100) });
+        }}
         formatValue={(v) => `${Math.round(v * 100)}`}
         unit="%"
       />
