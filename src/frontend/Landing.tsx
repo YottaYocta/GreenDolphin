@@ -156,7 +156,7 @@ export function Landing() {
   };
 
   return (
-    <main className="[font-synthesis:none] min-h-screen flex flex-col items-center px-4 py-20 bg-[#F8F8F8] antialiased">
+    <main className="[font-synthesis:none] min-h-screen flex flex-col items-center px-4 max-md:py-4 py-20 bg-[#F8F8F8] antialiased">
       <div className="flex flex-col items-center gap-10 w-full max-w-3xl">
         <div className="flex items-start self-stretch">
           <div className="flex flex-col items-start flex-1 rounded-lg overflow-clip bg-white">
@@ -170,17 +170,17 @@ export function Landing() {
               <h1 className="font-inria font-bold text-black text-2xl">
                 Welcome to GreenDolphin!
               </h1>
-              <div className="flex items-start gap-2 flex-col sm:flex-row w-full">
+              <div className="flex items-start gap-2 flex-col sm:flex-row w-full max-md:gap-8">
                 <p className="flex-1 opacity-50 font-inria text-black text-base/5 text-balance leading-6">
                   GreenDolphin is an open-source recording looper built for
                   musicians who want to transcribe music or learn songs by ear.
-                  Loop any section, slow down playback, and shift pitch
                   independently.
                 </p>
                 <p className="flex-1 opacity-50 font-inria text-black text-base/5 text-balance leading-6">
-                  Visualize frequencies in real time, load audio or video files,
-                  and use keyboard shortcuts for everything. Your recordings
-                  never leave your device.
+                  It lets you loop short sections of audio, visualize
+                  frequencies in real time, and load local audio files. never
+                  leave your device. It works offline; no data leaves your
+                  device.
                 </p>
               </div>
             </div>
