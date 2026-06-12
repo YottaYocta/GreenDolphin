@@ -10,21 +10,12 @@ import {
   type WaveformData,
   type Section,
   renderWaveform,
-  renderWaveformFrame,
 } from "../lib/waveform";
 import { WaveformCanvas, type WaveformRenderFunction } from "./WaveformCanvas";
-import { Button } from "./buttons";
-import {
-  BanIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  PanelLeftCloseIcon,
-  PanelRightCloseIcon,
-  ZoomInIcon,
-  ZoomOutIcon,
-} from "lucide-react";
 import { MIN_RANGE_THRESHOLD } from "../lib/constants";
 import { clampSection } from "../lib/util";
+
+const iconStyle = { width: 20, height: 20, overflow: "visible", flexShrink: 0 } as const;
 
 export interface WaveformViewProps {
   initialData: WaveformData;
@@ -62,26 +53,6 @@ export const WaveformView: FC<WaveformViewProps> = ({
       renderWaveform(waveformData, { resolution: 10000 }, canvas, position);
     },
     [],
-  );
-
-  const navigationRenderFunction: WaveformRenderFunction = useCallback(
-    (
-      waveformData: WaveformData,
-      canvas: HTMLCanvasElement,
-      position?: number,
-    ) => {
-      renderWaveform(
-        {
-          ...waveformData,
-          range: { start: 0, end: waveformData.data.length },
-        },
-        { resolution: 10000 },
-        canvas,
-        position,
-      );
-      renderWaveformFrame(waveformData, localRange, canvas);
-    },
-    [localRange],
   );
 
   const minRangeThresholdValue = useMemo(() => {
@@ -235,78 +206,117 @@ export const WaveformView: FC<WaveformViewProps> = ({
 
   return (
     <div
-      className="relative w-full h-min flex flex-col gap-2"
+      className="relative w-full h-min flex flex-col gap-2 max-md:grow"
       id="waveform-view"
     >
       <div
-        className="group flex flex-row gap-2 absolute top-1 right-1 z-10 w-min opacity-70 hover:opacity-100 focus:opacity-100 focus-within:opacity-100"
+        className="flex absolute top-2.75 right-3.25  items-center gap-4 p-2 rounded-lg bg-white border border-[#0000001A]"
         id="waveform-controls"
       >
-        <div className="flex border border-neutral-2 hover:border-neutral-2 rounded-xs p-1 items-center opacity-70 bg-white group-hover:opacity-100 duration-75">
-          <Button
-            ariaLabel="zoom out"
-            tooltip="zoom out ( j )"
-            icon={<ZoomOutIcon width={18} height={18}></ZoomOutIcon>}
+        <div className="flex items-center gap-2">
+          <button
             onClick={handleZoomOut}
-          ></Button>
-          <Button
-            ariaLabel="zoom in"
-            icon={<ZoomInIcon width={18} height={18}></ZoomInIcon>}
-            tooltip="zoom in ( k )"
+            title="Zoom out (j)"
+            aria-label="zoom out"
+            className="cursor-pointer hover:opacity-70"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 256 256"
+              style={iconStyle}
+            >
+              <path
+                d="M229.66,218.34,179.6,168.28a88.21,88.21,0,1,0-11.32,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM144,120H80a8,8,0,0,1,0-16h64a8,8,0,0,1,0,16Z"
+                fill="#525252"
+              />
+            </svg>
+          </button>
+          <button
             onClick={handleZoomIn}
-          ></Button>
-        </div>
-        <div className="flex border border-neutral-2 hover:border-neutral-2 rounded-xs p-1 items-center opacity-70 bg-white group-hover:opacity-100 duration-75">
-          <Button
-            ariaLabel="scroll left"
-            tooltip="Scroll left ( H )"
-            icon={<ChevronLeftIcon width={18} height={18}></ChevronLeftIcon>}
-            onClick={handleScrollLeft}
-          ></Button>
-          <Button
-            ariaLabel="scroll right"
-            tooltip="Scroll left ( L )"
-            icon={<ChevronRightIcon width={18} height={18}></ChevronRightIcon>}
-            onClick={handleScrollRight}
-          ></Button>
+            title="Zoom in (k)"
+            aria-label="zoom in"
+            className="cursor-pointer hover:opacity-70"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 256 256"
+              style={iconStyle}
+            >
+              <path
+                d="M229.66,218.34,179.6,168.28a88.21,88.21,0,1,0-11.32,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM144,120H120v24a8,8,0,0,1-16,0V120H80a8,8,0,0,1,0-16h24V80a8,8,0,0,1,16,0v24h24a8,8,0,0,1,0,16Z"
+                fill="#525252"
+              />
+            </svg>
+          </button>
         </div>
       </div>
 
-      {/* displays only when selected */}
-      {initialData.section ? (
-        <div className="group flex flex-row gap-2 absolute top-1 left-1 z-10 w-min opacity-70 hover:opacity-100 focus:opacity-100 focus-within:opacity-100">
-          <div className="flex border border-neutral-2 hover:border-neutral-2 rounded-xs p-1 items-center opacity-70 bg-white group-hover:opacity-100 duration-75">
-            <Button
-              ariaLabel="Clear Selection"
-              tooltip="Clear Selection ( Escape )"
-              icon={<BanIcon width={18} height={18}></BanIcon>}
-              onClick={handleClearSelection}
-            ></Button>
-          </div>
-          <div className="flex border border-neutral-2 hover:border-neutral-2 rounded-xs p-1 items-center opacity-70 bg-white group-hover:opacity-100 duration-75">
-            <Button
-              icon={
-                <PanelLeftCloseIcon width={18} height={18}></PanelLeftCloseIcon>
-              }
-              ariaLabel="Back Up Selection"
-              tooltip="Back Up Selection ( [ )"
+      {initialData.section && (
+        <div className="flex absolute top-2.25 left-2.75  items-center gap-4 p-2 rounded-lg bg-white border border-[#0000001A]">
+          <button
+            onClick={handleClearSelection}
+            title="Clear Selection (Escape)"
+            aria-label="Clear Selection"
+            className="cursor-pointer hover:opacity-70"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 256 256"
+              style={iconStyle}
+            >
+              <path
+                d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm37.66,130.34a8,8,0,0,1-11.32,11.32L128,139.31l-26.34,26.35a8,8,0,0,1-11.32-11.32L116.69,128,90.34,101.66a8,8,0,0,1,11.32-11.32L128,116.69l26.34-26.35a8,8,0,0,1,11.32,11.32L139.31,128Z"
+                fill="#525252"
+              />
+            </svg>
+          </button>
+          <div className="flex items-center gap-2">
+            <button
               onClick={handleBackUpSelection}
-            ></Button>
-            <Button
-              icon={
-                <PanelRightCloseIcon
-                  width={18}
-                  height={18}
-                ></PanelRightCloseIcon>
-              }
-              ariaLabel="Advance Selection"
-              tooltip="Advance Selection ( ] )"
+              title="Back Up Selection ([)"
+              aria-label="Back Up Selection"
+              className="cursor-pointer hover:opacity-70"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="32"
+                height="32"
+                viewBox="0 0 256 256"
+                style={iconStyle}
+              >
+                <path
+                  d="M208,32H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM168,136H107.31l18.35,18.34a8,8,0,0,1-11.32,11.32l-32-32a8,8,0,0,1,0-11.32l32-32a8,8,0,0,1,11.32,11.32L107.31,120H168a8,8,0,0,1,0,16Z"
+                  fill="#525252"
+                />
+              </svg>
+            </button>
+            <button
               onClick={handleAdvanceSelection}
-            ></Button>
+              title="Advance Selection (])"
+              aria-label="Advance Selection"
+              className="cursor-pointer hover:opacity-70"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="32"
+                height="32"
+                viewBox="0 0 256 256"
+                style={{ ...iconStyle, rotate: "180deg", transformOrigin: "50% 50%" }}
+              >
+                <path
+                  d="M208,32H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM168,136H107.31l18.35,18.34a8,8,0,0,1-11.32,11.32l-32-32a8,8,0,0,1,0-11.32l32-32a8,8,0,0,1,11.32,11.32L107.31,120H168a8,8,0,0,1,0,16Z"
+                  fill="#525252"
+                />
+              </svg>
+            </button>
           </div>
         </div>
-      ) : (
-        <></>
       )}
       <WaveformCanvas
         waveformData={{
@@ -320,22 +330,9 @@ export const WaveformView: FC<WaveformViewProps> = ({
         animate={animate}
         handlePosition={handlePosition}
         handleSelection={handleSelection}
-        className="border rounded-xs border-neutral-2 w-full"
         handleRangeChange={setLocalRange}
         showHandles={true}
-      ></WaveformCanvas>
-      <WaveformCanvas
-        waveformData={initialData}
-        renderFunction={navigationRenderFunction}
-        width={800}
-        height={50}
-        positionReference={positionReference}
-        animate={animate}
-        handlePosition={handlePosition}
-        handleSelection={handleSelection}
-        allowZoomPan={false}
-        className="border rounded-xs border-neutral-2 w-full"
-      ></WaveformCanvas>
+      />
     </div>
   );
 };

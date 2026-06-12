@@ -1,62 +1,63 @@
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-  type FC,
-  type RefObject,
-} from "react";
+import { useContext, useEffect, useRef, useState, type FC } from "react";
+import { useNavigate } from "react-router";
+import { Menu } from "@base-ui/react/menu";
+import { Dialog } from "@base-ui/react/dialog";
 import { Tutorial } from "./components/Tutorial";
-import { formatSeconds } from "./lib/util";
-import { Button, ToggleButton } from "./components/buttons";
-import {
-  ChevronsLeftIcon,
-  ChevronsRightIcon,
-  GaugeIcon,
-  HardDriveIcon,
-  MegaphoneIcon,
-  MusicIcon,
-  PlayIcon,
-  SnowflakeIcon,
-} from "lucide-react";
-import { FrequencyCanvas } from "./components/FrequencyCanvas";
+import { PianoRoll } from "./components/PianoRoll";
 import { PlaybackContext } from "./playback/PlaybackContext";
 import { WaveformView } from "./components/WaveformView";
-import { SliderInput } from "./components/SliderInput";
 import { AudioStore } from "./AudioStore";
+import { RecordingsStore } from "./RecordingsStore";
+import { useDecodeFile } from "./lib/useDecodeFile";
+import { formatSeconds, formatSize } from "./lib/util";
+import { PlaybackControls } from "./components/PlaybackControls";
+import { AudioSettings } from "./components/AudioSettings";
+
+const FileInfoRow: FC<{ label: string; value: string; mono: boolean }> = ({
+  label,
+  value,
+  mono,
+}) => (
+  <div className="flex items-baseline justify-between gap-4">
+    <span className="opacity-50 font-inria text-black text-sm shrink-0">
+      {label}
+    </span>
+    <span
+      className={`text-black text-sm text-right min-w-0 break-all ${mono ? "font-space-mono" : "font-inria"}`}
+    >
+      {value}
+    </span>
+  </div>
+);
+
+const headerBtn = "btn-surface rounded-lg gap-3 px-3.25 py-3.25";
+const headerBtnLabel = "opacity-40 font-inria text-black text-base/5 whitespace-nowrap max-md:hidden";
 
 export const Loaded = () => {
-  const { audio, isCached } = useContext(AudioStore);
+  const { audio } = useContext(AudioStore);
   if (!audio) throw new Error("Loaded must be rendered within an audio route");
   const { buffer: data, filename, fileSize } = audio;
+  const navigate = useNavigate();
+  const decodeFile = useDecodeFile();
+  const { cachedFiles, fileMeta, cacheFile } = useContext(RecordingsStore);
+  const uploadInputRef = useRef<HTMLInputElement>(null);
 
   const [showTutorial, setShowTutorial] = useState(
     localStorage.getItem("tutorial_shown") !== "true",
   );
-  // acquiring wake lock to prevent screen from falling asleep
 
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
-  const [wakeLockStatus, setWakeLockStatus] = useState<
-    "Requesting Keep Awake" | "Keep Awake Error" | "Keep Awake Active"
-  >("Keep Awake Active");
 
   useEffect(() => {
     const requestWakeLock = async () => {
       try {
-        setWakeLockStatus("Requesting Keep Awake");
         wakeLockRef.current = await navigator.wakeLock.request("screen");
-        setWakeLockStatus("Keep Awake Active");
       } catch (e: unknown) {
         console.log(e);
-        setWakeLockStatus("Keep Awake Error");
       }
     };
-
     const disableWakeLock = () => {
-      if (wakeLockRef.current !== null) {
-        wakeLockRef.current.release();
-      }
+      if (wakeLockRef.current !== null) wakeLockRef.current.release();
     };
     requestWakeLock();
     return disableWakeLock;
@@ -71,88 +72,17 @@ export const Loaded = () => {
 
   const {
     playbackPosition,
-    playState,
-    setPlayState,
-    setPosition,
-    loop,
-    setLoop,
-    pitchShift,
-    setPitchShift,
-    playbackSpeed,
-    setPlaybackSpeed,
-    gain,
-    setGain,
-    loopDelay,
-    setLoopDelay,
-    loopPauseStart,
-    loopPauseEnd,
+    triggerAction,
+    playbackSettings,
+    setAudioSettings,
   } = playback;
-
-  const [renderedGain, setRenderedGain] = useState<number>(1);
-
-  useEffect(() => {
-    setGain(renderedGain * renderedGain);
-  }, [renderedGain, setGain]);
-
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "0") {
-        const currentStart = loop ? loop.start : 0;
-        setPosition(currentStart);
-        setPlayState("playing");
-      } else if (e.key === "p") {
-        if (playState === "paused") {
-          setPlayState("playing");
-        } else if (playState === "frozen") {
-          setPlayState("playing");
-        } else {
-          setPlayState("paused");
-        }
-      } else if (e.key === "f") {
-        if (playState === "frozen") setPlayState("paused");
-        else setPlayState("frozen");
-      }
-
-    };
-    window.addEventListener("keypress", handleKey);
-    return () => {
-      window.removeEventListener("keypress", handleKey);
-    };
-  }, [loop, playState, setPlayState, setPosition]);
-
-  const rewindFiveSeconds = useCallback(() => {
-    const targetMS = Math.max(0, playbackPosition.current - 5000);
-    setPosition(targetMS);
-  }, [playbackPosition, setPosition]);
-
-  const fastForwardFiveSeconds = useCallback(() => {
-    const targetMS = Math.max(0, playbackPosition.current + 5000);
-    setPosition(targetMS);
-  }, [playbackPosition, setPosition]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "h") {
-        rewindFiveSeconds();
-      } else if (e.key === "l") {
-        fastForwardFiveSeconds();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [rewindFiveSeconds, fastForwardFiveSeconds]);
+  const { loop } = playbackSettings;
 
   const handlePosition = (sampleIndex: number) => {
     const timeInSeconds = sampleIndex / data.sampleRate;
     const timeInMs = timeInSeconds * 1000;
-    playbackPosition.current = Math.max(
-      0,
-      Math.min(timeInMs, data.duration * 1000),
-    );
     setTriggerUpdate(true);
-    setPosition(timeInMs);
+    triggerAction({ type: "move", position: timeInMs });
   };
 
   useEffect(() => {
@@ -161,178 +91,239 @@ export const Loaded = () => {
 
   return (
     <>
-      <div className="w-full max-w-200 h-full md:h-min p-4 md:p-6 bg-white flex flex-col justify-center gap-6 md:border md:border-neutral-2 md:rounded-xs md:shadow-md">
-        <div className="w-full flex justify-between items-baseline border-b border-neutral-2">
-          <p className="max-w-1/2 text-nowrap text-ellipsis overflow-hidden">
-            {filename}
-          </p>
-          {isCached && (
-            <span className="flex items-center gap-1 text-xs text-neutral-400 text-nowrap">
-              <HardDriveIcon size={13} />
-              {(fileSize / 1024 / 1024).toFixed(1)} MB · Saved to browser
-            </span>
-          )}
-          <p className="max-w-1/2 text-nowrap text-ellipsis overflow-hidden">
-            {formatSeconds(data.duration)}
-          </p>
+      <div className="w-full max-w-240 h-full md:h-min p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4">
+        <div className="[font-synthesis:none] flex items-center gap-4 justify-between self-stretch antialiased">
+          <div className="flex items-start gap-4 min-w-0">
+            <Menu.Root>
+              <Menu.Trigger className={`${headerBtn} self-stretch cursor-pointer min-w-0`}>
+                <span className="font-inria text-black text-base/5 truncate min-w-0">
+                  {filename}
+                </span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="21"
+                  height="21"
+                  viewBox="0 0 256 256"
+                  style={{ flexShrink: 0 }}
+                >
+                  <path
+                    d="M156,128a28,28,0,1,1-28-28A28,28,0,0,1,156,128ZM48,100a28,28,0,1,0,28,28A28,28,0,0,0,48,100Zm160,0a28,28,0,1,0,28,28A28,28,0,0,0,208,100Z"
+                    fill="#666666"
+                  />
+                </svg>
+              </Menu.Trigger>
+              <Menu.Portal>
+                <Menu.Positioner side="bottom" align="start" sideOffset={8}>
+                  <Menu.Popup className="z-50 w-80 rounded-xl bg-white border border-[#0000001A] [box-shadow:#0000001A_0px_4px_16px] overflow-hidden flex flex-col outline-none">
+                    <Menu.Item
+                      className="shrink-0 flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-neutral-50 active:bg-neutral-100 border-b border-[#0000001A]"
+                      closeOnClick={false}
+                      onClick={() => uploadInputRef.current?.click()}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="18"
+                        height="18"
+                        viewBox="0 0 256 256"
+                        style={{ opacity: 0.5, flexShrink: 0 }}
+                      >
+                        <path d="M232,48a8,8,0,0,1-8,8H208V72a8,8,0,0,1-16,0V56H176a8,8,0,0,1,0-16h16V24a8,8,0,0,1,16,0V40h16A8,8,0,0,1,232,48ZM160.6,77.86l-6.76-6.76A32.85,32.85,0,0,1,144,49.33a31.87,31.87,0,0,1,1.67-11.66,4,4,0,0,0-4.76-5.14L78.06,48.25A8,8,0,0,0,72,56V166.1A36,36,0,1,0,52.42,232C72.25,231.77,88,215.13,88,195.3V102.25l70.74-17.69A4,4,0,0,0,160.6,77.86Zm50.11,24.31a31.91,31.91,0,0,1-7.14,1.63,4,4,0,0,0-3.57,4V134.1A36,36,0,1,0,180.42,200c19.83-.23,35.58-16.86,35.58-36.7V106A4,4,0,0,0,210.71,102.17Z" />
+                      </svg>
+                      <span className="font-inria text-black text-base/5">
+                        Upload a Recording
+                      </span>
+                    </Menu.Item>
+                    <div className="overflow-y-auto max-h-72 flex flex-col">
+                      {cachedFiles.length === 0 ? (
+                        <div className="px-4 py-4 opacity-40 font-inria text-black text-sm text-center">
+                          No recordings yet
+                        </div>
+                      ) : (
+                        cachedFiles.map((file) => (
+                          <Menu.Item
+                            key={file.name}
+                            className="flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-neutral-50 active:bg-neutral-100"
+                            onClick={async () => await decodeFile(file)}
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="18"
+                              height="18"
+                              viewBox="0 0 256 256"
+                              style={{ opacity: 0.4, flexShrink: 0 }}
+                            >
+                              <path d="M210.3,56.34l-80-24A8,8,0,0,0,120,40V148.26A48,48,0,1,0,136,184V98.75l69.7,20.91A8,8,0,0,0,216,112V64A8,8,0,0,0,210.3,56.34Z" />
+                            </svg>
+                            <span
+                              className={`flex-1 min-w-0 font-inria text-base/5 truncate ${file.name === filename ? "font-bold text-black" : "text-black"}`}
+                            >
+                              {file.name}
+                            </span>
+                            {file.name === filename && (
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 256 256"
+                                style={{ flexShrink: 0 }}
+                              >
+                                <path
+                                  d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"
+                                  fill="#1CCA93"
+                                />
+                              </svg>
+                            )}
+                          </Menu.Item>
+                        ))
+                      )}
+                    </div>
+                  </Menu.Popup>
+                </Menu.Positioner>
+              </Menu.Portal>
+            </Menu.Root>
+
+            <Dialog.Root>
+              <Dialog.Trigger className={`${headerBtn} self-stretch max-md:w-12 h-12 w-40 shrink-0 cursor-pointer`}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="21"
+                  height="21"
+                  viewBox="0 0 256 256"
+                  style={{ opacity: 0.54, flexShrink: 0 }}
+                >
+                  <path
+                    d="M144,148a20,20,0,1,1-20-20A20,20,0,0,1,144,148Zm72-60V216a16,16,0,0,1-16,16H56a16,16,0,0,1-16-16V40A16,16,0,0,1,56,24h96a8,8,0,0,1,5.66,2.34l56,56A8,8,0,0,1,216,88Zm-50.34,90.34-11.2-11.19a36.05,36.05,0,1,0-11.31,11.31l11.19,11.2a8,8,0,0,0,11.32-11.32ZM196,88,152,44V88Z"
+                    fill="#000000"
+                  />
+                </svg>
+                <span className={headerBtnLabel}>File Info</span>
+              </Dialog.Trigger>
+              <Dialog.Portal>
+                <Dialog.Backdrop className="fixed inset-0 bg-black/20 z-40" />
+                <Dialog.Popup className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-84 rounded-xl bg-white border border-[#0000001A] [box-shadow:#0000001A_0px_4px_24px] p-6 flex flex-col gap-5 outline-none">
+                  <div className="flex items-start justify-between gap-4">
+                    <Dialog.Title className="font-inria font-bold text-black text-lg/6">
+                      File Info
+                    </Dialog.Title>
+                    <Dialog.Close className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-neutral-100 active:bg-neutral-200 cursor-pointer outline-none -mt-0.5 -mr-0.5">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 256 256"
+                      >
+                        <path
+                          d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"
+                          fill="#666"
+                        />
+                      </svg>
+                    </Dialog.Close>
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    <FileInfoRow label="Name" value={filename} mono={false} />
+                    <FileInfoRow
+                      label="Size"
+                      value={formatSize(fileSize)}
+                      mono
+                    />
+                    <FileInfoRow
+                      label="Duration"
+                      value={formatSeconds(data.duration)}
+                      mono
+                    />
+                    <FileInfoRow
+                      label="Sample rate"
+                      value={`${data.sampleRate.toLocaleString()} Hz`}
+                      mono
+                    />
+                    <FileInfoRow
+                      label="Channels"
+                      value={String(data.numberOfChannels)}
+                      mono
+                    />
+                    {fileMeta.get(filename)?.uploadedAt != null && (
+                      <FileInfoRow
+                        label="Added"
+                        value={new Date(
+                          fileMeta.get(filename)!.uploadedAt,
+                        ).toLocaleDateString(undefined, {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                        mono={false}
+                      />
+                    )}
+                  </div>
+                </Dialog.Popup>
+              </Dialog.Portal>
+            </Dialog.Root>
+
+            <input
+              ref={uploadInputRef}
+              type="file"
+              accept="audio/*,video/*"
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                e.target.value = "";
+                await decodeFile(file);
+                await cacheFile(file);
+              }}
+            />
+          </div>
+          <button
+            onClick={() => {
+              navigate("/");
+            }}
+            className={`${headerBtn} w-43.5 h-12 shrink-0 cursor-pointer max-md:w-12`}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 256 256"
+              style={{
+                width: 18,
+                height: "auto",
+                opacity: 0.5,
+                overflow: "visible",
+                flexShrink: 0,
+              }}
+            >
+              <path
+                d="M224,120v96a8,8,0,0,1-8,8H160a8,8,0,0,1-8-8V164a4,4,0,0,0-4-4H108a4,4,0,0,0-4,4v52a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V120a16,16,0,0,1,4.69-11.31l80-80a16,16,0,0,1,22.62,0l80,80A16,16,0,0,1,224,120Z"
+                fill="#000000"
+              />
+            </svg>
+            <span className={headerBtnLabel}>Home</span>
+          </button>
         </div>
 
-        <div className="flex flex-col gap-4">
-          <FrequencyCanvas></FrequencyCanvas>
-          <WaveformView
-            initialData={{
-              data: data,
-              range: { start: 0, end: data.length },
-              section: loop,
-            }}
-            positionReference={playbackPosition}
-            animate={playState === "playing" || triggerUpdate}
-            handlePosition={handlePosition}
-            handleSelection={(section) => {
-              setLoop(section);
-            }}
-          ></WaveformView>
-        </div>
-        <div className="flex flex-col md:gap-12 gap-6 md:flex-row w-full h-min justify-center items-center md:px-8 md:py-4">
-          <div
-            className="w-full h-full flex flex-col items-center md:gap-4 gap-1 justify-center "
-            id="recording-properties"
-          >
-            <SliderInput
-              icon={<MusicIcon width={18} height={18}></MusicIcon>}
-              value={pitchShift}
-              defaultValue={0}
-              step={0.2}
-              min={-10}
-              max={10}
-              handleChange={(value) =>
-                setPitchShift(Math.round(value * 10) / 10)
-              }
-              for="Pitch"
-              valueRenderer={(currentValue) => `${currentValue} smt.`}
-            />
-            <SliderInput
-              icon={<GaugeIcon width={18} height={18}></GaugeIcon>}
-              value={playbackSpeed}
-              defaultValue={1}
-              step={0.1}
-              min={0.1}
-              max={1.9}
-              handleChange={(value) =>
-                setPlaybackSpeed(Math.round(value * 10) / 10)
-              }
-              for="Speed"
-              valueRenderer={(currentValue) => `${currentValue.toFixed(2)} x`}
-            />
-            <SliderInput
-              icon={<MegaphoneIcon width={18} height={18}></MegaphoneIcon>}
-              value={renderedGain}
-              defaultValue={1}
-              step={0.1}
-              min={0}
-              max={2}
-              handleChange={(value) => {
-                setRenderedGain(Math.round(value * 10) / 10);
+        <div className="flex flex-col rounded-xl overflow-x-hidden overflow-y-clip self-stretch [box-shadow:#0000000D_0px_2px_3px] bg-white border border-[#0000001A] ">
+          <PianoRoll />
+          <div className="border-t border-[#0000001A] max-md:grow hoverf">
+            <WaveformView
+              initialData={{
+                data: data,
+                range: { start: 0, end: data.length },
+                section: loop,
               }}
-              for="Volume"
-              valueRenderer={() => `${(gain * gain).toFixed(1)} db`}
+              positionReference={playbackPosition}
+              animate={true}
+              handlePosition={handlePosition}
+              handleSelection={(section) => setAudioSettings({ loop: section })}
             />
-          </div>
-          <div className="flex flex-col items-center gap-2 text-sm text-neutral-400 shrink-0">
-            <span>Loop pause</span>
-            <div className="flex items-center gap-1">
-              <input
-                type="number"
-                min={0}
-                max={30}
-                step={0.5}
-                value={loopDelay}
-                disabled={!loop}
-                onChange={(e) =>
-                  setLoopDelay(Math.max(0, Number(e.target.value)))
-                }
-                className="w-14 border border-neutral-2 rounded-xs px-1 py-0.5 text-center text-neutral-800 disabled:opacity-40"
-              />
-              <span>s</span>
-            </div>
-            <LoopPauseIndicator
-              pauseStart={loopPauseStart}
-              pauseEnd={loopPauseEnd}
-            />
-          </div>
-          <div
-            className="flex md:flex-col flex-row justify-between items-center gap-2 "
-            id="playback-controls"
-          >
-            <div className="w-full flex gap-2 items-center justify-center">
-              <ToggleButton
-                pressed={playState === "playing"}
-                onClick={() => {
-                  if (playState === "playing") setPlayState("paused");
-                  else setPlayState("playing");
-                }}
-                accent="negative"
-                icon={
-                  <PlayIcon width={22} height={22} strokeWidth={1.5}></PlayIcon>
-                }
-                ariaLabel="play/pause"
-                tooltip="Play/Pause ( p )"
-                className="play-button"
-                id="play"
-              ></ToggleButton>
-              <ToggleButton
-                pressed={playState === "frozen"}
-                onClick={() => {
-                  if (playState === "frozen") setPlayState("paused");
-                  else {
-                    setPlayState("frozen");
-                  }
-                }}
-                accent="primary"
-                icon={
-                  <SnowflakeIcon
-                    width={24}
-                    height={24}
-                    strokeWidth={1.5}
-                  ></SnowflakeIcon>
-                }
-                ariaLabel="freeze"
-                tooltip="Freeze in Place ( f )"
-                className="play-button"
-                id="freeze"
-              ></ToggleButton>
-            </div>
-            <div className="w-full flex justify-center items-center gap-2">
-              <Button
-                icon={
-                  <ChevronsLeftIcon width={18} height={18}></ChevronsLeftIcon>
-                }
-                tooltip="Rewind 5s ( h )"
-                text="5s"
-                ariaLabel="rewind 5 seconds"
-                className="play-button border border-neutral-2"
-                onClick={rewindFiveSeconds}
-                id="rewind"
-              ></Button>
-              <Button
-                icon={
-                  <ChevronsRightIcon width={18} height={18}></ChevronsRightIcon>
-                }
-                tooltip="Fast Forward 5s ( l )"
-                text="5s"
-                ariaLabel="fast forward 5 seconds"
-                className="play-button flex-1 border border-neutral-2"
-                iconPlacement="right"
-                onClick={fastForwardFiveSeconds}
-                id="fast-forward"
-              ></Button>
-            </div>
           </div>
         </div>
-        <p className="fixed bottom-2 left-1/2 -translate-x-1/2 text-sm text-neutral-400">
-          {wakeLockStatus}
-        </p>
+
+        <div className="[font-synthesis:none] flex items-stretch self-stretch antialiased max-md:flex-col-reverse max-md:flex-1 gap-8 max-md:gap-4">
+          <PlaybackControls />
+          <AudioSettings />
+        </div>
       </div>
+
       {showTutorial && (
         <Tutorial
           handleTutorialFinished={() => {
@@ -341,28 +332,11 @@ export const Loaded = () => {
           }}
           steps={[
             {
-              htmlSelector: "#playback-controls",
-              contents: (
-                <p>
-                  Controls playback. Hover to see function and shortcut on
-                  desktop browsers.
-                </p>
-              ),
-            },
-            {
-              htmlSelector: "#recording-properties",
-              contents: <p>Adjust pitch, speed, and volume.</p>,
-            },
-            {
-              htmlSelector: "#reset-pitch",
-              contents: <p>Click to reset to default</p>,
-            },
-            {
               htmlSelector: "#waveform-view",
               contents: (
                 <p>
-                  Click to select playback start point. Drag to select loop.
-                  Scroll to zoom. Pan to move backwards/forwards
+                  Click to set playback position. Drag to select a loop region.
+                  Scroll to zoom. Pan strip to move around.
                 </p>
               ),
             },
@@ -370,8 +344,7 @@ export const Loaded = () => {
               htmlSelector: "#waveform-controls",
               contents: (
                 <p>
-                  You can also use these controls to navigate around the
-                  recording.
+                  Use these controls to zoom and scroll around the recording.
                 </p>
               ),
             },
@@ -379,55 +352,5 @@ export const Loaded = () => {
         />
       )}
     </>
-  );
-};
-
-const LoopPauseIndicator: FC<{
-  pauseStart: RefObject<number | null>;
-  pauseEnd: RefObject<number | null>;
-}> = ({ pauseStart, pauseEnd }) => {
-  const pathRef = useRef<SVGPathElement>(null);
-
-  useEffect(() => {
-    const SIZE = 16;
-    const R = 6;
-    const CX = SIZE / 2;
-    const CY = SIZE / 2;
-
-    let rafId: number;
-
-    const tick = () => {
-      rafId = requestAnimationFrame(tick);
-      const path = pathRef.current;
-      if (!path) return;
-
-      const start = pauseStart.current;
-      const end = pauseEnd.current;
-
-      if (start === null || end === null) {
-        path.setAttribute("d", "");
-        return;
-      }
-
-      const fraction = Math.min(1, Math.max(0, (performance.now() - start) / (end - start)));
-      const angle = fraction * 2 * Math.PI;
-      const ex = CX + R * Math.sin(angle);
-      const ey = CY - R * Math.cos(angle);
-      const largeArc = angle > Math.PI ? 1 : 0;
-      path.setAttribute(
-        "d",
-        `M ${CX} ${CY} L ${CX} ${CY - R} A ${R} ${R} 0 ${largeArc} 1 ${ex} ${ey} Z`,
-      );
-    };
-
-    rafId = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafId);
-  }, [pauseEnd, pauseStart]);
-
-  return (
-    <svg viewBox="0 0 16 16" className="w-20 h-20 shrink-0">
-      <circle cx="8" cy="8" r="6" className="fill-neutral-200" />
-      <path ref={pathRef} className="fill-emerald-400" />
-    </svg>
   );
 };

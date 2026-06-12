@@ -77,7 +77,7 @@ export function useAudioChain({
 
   useEffect(() => {
     const analyzer = chain?.analyzer;
-    if (!analyzer || playState !== "playing") return;
+    if (!analyzer) return;
     let frameId: number;
     const tick = () => {
       frameId = requestAnimationFrame(tick);

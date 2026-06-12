@@ -19,6 +19,10 @@ import {
   CLICK_SELECTION_THRESHOLD,
   MIN_RANGE_THRESHOLD,
 } from "../lib/constants";
+import { useDrag } from "../lib/useDrag";
+
+const MAX_BAR_OFFSET = 20;
+const RUBBER_SCALE = 80;
 
 export type WaveformRenderFunction = (
   data: WaveformData,
@@ -36,11 +40,6 @@ export interface WaveformCanvasProps {
   handleRangeChange?: (newRange: Section) => void;
   handleSelection?: (selection: Section) => void;
   handlePosition?: (position: number) => void;
-}
-
-interface CanvasGesture {
-  offsetX: number;
-  offsetY: number;
 }
 
 export const WaveformCanvas: FC<
@@ -90,11 +89,10 @@ export const WaveformCanvas: FC<
     }
   }, [waveformData]);
 
-  const [selectRange, setSelectRange] = useState<Section | undefined>();
-  const [draggingHandle, setDraggingHandle] = useState<"start" | "end" | null>(
-    null,
-  );
-  const [draggingPlayhead, setDraggingPlayhead] = useState(false);
+  const selectRangeRef = useRef<Section | undefined>(undefined);
+  const draggingHandleRef = useRef<"start" | "end" | null>(null);
+  const dragDistanceRef = useRef(0);
+  const barContainerRef = useRef<HTMLDivElement>(null);
 
   const clickSelectThresholdValue = useMemo(
     () =>
@@ -125,17 +123,16 @@ export const WaveformCanvas: FC<
       }
     }
 
-    if (canvasRef.current)
+    if (canvasRef.current) {
+      const sr = selectRangeRef.current;
       renderFunction(
         {
           ...localData,
           section:
-            selectRange &&
-            Math.abs(selectRange.end - selectRange.start) >
-              minRangeThresholdValue
+            sr && Math.abs(sr.end - sr.start) > minRangeThresholdValue
               ? {
-                  start: Math.min(selectRange.end, selectRange.start),
-                  end: Math.max(selectRange.end, selectRange.start),
+                  start: Math.min(sr.end, sr.start),
+                  end: Math.max(sr.end, sr.start),
                 }
               : localData.section,
         },
@@ -147,21 +144,9 @@ export const WaveformCanvas: FC<
             )
           : undefined,
       );
-  }, [
-    localData,
-    minRangeThresholdValue,
-    positionReference,
-    renderFunction,
-    selectRange,
-  ]);
+    }
+  }, [localData, minRangeThresholdValue, positionReference, renderFunction]);
 
-  useEffect(() => {
-    updateWaveform();
-  }, [updateWaveform]);
-
-  /**
-   * if cursor position is outside of range, scroll to include cursor position
-   */
   const checkScroll = useCallback(() => {
     if (positionReference && positionReference.current) {
       const sample =
@@ -199,9 +184,7 @@ export const WaveformCanvas: FC<
     let animationFrameId: number;
 
     const renderLoop = () => {
-      if (canvasRef.current) {
-        updateWaveform();
-      }
+      if (canvasRef.current) updateWaveform();
       if (animate) {
         checkScroll();
         animationFrameId = requestAnimationFrame(renderLoop);
@@ -218,166 +201,140 @@ export const WaveformCanvas: FC<
     };
   }, [animate, checkScroll, updateWaveform]);
 
+  const [startSelectDrag, endSelectDrag] = useDrag(
+    ({ clientX }) => {
+      const canvas = canvasRef.current;
+      if (!canvas || selectRangeRef.current === undefined) return;
+      const rangeLen = localData.range.end - localData.range.start;
+      const rawSample =
+        computeSampleIndex(
+          clientX - canvas.getBoundingClientRect().left,
+          rangeLen,
+          canvas,
+        ) + localData.range.start;
+      const endSample = Math.max(
+        localData.range.start,
+        Math.min(localData.range.end, rawSample),
+      );
+      selectRangeRef.current = {
+        start: selectRangeRef.current.start,
+        end: endSample,
+      };
+      updateWaveform();
+    },
+    () => {
+      const sr = selectRangeRef.current;
+      if (sr !== undefined) {
+        const min = Math.min(sr.start, sr.end);
+        const max = Math.max(sr.start, sr.end);
+        if (max - min > clickSelectThresholdValue) {
+          setLocalData((prev) => ({
+            ...prev,
+            section: { start: min, end: max },
+          }));
+          handleSelection?.({ start: min, end: max });
+        } else {
+          handlePosition?.(sr.start);
+        }
+      }
+      selectRangeRef.current = undefined;
+      updateWaveform();
+    },
+  );
+
+  const [startHandleDrag] = useDrag(
+    ({ clientX }) => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const fraction = Math.max(
+        0,
+        Math.min(1, (clientX - rect.left) / rect.width),
+      );
+      const sampleIndex =
+        Math.round(fraction * (localData.range.end - localData.range.start)) +
+        localData.range.start;
+      setLocalData((prev) => {
+        if (!prev.section) return prev;
+        return draggingHandleRef.current === "start"
+          ? {
+              ...prev,
+              section: {
+                start: Math.min(sampleIndex, prev.section.end - 1),
+                end: prev.section.end,
+              },
+            }
+          : {
+              ...prev,
+              section: {
+                start: prev.section.start,
+                end: Math.max(sampleIndex, prev.section.start + 1),
+              },
+            };
+      });
+    },
+    () => {
+      if (localData.section && handleSelection)
+        handleSelection(localData.section);
+      draggingHandleRef.current = null;
+    },
+  );
+
+  const [startPlayheadDrag] = useDrag(({ clientX }) => {
+    if (!containerRef.current || !handlePosition) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const fraction = Math.max(
+      0,
+      Math.min(1, (clientX - rect.left) / rect.width),
+    );
+    handlePosition(
+      Math.round(fraction * (localData.range.end - localData.range.start)) +
+        localData.range.start,
+    );
+  });
+
+  const [startPanDrag] = useDrag(
+    ({ dx }) => {
+      if (!containerRef.current) return;
+      const width = containerRef.current.getBoundingClientRect().width;
+      if (width === 0) return;
+      const { range, data } = localData;
+      const rangeLen = range.end - range.start;
+      const newStart = Math.max(
+        0,
+        Math.min(
+          data.length - rangeLen,
+          range.start + Math.round(-dx * (rangeLen / width)),
+        ),
+      );
+      const newRange = { start: newStart, end: newStart + rangeLen };
+      setLocalData((prev) => ({ ...prev, range: newRange }));
+      handleRangeChange?.(newRange);
+      dragDistanceRef.current += dx;
+      const d = dragDistanceRef.current;
+      if (barContainerRef.current)
+        barContainerRef.current.style.transform = `translateX(${Math.sign(d) * MAX_BAR_OFFSET * Math.tanh(Math.abs(d) / RUBBER_SCALE)}px)`;
+    },
+    () => {
+      if (barContainerRef.current) {
+        barContainerRef.current.style.transition =
+          "transform 0.45s cubic-bezier(0.34,1.56,0.64,1)";
+        barContainerRef.current.style.transform = "translateX(0)";
+      }
+    },
+  );
+
   useEffect(() => {
     const canvasElement = canvasRef.current;
     if (!canvasElement) return;
-
-    const handleMove = (e: CanvasGesture) => {
-      if (selectRange !== undefined) {
-        const endSample =
-          computeSampleIndex(
-            e.offsetX,
-            localData.range.end - localData.range.start,
-            canvasElement,
-          ) + localData.range.start;
-        setSelectRange({
-          start: selectRange.start,
-          end: endSample,
-        });
-      }
-    };
-
-    const handleMouseUp = () => {
-      if (selectRange !== undefined) {
-        const min = Math.min(selectRange.start, selectRange.end);
-        const max = Math.max(selectRange.start, selectRange.end);
-        if (max - min > clickSelectThresholdValue) {
-          setLocalData((prevData) => ({
-            ...prevData,
-            section: { start: min, end: max },
-          }));
-          if (handleSelection) handleSelection({ start: min, end: max });
-        } else if (handlePosition) handlePosition(selectRange.start);
-      }
-      setSelectRange(undefined);
-    };
-
-    const handleMouseDown = (e: CanvasGesture) => {
-      const sampleIndex =
-        computeSampleIndex(
-          e.offsetX,
-          localData.range.end - localData.range.start,
-          canvasElement,
-        ) + localData.range.start;
-
-      setSelectRange({ start: sampleIndex, end: sampleIndex });
-    };
-
-    const handleWheel = (e: WheelEvent) => {
-      e.stopPropagation();
-      e.preventDefault();
-
-      if (handleRangeChange) {
-        const rangeLength = localData.range.end - localData.range.start;
-        if ((Math.abs(e.deltaX) + 0.001) / (Math.abs(e.deltaY) + 0.001) > 0.5) {
-          const targetStart =
-            localData.range.start + e.deltaX * (rangeLength / 400);
-          const targetEnd = targetStart + rangeLength;
-          handleRangeChange(
-            clampSection(
-              { start: targetStart, end: targetEnd },
-              { start: 0, end: localData.data.length },
-            ),
-          );
-        } else {
-          const currentRange = localData.range.end - localData.range.start;
-          const before =
-            computeSampleIndex(e.offsetX, currentRange, canvasElement) /
-            currentRange;
-          const after = 1 - before;
-
-          const targetRange = Math.max(
-            Math.floor(minRangeThresholdValue),
-            Math.min(
-              localData.data.length,
-              currentRange * (1 + -e.deltaY / 1000),
-            ),
-          );
-
-          const targetBefore = targetRange * before;
-          const targetAfter = targetRange * after;
-
-          const currentTarget =
-            computeSampleIndex(e.offsetX, currentRange, canvasElement) +
-            localData.range.start;
-          handleRangeChange({
-            start: Math.floor(Math.max(0, currentTarget - targetBefore)),
-            end: Math.floor(
-              Math.min(currentTarget + targetAfter, localData.data.length),
-            ),
-          });
-        }
-      }
-    };
-
     const handleResize = () => {
       canvasElement.width = canvasElement.clientWidth;
       canvasElement.height = canvasElement.clientHeight;
       updateWaveform();
     };
-
-    if (allowZoomPan) {
-      canvasElement.addEventListener("wheel", handleWheel);
-    }
-
     window.addEventListener("resize", handleResize);
-    handleResize(); // Initial call to set resolution
-
-    canvasElement.addEventListener("mousedown", handleMouseDown);
-    canvasElement.addEventListener("mousemove", handleMove);
-    canvasElement.addEventListener("mouseup", handleMouseUp);
-    canvasElement.addEventListener("mouseleave", handleMouseUp);
-
-    const handleTouchStart = (e: TouchEvent) => {
-      if (e.touches[0]) {
-        const touchGesture: CanvasGesture = {
-          offsetX: e.touches[0].clientX,
-          offsetY: e.touches[0].clientX,
-        };
-        handleMouseDown(touchGesture);
-      }
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (e.touches[0]) {
-        const touchGesture: CanvasGesture = {
-          offsetX: e.touches[0].clientX,
-          offsetY: e.touches[0].clientX,
-        };
-        handleMove(touchGesture);
-      }
-    };
-
-    canvasElement.addEventListener("touchstart", handleTouchStart);
-    canvasElement.addEventListener("touchmove", handleTouchMove);
-    canvasElement.addEventListener("touchend", handleMouseUp);
-
-    return () => {
-      if (allowZoomPan) {
-        canvasElement.removeEventListener("wheel", handleWheel);
-      }
-      window.removeEventListener("resize", handleResize);
-      canvasElement.removeEventListener("mousedown", handleMouseDown);
-      canvasElement.removeEventListener("mousemove", handleMove);
-      canvasElement.removeEventListener("mouseup", handleMouseUp);
-      canvasElement.removeEventListener("mouseleave", handleMouseUp);
-      canvasElement.removeEventListener("touchstart", handleTouchStart);
-      canvasElement.removeEventListener("touchmove", handleTouchMove);
-      canvasElement.removeEventListener("touchend", handleMouseUp);
-    };
-  }, [
-    allowZoomPan,
-    clickSelectThresholdValue,
-    handlePosition,
-    handleRangeChange,
-    handleSelection,
-    localData.data.length,
-    localData.range.end,
-    localData.range.start,
-    minRangeThresholdValue,
-    selectRange,
-    updateWaveform,
-  ]);
+    handleResize();
+    return () => window.removeEventListener("resize", handleResize);
+  }, [updateWaveform]);
 
   const handlePositions = useMemo(() => {
     const section = localData.section;
@@ -390,166 +347,178 @@ export const WaveformCanvas: FC<
     };
   }, [localData.range, localData.section]);
 
-  useEffect(() => {
-    if (!draggingHandle) return;
-
-    const onMove = (clientX: number) => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const fraction = Math.max(
-        0,
-        Math.min(1, (clientX - rect.left) / rect.width),
-      );
-      const sampleIndex =
-        Math.round(fraction * (localData.range.end - localData.range.start)) +
-        localData.range.start;
-
-      setLocalData((prev) => {
-        if (!prev.section) return prev;
-        const newSection =
-          draggingHandle === "start"
-            ? {
-                start: Math.min(sampleIndex, prev.section.end - 1),
-                end: prev.section.end,
-              }
-            : {
-                start: prev.section.start,
-                end: Math.max(sampleIndex, prev.section.start + 1),
-              };
-        // console.log(newSection);
-        return { ...prev, section: newSection };
-      });
-    };
-
-    const onEnd = () => {
-      if (localData.section && handleSelection)
-        handleSelection(localData.section);
-      setDraggingHandle(null);
-    };
-
-    const onMouseMove = (e: MouseEvent) => onMove(e.clientX);
-    const onTouchMove = (e: TouchEvent) => {
-      if (e.touches[0]) onMove(e.touches[0].clientX);
-    };
-
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onEnd);
-    window.addEventListener("touchmove", onTouchMove);
-    window.addEventListener("touchend", onEnd);
-    return () => {
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onEnd);
-      window.removeEventListener("touchmove", onTouchMove);
-      window.removeEventListener("touchend", onEnd);
-    };
-  }, [
-    draggingHandle,
-    handleSelection,
-    localData.range,
-    localData.section,
-    setLocalData,
-  ]);
-
-  useEffect(() => {
-    if (!draggingPlayhead) return;
-
-    const onMove = (clientX: number) => {
-      if (!containerRef.current || !handlePosition) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const fraction = Math.max(
-        0,
-        Math.min(1, (clientX - rect.left) / rect.width),
-      );
-      const sampleIndex =
-        Math.round(fraction * (localData.range.end - localData.range.start)) +
-        localData.range.start;
-      handlePosition(sampleIndex);
-    };
-
-    const onEnd = () => setDraggingPlayhead(false);
-    const onMouseMove = (e: MouseEvent) => onMove(e.clientX);
-    const onTouchMove = (e: TouchEvent) => {
-      if (e.touches[0]) onMove(e.touches[0].clientX);
-    };
-
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onEnd);
-    window.addEventListener("touchmove", onTouchMove);
-    window.addEventListener("touchend", onEnd);
-    return () => {
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onEnd);
-      window.removeEventListener("touchmove", onTouchMove);
-      window.removeEventListener("touchend", onEnd);
-    };
-  }, [draggingPlayhead, handlePosition, localData.range]);
-
   return (
     <div ref={containerRef} className="flex flex-col pixelated select-none">
       <canvas
         {...props}
         ref={canvasRef}
         draggable="false"
-        className="cursor-pointer border border-neutral-2"
+        className="cursor-pointer w-full max-md:min-h-64"
+        onMouseDown={(e) => {
+          const canvas = canvasRef.current;
+          if (!canvas) return;
+          const rangeLen = localData.range.end - localData.range.start;
+          const start =
+            computeSampleIndex(e.nativeEvent.offsetX, rangeLen, canvas) +
+            localData.range.start;
+          selectRangeRef.current = { start, end: start };
+          startSelectDrag(e.clientX);
+        }}
+        onMouseLeave={() => endSelectDrag()}
+        onTouchStart={(e) => {
+          const canvas = canvasRef.current;
+          if (!e.touches[0] || !canvas) return;
+          const offsetX =
+            e.touches[0].clientX - canvas.getBoundingClientRect().left;
+          const rangeLen = localData.range.end - localData.range.start;
+          const start =
+            computeSampleIndex(offsetX, rangeLen, canvas) +
+            localData.range.start;
+          selectRangeRef.current = { start, end: start };
+          startSelectDrag(e.touches[0].clientX);
+        }}
+        onWheel={
+          allowZoomPan
+            ? (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                if (!handleRangeChange) return;
+                const canvas = canvasRef.current;
+                if (!canvas) return;
+                const rangeLength = localData.range.end - localData.range.start;
+                if (
+                  (Math.abs(e.deltaX) + 0.001) / (Math.abs(e.deltaY) + 0.001) >
+                  0.5
+                ) {
+                  const targetStart =
+                    localData.range.start + e.deltaX * (rangeLength / 400);
+                  handleRangeChange(
+                    clampSection(
+                      { start: targetStart, end: targetStart + rangeLength },
+                      { start: 0, end: localData.data.length },
+                    ),
+                  );
+                } else {
+                  const currentRange =
+                    localData.range.end - localData.range.start;
+                  const before =
+                    computeSampleIndex(
+                      e.nativeEvent.offsetX,
+                      currentRange,
+                      canvas,
+                    ) / currentRange;
+                  const targetRange = Math.max(
+                    Math.floor(minRangeThresholdValue),
+                    Math.min(
+                      localData.data.length,
+                      currentRange * (1 + -e.deltaY / 1000),
+                    ),
+                  );
+                  const currentTarget =
+                    computeSampleIndex(
+                      e.nativeEvent.offsetX,
+                      currentRange,
+                      canvas,
+                    ) + localData.range.start;
+                  handleRangeChange({
+                    start: Math.floor(
+                      Math.max(0, currentTarget - targetRange * before),
+                    ),
+                    end: Math.floor(
+                      Math.min(
+                        currentTarget + targetRange * (1 - before),
+                        localData.data.length,
+                      ),
+                    ),
+                  });
+                }
+              }
+            : undefined
+        }
       ></canvas>
       {showHandles && (handlePositions || positionReference) && (
-        <div className="relative w-full h-7 shrink-0 overflow-hidden">
-          {handlePositions && localData.section && (
-            <>
-              {handlePositions.startPct >= 0 &&
-                handlePositions.startPct <= 100 && (
-                  <SectionHandle
-                    pct={handlePositions.startPct}
-                    onDragStart={() => setDraggingHandle("start")}
-                  />
-                )}
-              {handlePositions.endPct >= 0 && handlePositions.endPct <= 100 && (
-                <SectionHandle
-                  pct={handlePositions.endPct}
-                  onDragStart={() => setDraggingHandle("end")}
-                />
-              )}
-            </>
-          )}
-          {positionReference && (
-            <div
-              ref={positionHandleRef}
-              className="absolute top-0 w-5 h-full -translate-x-1/2 flex items-center justify-center cursor-ew-resize z-10"
-              style={{ display: "none" }}
-              onMouseDown={(e) => {
-                e.stopPropagation();
-                setDraggingPlayhead(true);
-              }}
-              onTouchStart={(e) => {
-                e.stopPropagation();
-                setDraggingPlayhead(true);
-              }}
-            >
-              <div className="w-4 h-4 rounded-sm bg-sky-400 opacity-90" />
+        <>
+          <div className="relative z-10 w-full h-8 shrink-0 -mt-4">
+            <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-1.5 border-t border-b border-[#0000001A]" />
+            {handlePositions && localData.section && (
+              <>
+                {handlePositions.startPct >= 0 &&
+                  handlePositions.startPct <= 100 && (
+                    <SectionHandle
+                      pct={handlePositions.startPct}
+                      onDragStart={(clientX) => {
+                        draggingHandleRef.current = "start";
+                        startHandleDrag(clientX);
+                      }}
+                    />
+                  )}
+                {handlePositions.endPct >= 0 &&
+                  handlePositions.endPct <= 100 && (
+                    <SectionHandle
+                      pct={handlePositions.endPct}
+                      onDragStart={(clientX) => {
+                        draggingHandleRef.current = "end";
+                        startHandleDrag(clientX);
+                      }}
+                    />
+                  )}
+              </>
+            )}
+            {positionReference && (
+              <div
+                ref={positionHandleRef}
+                className="absolute top-1/2 -translate-y-1/2 w-5 h-5.75 -translate-x-1/2 cursor-ew-resize z-10 rounded-sm bg-[#19CA93] border border-[#00000033] [box-shadow:#FFFFFF80_0px_0px_3px_inset,#00000033_0px_2px_3px]"
+                style={{ display: "none" }}
+                onMouseDown={(e) => startPlayheadDrag(e.clientX)}
+                onTouchStart={(e) => {
+                  if (e.touches[0]) startPlayheadDrag(e.touches[0].clientX);
+                }}
+              />
+            )}
+          </div>
+          <div
+            className="-mt-4 w-full min-h-16 cursor-grab select-none flex items-center justify-center overflow-hidden"
+            onMouseDown={(e) => {
+              dragDistanceRef.current = 0;
+              if (barContainerRef.current) {
+                barContainerRef.current.style.transition = "none";
+                barContainerRef.current.style.transform = "translateX(0)";
+              }
+              startPanDrag(e.clientX);
+            }}
+            onTouchStart={(e) => {
+              if (e.touches[0]) {
+                dragDistanceRef.current = 0;
+                if (barContainerRef.current) {
+                  barContainerRef.current.style.transition = "none";
+                  barContainerRef.current.style.transform = "translateX(0)";
+                }
+                startPanDrag(e.touches[0].clientX);
+              }
+            }}
+          >
+            <div ref={barContainerRef} className="flex gap-1.5">
+              <div className="w-0.5 h-4 rounded-full bg-[#00000020]" />
+              <div className="w-0.5 h-4 rounded-full bg-[#00000020]" />
+              <div className="w-0.5 h-4 rounded-full bg-[#00000020]" />
             </div>
-          )}
-        </div>
+          </div>
+        </>
       )}
     </div>
   );
 };
 
-const SectionHandle: FC<{ pct: number; onDragStart: () => void }> = ({
-  pct,
-  onDragStart,
-}) => (
+const SectionHandle: FC<{
+  pct: number;
+  onDragStart: (clientX: number) => void;
+}> = ({ pct, onDragStart }) => (
   <div
-    className="absolute top-0 w-5 h-full -translate-x-1/2 flex items-center justify-center cursor-ew-resize"
+    className="absolute top-1/2 -translate-y-1/2 w-7 h-8 max-h-8 -translate-x-1/2 cursor-ew-resize z-10 rounded-sm bg-[#FDFDFD] border border-[#0000001A] [box-shadow:#FFFFFF_0px_0px_4px_1px_inset,#0000000D_0px_2px_3px]"
     style={{ left: `${pct}%` }}
-    onMouseDown={(e) => {
-      e.stopPropagation();
-      onDragStart();
-    }}
+    onMouseDown={(e) => onDragStart(e.clientX)}
     onTouchStart={(e) => {
-      e.stopPropagation();
-      onDragStart();
+      if (e.touches[0]) onDragStart(e.touches[0].clientX);
     }}
-  >
-    <div className="w-4 h-5 rounded-sm bg-emerald-400 opacity-90" />
-  </div>
+  />
 );
