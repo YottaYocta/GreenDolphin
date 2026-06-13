@@ -8,8 +8,6 @@ import {
   type ReactNode,
 } from "react";
 import { Button } from "./buttons";
-import { usePostHog } from "@posthog/react";
-
 export interface TutorialStep {
   htmlSelector: string;
   contents: ReactNode;
@@ -24,7 +22,6 @@ export const Tutorial: FC<TutorialProps> = ({
   steps,
   handleTutorialFinished,
 }) => {
-  const posthog = usePostHog();
   const HIGHLIGHT_OFFSET = 8;
 
   const [currentStepIndex, setCurrentStepIndex] = useState<number | null>(
@@ -122,10 +119,6 @@ export const Tutorial: FC<TutorialProps> = ({
         <div className="flex items-center justify-between gap-2">
           <Button
             onClick={() => {
-              posthog?.capture("tutorial_skipped", {
-                step_index: currentStepIndex,
-                total_steps: steps.length,
-              });
               setCurrentStepIndex(null);
             }}
             text="Skip"
@@ -138,9 +131,6 @@ export const Tutorial: FC<TutorialProps> = ({
             )}
             <Button
               onClick={() => {
-                if (currentStepIndex !== null && currentStepIndex === steps.length - 1) {
-                  posthog?.capture("tutorial_completed", { total_steps: steps.length });
-                }
                 advanceStep(1);
               }}
               className="positive-button"

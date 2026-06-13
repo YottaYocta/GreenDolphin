@@ -3,8 +3,6 @@ import { useNavigate } from "react-router";
 import { useDecodeFile } from "./lib/useDecodeFile";
 import { RecordingsStore } from "./RecordingsStore";
 import { noteColor, relativeDate, formatSize } from "./lib/util";
-import { usePostHog } from "@posthog/react";
-
 function MusicNoteIcon({ color = "#000000" }: { color?: string }) {
   return (
     <svg
@@ -127,7 +125,6 @@ function RecordingRow({
 }
 
 export function Landing() {
-  const posthog = usePostHog();
   const decodeFile = useDecodeFile();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -136,10 +133,6 @@ export function Landing() {
   const [isUploading, setIsUploading] = useState(false);
 
   const handlePlay = async (file: File) => {
-    posthog?.capture("recording_opened", {
-      file_name: file.name,
-      file_size_bytes: file.size,
-    });
     await decodeFile(file);
     navigate("/app");
   };
@@ -149,11 +142,6 @@ export function Landing() {
     try {
       await decodeFile(file);
       await cacheFile(file);
-      posthog?.capture("recording_uploaded", {
-        file_name: file.name,
-        file_size_bytes: file.size,
-        file_type: file.type,
-      });
       navigate("/app");
     } finally {
       setIsUploading(false);
@@ -245,10 +233,6 @@ export function Landing() {
                   uploadedAt={fileMeta.get(file.name)?.uploadedAt}
                   onPlay={() => handlePlay(file)}
                   onDelete={() => {
-                    posthog?.capture("recording_deleted", {
-                      file_name: file.name,
-                      file_size_bytes: file.size,
-                    });
                     deleteFile(file.name);
                   }}
                 />

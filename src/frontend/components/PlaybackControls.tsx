@@ -1,11 +1,8 @@
 import { useCallback, useContext, useEffect } from "react";
 import { PlaybackContext } from "../playback/PlaybackContext";
-import { usePostHog } from "@posthog/react";
-
 const iconStyle = { width: 24, height: "auto", overflow: "visible", flexShrink: 0 } as const;
 
 export function PlaybackControls() {
-  const posthog = usePostHog();
   const playback = useContext(PlaybackContext);
   if (!playback)
     throw new Error("PlaybackControls must be used within a PlaybackProvider");
@@ -65,7 +62,6 @@ export function PlaybackControls() {
             if (playState === "playing" || playState === "waiting") {
               triggerAction("pause");
             } else {
-              posthog?.capture("playback_started");
               triggerAction("play");
             }
           }}
@@ -104,7 +100,6 @@ export function PlaybackControls() {
             if (playState === "frozen") {
               triggerAction("pause");
             } else {
-              posthog?.capture("playback_frozen");
               triggerAction("freeze");
             }
           }}
