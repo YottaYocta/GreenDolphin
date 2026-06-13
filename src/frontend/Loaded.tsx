@@ -264,7 +264,7 @@ export const Loaded = () => {
             <input
               ref={uploadInputRef}
               type="file"
-              accept="audio/3gpp,audio/3gpp2,audio/aiff,audio/x-aiff,audio/amr,audio/mp3,audio/mpeg3,audio/x-mp3,audio/x-mpeg3,audio/mp4,audio/mpeg,audio/x-mpeg,audio/wav,audio/x-wav,audio/x-m4a,audio/x-m4b,audio/x-m4p,video/3gpp,video/3gpp2,video/mp4,video/quicktime,video/x-m4v"
+              accept="*"
               className="hidden"
               onChange={async (e) => {
                 const file = e.target.files?.[0];
