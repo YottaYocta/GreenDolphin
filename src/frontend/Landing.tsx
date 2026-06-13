@@ -214,7 +214,7 @@ export function Landing() {
             <input
               ref={fileInputRef}
               type="file"
-              accept="audio/*,video/*"
+              accept="audio/*,video/*,.mp3,.m4a,.aac,.wav,.flac,.ogg,.opus,.mp4,.mov,.m4v"
               className="hidden"
               onChange={handleFileChange}
             />
