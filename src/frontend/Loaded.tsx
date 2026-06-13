@@ -264,8 +264,7 @@ export const Loaded = () => {
             <input
               ref={uploadInputRef}
               type="file"
-              accept="*"
-              className="hidden"
+                            className="hidden"
               onChange={async (e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;

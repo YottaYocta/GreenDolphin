@@ -214,8 +214,7 @@ export function Landing() {
             <input
               ref={fileInputRef}
               type="file"
-              accept="*"
-              className="hidden"
+                            className="hidden"
               onChange={handleFileChange}
             />
           </header>
