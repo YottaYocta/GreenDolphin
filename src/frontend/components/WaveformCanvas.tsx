@@ -353,7 +353,7 @@ export const WaveformCanvas: FC<
         {...props}
         ref={canvasRef}
         draggable="false"
-        className="cursor-pointer w-full max-md:min-h-64"
+        className="cursor-pointer w-full max-md:h-32 h-48"
         onMouseDown={(e) => {
           const canvas = canvasRef.current;
           if (!canvas) return;

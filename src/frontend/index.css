@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+html, body {
+  background-color: #F8F8F8;
+  overscroll-behavior: none;
+}
+
 @theme {
   --color-neutral-2: #c7c7c7;
   --animate-ping-custom: ping-custom 2s ease-in-out infinite;
