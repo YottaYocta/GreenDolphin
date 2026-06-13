@@ -30,7 +30,8 @@ const FileInfoRow: FC<{ label: string; value: string; mono: boolean }> = ({
 );
 
 const headerBtn = "btn-surface rounded-lg gap-3 px-3.25 py-3.25";
-const headerBtnLabel = "opacity-40 font-inria text-black text-base/5 whitespace-nowrap max-md:hidden";
+const headerBtnLabel =
+  "opacity-40 font-inria text-black text-base/5 whitespace-nowrap max-md:hidden";
 
 export const Loaded = () => {
   const { audio } = useContext(AudioStore);
@@ -44,7 +45,6 @@ export const Loaded = () => {
   const [showTutorial, setShowTutorial] = useState(
     localStorage.getItem("tutorial_shown") !== "true",
   );
-
 
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
 
@@ -91,11 +91,13 @@ export const Loaded = () => {
 
   return (
     <>
-      <div className="w-full max-w-240 h-full md:h-min p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4">
+      <div className="w-full max-w-240 h-full md:h-min p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:py-10">
         <div className="[font-synthesis:none] flex items-center gap-4 justify-between self-stretch antialiased">
           <div className="flex items-start gap-4 min-w-0">
             <Menu.Root>
-              <Menu.Trigger className={`${headerBtn} self-stretch cursor-pointer min-w-0`}>
+              <Menu.Trigger
+                className={`${headerBtn} self-stretch cursor-pointer min-w-0`}
+              >
                 <span className="font-inria text-black text-base/5 truncate min-w-0">
                   {filename}
                 </span>
@@ -185,7 +187,9 @@ export const Loaded = () => {
             </Menu.Root>
 
             <Dialog.Root>
-              <Dialog.Trigger className={`${headerBtn} self-stretch max-md:w-12 h-12 w-40 shrink-0 cursor-pointer`}>
+              <Dialog.Trigger
+                className={`${headerBtn} self-stretch max-md:w-12 h-12 w-40 shrink-0 cursor-pointer`}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="21"
@@ -264,7 +268,7 @@ export const Loaded = () => {
             <input
               ref={uploadInputRef}
               type="file"
-                            className="hidden"
+              className="hidden"
               onChange={async (e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
@@ -315,8 +319,8 @@ export const Loaded = () => {
               animate={true}
               handlePosition={handlePosition}
               handleSelection={(section) => {
-              setAudioSettings({ loop: section });
-            }}
+                setAudioSettings({ loop: section });
+              }}
             />
           </div>
         </div>
