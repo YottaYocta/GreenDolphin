@@ -11,11 +11,11 @@ export function PlaybackControls() {
   const { loop, loopDelay } = playbackSettings;
 
   const [countdown, setCountdown] = useState<number | null>(null);
-  const countdownRafRef = useRef<number | null>(null);
+  const countdownRafRef = useRef(0);
 
   useEffect(() => {
     if (playState !== "waiting") {
-      if (countdownRafRef.current !== null) cancelAnimationFrame(countdownRafRef.current);
+      cancelAnimationFrame(countdownRafRef.current);
       setCountdown(null);
       return;
     }
@@ -26,9 +26,7 @@ export function PlaybackControls() {
       countdownRafRef.current = requestAnimationFrame(tick);
     };
     countdownRafRef.current = requestAnimationFrame(tick);
-    return () => {
-      if (countdownRafRef.current !== null) cancelAnimationFrame(countdownRafRef.current);
-    };
+    return () => cancelAnimationFrame(countdownRafRef.current);
   }, [playState, loopPosition, loopLength, loopDelay]);
 
   const rewindFiveSeconds = useCallback(() => {

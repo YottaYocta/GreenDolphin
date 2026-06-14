@@ -145,8 +145,6 @@ const LoopDelayInput: FC<{
   value: number;
   onChange: (v: number) => void;
 }> = ({ mode, onModeChange, value, onChange }) => {
-  const inputRef = useRef<HTMLInputElement>(null);
-
   const commit = (el: HTMLInputElement) => {
     const n = parseFloat(el.value);
     if (!isNaN(n) && n >= 0) {
@@ -161,25 +159,21 @@ const LoopDelayInput: FC<{
       label="Loop Delay"
       center={
         <div className="flex items-start gap-1 w-full">
-          <button
-            onClick={() => onModeChange("fixed")}
-            className={`mode-btn ${mode === "fixed" ? "active" : ""}`}
-          >
-            Fixed
-          </button>
-          <button
-            onClick={() => onModeChange("relative")}
-            className={`mode-btn ${mode === "relative" ? "active" : ""}`}
-          >
-            Relative
-          </button>
+          {(["fixed", "relative"] as const).map((m) => (
+            <button
+              key={m}
+              onClick={() => onModeChange(m)}
+              className={`mode-btn ${mode === m ? "active" : ""}`}
+            >
+              {m === "fixed" ? "Fixed" : "Relative"}
+            </button>
+          ))}
         </div>
       }
       right={
         <div className="flex items-center gap-1.5 w-20 shrink-0">
           <div className="flex items-center px-1 py-0.5 rounded-sm bg-surface-input cursor-text w-12 overflow-hidden">
             <input
-              ref={inputRef}
               key={value}
               defaultValue={String(value)}
               className="font-space-mono text-black text-base/5 tabular-nums bg-transparent outline-none w-full min-w-0"
