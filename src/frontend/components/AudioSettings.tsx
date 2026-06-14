@@ -29,13 +29,9 @@ export function AudioSettings() {
   const handleModeChange = (next: "fixed" | "relative") => {
     if (next === delayMode) return;
     if (next === "fixed") {
-      // relative % → seconds
-      setDelayValue(Math.round((delayValue / 100) * loopLength * 10) / 10);
+      setDelayValue((delayValue / 100) * loopLength);
     } else {
-      // seconds → relative %
-      setDelayValue(
-        loopLength > 0 ? Math.round((delayValue / loopLength) * 1000) / 10 : 0,
-      );
+      setDelayValue(loopLength > 0 ? (delayValue / loopLength) * 100 : 0);
     }
     setDelayMode(next);
   };
@@ -45,21 +41,21 @@ export function AudioSettings() {
       <LoopDelayInput
         mode={delayMode}
         onModeChange={handleModeChange}
-        value={delayValue}
+        displayValue={String(Math.round(delayValue * 10) / 10)}
         onChange={setDelayValue}
       />
       <AudioSlider
         label="Pitch"
         value={pitchShift}
-        min={-10}
-        max={10}
+        min={-12}
+        max={12}
         step={0.2}
         onChange={(v) => {
           const rounded = Math.round(v * 10) / 10;
           setAudioSettings({ pitchShift: rounded });
         }}
-        formatValue={(v) => `${v >= 0 ? "+" : ""}${Math.round(v * 10) / 10}`}
-        unit="smt"
+        formatValue={(v) => `${Math.round(v * 10) / 10}`}
+        unit={"#"}
       />
       <AudioSlider
         label="Speed"
@@ -142,15 +138,15 @@ const SettingsRow: FC<{
 const LoopDelayInput: FC<{
   mode: "fixed" | "relative";
   onModeChange: (mode: "fixed" | "relative") => void;
-  value: number;
+  displayValue: string;
   onChange: (v: number) => void;
-}> = ({ mode, onModeChange, value, onChange }) => {
+}> = ({ mode, onModeChange, displayValue, onChange }) => {
   const commit = (el: HTMLInputElement) => {
     const n = parseFloat(el.value);
     if (!isNaN(n) && n >= 0) {
       onChange(n);
     } else {
-      el.value = String(value);
+      el.value = displayValue;
     }
   };
 
@@ -158,7 +154,7 @@ const LoopDelayInput: FC<{
     <SettingsRow
       label="Loop Delay"
       center={
-        <div className="flex items-start gap-1 w-full">
+        <div className="flex items-start gap-2 w-full">
           {(["fixed", "relative"] as const).map((m) => (
             <button
               key={m}
@@ -171,26 +167,26 @@ const LoopDelayInput: FC<{
         </div>
       }
       right={
-        <div className="flex items-center gap-1.5 w-20 shrink-0">
-          <div className="flex items-center px-1 py-0.5 rounded-sm bg-surface-input cursor-text w-12 overflow-hidden">
+        <div className="flex items-center gap-1.5  shrink-0">
+          <div className="flex items-center px-1 py-0.5 rounded-sm bg-surface-input cursor-text w-14 overflow-hidden">
             <input
-              key={value}
-              defaultValue={String(value)}
-              className="font-space-mono text-black text-base/5 tabular-nums bg-transparent outline-none w-full min-w-0"
+              key={displayValue}
+              defaultValue={displayValue}
+              className="font-space-mono text-black text-base/5 tabular-nums bg-transparent outline-none w-full min-w-0 text-right"
               onFocus={(e) => e.currentTarget.select()}
               onBlur={(e) => commit(e.currentTarget)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") e.currentTarget.blur();
                 if (e.key === "Escape") {
-                  e.currentTarget.value = String(value);
+                  e.currentTarget.value = displayValue;
                   e.currentTarget.blur();
                 }
               }}
             />
           </div>
-          <span className="font-space-mono text-black text-base/5 w-8 shrink-0">
-            {mode === "fixed" ? "sec" : "%"}
-          </span>
+          <div className="text-black/60 text-sm w-4 shrink-0 flex items-center">
+            {mode === "fixed" ? "s" : "%"}
+          </div>
         </div>
       }
     />
@@ -205,7 +201,7 @@ const AudioSlider: FC<{
   step: number;
   onChange: (v: number) => void;
   formatValue: (v: number) => string;
-  unit: string;
+  unit: React.ReactNode;
 }> = ({ label, value, min, max, step, onChange, formatValue, unit }) => {
   const trackRef = useRef<HTMLDivElement>(null);
 
@@ -248,15 +244,15 @@ const AudioSlider: FC<{
         </div>
       }
       right={
-        <div className="flex items-center gap-1.5 w-20 shrink-0">
-          <div className="flex items-center px-1 py-0.5 rounded-sm bg-surface-input w-12">
-            <span className="font-space-mono text-black text-base/5 tabular-nums w-full">
+        <div className="flex items-center gap-1.5  shrink-0">
+          <div className="flex items-center px-1 py-0.5 rounded-sm bg-surface-input w-14">
+            <span className="font-space-mono text-black text-base/5 tabular-nums w-full text-right">
               {formatValue(value)}
             </span>
           </div>
-          <span className="font-space-mono text-black text-base/5 w-8 shrink-0">
+          <div className="text-black/60 text-sm w-4 shrink-0 flex items-center">
             {unit}
-          </span>
+          </div>
         </div>
       }
     />
