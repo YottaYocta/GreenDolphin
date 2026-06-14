@@ -438,7 +438,7 @@ export const WaveformCanvas: FC<
       ></canvas>
       {showHandles && (handlePositions || positionReference) && (
         <>
-          <div className="relative z-10 w-full h-8 shrink-0 -mt-4">
+          <div className="relative w-full h-8 shrink-0 -mt-4">
             <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-1.5 border-t border-b border-[#0000001A]" />
             {handlePositions && localData.section && (
               <>
@@ -467,7 +467,7 @@ export const WaveformCanvas: FC<
             {positionReference && (
               <div
                 ref={positionHandleRef}
-                className="absolute top-1/2 -translate-y-1/2 w-5 h-5.75 -translate-x-1/2 cursor-ew-resize z-10 rounded-sm bg-[#19CA93] border border-[#00000033] [box-shadow:#FFFFFF80_0px_0px_3px_inset,#00000033_0px_2px_3px]"
+                className="absolute top-1/2 -translate-y-1/2 w-5 h-5.75 -translate-x-1/2 cursor-ew-resize rounded-sm bg-[#19CA93] border border-[#00000033] [box-shadow:#FFFFFF80_0px_0px_3px_inset,#00000033_0px_2px_3px]"
                 style={{ display: "none" }}
                 onMouseDown={(e) => startPlayheadDrag(e.clientX)}
                 onTouchStart={(e) => {
@@ -514,7 +514,7 @@ const SectionHandle: FC<{
   onDragStart: (clientX: number) => void;
 }> = ({ pct, onDragStart }) => (
   <div
-    className="absolute top-1/2 -translate-y-1/2 w-7 h-8 max-h-8 -translate-x-1/2 cursor-ew-resize z-10 rounded-sm bg-[#FDFDFD] border border-[#0000001A] [box-shadow:#FFFFFF_0px_0px_4px_1px_inset,#0000000D_0px_2px_3px]"
+    className="absolute top-1/2 -translate-y-1/2 w-7 h-8 max-h-8 -translate-x-1/2 cursor-ew-resize rounded-sm bg-[#FDFDFD] border border-[#0000001A] [box-shadow:#FFFFFF_0px_0px_4px_1px_inset,#0000000D_0px_2px_3px]"
     style={{ left: `${pct}%` }}
     onMouseDown={(e) => onDragStart(e.clientX)}
     onTouchStart={(e) => {

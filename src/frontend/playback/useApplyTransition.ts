@@ -62,6 +62,7 @@ export function useApplyTransition({
           break;
 
         case "waiting":
+          stopTimer();
           switch (next) {
             case "playing":
               startPlaying();
