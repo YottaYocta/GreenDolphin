@@ -1,13 +1,41 @@
 @import "tailwindcss";
 
 html, body {
-  background-color: #F8F8F8;
+  background-color: var(--color-page-bg);
   overscroll-behavior: none;
 }
 
 @theme {
   --color-neutral-2: #c7c7c7;
   --animate-ping-custom: ping-custom 2s ease-in-out infinite;
+
+  --color-page-bg: #F8F8F8;
+  --color-border: #0000001a;
+  --color-surface: #fdfdfd;
+  --color-surface-track: #F5F5F5;
+  --color-surface-input: #E8E8E8;
+  --color-surface-active: #f0f0f0;
+  --color-surface-pressed: #efefef;
+
+  --color-play: #1CCA93;
+  --color-play-hover: #3DD4A3;
+  --color-play-active: #17A87A;
+  --color-freeze: #0099DC;
+  --color-freeze-hover: #33ADDE;
+  --color-freeze-active: #007AB0;
+  --color-waiting: #F5C400;
+  --color-waiting-hover: #F7CE33;
+  --color-waiting-active: #C9A200;
+
+  --shadow-drop: #0000000d 0px 2px 3px;
+  --shadow-inset: #ffffff 0px 0px 4px 1px inset;
+  --shadow-inset-dim: #ffffff33 0px 0px 3px 1px inset;
+  --shadow-inset-active: #ffffff40 0px 0px 4px 1px inset;
+  --shadow-btn: var(--shadow-inset), var(--shadow-drop);
+  --shadow-btn-colored: var(--shadow-inset-active), var(--shadow-drop);
+  --shadow-panel: #0000000d 0px 2px 3px;
+  --shadow-menu: #0000001a 0px 4px 16px;
+  --shadow-dialog: #0000001a 0px 4px 24px;
 
   @keyframes ping-custom {
     25% {
@@ -25,9 +53,9 @@ html, body {
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-md);
-  background-color: #fdfdfd;
-  border: 1px solid #0000001a;
-  box-shadow: #ffffff 0px 0px 4px 1px inset, #0000000d 0px 2px 3px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-btn);
   &:hover {
     background-color: white;
   }
@@ -42,6 +70,36 @@ html, body {
 
 @utility font-space-mono {
   font-family: 'Space Mono', monospace;
+}
+
+@utility mode-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-0_5) var(--spacing-2);
+  font-family: 'Inria Sans', system-ui, sans-serif;
+  font-size: var(--text-sm);
+  line-height: var(--leading-4_5);
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+  color: rgb(0 0 0 / 0.5);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-inset-dim), var(--shadow-drop);
+  &:hover {
+    background-color: white;
+  }
+  &:active{
+    background-color: var(--color-surface-pressed);
+  }
+
+  &.active {
+    color: black;
+    background-color: var(--color-surface-active);
+    box-shadow: var(--shadow-btn);
+    
+  }
 }
 
 @layer utilities {

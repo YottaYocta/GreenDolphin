@@ -211,9 +211,11 @@ export function usePlaybackClock({
 
   useEffect(() => {
     if (timerStartedAtMS === null) return;
+    const elapsed = performance.now() - timerStartedAtMS;
+    const remaining = Math.max(0, loopDelay * 1000 - elapsed);
     const id = setTimeout(() => {
       dispatch({ type: "delay-end" });
-    }, loopDelay * 1000);
+    }, remaining);
     return () => clearTimeout(id);
   }, [timerStartedAtMS, loopDelay, dispatch]);
 

@@ -116,9 +116,9 @@ export const Loaded = () => {
               </Menu.Trigger>
               <Menu.Portal>
                 <Menu.Positioner side="bottom" align="start" sideOffset={8}>
-                  <Menu.Popup className="z-50 w-80 rounded-xl bg-white border border-[#0000001A] [box-shadow:#0000001A_0px_4px_16px] overflow-hidden flex flex-col outline-none">
+                  <Menu.Popup className="z-50 w-80 rounded-xl bg-white border border-border [box-shadow:var(--shadow-menu)] overflow-hidden flex flex-col outline-none">
                     <Menu.Item
-                      className="shrink-0 flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-neutral-50 active:bg-neutral-100 border-b border-[#0000001A]"
+                      className="shrink-0 flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-neutral-50 active:bg-neutral-100 border-b border-border"
                       closeOnClick={false}
                       onClick={() => uploadInputRef.current?.click()}
                     >
@@ -173,7 +173,7 @@ export const Loaded = () => {
                               >
                                 <path
                                   d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"
-                                  fill="#1CCA93"
+                                  fill="var(--color-play)"
                                 />
                               </svg>
                             )}
@@ -206,7 +206,7 @@ export const Loaded = () => {
               </Dialog.Trigger>
               <Dialog.Portal>
                 <Dialog.Backdrop className="fixed inset-0 bg-black/20 z-40" />
-                <Dialog.Popup className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-84 rounded-xl bg-white border border-[#0000001A] [box-shadow:#0000001A_0px_4px_24px] p-6 flex flex-col gap-5 outline-none">
+                <Dialog.Popup className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-84 rounded-xl bg-white border border-border [box-shadow:var(--shadow-dialog)] p-6 flex flex-col gap-5 outline-none">
                   <div className="flex items-start justify-between gap-4">
                     <Dialog.Title className="font-inria font-bold text-black text-lg/6">
                       File Info
@@ -306,9 +306,9 @@ export const Loaded = () => {
           </button>
         </div>
 
-        <div className="flex flex-col rounded-xl overflow-x-hidden overflow-y-clip self-stretch [box-shadow:#0000000D_0px_2px_3px] bg-white border border-[#0000001A] ">
+        <div className="flex flex-col rounded-xl overflow-x-hidden overflow-y-clip self-stretch [box-shadow:var(--shadow-panel)] bg-white border border-border ">
           <PianoRoll />
-          <div className="border-t border-[#0000001A] max-md:grow hoverf">
+          <div className="border-t border-border max-md:grow hoverf">
             <WaveformView
               initialData={{
                 data: data,
