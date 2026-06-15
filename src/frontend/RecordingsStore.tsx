@@ -12,6 +12,7 @@ import {
   saveToCache,
   type FileMeta,
 } from "./lib/audioCache";
+import { FIRST_VISIT_KEY } from "./lib/useFirstVisit";
 
 type RecordingsStoreValue = {
   cachedFiles: File[];
@@ -32,7 +33,6 @@ export const RecordingsStore = createContext<RecordingsStoreValue>({
 export function RecordingsStoreProvider({ children }: { children: ReactNode }) {
   const [cachedFiles, setCachedFiles] = useState<File[]>([]);
   const [fileMeta, setFileMeta] = useState<Map<string, FileMeta>>(new Map());
-
   const reload = useCallback(async () => {
     const [files, meta] = await Promise.all([
       loadAllFromCache(),
@@ -43,8 +43,28 @@ export function RecordingsStoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    reload().catch(() => {});
-  }, [reload]);
+    (async () => {
+      const [files, meta] = await Promise.all([
+        loadAllFromCache(),
+        loadMetaFromCache(),
+      ]);
+      if (localStorage.getItem(FIRST_VISIT_KEY) !== "true") {
+        const filename = "Wynton Kelly - On Green Dolphin Street [EXCERPT].mp3";
+        const res = await fetch(`/${encodeURIComponent(filename)}`).catch(() => null);
+        if (res?.ok) {
+          const blob = await res.blob();
+          const file = new File([blob], filename, { type: blob.type || "audio/mpeg" });
+          await saveToCache(file);
+          const uploadedAt = Date.now();
+          setCachedFiles([file]);
+          setFileMeta(new Map([[filename, { uploadedAt }]]));
+          return;
+        }
+      }
+      setCachedFiles(files);
+      setFileMeta(meta);
+    })().catch(() => {});
+  }, []);
 
   const cacheFile = useCallback(async (file: File) => {
     await saveToCache(file);

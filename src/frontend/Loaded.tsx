@@ -10,6 +10,7 @@ import { AudioStore } from "./AudioStore";
 import { RecordingsStore } from "./RecordingsStore";
 import { useDecodeFile } from "./lib/useDecodeFile";
 import { formatSeconds, formatSize } from "./lib/util";
+import { useFirstVisit } from "./lib/useFirstVisit";
 import { PlaybackControls } from "./components/PlaybackControls";
 import { AudioSettings } from "./components/AudioSettings";
 const FileInfoRow: FC<{ label: string; value: string; mono: boolean }> = ({
@@ -42,9 +43,7 @@ export const Loaded = () => {
   const { cachedFiles, fileMeta, cacheFile } = useContext(RecordingsStore);
   const uploadInputRef = useRef<HTMLInputElement>(null);
 
-  const [showTutorial, setShowTutorial] = useState(
-    localStorage.getItem("tutorial_shown") !== "true",
-  );
+  const { isFirstVisit: showTutorial, markVisited: markTutorialShown } = useFirstVisit();
 
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
 
@@ -333,10 +332,7 @@ export const Loaded = () => {
 
       {showTutorial && (
         <Tutorial
-          handleTutorialFinished={() => {
-            setShowTutorial(false);
-            localStorage.setItem("tutorial_shown", "true");
-          }}
+          handleTutorialFinished={markTutorialShown}
           steps={[
             {
               htmlSelector: "#waveform-view",
