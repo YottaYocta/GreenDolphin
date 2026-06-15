@@ -93,6 +93,9 @@ export const WaveformCanvas: FC<
   const draggingHandleRef = useRef<"start" | "end" | null>(null);
   const dragDistanceRef = useRef(0);
   const barContainerRef = useRef<HTMLDivElement>(null);
+  const pinchStartDistRef = useRef<number | null>(null);
+  const pinchStartRangeRef = useRef<Section | null>(null);
+  const pinchMidpointFractionRef = useRef<number>(0);
 
   const clickSelectThresholdValue = useMemo(
     () =>
@@ -336,6 +339,106 @@ export const WaveformCanvas: FC<
     return () => window.removeEventListener("resize", handleResize);
   }, [updateWaveform]);
 
+  useEffect(() => {
+    if (!allowZoomPan) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!handleRangeChange) return;
+      const { range, data } = localData;
+      const currentRange = range.end - range.start;
+      const sampleOffset = computeSampleIndex(e.offsetX, currentRange, canvas);
+      const anchor = sampleOffset + range.start;
+      const before = sampleOffset / currentRange;
+
+      if (e.ctrlKey) {
+        const targetLen = Math.max(
+          minRangeThresholdValue,
+          Math.min(data.length, currentRange * (1 + e.deltaY / 100)),
+        );
+        handleRangeChange(clampSection(
+          { start: Math.floor(anchor - targetLen * before), end: Math.floor(anchor + targetLen * (1 - before)) },
+          { start: 0, end: data.length },
+        ));
+      } else if ((Math.abs(e.deltaX) + 0.001) / (Math.abs(e.deltaY) + 0.001) > 0.5) {
+        const targetStart = range.start + e.deltaX * (currentRange / 400);
+        handleRangeChange(clampSection(
+          { start: targetStart, end: targetStart + currentRange },
+          { start: 0, end: data.length },
+        ));
+      } else {
+        const targetLen = Math.max(
+          minRangeThresholdValue,
+          Math.min(data.length, currentRange * (1 + -e.deltaY / 1000)),
+        );
+        handleRangeChange(clampSection(
+          { start: Math.floor(anchor - targetLen * before), end: Math.floor(anchor + targetLen * (1 - before)) },
+          { start: 0, end: data.length },
+        ));
+      }
+    };
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length !== 2) return;
+      e.preventDefault();
+      const t0 = e.touches[0];
+      const t1 = e.touches[1];
+      const dist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
+      pinchStartDistRef.current = dist;
+      pinchStartRangeRef.current = { ...localData.range };
+      const rect = canvas.getBoundingClientRect();
+      const midX = (t0.clientX + t1.clientX) / 2 - rect.left;
+      const { range } = localData;
+      const rangeLen = range.end - range.start;
+      pinchMidpointFractionRef.current = computeSampleIndex(midX, rangeLen, canvas) / rangeLen;
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches.length !== 2) return;
+      e.preventDefault();
+      const startDist = pinchStartDistRef.current;
+      const startRange = pinchStartRangeRef.current;
+      if (startDist === null || startRange === null) return;
+      const t0 = e.touches[0];
+      const t1 = e.touches[1];
+      const dist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
+      const scale = (startDist / dist) ** 2;
+      const startRangeLen = startRange.end - startRange.start;
+      const { data } = localData;
+      const targetLen = Math.max(
+        minRangeThresholdValue,
+        Math.min(data.length, Math.round(startRangeLen * scale)),
+      );
+      const fraction = pinchMidpointFractionRef.current;
+      const anchorSample = startRange.start + fraction * startRangeLen;
+      handleRangeChange?.(clampSection(
+        { start: Math.floor(anchorSample - targetLen * fraction), end: Math.floor(anchorSample - targetLen * fraction) + targetLen },
+        { start: 0, end: data.length },
+      ));
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      if (e.touches.length < 2) {
+        pinchStartDistRef.current = null;
+        pinchStartRangeRef.current = null;
+      }
+    };
+
+    canvas.addEventListener("wheel", onWheel, { passive: false });
+    canvas.addEventListener("touchstart", onTouchStart, { passive: false });
+    canvas.addEventListener("touchmove", onTouchMove, { passive: false });
+    canvas.addEventListener("touchend", onTouchEnd);
+    return () => {
+      canvas.removeEventListener("wheel", onWheel);
+      canvas.removeEventListener("touchstart", onTouchStart);
+      canvas.removeEventListener("touchmove", onTouchMove);
+      canvas.removeEventListener("touchend", onTouchEnd);
+    };
+  }, [allowZoomPan, handleRangeChange, localData, minRangeThresholdValue]);
+
   const handlePositions = useMemo(() => {
     const section = localData.section;
     if (!section) return null;
@@ -366,8 +469,9 @@ export const WaveformCanvas: FC<
         }}
         onMouseLeave={() => endSelectDrag()}
         onTouchStart={(e) => {
+          if (e.touches.length !== 1) return;
           const canvas = canvasRef.current;
-          if (!e.touches[0] || !canvas) return;
+          if (!canvas) return;
           const offsetX =
             e.touches[0].clientX - canvas.getBoundingClientRect().left;
           const rangeLen = localData.range.end - localData.range.start;
@@ -377,64 +481,6 @@ export const WaveformCanvas: FC<
           selectRangeRef.current = { start, end: start };
           startSelectDrag(e.touches[0].clientX);
         }}
-        onWheel={
-          allowZoomPan
-            ? (e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                if (!handleRangeChange) return;
-                const canvas = canvasRef.current;
-                if (!canvas) return;
-                const rangeLength = localData.range.end - localData.range.start;
-                if (
-                  (Math.abs(e.deltaX) + 0.001) / (Math.abs(e.deltaY) + 0.001) >
-                  0.5
-                ) {
-                  const targetStart =
-                    localData.range.start + e.deltaX * (rangeLength / 400);
-                  handleRangeChange(
-                    clampSection(
-                      { start: targetStart, end: targetStart + rangeLength },
-                      { start: 0, end: localData.data.length },
-                    ),
-                  );
-                } else {
-                  const currentRange =
-                    localData.range.end - localData.range.start;
-                  const before =
-                    computeSampleIndex(
-                      e.nativeEvent.offsetX,
-                      currentRange,
-                      canvas,
-                    ) / currentRange;
-                  const targetRange = Math.max(
-                    Math.floor(minRangeThresholdValue),
-                    Math.min(
-                      localData.data.length,
-                      currentRange * (1 + -e.deltaY / 1000),
-                    ),
-                  );
-                  const currentTarget =
-                    computeSampleIndex(
-                      e.nativeEvent.offsetX,
-                      currentRange,
-                      canvas,
-                    ) + localData.range.start;
-                  handleRangeChange({
-                    start: Math.floor(
-                      Math.max(0, currentTarget - targetRange * before),
-                    ),
-                    end: Math.floor(
-                      Math.min(
-                        currentTarget + targetRange * (1 - before),
-                        localData.data.length,
-                      ),
-                    ),
-                  });
-                }
-              }
-            : undefined
-        }
       ></canvas>
       {showHandles && (handlePositions || positionReference) && (
         <>
