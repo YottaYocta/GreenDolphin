@@ -84,7 +84,7 @@ export function AudioSettings() {
   );
 
   return (
-    <div className="flex flex-col items-end gap-3.25 flex-1 max-md:grow-0 w-full min-w-0">
+    <div className="flex flex-col">
       <Menu.Root>
         <Menu.Trigger className="btn-surface rounded-lg gap-3 w-full h-12 shrink-0 cursor-pointer max-md:flex hidden">
           <svg
@@ -112,7 +112,7 @@ export function AudioSettings() {
           </Menu.Positioner>
         </Menu.Portal>
       </Menu.Root>
-      <div className="flex flex-col justify-center self-stretch rounded-xl py-5 px-4 gap-4 shrink-0 [box-shadow:var(--shadow-panel)] bg-white border border-border max-md:hidden">
+      <div className="flex flex-col justify-center self-stretch rounded-xl py-5 px-4 gap-4 [box-shadow:var(--shadow-panel)] bg-white border border-border max-md:hidden">
         {sliders}
       </div>
     </div>
@@ -128,7 +128,7 @@ const SettingsRow: FC<{
     <div className="w-20 shrink-0 font-inria text-black text-base/5 whitespace-nowrap flex justify-end max-md:justify-start max-md:text-sm max-md:opacity-60">
       {label}
     </div>
-    <div className="flex items-center gap-4 self-stretch flex-1 w-full">
+    <div className="flex items-center gap-4 self-stretch flex-1">
       <div className="flex-1">{center}</div>
       {right}
     </div>

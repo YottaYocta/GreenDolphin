@@ -43,7 +43,8 @@ export const Loaded = () => {
   const { cachedFiles, fileMeta, cacheFile } = useContext(RecordingsStore);
   const uploadInputRef = useRef<HTMLInputElement>(null);
 
-  const { isFirstVisit: showTutorial, markVisited: markTutorialShown } = useFirstVisit();
+  const { isFirstVisit: showTutorial, markVisited: markTutorialShown } =
+    useFirstVisit();
 
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
 
@@ -324,7 +325,7 @@ export const Loaded = () => {
           </div>
         </div>
 
-        <div className="[font-synthesis:none] flex items-stretch self-stretch antialiased max-md:flex-col-reverse max-md:flex-1 gap-8 max-md:gap-4">
+        <div className="[font-synthesis:none] md:grid md:grid-cols-2 max-md:flex max-md:flex-col-reverse max-md:flex-1 antialiased gap-4">
           <PlaybackControls />
           <AudioSettings />
         </div>

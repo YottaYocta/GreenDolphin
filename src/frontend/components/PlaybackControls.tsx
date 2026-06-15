@@ -1,13 +1,24 @@
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { PlaybackContext } from "../playback/PlaybackContext";
-const iconStyle = { width: 24, height: "auto", overflow: "visible", flexShrink: 0 } as const;
+const iconStyle = {
+  width: 24,
+  height: "auto",
+  overflow: "visible",
+  flexShrink: 0,
+} as const;
 
 export function PlaybackControls() {
   const playback = useContext(PlaybackContext);
   if (!playback)
     throw new Error("PlaybackControls must be used within a PlaybackProvider");
-  const { playbackPosition, loopPosition, loopLength, playState, triggerAction, playbackSettings } =
-    playback;
+  const {
+    playbackPosition,
+    loopPosition,
+    loopLength,
+    playState,
+    triggerAction,
+    playbackSettings,
+  } = playback;
   const { loop, loopDelay } = playbackSettings;
 
   const [countdown, setCountdown] = useState<number | null>(null);
@@ -74,7 +85,7 @@ export function PlaybackControls() {
   }, [rewindFiveSeconds, fastForwardFiveSeconds]);
 
   return (
-    <div className="flex overflow-clip items-start gap-4 flex-col p-4 rounded-xl flex-1 [box-shadow:var(--shadow-panel)] bg-white border border-border">
+    <div className="flex items-start gap-4 flex-col p-4 rounded-xl [box-shadow:var(--shadow-panel)] bg-white border border-border max-md:flex-1">
       <div className="flex items-start gap-4 flex-1 self-stretch">
         <button
           onClick={() => {
@@ -106,7 +117,10 @@ export function PlaybackControls() {
               />
             </svg>
           ) : playState === "waiting" ? (
-            <span className="font-space-mono text-white text-lg tabular-nums" style={{ flexShrink: 0 }}>
+            <span
+              className="font-space-mono text-white text-lg tabular-nums"
+              style={{ flexShrink: 0 }}
+            >
               {countdown !== null ? countdown.toFixed(1) : "…"}
             </span>
           ) : (
@@ -175,7 +189,12 @@ export function PlaybackControls() {
             width="32"
             height="32"
             viewBox="0 0 256 256"
-            style={{ ...iconStyle, opacity: 0.67, rotate: "180deg", transformOrigin: "50% 50%" }}
+            style={{
+              ...iconStyle,
+              opacity: 0.67,
+              rotate: "180deg",
+              transformOrigin: "50% 50%",
+            }}
           >
             <path
               d="M208,47.88V208.12a16,16,0,0,1-24.43,13.43L64,146.77V216a8,8,0,0,1-16,0V40a8,8,0,0,1,16,0v69.23L183.57,34.45A15.95,15.95,0,0,1,208,47.88Z"
