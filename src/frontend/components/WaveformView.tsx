@@ -70,27 +70,23 @@ export const WaveformView: FC<WaveformViewProps> = ({
   const handleZoomIn = useCallback(() => {
     setLocalRange((prevRange) => {
       const zoomAmount = Math.floor((prevRange.end - prevRange.start) * 0.1);
-
       const targetSection = {
         start: prevRange.start + zoomAmount,
         end: prevRange.end - zoomAmount,
       };
       const midPoint =
         Math.floor((prevRange.end - prevRange.start) / 2) + prevRange.start;
-
       const minSection = {
         start: Math.floor(midPoint - minRangeThresholdValue / 2),
         end: Math.floor(midPoint + minRangeThresholdValue / 2),
       };
-      const targetSectionMinClamped = {
-        start: Math.min(minSection.start, targetSection.start),
-        end: Math.max(minSection.end, targetSection.end),
-      };
-
-      return clampSection(targetSectionMinClamped, {
-        start: 0,
-        end: initialData.data.length,
-      });
+      return clampSection(
+        {
+          start: Math.min(minSection.start, targetSection.start),
+          end: Math.max(minSection.end, targetSection.end),
+        },
+        { start: 0, end: initialData.data.length },
+      );
     });
   }, [initialData.data.length, minRangeThresholdValue]);
 
@@ -214,52 +210,6 @@ export const WaveformView: FC<WaveformViewProps> = ({
       className="relative w-full h-min flex flex-col gap-2 max-md:grow"
       id="waveform-view"
     >
-      <div
-        className="flex absolute top-2.75 right-3.25  items-center gap-4 p-2 rounded-lg bg-white border border-[#0000001A]"
-        id="waveform-controls"
-      >
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleZoomOut}
-            title="Zoom out (j)"
-            aria-label="zoom out"
-            className="cursor-pointer hover:opacity-70"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="32"
-              height="32"
-              viewBox="0 0 256 256"
-              style={iconStyle}
-            >
-              <path
-                d="M229.66,218.34,179.6,168.28a88.21,88.21,0,1,0-11.32,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM144,120H80a8,8,0,0,1,0-16h64a8,8,0,0,1,0,16Z"
-                fill="#525252"
-              />
-            </svg>
-          </button>
-          <button
-            onClick={handleZoomIn}
-            title="Zoom in (k)"
-            aria-label="zoom in"
-            className="cursor-pointer hover:opacity-70"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="32"
-              height="32"
-              viewBox="0 0 256 256"
-              style={iconStyle}
-            >
-              <path
-                d="M229.66,218.34,179.6,168.28a88.21,88.21,0,1,0-11.32,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM144,120H120v24a8,8,0,0,1-16,0V120H80a8,8,0,0,1,0-16h24V80a8,8,0,0,1,16,0v24h24a8,8,0,0,1,0,16Z"
-                fill="#525252"
-              />
-            </svg>
-          </button>
-        </div>
-      </div>
-
       {initialData.section && (
         <div className="flex absolute top-2.25 left-2.75  items-center gap-4 p-2 rounded-lg bg-white border border-[#0000001A]">
           <button
