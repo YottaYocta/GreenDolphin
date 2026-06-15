@@ -24,7 +24,7 @@ function PlayIcon() {
       xmlns="http://www.w3.org/2000/svg"
       width="32"
       height="32"
-      fill="#1CCA93"
+      fill="var(--color-play)"
       viewBox="0 0 256 256"
       style={{ width: 24, height: "auto", overflow: "visible", flexShrink: 0 }}
     >
@@ -214,7 +214,7 @@ export function Landing() {
             <input
               ref={fileInputRef}
               type="file"
-                            className="hidden"
+              className="hidden"
               onChange={handleFileChange}
             />
           </header>

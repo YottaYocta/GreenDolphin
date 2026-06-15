@@ -7,6 +7,10 @@ html, body {
 
 @theme {
   --color-neutral-2: #c7c7c7;
+  --color-icon: #000000;
+  --color-icon-muted: #666666;
+  --color-icon-subtle: #525252;
+  --color-icon-white: #ffffff;
   --animate-ping-custom: ping-custom 2s ease-in-out infinite;
 
   --color-page-bg: #F8F8F8;
@@ -77,7 +81,7 @@ html, body {
   align-items: center;
   justify-content: center;
   flex: 1;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-sm);
   padding: var(--spacing-0_5) var(--spacing-2);
   font-family: 'Inria Sans', system-ui, sans-serif;
   font-size: var(--text-sm);

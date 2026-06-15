@@ -113,7 +113,7 @@ export function PlaybackControls() {
             >
               <path
                 d="M216,48H168a16,16,0,0,0-16,16V192a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V64A16,16,0,0,0,216,48ZM88,48H40A16,16,0,0,0,24,64V192a16,16,0,0,0,16,16H88a16,16,0,0,0,16-16V64A16,16,0,0,0,88,48Z"
-                fill="#FFFFFF"
+                fill="var(--color-icon-white)"
               />
             </svg>
           ) : playState === "waiting" ? (
@@ -176,7 +176,7 @@ export function PlaybackControls() {
           >
             <path
               d="M208,47.88V208.12a16,16,0,0,1-24.43,13.43L64,146.77V216a8,8,0,0,1-16,0V40a8,8,0,0,1,16,0v69.23L183.57,34.45A15.95,15.95,0,0,1,208,47.88Z"
-              fill="#000000"
+              fill="var(--color-icon)"
             />
           </svg>
         </button>
@@ -198,7 +198,7 @@ export function PlaybackControls() {
           >
             <path
               d="M208,47.88V208.12a16,16,0,0,1-24.43,13.43L64,146.77V216a8,8,0,0,1-16,0V40a8,8,0,0,1,16,0v69.23L183.57,34.45A15.95,15.95,0,0,1,208,47.88Z"
-              fill="#000000"
+              fill="var(--color-icon)"
             />
           </svg>
         </button>
