@@ -67,6 +67,9 @@ html, body {
   &:active {
     background-color: var(--color-neutral-100);
   }
+  &:focus {
+    outline: none;
+  }
 }
 
 @utility font-inria {

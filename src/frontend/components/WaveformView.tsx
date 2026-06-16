@@ -216,7 +216,7 @@ export const WaveformView: FC<WaveformViewProps> = ({
             onClick={handleClearSelection}
             title="Clear Selection (Escape)"
             aria-label="Clear Selection"
-            className="cursor-pointer hover:opacity-70 [-webkit-tap-highlight-color:transparent]"
+            className="cursor-pointer hover:opacity-70 [-webkit-tap-highlight-color:transparent] outline-none"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -236,7 +236,7 @@ export const WaveformView: FC<WaveformViewProps> = ({
               onClick={handleBackUpSelection}
               title="Back Up Selection ([)"
               aria-label="Back Up Selection"
-              className="cursor-pointer hover:opacity-70 [-webkit-tap-highlight-color:transparent]"
+              className="cursor-pointer hover:opacity-70 [-webkit-tap-highlight-color:transparent] outline-none"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -255,7 +255,7 @@ export const WaveformView: FC<WaveformViewProps> = ({
               onClick={handleAdvanceSelection}
               title="Advance Selection (])"
               aria-label="Advance Selection"
-              className="cursor-pointer hover:opacity-70 [-webkit-tap-highlight-color:transparent]"
+              className="cursor-pointer hover:opacity-70 [-webkit-tap-highlight-color:transparent] outline-none"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
