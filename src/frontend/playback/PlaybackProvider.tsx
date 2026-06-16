@@ -64,11 +64,10 @@ export const PlaybackProvider = ({
   const setAudioSettings = useCallback(
     (settings: Partial<PlaybackSettings>) => {
       const clockUpdates: AudioSettingsUpdate = {};
-      if (settings.loop !== undefined)
-        clockUpdates.loop = clampSection(settings.loop, {
-          start: 0,
-          end: data.length,
-        });
+      if ("loop" in settings)
+        clockUpdates.loop = settings.loop
+          ? clampSection(settings.loop, { start: 0, end: data.length })
+          : null;
       if (settings.loopDelay !== undefined)
         clockUpdates.loopDelay = settings.loopDelay;
       if (settings.playbackSpeed !== undefined)
