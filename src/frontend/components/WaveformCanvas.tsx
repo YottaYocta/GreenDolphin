@@ -96,6 +96,7 @@ export const WaveformCanvas: FC<
   const pinchStartDistRef = useRef<number | null>(null);
   const pinchStartRangeRef = useRef<Section | null>(null);
   const pinchMidpointFractionRef = useRef<number>(0);
+  const isPinchingRef = useRef(false);
 
   const clickSelectThresholdValue = useMemo(
     () =>
@@ -384,6 +385,8 @@ export const WaveformCanvas: FC<
     const onTouchStart = (e: TouchEvent) => {
       if (e.touches.length !== 2) return;
       e.preventDefault();
+      isPinchingRef.current = true;
+      endSelectDrag();
       const t0 = e.touches[0];
       const t1 = e.touches[1];
       const dist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
@@ -424,6 +427,7 @@ export const WaveformCanvas: FC<
       if (e.touches.length < 2) {
         pinchStartDistRef.current = null;
         pinchStartRangeRef.current = null;
+        isPinchingRef.current = false;
       }
     };
 
@@ -437,7 +441,7 @@ export const WaveformCanvas: FC<
       canvas.removeEventListener("touchmove", onTouchMove);
       canvas.removeEventListener("touchend", onTouchEnd);
     };
-  }, [allowZoomPan, handleRangeChange, localData, minRangeThresholdValue]);
+  }, [allowZoomPan, endSelectDrag, handleRangeChange, localData, minRangeThresholdValue]);
 
   const handlePositions = useMemo(() => {
     const section = localData.section;
@@ -469,7 +473,7 @@ export const WaveformCanvas: FC<
         }}
         onMouseLeave={() => endSelectDrag()}
         onTouchStart={(e) => {
-          if (e.touches.length !== 1) return;
+          if (e.touches.length !== 1 || isPinchingRef.current) return;
           const canvas = canvasRef.current;
           if (!canvas) return;
           const offsetX =
@@ -533,7 +537,7 @@ export const WaveformCanvas: FC<
               startPanDrag(e.clientX);
             }}
             onTouchStart={(e) => {
-              if (e.touches[0]) {
+              if (e.touches[0] && !isPinchingRef.current) {
                 dragDistanceRef.current = 0;
                 if (barContainerRef.current) {
                   barContainerRef.current.style.transition = "none";
