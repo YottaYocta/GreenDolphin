@@ -60,8 +60,10 @@ html, body {
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-btn);
-  &:hover {
-    background-color: white;
+  @media (hover: hover) {
+    &:hover {
+      background-color: white;
+    }
   }
   &:active {
     background-color: var(--color-neutral-100);
