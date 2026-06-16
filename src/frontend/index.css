@@ -60,7 +60,6 @@ html, body {
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-btn);
-  -webkit-tap-highlight-color: transparent;
   @media (hover: hover) {
     &:hover {
       background-color: white;
@@ -68,9 +67,6 @@ html, body {
   }
   &:active {
     background-color: var(--color-neutral-100);
-  }
-  &:focus {
-    outline: none;
   }
 }
 
