@@ -97,7 +97,6 @@ export function useAlwaysAwake() {
     tryVideoFallback("Wake Lock API not supported in this browser");
   }, [tryVideoFallback]);
 
-  // Re-acquire wake lock when the page becomes visible again after being hidden
   useEffect(() => {
     const onVisibilityChange = () => {
       if (document.visibilityState === "visible" && !playingRef.current) {
