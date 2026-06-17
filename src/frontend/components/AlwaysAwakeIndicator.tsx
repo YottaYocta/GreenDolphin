@@ -1,7 +1,7 @@
 export function AlwaysAwakeIndicator({ ready }: { ready: boolean }) {
   return (
     <div
-      className="fixed top-3 right-3 z-50"
+      className="fixed top-3 right-4 z-50"
       title={ready ? "Always awake: active" : "Always awake: initializing"}
     >
       <svg

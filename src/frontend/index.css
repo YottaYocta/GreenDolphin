@@ -15,7 +15,7 @@ html, body {
 
   --color-page-bg: #F8F8F8;
   --color-border: #0000001a;
-  --color-surface: #fdfdfd;
+  --color-surface: #fafafa;
   --color-surface-track: #F5F5F5;
   --color-surface-input: #E8E8E8;
   --color-surface-active: #f0f0f0;
@@ -32,7 +32,7 @@ html, body {
   --color-waiting-active: #C9A200;
 
   --shadow-drop: #0000000d 0px 2px 3px;
-  --shadow-inset: #ffffff 0px 0px 4px 1px inset;
+  --shadow-inset: #ffffff 0px 0px 8px 2px inset;
   --shadow-inset-dim: #ffffff33 0px 0px 3px 1px inset;
   --shadow-inset-active: #ffffff40 0px 0px 4px 1px inset;
   --shadow-btn: var(--shadow-inset), var(--shadow-drop);

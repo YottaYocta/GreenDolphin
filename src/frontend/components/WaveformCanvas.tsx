@@ -360,25 +360,40 @@ export const WaveformCanvas: FC<
           minRangeThresholdValue,
           Math.min(data.length, currentRange * (1 + e.deltaY / 100)),
         );
-        handleRangeChange(clampSection(
-          { start: Math.floor(anchor - targetLen * before), end: Math.floor(anchor + targetLen * (1 - before)) },
-          { start: 0, end: data.length },
-        ));
-      } else if ((Math.abs(e.deltaX) + 0.001) / (Math.abs(e.deltaY) + 0.001) > 0.5) {
+        handleRangeChange(
+          clampSection(
+            {
+              start: Math.floor(anchor - targetLen * before),
+              end: Math.floor(anchor + targetLen * (1 - before)),
+            },
+            { start: 0, end: data.length },
+          ),
+        );
+      } else if (
+        (Math.abs(e.deltaX) + 0.001) / (Math.abs(e.deltaY) + 0.001) >
+        0.5
+      ) {
         const targetStart = range.start + e.deltaX * (currentRange / 400);
-        handleRangeChange(clampSection(
-          { start: targetStart, end: targetStart + currentRange },
-          { start: 0, end: data.length },
-        ));
+        handleRangeChange(
+          clampSection(
+            { start: targetStart, end: targetStart + currentRange },
+            { start: 0, end: data.length },
+          ),
+        );
       } else {
         const targetLen = Math.max(
           minRangeThresholdValue,
           Math.min(data.length, currentRange * (1 + -e.deltaY / 1000)),
         );
-        handleRangeChange(clampSection(
-          { start: Math.floor(anchor - targetLen * before), end: Math.floor(anchor + targetLen * (1 - before)) },
-          { start: 0, end: data.length },
-        ));
+        handleRangeChange(
+          clampSection(
+            {
+              start: Math.floor(anchor - targetLen * before),
+              end: Math.floor(anchor + targetLen * (1 - before)),
+            },
+            { start: 0, end: data.length },
+          ),
+        );
       }
     };
 
@@ -396,7 +411,8 @@ export const WaveformCanvas: FC<
       const midX = (t0.clientX + t1.clientX) / 2 - rect.left;
       const { range } = localData;
       const rangeLen = range.end - range.start;
-      pinchMidpointFractionRef.current = computeSampleIndex(midX, rangeLen, canvas) / rangeLen;
+      pinchMidpointFractionRef.current =
+        computeSampleIndex(midX, rangeLen, canvas) / rangeLen;
     };
 
     const onTouchMove = (e: TouchEvent) => {
@@ -417,10 +433,15 @@ export const WaveformCanvas: FC<
       );
       const fraction = pinchMidpointFractionRef.current;
       const anchorSample = startRange.start + fraction * startRangeLen;
-      handleRangeChange?.(clampSection(
-        { start: Math.floor(anchorSample - targetLen * fraction), end: Math.floor(anchorSample - targetLen * fraction) + targetLen },
-        { start: 0, end: data.length },
-      ));
+      handleRangeChange?.(
+        clampSection(
+          {
+            start: Math.floor(anchorSample - targetLen * fraction),
+            end: Math.floor(anchorSample - targetLen * fraction) + targetLen,
+          },
+          { start: 0, end: data.length },
+        ),
+      );
     };
 
     const onTouchEnd = (e: TouchEvent) => {
@@ -441,7 +462,13 @@ export const WaveformCanvas: FC<
       canvas.removeEventListener("touchmove", onTouchMove);
       canvas.removeEventListener("touchend", onTouchEnd);
     };
-  }, [allowZoomPan, endSelectDrag, handleRangeChange, localData, minRangeThresholdValue]);
+  }, [
+    allowZoomPan,
+    endSelectDrag,
+    handleRangeChange,
+    localData,
+    minRangeThresholdValue,
+  ]);
 
   const handlePositions = useMemo(() => {
     const section = localData.section;
@@ -488,7 +515,7 @@ export const WaveformCanvas: FC<
       ></canvas>
       {showHandles && (handlePositions || positionReference) && (
         <>
-          <div className="relative w-full h-8 shrink-0 -mt-4">
+          <div className="relative w-full h-8 shrink-0 -mt-4 drop-shadow-(--shadow-drop)">
             <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-1.5 border-t border-b border-[#0000001A]" />
             {handlePositions && localData.section && (
               <>
@@ -527,7 +554,7 @@ export const WaveformCanvas: FC<
             )}
           </div>
           <div
-            className="-mt-4 w-full min-h-16 cursor-grab select-none flex items-center justify-center overflow-hidden"
+            className="-mt-4 w-full min-h-16 cursor-grab select-none flex items-center justify-center overflow-hidden bg-surface shadow-(--shadow-inset)"
             onMouseDown={(e) => {
               dragDistanceRef.current = 0;
               if (barContainerRef.current) {
