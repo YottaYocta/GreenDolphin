@@ -7,13 +7,15 @@ import { AudioStore } from "./AudioStore";
 import { useAlwaysAwake } from "./lib/useAlwaysAwake";
 import { AlwaysAwakeIndicator } from "./components/AlwaysAwakeIndicator";
 
-function AppView({ activate }: { activate: () => void }) {
+function AppView() {
   const { audio } = useContext(AudioStore);
+  const { activate, method, wakeLockError, videoError } = useAlwaysAwake();
 
   if (!audio) return <Navigate to="/" replace />;
 
   return (
     <div className="w-screen h-screen flex flex-col items-center justify-center bg-neutral-100">
+      <AlwaysAwakeIndicator method={method} wakeLockError={wakeLockError} videoError={videoError} />
       <PlaybackProvider context={audio.audioCtx} data={audio.buffer}>
         <Loaded onMounted={activate} />
       </PlaybackProvider>
@@ -22,15 +24,10 @@ function AppView({ activate }: { activate: () => void }) {
 }
 
 export default function App() {
-  const { activate, method, wakeLockError, videoError } = useAlwaysAwake();
-
   return (
-    <>
-      <AlwaysAwakeIndicator method={method} wakeLockError={wakeLockError} videoError={videoError} />
-      <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/app" element={<AppView activate={activate} />} />
-      </Routes>
-    </>
+    <Routes>
+      <Route path="/" element={<Landing />} />
+      <Route path="/app" element={<AppView />} />
+    </Routes>
   );
 }
