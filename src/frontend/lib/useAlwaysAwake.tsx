@@ -21,10 +21,13 @@ function createBlankVideoUrl(): Promise<string> {
   });
 }
 
+export type AwakeStatus = "idle" | "active" | "error";
+
 export function useAlwaysAwake() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const playingRef = useRef(false);
-  const [ready, setReady] = useState(false);
+  const [status, setStatus] = useState<AwakeStatus>("idle");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const video = document.createElement("video");
@@ -55,9 +58,13 @@ export function useAlwaysAwake() {
     if (!video) return;
     playingRef.current = true;
     video.play()
-      .then(() => setReady(true))
-      .catch(() => { playingRef.current = false; });
+      .then(() => setStatus("active"))
+      .catch((e: unknown) => {
+        playingRef.current = false;
+        setStatus("error");
+        setError(e instanceof Error ? e.message : String(e));
+      });
   }, []);
 
-  return { activate, ready };
+  return { activate, status, error };
 }

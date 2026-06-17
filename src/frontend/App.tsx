@@ -22,11 +22,11 @@ function AppView() {
 }
 
 export default function App() {
-  const { activate, ready } = useAlwaysAwake();
+  const { activate, status, error } = useAlwaysAwake();
 
   return (
     <div onClick={activate} onTouchStart={activate}>
-      <AlwaysAwakeIndicator ready={ready} />
+      <AlwaysAwakeIndicator status={status} error={error} />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/app" element={<AppView />} />
