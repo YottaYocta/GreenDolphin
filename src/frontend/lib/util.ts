@@ -86,3 +86,7 @@ export const computeMS = (sampleRate: number, sampleIndex: number) => {
 export const MStoSampleIndex = (sampleRate: number, ms: number) => {
   return Math.floor((ms / 1000) * sampleRate);
 };
+
+export function errorMessage(e: unknown): string {
+  return e instanceof Error ? e.message : String(e);
+}

@@ -17,7 +17,7 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
   const { isFirstVisit: showTutorial, markVisited: markTutorialShown } =
     useFirstVisit();
 
-  useEffect(() => { onMounted?.(); }, []);
+  useEffect(() => { onMounted?.(); }, [onMounted]);
 
   const [triggerUpdate, setTriggerUpdate] = useState<boolean>(false);
 

@@ -41,7 +41,7 @@ export function AlwaysAwakeIndicator(props: AwakeState) {
                 <p className="mt-1 text-[#a3a3a3]">Wake Lock failed: {wakeLockError}</p>
               </>
             )}
-            {method === null && (
+            {method === null && (wakeLockError || videoError) && (
               <>
                 <p>Keep awake status: Error</p>
                 {wakeLockError && <p className="mt-1 text-red-500">Wake Lock: {wakeLockError}</p>}

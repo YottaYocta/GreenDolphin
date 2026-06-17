@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { errorMessage } from "./util";
 
 function createBlankVideoUrl(): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -37,7 +38,6 @@ export function useAlwaysAwake() {
     videoError: null,
   });
 
-  // Set up hidden video element — ready to play whenever needed
   useEffect(() => {
     const video = document.createElement("video");
     video.loop = true;
@@ -61,49 +61,52 @@ export function useAlwaysAwake() {
     };
   }, []);
 
+  const tryVideoFallback = useCallback((wakeLockError: string) => {
+    const video = videoRef.current;
+    if (!video) {
+      setState({ method: null, wakeLockError, videoError: "video element not ready" });
+      return;
+    }
+    video.play()
+      .then(() => setState({ method: "video", wakeLockError, videoError: null }))
+      .catch((ve: unknown) => {
+        playingRef.current = false;
+        setState({ method: null, wakeLockError, videoError: errorMessage(ve) });
+      });
+  }, []);
+
   const activate = useCallback(async () => {
     if (playingRef.current) return;
     playingRef.current = true;
 
-    // Try Wake Lock first
     if ("wakeLock" in navigator) {
       try {
         const sentinel = await navigator.wakeLock.request("screen");
         setState({ method: "wake-lock", wakeLockError: null, videoError: null });
-        sentinel.addEventListener("release", () => { playingRef.current = false; });
+        sentinel.addEventListener("release", () => {
+          playingRef.current = false;
+          setState((s) => ({ ...s, method: null }));
+        });
         return;
       } catch (e: unknown) {
-        const wakeLockError = e instanceof Error ? e.message : String(e);
-        // Fall through to video with the error recorded
-        const video = videoRef.current;
-        if (!video) {
-          setState({ method: null, wakeLockError, videoError: "video element not ready" });
-          return;
-        }
-        video.play()
-          .then(() => setState({ method: "video", wakeLockError, videoError: null }))
-          .catch((ve: unknown) => {
-            playingRef.current = false;
-            setState({ method: null, wakeLockError, videoError: ve instanceof Error ? ve.message : String(ve) });
-          });
+        tryVideoFallback(errorMessage(e));
         return;
       }
     }
 
-    // Wake Lock API not available — go straight to video
-    const unsupportedMsg = "Wake Lock API not supported in this browser";
-    const video = videoRef.current;
-    if (!video) {
-      setState({ method: null, wakeLockError: unsupportedMsg, videoError: "video element not ready" });
-      return;
-    }
-    video.play()
-      .then(() => setState({ method: "video", wakeLockError: unsupportedMsg, videoError: null }))
-      .catch((ve: unknown) => {
-        playingRef.current = false;
-        setState({ method: null, wakeLockError: unsupportedMsg, videoError: ve instanceof Error ? ve.message : String(ve) });
-      });
-  }, []);
+    tryVideoFallback("Wake Lock API not supported in this browser");
+  }, [tryVideoFallback]);
+
+  // Re-acquire wake lock when the page becomes visible again after being hidden
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible" && !playingRef.current) {
+        activate();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, [activate]);
 
   return { activate, ...state };
 }
