@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { errorMessage } from "./util";
 
 function createBlankVideoUrl(): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -8,7 +9,6 @@ function createBlankVideoUrl(): Promise<string> {
     const ctx = canvas.getContext("2d");
     if (!ctx) return reject(new Error("no 2d context"));
     ctx.fillRect(0, 0, 1, 1);
-
     const stream = canvas.captureStream(1);
     const recorder = new MediaRecorder(stream);
     const chunks: BlobPart[] = [];
@@ -21,13 +21,22 @@ function createBlankVideoUrl(): Promise<string> {
   });
 }
 
-export type AwakeStatus = "idle" | "active" | "error";
+export type WakeMethod = "wake-lock" | "video" | null;
+
+export interface AwakeState {
+  method: WakeMethod;
+  wakeLockError: string | null;
+  videoError: string | null;
+}
 
 export function useAlwaysAwake() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const playingRef = useRef(false);
-  const [status, setStatus] = useState<AwakeStatus>("idle");
-  const [error, setError] = useState<string | null>(null);
+  const [state, setState] = useState<AwakeState>({
+    method: null,
+    wakeLockError: null,
+    videoError: null,
+  });
 
   useEffect(() => {
     const video = document.createElement("video");
@@ -52,19 +61,51 @@ export function useAlwaysAwake() {
     };
   }, []);
 
-  const activate = useCallback(() => {
-    if (playingRef.current) return;
+  const tryVideoFallback = useCallback((wakeLockError: string) => {
     const video = videoRef.current;
-    if (!video) return;
-    playingRef.current = true;
+    if (!video) {
+      setState({ method: null, wakeLockError, videoError: "video element not ready" });
+      return;
+    }
     video.play()
-      .then(() => setStatus("active"))
-      .catch((e: unknown) => {
+      .then(() => setState({ method: "video", wakeLockError, videoError: null }))
+      .catch((ve: unknown) => {
         playingRef.current = false;
-        setStatus("error");
-        setError(e instanceof Error ? e.message : String(e));
+        setState({ method: null, wakeLockError, videoError: errorMessage(ve) });
       });
   }, []);
 
-  return { activate, status, error };
+  const activate = useCallback(async () => {
+    if (playingRef.current) return;
+    playingRef.current = true;
+
+    if ("wakeLock" in navigator) {
+      try {
+        const sentinel = await navigator.wakeLock.request("screen");
+        setState({ method: "wake-lock", wakeLockError: null, videoError: null });
+        sentinel.addEventListener("release", () => {
+          playingRef.current = false;
+          setState((s) => ({ ...s, method: null }));
+        });
+        return;
+      } catch (e: unknown) {
+        tryVideoFallback(errorMessage(e));
+        return;
+      }
+    }
+
+    tryVideoFallback("Wake Lock API not supported in this browser");
+  }, [tryVideoFallback]);
+
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible" && !playingRef.current) {
+        activate();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, [activate]);
+
+  return { activate, ...state };
 }

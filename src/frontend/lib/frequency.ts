@@ -62,8 +62,6 @@ export const groupFrequencies = (
       Math.min(fEnd, groupings[gIndex].end) -
       Math.max(fStart, groupings[gIndex].start);
 
-    // console.log(overlap / (44100 / 2));
-    // console.log(overlap);
     if (overlap > 0) {
       addAmplitude(result, gIndex, data[fIndex] * overlap);
     }
@@ -234,22 +232,6 @@ export const drawFrequencyPiano = (
           1,
           whiteKeyHeight
         );
-        // const intensityScaled = Math.pow(
-        //   Math.max(0, Math.min(140, intensity)) / 140,
-        //   2
-        // );
-        // if (intensityScaled > 0.4) {
-        //   pitchCtx.fillStyle = `rgba(25 202 147 / ${
-        //     (1 - intensityScaled) * 100
-        //   }%)`;
-        //   pitchCtx.fillRect(
-        //     idx * keyWidth + 2,
-        //     canvas.height / 2 + whiteKeyHeight - 10,
-        //     keyWidth - 2,
-        //     8
-        //   );
-        // }
-
         break;
       }
       case 4:
@@ -265,21 +247,6 @@ export const drawFrequencyPiano = (
           keyWidth,
           keyWidth * 6
         );
-        // const intensityScaled = Math.pow(
-        //   Math.max(0, Math.min(140, intensity)) / 140,
-        //   2
-        // );
-        // if (intensityScaled > 0.4) {
-        //   pitchCtx.fillStyle = `rgba(25 202 147 / ${
-        //     (1 - intensityScaled) * 100
-        //   }%)`;
-        //   pitchCtx.fillRect(
-        //     idx * keyWidth + 2,
-        //     canvas.height / 2 + whiteKeyHeight - 10,
-        //     keyWidth - 2,
-        //     8
-        //   );
-        // }
 
         break;
       }
