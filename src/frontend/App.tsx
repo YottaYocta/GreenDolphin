@@ -4,6 +4,8 @@ import { Landing } from "./Landing";
 import { Loaded } from "./Loaded";
 import { PlaybackProvider } from "./playback/PlaybackProvider";
 import { AudioStore } from "./AudioStore";
+import { useAlwaysAwake } from "./lib/useAlwaysAwake";
+import { AlwaysAwakeIndicator } from "./components/AlwaysAwakeIndicator";
 
 function AppView() {
   const { audio } = useContext(AudioStore);
@@ -20,10 +22,15 @@ function AppView() {
 }
 
 export default function App() {
+  const { activate, ready } = useAlwaysAwake();
+
   return (
-    <Routes>
-      <Route path="/" element={<Landing />} />
-      <Route path="/app" element={<AppView />} />
-    </Routes>
+    <div onClick={activate} onTouchStart={activate}>
+      <AlwaysAwakeIndicator ready={ready} />
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/app" element={<AppView />} />
+      </Routes>
+    </div>
   );
 }
