@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Tutorial } from "./components/Tutorial";
 import { PianoRoll } from "./components/PianoRoll";
 import { PlaybackContext } from "./playback/PlaybackContext";
@@ -9,7 +9,7 @@ import { PlaybackControls } from "./components/PlaybackControls";
 import { AudioSettings } from "./components/AudioSettings";
 import { TitleBar } from "./components/TitleBar";
 
-export const Loaded = () => {
+export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
   const { audio } = useContext(AudioStore);
   if (!audio) throw new Error("Loaded must be rendered within an audio route");
   const { buffer: data } = audio;
@@ -17,22 +17,7 @@ export const Loaded = () => {
   const { isFirstVisit: showTutorial, markVisited: markTutorialShown } =
     useFirstVisit();
 
-  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
-
-  useEffect(() => {
-    const requestWakeLock = async () => {
-      try {
-        wakeLockRef.current = await navigator.wakeLock.request("screen");
-      } catch (e: unknown) {
-        console.log(e);
-      }
-    };
-    const disableWakeLock = () => {
-      if (wakeLockRef.current !== null) wakeLockRef.current.release();
-    };
-    requestWakeLock();
-    return disableWakeLock;
-  }, []);
+  useEffect(() => { onMounted?.(); }, []);
 
   const [triggerUpdate, setTriggerUpdate] = useState<boolean>(false);
 
