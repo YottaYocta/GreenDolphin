@@ -260,7 +260,7 @@ export function Landing() {
           />
           <div className="flex items-start flex-col justify-center gap-1 max-md:p-0 pr-4 py-4">
             <h1 className="font-inria font-bold text-play text-[29px]/9">GreenDolphin</h1>
-            <p className="opacity-70 font-inria text-play text-sm/4.5 whitespace-pre">
+            <p className="font-inria text-black opacity-60 text-sm/4.5 whitespace-pre">
               Audio Looper{"  "}&{"  "}Recording Analyzer
             </p>
           </div>
@@ -270,7 +270,7 @@ export function Landing() {
           aria-label="My Recordings"
           className="flex flex-col items-start rounded-2xl self-stretch overflow-y-auto shadow-panel bg-white border border-border flex-1 min-h-0 divide-y divide-border"
         >
-          <div className="md:hidden rounded-t-2xl overflow-clip">
+          <div className="md:hidden flex rounded-t-2xl overflow-clip">
             <UploadButton isUploading={isUploading} onClick={triggerUpload} />
           </div>
 
