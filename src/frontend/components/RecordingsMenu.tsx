@@ -1,9 +1,10 @@
 import { useContext, useRef } from "react";
 import { Menu } from "@base-ui/react/menu";
-import { DotsThreeIcon, MusicNotesPlusIcon, MusicNoteIcon, CheckIcon } from "@phosphor-icons/react";
+import { MusicNotesPlusIcon, MusicNoteIcon, CheckIcon } from "@phosphor-icons/react";
 import { AudioStore } from "../AudioStore";
 import { RecordingsStore } from "../RecordingsStore";
 import { useDecodeFile } from "../lib/useDecodeFile";
+import { noteColor } from "../lib/util";
 
 const headerBtn = "btn-surface rounded-lg gap-3 px-3.25 py-3.25";
 
@@ -21,7 +22,6 @@ export function RecordingsMenu() {
           <span className="font-inria text-black text-base/5 truncate min-w-0">
             {filename}
           </span>
-          <DotsThreeIcon size={21} weight="fill" color="var(--color-icon-muted)" style={{ flexShrink: 0 }} />
         </Menu.Trigger>
         <Menu.Portal>
           <Menu.Positioner side="bottom" align="start" sideOffset={8}>
@@ -50,7 +50,7 @@ export function RecordingsMenu() {
                         await decodeFile(file);
                       }}
                     >
-                      <MusicNoteIcon size={18} weight="fill" style={{ opacity: 0.4, flexShrink: 0 }} />
+                      <MusicNoteIcon size={18} weight="fill" color={noteColor(file.name)} style={{ flexShrink: 0 }} />
                       <span
                         className={`flex-1 min-w-0 font-inria text-base/5 truncate ${file.name === filename ? "font-bold text-black" : "text-black"}`}
                       >

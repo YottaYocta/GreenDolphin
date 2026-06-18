@@ -1,8 +1,21 @@
 import { useContext, useRef, useState } from "react";
 import { useNavigate } from "react-router";
-import { MusicNoteIcon, PlayIcon, TrashIcon, SpinnerIcon, MusicNotesPlusIcon } from "@phosphor-icons/react";
+import {
+  MusicNoteIcon,
+  PlayIcon,
+  TrashIcon,
+  SpinnerIcon,
+  MusicNotesPlusIcon,
+} from "@phosphor-icons/react";
 function NoteIcon({ color }: { color: string }) {
-  return <MusicNoteIcon size={32} weight="fill" color={color} style={{ flexShrink: 0 }} />;
+  return (
+    <MusicNoteIcon
+      size={32}
+      weight="fill"
+      color={color}
+      style={{ flexShrink: 0 }}
+    />
+  );
 }
 import { useDecodeFile } from "./lib/useDecodeFile";
 import { RecordingsStore } from "./RecordingsStore";
@@ -55,14 +68,30 @@ function RecordingRow({
               aria-label={`Play ${file.name}`}
               className="btn-surface flex-1 h-10 py-3.25 disabled:cursor-default"
             >
-              {isLoading ? <SpinnerIcon size={20} className="animate-spin opacity-40 shrink-0" /> : <PlayIcon size={24} weight="fill" color="var(--color-play)" style={{ flexShrink: 0 }} />}
+              {isLoading ? (
+                <SpinnerIcon
+                  size={20}
+                  className="animate-spin opacity-40 shrink-0"
+                />
+              ) : (
+                <PlayIcon
+                  size={24}
+                  weight="fill"
+                  color="var(--color-play)"
+                  style={{ flexShrink: 0 }}
+                />
+              )}
             </button>
             <button
               onClick={onDelete}
               aria-label={`Delete ${file.name}`}
               className="btn-surface flex-1 h-10 py-3.25"
             >
-              <TrashIcon size={20} weight="fill" style={{ opacity: 0.5, flexShrink: 0 }} />
+              <TrashIcon
+                size={20}
+                weight="fill"
+                style={{ opacity: 0.5, flexShrink: 0 }}
+              />
             </button>
           </div>
         </div>
@@ -88,14 +117,30 @@ function RecordingRow({
             aria-label={`Play ${file.name}`}
             className="btn-surface size-10 shrink-0 py-3.25 disabled:cursor-default"
           >
-            {isLoading ? <SpinnerIcon size={20} className="animate-spin opacity-40 shrink-0" /> : <PlayIcon size={24} weight="fill" color="var(--color-play)" style={{ flexShrink: 0 }} />}
+            {isLoading ? (
+              <SpinnerIcon
+                size={20}
+                className="animate-spin opacity-40 shrink-0"
+              />
+            ) : (
+              <PlayIcon
+                size={20}
+                weight="fill"
+                color="var(--color-play)"
+                style={{ flexShrink: 0 }}
+              />
+            )}
           </button>
           <button
             onClick={onDelete}
             aria-label={`Delete ${file.name}`}
             className="btn-surface size-10 shrink-0 py-3.25"
           >
-            <TrashIcon size={20} weight="fill" style={{ opacity: 0.5, flexShrink: 0 }} />
+            <TrashIcon
+              size={20}
+              weight="fill"
+              style={{ opacity: 0.3, flexShrink: 0 }}
+            />
           </button>
         </div>
       </div>
@@ -149,7 +194,7 @@ export function Landing() {
               GreenDolphin
             </h1>
             <p className="font-inria text-black opacity-60 text-sm/4.5 whitespace-pre">
-              Audio Looper{"  "}&{"  "}Recording Analyzer
+              Audio Looper & Recording Analyzer
             </p>
           </div>
         </header>
@@ -164,7 +209,18 @@ export function Landing() {
               onClick={triggerUpload}
               className="flex overflow-clip items-center gap-2 px-5.5  justify-center self-stretch rounded-2xl shadow-btn bg-surface border border-border disabled:opacity-60 disabled:cursor-not-allowed h-12"
             >
-              {isUploading ? <SpinnerIcon size={20} className="animate-spin opacity-40 shrink-0" /> : <MusicNotesPlusIcon size={20} weight="fill" style={{ opacity: 0.5, flexShrink: 0 }} />}
+              {isUploading ? (
+                <SpinnerIcon
+                  size={20}
+                  className="animate-spin opacity-40 shrink-0"
+                />
+              ) : (
+                <MusicNotesPlusIcon
+                  size={20}
+                  weight="fill"
+                  style={{ opacity: 0.5, flexShrink: 0 }}
+                />
+              )}
               <span className="opacity-40">
                 {isUploading ? "Processing…" : "Upload New File"}
               </span>
@@ -194,7 +250,18 @@ export function Landing() {
             onClick={triggerUpload}
             className="max-md:hidden flex overflow-clip items-center gap-2 px-5.5 h-18 justify-center self-stretch shadow-inset-dim bg-surface border-t border-border disabled:opacity-60 disabled:cursor-not-allowed hover:bg-surface-track transition-colors"
           >
-            {isUploading ? <SpinnerIcon size={20} className="animate-spin opacity-40 shrink-0" /> : <MusicNotesPlusIcon size={20} weight="fill" style={{ opacity: 0.5, flexShrink: 0 }} />}
+            {isUploading ? (
+              <SpinnerIcon
+                size={20}
+                className="animate-spin opacity-40 shrink-0"
+              />
+            ) : (
+              <MusicNotesPlusIcon
+                size={20}
+                weight="fill"
+                style={{ opacity: 0.5, flexShrink: 0 }}
+              />
+            )}
             <span className="opacity-40">
               {isUploading ? "Processing…" : "Upload New File"}
             </span>
