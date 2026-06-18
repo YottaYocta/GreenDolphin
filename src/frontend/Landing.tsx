@@ -106,15 +106,17 @@ function RecordingRow({
     <article aria-label={file.name} className="self-stretch">
       {/* mobile */}
       <div className="md:hidden flex items-end gap-4 p-4 h-full">
-        <div className="btn-surface min-h-full shrink-0 rounded-sm aspect-square h-full ">
-          <MusicNoteIcon color={noteColor(file.name)} />
-        </div>
         <div className="flex items-start gap-4 flex-col flex-1 min-w-0">
-          <div className="flex flex-col items-start gap-1 self-stretch">
-            <p className="truncate max-w-full">{file.name}</p>
-            <p className="opacity-40">
-              {uploadedAt != null ? relativeDate(uploadedAt) : ""}
-            </p>
+          <div className="flex items-center gap-4 self-stretch">
+            <div className="flex items-center justify-center btn-surface p-2">
+              <MusicNoteIcon color={noteColor(file.name)} />
+            </div>
+            <div className="flex flex-col gap-2 w-full max-w-full overflow-clip min-w-0">
+              <p className="truncate max-w-full">{file.name}</p>
+              <p className="opacity-40">
+                {uploadedAt != null ? relativeDate(uploadedAt) : ""}
+              </p>
+            </div>
           </div>
           <div className="flex items-start gap-2 self-stretch">
             <button
