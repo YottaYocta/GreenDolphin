@@ -4,32 +4,71 @@ import { useDecodeFile } from "./lib/useDecodeFile";
 import { RecordingsStore } from "./RecordingsStore";
 import { noteColor, relativeDate, formatSize } from "./lib/util";
 
-function MusicNoteIcon({ color = "#000000" }: { color?: string }) {
+function MusicNoteIcon({ color = "var(--color-icon)" }: { color?: string }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       width="32"
       height="32"
       viewBox="0 0 256 256"
+      aria-hidden="true"
       style={{ flexShrink: 0 }}
     >
-      <path d="M210.3,56.34l-80-24A8,8,0,0,0,120,40V148.26A48,48,0,1,0,136,184V98.75l69.7,20.91A8,8,0,0,0,216,112V64A8,8,0,0,0,210.3,56.34Z" fill={color} />
+      <path
+        d="M210.3,56.34l-80-24A8,8,0,0,0,120,40V148.26A48,48,0,1,0,136,184V98.75l69.7,20.91A8,8,0,0,0,216,112V64A8,8,0,0,0,210.3,56.34Z"
+        fill={color}
+      />
     </svg>
   );
 }
 
 function PlayIcon() {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="23" height="24" viewBox="21.333 0 245.333 256" style={{ overflow: "visible", flexShrink: 0 }}>
-      <path d="M240,128a15.74,15.74,0,0,1-7.6,13.51L88.32,229.65a16,16,0,0,1-16.2.3A15.86,15.86,0,0,1,64,216.13V39.87a15.86,15.86,0,0,1,8.12-13.82,16,16,0,0,1,16.2.3L232.4,114.49A15.74,15.74,0,0,1,240,128Z" fill="var(--color-play)" />
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="23"
+      height="24"
+      viewBox="21.333 0 245.333 256"
+      aria-hidden="true"
+      style={{ overflow: "visible", flexShrink: 0 }}
+    >
+      <path
+        d="M240,128a15.74,15.74,0,0,1-7.6,13.51L88.32,229.65a16,16,0,0,1-16.2.3A15.86,15.86,0,0,1,64,216.13V39.87a15.86,15.86,0,0,1,8.12-13.82,16,16,0,0,1,16.2.3L232.4,114.49A15.74,15.74,0,0,1,240,128Z"
+        fill="var(--color-play)"
+      />
     </svg>
   );
 }
 
 function DeleteIcon() {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 192 192" style={{ flexShrink: 0 }}>
-      <path d="M162 36H132V30a18 18 0 0 0-18-18H78A18 18 0 0 0 60 30v6H30a6 6 0 0 0 0 12h6V156a12 12 0 0 0 12 12H144a12 12 0 0 0 12-12V48h6a6 6 0 0 0 0-12ZM84 126a6 6 0 0 1-12 0V78a6 6 0 0 1 12 0Zm36 0a6 6 0 0 1-12 0V78a6 6 0 0 1 12 0Zm0-90H72V30a6 6 0 0 1 6-6h36a6 6 0 0 1 6 6Z" fill="#B3B3B3" />
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 192 192"
+      aria-hidden="true"
+      style={{ flexShrink: 0 }}
+    >
+      <path
+        d="M162 36H132V30a18 18 0 0 0-18-18H78A18 18 0 0 0 60 30v6H30a6 6 0 0 0 0 12h6V156a12 12 0 0 0 12 12H144a12 12 0 0 0 12-12V48h6a6 6 0 0 0 0-12ZM84 126a6 6 0 0 1-12 0V78a6 6 0 0 1 12 0Zm36 0a6 6 0 0 1-12 0V78a6 6 0 0 1 12 0Zm0-90H72V30a6 6 0 0 1 6-6h36a6 6 0 0 1 6 6Z"
+        fill="var(--color-neutral-2)"
+      />
+    </svg>
+  );
+}
+
+function UploadIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="32"
+      height="32"
+      viewBox="0 0 256 256"
+      aria-hidden="true"
+      style={{ width: 20, opacity: 0.5, flexShrink: 0 }}
+    >
+      <path d="M232,48a8,8,0,0,1-8,8H208V72a8,8,0,0,1-16,0V56H176a8,8,0,0,1,0-16h16V24a8,8,0,0,1,16,0V40h16A8,8,0,0,1,232,48ZM160.6,77.86l-6.76-6.76A32.85,32.85,0,0,1,144,49.33a31.87,31.87,0,0,1,1.67-11.66,4,4,0,0,0-4.76-5.14L78.06,48.25A8,8,0,0,0,72,56V166.1A36,36,0,1,0,52.42,232C72.25,231.77,88,215.13,88,195.3V102.25l70.74-17.69A4,4,0,0,0,160.6,77.86Zm50.11,24.31a31.91,31.91,0,0,1-7.14,1.63,4,4,0,0,0-3.57,4V134.1A36,36,0,1,0,180.42,200c19.83-.23,35.58-16.86,35.58-36.7V106A4,4,0,0,0,210.71,102.17Z" />
     </svg>
   );
 }
@@ -46,12 +85,16 @@ function Spinner() {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
+      aria-hidden="true"
       className="animate-spin opacity-40 shrink-0"
     >
       <path d="M21 12a9 9 0 1 1-6.219-8.56" />
     </svg>
   );
 }
+
+const btnClass =
+  "flex overflow-clip items-center py-3.25 h-10 rounded-lg justify-center shadow-btn bg-surface border border-border disabled:cursor-default";
 
 function RecordingRow({
   file,
@@ -77,74 +120,105 @@ function RecordingRow({
     }
   };
 
-  const eyeIcon = (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 128 128" style={{ flexShrink: 0 }}>
-      <path d="M123.656 62.381c-0.174-0.395-4.41-9.79-13.826-19.205C97.285 30.631 81.441 24.001 64.001 24.001S30.715 30.631 18.17 43.176C8.756 52.591 4.501 62.001 4.345 62.381a4 4 0 0 0 0 3.25c0.174 0.395 4.41 9.786 13.825 19.2C30.715 97.371 46.561 104.001 64.001 104.001s33.285-6.63 45.829-19.17c9.414-9.414 13.65-18.805 13.825-19.2A4 4 0 0 0 123.656 62.381ZM64.001 84.001a20 20 0 1 1 20-20A20 20 0 0 1 64.001 84.001Z" fill="#313131" />
-    </svg>
-  );
-
-  const btnClass = "flex overflow-clip items-center py-3.25 h-10 rounded-lg justify-center [box-shadow:#FFFFFF_0px_0px_3px_1px_inset,#0000001A_0px_2px_3px] bg-[#FAFAFA] border border-solid border-[#0000001A] disabled:cursor-default";
-
   return (
-    <>
+    <article aria-label={file.name}>
       {/* mobile */}
-      <div className="md:hidden flex items-center justify-between self-stretch gap-4 flex-col p-6">
-        <div className="flex items-center gap-7.75 self-stretch">
-          <div className="flex overflow-clip rounded-sm items-center justify-center w-20.25 h-20.25 shrink-0 [box-shadow:#FFFFFF_0px_2px_3px_1px_inset,#0000000D_0px_2px_3px] bg-[#FDFDFD] border border-solid border-[#0000001A] origin-center" style={{ rotate: "358.78deg" }}>
-            <MusicNoteIcon color={noteColor(file.name)} />
+      <div className="md:hidden flex items-center gap-8 self-stretch p-6">
+        <div
+          className="flex overflow-clip rounded-sm items-center justify-center w-16 h-16 shrink-0 shadow-btn bg-white border border-border origin-center"
+          style={{ rotate: "358.78deg" }}
+        >
+          <MusicNoteIcon color={noteColor(file.name)} />
+        </div>
+        <div className="flex items-start gap-4 flex-col flex-1 min-w-0">
+          <div className="flex flex-col items-start gap-1 self-stretch">
+            <p className="font-inria text-black text-base/5 truncate max-w-full">{file.name}</p>
+            <p className="font-inria text-icon-subtle text-base/5 opacity-40">
+              {uploadedAt != null ? relativeDate(uploadedAt) : ""}
+            </p>
           </div>
-          <div className="flex items-start gap-4 flex-1 flex-col">
-            <div className="flex flex-col items-start gap-1 self-stretch">
-              <div className="font-inria text-black text-base/5 truncate max-w-full">{file.name}</div>
-              <div className="flex items-center gap-2 opacity-40">
-                {eyeIcon}
-                <div className="h-5 font-inria text-[#313131] text-base/5">
-                  {uploadedAt != null ? relativeDate(uploadedAt) : ""}
-                </div>
-              </div>
-            </div>
-            <div className="flex items-start gap-2 self-stretch">
-              <button disabled={isLoading} onClick={handlePlay} className={`${btnClass} flex-1`}>
-                {isLoading ? <Spinner /> : <PlayIcon />}
-              </button>
-              <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className={`${btnClass} flex-1`}>
-                <DeleteIcon />
-              </button>
-            </div>
+          <div className="flex items-start gap-2 self-stretch">
+            <button
+              disabled={isLoading}
+              onClick={handlePlay}
+              aria-label={`Play ${file.name}`}
+              className={`${btnClass} flex-1`}
+            >
+              {isLoading ? <Spinner /> : <PlayIcon />}
+            </button>
+            <button
+              onClick={onDelete}
+              aria-label={`Delete ${file.name}`}
+              className={`${btnClass} flex-1`}
+            >
+              <DeleteIcon />
+            </button>
           </div>
         </div>
       </div>
 
       {/* desktop */}
-      <div className="max-md:hidden flex items-center justify-between self-stretch gap-4 p-6 relative">
-        <div className="flex items-center gap-5 w-81 relative shrink-0">
-          <div className="w-15 h-13.25 rounded-sm opacity-0 shrink-0 [box-shadow:#FFFFFF_0px_2px_3px_2px_inset,#0000000D_0px_2px_3px] bg-[#FDFDFD] border border-solid border-[#0000001A]" />
-          <div className="flex items-start gap-2 flex-col justify-end">
-            <div className="font-inria text-black text-base/5 truncate max-w-40">{file.name}</div>
-            <div className="font-inria text-black text-sm opacity-40">{formatSize(file.size)}</div>
+      <div className="max-md:hidden flex items-center self-stretch gap-8 p-6 relative">
+        <div className="flex items-center gap-4 w-81 relative shrink-0">
+          <div className="w-15 h-13.25 rounded-sm opacity-0 shrink-0 shadow-btn bg-white border border-border" />
+          <div className="flex items-start gap-2 flex-col justify-end flex-1 overflow-hidden">
+            <p className="font-inria text-black text-base/5 truncate max-w-full">{file.name}</p>
+            <p className="font-inria text-black text-sm opacity-40">{formatSize(file.size)}</p>
           </div>
-          <div className="flex overflow-clip rounded-sm absolute left-0 top-0 items-center justify-center w-[61.7px] h-[61.7px] [box-shadow:#FFFFFF_0px_2px_3px_1px_inset,#0000000D_0px_2px_3px] bg-[#FDFDFD] border border-solid border-[#0000001A] origin-top-left" style={{ rotate: "358.78deg", translate: "-7px -3px" }}>
+          <div
+            className="flex overflow-clip rounded-sm absolute left-0 top-0 items-center justify-center w-[61.7px] h-[61.7px] shadow-btn bg-white border border-border origin-top-left"
+            style={{ rotate: "358.78deg", translate: "-7px -3px" }}
+          >
             <MusicNoteIcon color={noteColor(file.name)} />
           </div>
         </div>
-        <div className="flex items-start gap-2 flex-col flex-1">
-          <div className="flex items-center gap-2 opacity-40">
-            {eyeIcon}
-            <div className="h-5 font-inria text-[#313131] text-base/5">
-              {uploadedAt != null ? relativeDate(uploadedAt) : ""}
-            </div>
-          </div>
+        <div className="flex items-center gap-2 flex-1 opacity-40">
+          <p className="font-inria text-icon-subtle text-base/5">
+            {uploadedAt != null ? relativeDate(uploadedAt) : ""}
+          </p>
         </div>
         <div className="flex items-start gap-2 absolute top-1/2 right-4 -translate-y-1/2">
-          <button disabled={isLoading} onClick={handlePlay} className={`${btnClass} shrink-0 size-10`}>
+          <button
+            disabled={isLoading}
+            onClick={handlePlay}
+            aria-label={`Play ${file.name}`}
+            className={`${btnClass} shrink-0 size-10`}
+          >
             {isLoading ? <Spinner /> : <PlayIcon />}
           </button>
-          <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className={`${btnClass} shrink-0 size-10`}>
+          <button
+            onClick={onDelete}
+            aria-label={`Delete ${file.name}`}
+            className={`${btnClass} shrink-0 size-10`}
+          >
             <DeleteIcon />
           </button>
         </div>
       </div>
-    </>
+    </article>
+  );
+}
+
+function UploadButton({
+  isUploading,
+  onClick,
+  className,
+}: {
+  isUploading: boolean;
+  onClick: () => void;
+  className?: string;
+}) {
+  return (
+    <button
+      disabled={isUploading}
+      onClick={onClick}
+      className={`flex overflow-clip items-center gap-2 px-5.5 py-3.25 justify-center self-stretch shadow-inset-dim bg-surface border-border disabled:opacity-60 disabled:cursor-not-allowed ${className}`}
+    >
+      {isUploading ? <Spinner /> : <UploadIcon />}
+      <span className="opacity-40 font-inria text-black text-base/5">
+        {isUploading ? "Processing…" : "Upload New File +"}
+      </span>
+    </button>
   );
 }
 
@@ -177,41 +251,35 @@ export function Landing() {
     e.target.value = "";
   };
 
-  return (
-    <main className="[font-synthesis:none] min-h-screen flex flex-col items-center px-4 py-18 bg-[#F5F5F5] antialiased">
-      <div className="flex flex-col items-start gap-5 w-full max-w-2xl">
+  const triggerUpload = () => !isUploading && fileInputRef.current?.click();
 
-        <div className="flex max-md:flex-col max-md:items-start max-md:pl-8 max-md:gap-4 items-center gap-5 self-stretch rounded-[18px] p-4 justify-center">
+  return (
+    <main className="[font-synthesis:none] min-h-screen flex flex-col items-center px-4 py-8 bg-surface-track antialiased max-h-screen h-screen overflow-hidden">
+      <div className="flex flex-col items-start gap-5 w-full max-w-2xl flex-1 min-h-0">
+
+        <header className="flex max-md:flex-col max-md:items-start max-md:pl-8 max-md:gap-4 items-center gap-5 self-stretch rounded-[18px] p-4 justify-center">
           <img
             src="/favicon/favicon.svg"
-            alt="GreenDolphin"
-            className="w-18.5 h-18.5 rounded-[9px] shrink-0 [box-shadow:#0000000D_0px_2px_3px] border border-solid border-[#0000001A] object-contain bg-white"
+            alt="GreenDolphin logo"
+            className="w-18.5 h-18.5 rounded-[9px] shrink-0 shadow-drop border border-border object-contain bg-white"
           />
           <div className="flex items-start flex-col justify-center gap-1 max-md:p-0 pr-4 py-4">
-            <div className="font-inria font-bold text-play text-[29px]/9">GreenDolphin</div>
-            <div className="opacity-70 font-inria text-play text-sm/4.5 whitespace-pre">
-              Audio Looper{'  '}&{'  '}Recording Analyzer
-            </div>
+            <h1 className="font-inria font-bold text-play text-[29px]/9">GreenDolphin</h1>
+            <p className="opacity-70 font-inria text-play text-sm/4.5 whitespace-pre">
+              Audio Looper{"  "}&{"  "}Recording Analyzer
+            </p>
           </div>
-        </div>
+        </header>
 
-        <div className="flex flex-col items-start rounded-2xl self-stretch overflow-clip [box-shadow:#0000001A_0px_2px_3px] bg-white border border-solid border-[#0000001A]">
-          <button
-            disabled={isUploading}
-            onClick={() => !isUploading && fileInputRef.current?.click()}
-            className="max-md:hidden flex overflow-clip items-center gap-2 px-5.5 py-3.25 justify-center self-stretch [box-shadow:#FFFFFF_0px_0px_3px_1px_inset] bg-[#FAFAFA] border-b border-b-solid border-b-[#0000001A] disabled:opacity-60 disabled:cursor-not-allowed hover:bg-surface-track transition-colors"
-          >
-            {isUploading ? (
-              <Spinner />
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256" style={{ width: 20, opacity: 0.5, flexShrink: 0 }}>
-                <path d="M232,48a8,8,0,0,1-8,8H208V72a8,8,0,0,1-16,0V56H176a8,8,0,0,1,0-16h16V24a8,8,0,0,1,16,0V40h16A8,8,0,0,1,232,48ZM160.6,77.86l-6.76-6.76A32.85,32.85,0,0,1,144,49.33a31.87,31.87,0,0,1,1.67-11.66,4,4,0,0,0-4.76-5.14L78.06,48.25A8,8,0,0,0,72,56V166.1A36,36,0,1,0,52.42,232C72.25,231.77,88,215.13,88,195.3V102.25l70.74-17.69A4,4,0,0,0,160.6,77.86Zm50.11,24.31a31.91,31.91,0,0,1-7.14,1.63,4,4,0,0,0-3.57,4V134.1A36,36,0,1,0,180.42,200c19.83-.23,35.58-16.86,35.58-36.7V106A4,4,0,0,0,210.71,102.17Z" />
-              </svg>
-            )}
-            <div className="opacity-40 font-inria text-black text-base/5">
-              {isUploading ? "Processing…" : "Upload New File +"}
-            </div>
-          </button>
+        <section
+          aria-label="My Recordings"
+          className="flex flex-col items-start rounded-2xl self-stretch overflow-y-auto shadow-panel bg-white border border-border flex-1 min-h-0"
+        >
+          <UploadButton
+            isUploading={isUploading}
+            onClick={triggerUpload}
+            className="md:hidden rounded-t-2xl border-b border-b-border hover:bg-surface-track transition-colors"
+          />
 
           {cachedFiles.length === 0 ? (
             <p className="w-full px-6 py-8 text-center opacity-40 font-inria text-black text-base/5">
@@ -219,7 +287,10 @@ export function Landing() {
             </p>
           ) : (
             cachedFiles.map((file, i) => (
-              <div key={file.name} className={i > 0 ? "self-stretch border-t border-t-solid border-t-[#0000001A]" : "self-stretch"}>
+              <div
+                key={file.name}
+                className={i > 0 ? "self-stretch border-t border-border" : "self-stretch"}
+              >
                 <RecordingRow
                   file={file}
                   uploadedAt={fileMeta.get(file.name)?.uploadedAt}
@@ -230,28 +301,22 @@ export function Landing() {
             ))
           )}
 
-          <div className="md:hidden flex flex-col items-start self-stretch p-4">
-            <button
-              disabled={isUploading}
-              onClick={() => !isUploading && fileInputRef.current?.click()}
-              className="flex overflow-clip items-center gap-2 px-5.5 py-3.25 justify-center self-stretch rounded-2xl [box-shadow:#FFFFFF_0px_0px_3px_1px_inset,#0000000D_0px_3px_4px] bg-[#FAFAFA] border border-solid border-[#0000001A] disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {isUploading ? (
-                <Spinner />
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256" style={{ width: 20, opacity: 0.5, flexShrink: 0 }}>
-                  <path d="M232,48a8,8,0,0,1-8,8H208V72a8,8,0,0,1-16,0V56H176a8,8,0,0,1,0-16h16V24a8,8,0,0,1,16,0V40h16A8,8,0,0,1,232,48ZM160.6,77.86l-6.76-6.76A32.85,32.85,0,0,1,144,49.33a31.87,31.87,0,0,1,1.67-11.66,4,4,0,0,0-4.76-5.14L78.06,48.25A8,8,0,0,0,72,56V166.1A36,36,0,1,0,52.42,232C72.25,231.77,88,215.13,88,195.3V102.25l70.74-17.69A4,4,0,0,0,160.6,77.86Zm50.11,24.31a31.91,31.91,0,0,1-7.14,1.63,4,4,0,0,0-3.57,4V134.1A36,36,0,1,0,180.42,200c19.83-.23,35.58-16.86,35.58-36.7V106A4,4,0,0,0,210.71,102.17Z" />
-                </svg>
-              )}
-              <div className="opacity-40 font-inria text-black text-base/5">
-                {isUploading ? "Processing…" : "Upload New File +"}
-              </div>
-            </button>
-          </div>
-        </div>
+          <UploadButton
+            isUploading={isUploading}
+            onClick={triggerUpload}
+            className="max-md:hidden border-t border-t-border hover:bg-surface-track transition-colors"
+          />
+        </section>
 
       </div>
-      <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} />
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="audio/*"
+        aria-label="Upload audio file"
+        className="hidden"
+        onChange={handleFileChange}
+      />
     </main>
   );
 }
