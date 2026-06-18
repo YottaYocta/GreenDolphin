@@ -93,9 +93,6 @@ function Spinner() {
   );
 }
 
-const btnClass =
-  "flex overflow-clip items-center py-3.25 h-10 rounded-lg justify-center shadow-btn bg-surface border border-border disabled:cursor-default";
-
 function RecordingRow({
   file,
   uploadedAt,
@@ -121,11 +118,11 @@ function RecordingRow({
   };
 
   return (
-    <article aria-label={file.name}>
+    <article aria-label={file.name} className="self-stretch">
       {/* mobile */}
-      <div className="md:hidden flex items-center gap-8 self-stretch p-6">
+      <div className="md:hidden flex items-center gap-8 p-6">
         <div
-          className="flex overflow-clip rounded-sm items-center justify-center w-16 h-16 shrink-0 shadow-btn bg-white border border-border origin-center"
+          className="btn-surface w-16 h-16 shrink-0 rounded-sm origin-center"
           style={{ rotate: "358.78deg" }}
         >
           <MusicNoteIcon color={noteColor(file.name)} />
@@ -142,14 +139,14 @@ function RecordingRow({
               disabled={isLoading}
               onClick={handlePlay}
               aria-label={`Play ${file.name}`}
-              className={`${btnClass} flex-1`}
+              className="btn-surface flex-1 h-10 py-3.25 disabled:cursor-default"
             >
               {isLoading ? <Spinner /> : <PlayIcon />}
             </button>
             <button
               onClick={onDelete}
               aria-label={`Delete ${file.name}`}
-              className={`${btnClass} flex-1`}
+              className="btn-surface flex-1 h-10 py-3.25"
             >
               <DeleteIcon />
             </button>
@@ -158,15 +155,15 @@ function RecordingRow({
       </div>
 
       {/* desktop */}
-      <div className="max-md:hidden flex items-center self-stretch gap-8 p-6 relative">
+      <div className="max-md:hidden flex items-center gap-8 p-6 relative">
         <div className="flex items-center gap-4 w-81 relative shrink-0">
-          <div className="w-15 h-13.25 rounded-sm opacity-0 shrink-0 shadow-btn bg-white border border-border" />
+          <div className="w-15 h-13.25 rounded-sm opacity-0 shrink-0 btn-surface" />
           <div className="flex items-start gap-2 flex-col justify-end flex-1 overflow-hidden">
             <p className="font-inria text-black text-base/5 truncate max-w-full">{file.name}</p>
             <p className="font-inria text-black text-sm opacity-40">{formatSize(file.size)}</p>
           </div>
           <div
-            className="flex overflow-clip rounded-sm absolute left-0 top-0 items-center justify-center w-[61.7px] h-[61.7px] shadow-btn bg-white border border-border origin-top-left"
+            className="btn-surface rounded-sm absolute left-0 top-0 w-[61.7px] h-[61.7px] origin-top-left"
             style={{ rotate: "358.78deg", translate: "-7px -3px" }}
           >
             <MusicNoteIcon color={noteColor(file.name)} />
@@ -182,14 +179,14 @@ function RecordingRow({
             disabled={isLoading}
             onClick={handlePlay}
             aria-label={`Play ${file.name}`}
-            className={`${btnClass} shrink-0 size-10`}
+            className="btn-surface size-10 shrink-0 h-10 py-3.25 disabled:cursor-default"
           >
             {isLoading ? <Spinner /> : <PlayIcon />}
           </button>
           <button
             onClick={onDelete}
             aria-label={`Delete ${file.name}`}
-            className={`${btnClass} shrink-0 size-10`}
+            className="btn-surface size-10 shrink-0 h-10 py-3.25"
           >
             <DeleteIcon />
           </button>
@@ -202,17 +199,15 @@ function RecordingRow({
 function UploadButton({
   isUploading,
   onClick,
-  className,
 }: {
   isUploading: boolean;
   onClick: () => void;
-  className?: string;
 }) {
   return (
     <button
       disabled={isUploading}
       onClick={onClick}
-      className={`flex overflow-clip items-center gap-2 px-5.5 py-3.25 justify-center self-stretch shadow-inset-dim bg-surface border-border disabled:opacity-60 disabled:cursor-not-allowed ${className}`}
+      className="btn-surface gap-2 px-5.5 py-3.25 self-stretch rounded-none disabled:opacity-60 disabled:cursor-not-allowed hover:bg-surface-track transition-colors"
     >
       {isUploading ? <Spinner /> : <UploadIcon />}
       <span className="opacity-40 font-inria text-black text-base/5">
@@ -251,7 +246,7 @@ export function Landing() {
     e.target.value = "";
   };
 
-  const triggerUpload = () => !isUploading && fileInputRef.current?.click();
+  const triggerUpload = () => fileInputRef.current?.click();
 
   return (
     <main className="[font-synthesis:none] min-h-screen flex flex-col items-center px-4 py-8 bg-surface-track antialiased max-h-screen h-screen overflow-hidden">
@@ -273,39 +268,31 @@ export function Landing() {
 
         <section
           aria-label="My Recordings"
-          className="flex flex-col items-start rounded-2xl self-stretch overflow-y-auto shadow-panel bg-white border border-border flex-1 min-h-0"
+          className="flex flex-col items-start rounded-2xl self-stretch overflow-y-auto shadow-panel bg-white border border-border flex-1 min-h-0 divide-y divide-border"
         >
-          <UploadButton
-            isUploading={isUploading}
-            onClick={triggerUpload}
-            className="md:hidden rounded-t-2xl border-b border-b-border hover:bg-surface-track transition-colors"
-          />
+          <div className="md:hidden rounded-t-2xl overflow-clip">
+            <UploadButton isUploading={isUploading} onClick={triggerUpload} />
+          </div>
 
           {cachedFiles.length === 0 ? (
             <p className="w-full px-6 py-8 text-center opacity-40 font-inria text-black text-base/5">
               No recordings yet. Upload a file to get started.
             </p>
           ) : (
-            cachedFiles.map((file, i) => (
-              <div
+            cachedFiles.map((file) => (
+              <RecordingRow
                 key={file.name}
-                className={i > 0 ? "self-stretch border-t border-border" : "self-stretch"}
-              >
-                <RecordingRow
-                  file={file}
-                  uploadedAt={fileMeta.get(file.name)?.uploadedAt}
-                  onPlay={() => handlePlay(file)}
-                  onDelete={() => deleteFile(file.name)}
-                />
-              </div>
+                file={file}
+                uploadedAt={fileMeta.get(file.name)?.uploadedAt}
+                onPlay={() => handlePlay(file)}
+                onDelete={() => deleteFile(file.name)}
+              />
             ))
           )}
 
-          <UploadButton
-            isUploading={isUploading}
-            onClick={triggerUpload}
-            className="max-md:hidden border-t border-t-border hover:bg-surface-track transition-colors"
-          />
+          <div className="max-md:hidden">
+            <UploadButton isUploading={isUploading} onClick={triggerUpload} />
+          </div>
         </section>
 
       </div>
