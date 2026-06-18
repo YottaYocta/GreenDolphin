@@ -1,6 +1,10 @@
 import { useContext, useRef } from "react";
 import { Menu } from "@base-ui/react/menu";
-import { MusicNotesPlusIcon, MusicNoteIcon, CheckIcon } from "@phosphor-icons/react";
+import {
+  MusicNotesPlusIcon,
+  MusicNoteIcon,
+  CheckIcon,
+} from "@phosphor-icons/react";
 import { AudioStore } from "../AudioStore";
 import { RecordingsStore } from "../RecordingsStore";
 import { useDecodeFile } from "../lib/useDecodeFile";
@@ -18,7 +22,9 @@ export function RecordingsMenu() {
   return (
     <div className="min-w-0">
       <Menu.Root>
-        <Menu.Trigger className={`${headerBtn} w-full h-12 cursor-pointer min-w-0`}>
+        <Menu.Trigger
+          className={`${headerBtn} w-full h-12 cursor-pointer min-w-0`}
+        >
           <span className="font-inria text-black text-base/5 truncate min-w-0">
             {filename}
           </span>
@@ -31,7 +37,11 @@ export function RecordingsMenu() {
                 closeOnClick={false}
                 onClick={() => uploadInputRef.current?.click()}
               >
-                <MusicNotesPlusIcon size={18} weight="fill" style={{ opacity: 0.5, flexShrink: 0 }} />
+                <MusicNotesPlusIcon
+                  size={18}
+                  weight="fill"
+                  style={{ opacity: 0.5, flexShrink: 0 }}
+                />
                 <span className="font-inria text-black text-base/5">
                   Upload a Recording
                 </span>
@@ -50,14 +60,24 @@ export function RecordingsMenu() {
                         await decodeFile(file);
                       }}
                     >
-                      <MusicNoteIcon size={18} weight="fill" color={noteColor(file.name)} style={{ flexShrink: 0 }} />
+                      <MusicNoteIcon
+                        size={18}
+                        weight="fill"
+                        color={noteColor(file.name)}
+                        style={{ flexShrink: 0 }}
+                      />
                       <span
                         className={`flex-1 min-w-0 font-inria text-base/5 truncate ${file.name === filename ? "font-bold text-black" : "text-black"}`}
                       >
                         {file.name}
                       </span>
                       {file.name === filename && (
-                        <CheckIcon size={16} weight="bold" color="var(--color-play)" style={{ flexShrink: 0 }} />
+                        <CheckIcon
+                          size={16}
+                          weight="bold"
+                          color="var(--color-play)"
+                          style={{ flexShrink: 0 }}
+                        />
                       )}
                     </Menu.Item>
                   ))

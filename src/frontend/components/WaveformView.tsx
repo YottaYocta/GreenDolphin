@@ -212,7 +212,11 @@ export const WaveformView: FC<WaveformViewProps> = ({
             aria-label="Clear Selection"
             className="cursor-pointer hover:opacity-70"
           >
-            <XCircleIcon size={24} weight="fill" color="var(--color-icon-subtle)" />
+            <XCircleIcon
+              size={24}
+              weight="fill"
+              color="var(--color-icon-subtle)"
+            />
           </button>
           <div className="flex items-center gap-2">
             <button
@@ -221,7 +225,11 @@ export const WaveformView: FC<WaveformViewProps> = ({
               aria-label="Back Up Selection"
               className="cursor-pointer hover:opacity-70"
             >
-              <ArrowSquareLeftIcon size={24} weight="fill" color="var(--color-icon-subtle)" />
+              <ArrowSquareLeftIcon
+                size={24}
+                weight="fill"
+                color="var(--color-icon-subtle)"
+              />
             </button>
             <button
               onClick={handleAdvanceSelection}
@@ -229,7 +237,12 @@ export const WaveformView: FC<WaveformViewProps> = ({
               aria-label="Advance Selection"
               className="cursor-pointer hover:opacity-70"
             >
-              <ArrowSquareLeftIcon size={24} weight="fill" color="var(--color-icon-subtle)" style={{ transform: "scaleX(-1)" }} />
+              <ArrowSquareLeftIcon
+                size={24}
+                weight="fill"
+                color="var(--color-icon-subtle)"
+                style={{ transform: "scaleX(-1)" }}
+              />
             </button>
           </div>
         </div>

@@ -14,8 +14,12 @@ function AppView() {
   if (!audio) return <Navigate to="/" replace />;
 
   return (
-    <div className="w-screen h-screen flex flex-col items-center justify-center bg-neutral-100">
-      <AlwaysAwakeIndicator method={method} wakeLockError={wakeLockError} videoError={videoError} />
+    <div className="w-screen h-screen max-h-full flex flex-col items-center justify-center">
+      <AlwaysAwakeIndicator
+        method={method}
+        wakeLockError={wakeLockError}
+        videoError={videoError}
+      />
       <PlaybackProvider context={audio.audioCtx} data={audio.buffer}>
         <Loaded onMounted={activate} />
       </PlaybackProvider>

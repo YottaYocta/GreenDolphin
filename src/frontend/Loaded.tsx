@@ -17,7 +17,9 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
   const { isFirstVisit: showTutorial, markVisited: markTutorialShown } =
     useFirstVisit();
 
-  useEffect(() => { onMounted?.(); }, [onMounted]);
+  useEffect(() => {
+    onMounted?.();
+  }, [onMounted]);
 
   const [triggerUpdate, setTriggerUpdate] = useState<boolean>(false);
 
@@ -50,9 +52,9 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
       <div className="w-full max-w-240 h-full md:h-min p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:py-10">
         <TitleBar />
 
-        <div className="flex flex-col rounded-xl overflow-x-hidden overflow-y-clip self-stretch [box-shadow:var(--shadow-panel)] bg-white border border-border ">
+        <div className="flex flex-col rounded-xl overflow-x-hidden overflow-y-clip self-stretch [box-shadow:var(--shadow-panel)] bg-white border border-border">
           <PianoRoll />
-          <div className="border-t border-border max-md:grow hoverf">
+          <div className="border-t border-border max-md:grow">
             <WaveformView
               initialData={{
                 data: data,

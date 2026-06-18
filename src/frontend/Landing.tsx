@@ -181,13 +181,13 @@ export function Landing() {
   const triggerUpload = () => fileInputRef.current?.click();
 
   return (
-    <main className="[font-synthesis:none] flex flex-col items-center px-4 py-8 bg-surface-track antialiased max-h-screen h-screen overflow-hidden font-inria text-black text-base/5">
+    <main className="[font-synthesis:none] flex flex-col items-center px-4 py-8 antialiased max-h-screen overflow-hidden font-inria text-black text-base/5">
       <div className="flex flex-col items-center justify-center gap-5 w-full max-w-2xl flex-1 min-h-0 h-full md:py-24 md:pb-48">
         <header className="flex max-md:flex-col max-md:items-start max-md:pl-4 max-md:gap-4 items-center gap-4 self-stretch rounded-[18px] p-4 justify-center max-md:flex-1">
           <img
             src="/favicon/favicon.svg"
             alt="GreenDolphin logo"
-            className="w-20 aspect-square rounded-[9px] shrink-0 shadow-drop border border-border object-contain bg-white"
+            className="w-20 aspect-square rounded-[9px] shrink-0 shadow-drop border border-emerald-600/30 object-contain bg-white"
           />
           <div className="flex items-start flex-col justify-center gap-1 max-md:p-0 pr-4 py-4">
             <h1 className="font-inria font-bold text-play text-[29px]/9">

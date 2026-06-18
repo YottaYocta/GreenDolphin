@@ -91,7 +91,12 @@ export function AudioSettings() {
         title="Settings"
         trigger={
           <Dialog.Trigger className="btn-surface rounded-lg gap-3 w-full h-12 shrink-0 cursor-pointer max-md:flex hidden">
-            <SlidersIcon size={24} weight="fill" color="var(--color-icon)" style={{ opacity: 0.54, flexShrink: 0 }} />
+            <SlidersIcon
+              size={24}
+              weight="fill"
+              color="var(--color-icon)"
+              style={{ opacity: 0.54, flexShrink: 0 }}
+            />
             <span className="font-inria text-black/60 text-base/5">
               Settings
             </span>
@@ -100,7 +105,7 @@ export function AudioSettings() {
       >
         <div className="flex flex-col gap-6 pb-4">{sliders}</div>
       </AppDialog>
-      <div className="flex flex-col justify-center self-stretch rounded-xl py-5 px-4 gap-6 [box-shadow:var(--shadow-panel)] bg-white border border-border max-md:hidden">
+      <div className="flex flex-col justify-center self-stretch rounded-xl py-5 px-4 gap-6 bg-white border border-border [box-shadow:var(--shadow-panel)] max-md:hidden">
         {sliders}
       </div>
     </div>

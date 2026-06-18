@@ -443,12 +443,15 @@ export const WaveformCanvas: FC<
   }, [localData.range, localData.section]);
 
   return (
-    <div ref={containerRef} className="flex flex-col pixelated select-none">
+    <div
+      ref={containerRef}
+      className="flex flex-col pixelated select-none relative"
+    >
       <canvas
         {...props}
         ref={canvasRef}
         draggable="false"
-        className="cursor-pointer w-full max-md:h-32 h-48"
+        className="relative z-0 cursor-pointer w-full max-md:h-32 h-48"
         onMouseDown={(e) => {
           const canvas = canvasRef.current;
           if (!canvas) return;
@@ -476,36 +479,31 @@ export const WaveformCanvas: FC<
       ></canvas>
       {showHandles && (handlePositions || positionReference) && (
         <>
-          <div className="relative w-full h-8 shrink-0 -mt-4 drop-shadow-(--shadow-drop)">
-            <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-1.5 border-t border-b border-[#0000001A]" />
+          <div className="absolute inset-x-0 top-0 max-md:h-32 h-48 pointer-events-none">
             {handlePositions && localData.section && (
               <>
-                {handlePositions.startPct >= 0 &&
-                  handlePositions.startPct <= 100 && (
-                    <SectionHandle
-                      pct={handlePositions.startPct}
-                      onDragStart={(clientX) => {
-                        draggingHandleRef.current = "start";
-                        startHandleDrag(clientX);
-                      }}
-                    />
-                  )}
-                {handlePositions.endPct >= 0 &&
-                  handlePositions.endPct <= 100 && (
-                    <SectionHandle
-                      pct={handlePositions.endPct}
-                      onDragStart={(clientX) => {
-                        draggingHandleRef.current = "end";
-                        startHandleDrag(clientX);
-                      }}
-                    />
-                  )}
+                <SectionHandle
+                  pct={handlePositions.startPct}
+                  inBounds={handlePositions.startPct >= 0 && handlePositions.startPct <= 100}
+                  onDragStart={(clientX) => {
+                    draggingHandleRef.current = "start";
+                    startHandleDrag(clientX);
+                  }}
+                />
+                <SectionHandle
+                  pct={handlePositions.endPct}
+                  inBounds={handlePositions.endPct >= 0 && handlePositions.endPct <= 100}
+                  onDragStart={(clientX) => {
+                    draggingHandleRef.current = "end";
+                    startHandleDrag(clientX);
+                  }}
+                />
               </>
             )}
             {positionReference && (
               <div
                 ref={positionHandleRef}
-                className="absolute top-1/2 -translate-y-1/2 w-5 h-5.75 -translate-x-1/2 cursor-ew-resize rounded-sm bg-[#19CA93] border border-[#00000033] [box-shadow:#FFFFFF80_0px_0px_3px_inset,#00000033_0px_2px_3px]"
+                className="pointer-events-auto absolute top-1/2 -translate-y-1/2 w-5 h-5.75 -translate-x-1/2 cursor-ew-resize rounded-sm bg-[#19CA93] border border-border [box-shadow:#FFFFFF80_0px_0px_3px_inset,#00000033_0px_2px_3px]"
                 style={{ display: "none" }}
                 onMouseDown={(e) => startPlayheadDrag(e.clientX)}
                 onTouchStart={(e) => {
@@ -515,7 +513,7 @@ export const WaveformCanvas: FC<
             )}
           </div>
           <div
-            className="-mt-4 w-full min-h-16 cursor-grab select-none flex items-center justify-center overflow-hidden bg-surface shadow-(--shadow-inset)"
+            className="relative w-full min-h-16 cursor-grab select-none flex items-center justify-center overflow-hidden bg-surface shadow-(--shadow-inset) border-t border-border"
             onMouseDown={(e) => {
               dragDistanceRef.current = 0;
               if (barContainerRef.current) {
@@ -549,10 +547,11 @@ export const WaveformCanvas: FC<
 
 const SectionHandle: FC<{
   pct: number;
+  inBounds: boolean;
   onDragStart: (clientX: number) => void;
-}> = ({ pct, onDragStart }) => (
+}> = ({ pct, inBounds, onDragStart }) => (
   <div
-    className="absolute top-1/2 -translate-y-1/2 w-7 h-8 max-h-8 -translate-x-1/2 cursor-ew-resize rounded-sm bg-[#FDFDFD] border border-[#0000001A] [box-shadow:#FFFFFF_0px_0px_4px_1px_inset,#0000000D_0px_2px_3px]"
+    className={`pointer-events-auto drop-shadow-(--shadow-drop) absolute top-1/2 -translate-y-1/2 w-7 h-8 max-h-8 -translate-x-1/2 cursor-ew-resize rounded-sm bg-[#FDFDFD] border border-[#0000001A] [box-shadow:#FFFFFF_0px_0px_4px_1px_inset,#0000000D_0px_2px_3px] transition-opacity duration-200 ${inBounds ? "opacity-100" : "opacity-0"}`}
     style={{ left: `${pct}%` }}
     onMouseDown={(e) => onDragStart(e.clientX)}
     onTouchStart={(e) => {

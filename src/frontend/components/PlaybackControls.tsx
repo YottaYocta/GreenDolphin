@@ -1,5 +1,11 @@
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
-import { PauseIcon, PlayIcon, SnowflakeIcon, SkipBackIcon, SkipForwardIcon } from "@phosphor-icons/react";
+import {
+  PauseIcon,
+  PlayIcon,
+  SnowflakeIcon,
+  SkipBackIcon,
+  SkipForwardIcon,
+} from "@phosphor-icons/react";
 import { PlaybackContext } from "../playback/PlaybackContext";
 
 export function PlaybackControls() {
@@ -80,7 +86,7 @@ export function PlaybackControls() {
   }, [rewindFiveSeconds, fastForwardFiveSeconds]);
 
   return (
-    <div className="flex items-start gap-4 flex-col p-4 rounded-xl [box-shadow:var(--shadow-panel)] bg-white border border-border max-md:flex-1">
+    <div className="flex items-start gap-4 flex-col rounded-xl max-md:flex-1 bg-white border border-border [box-shadow:var(--shadow-panel)] p-4">
       <div className="flex items-start gap-4 flex-1 self-stretch">
         <button
           onClick={() => {
@@ -90,7 +96,7 @@ export function PlaybackControls() {
               triggerAction("play");
             }
           }}
-          className={`btn-surface p-3.25 flex-1 self-stretch cursor-pointer ${
+          className={`btn-surface p-3 flex-1 self-stretch cursor-pointer ${
             playState === "waiting"
               ? "bg-waiting hover:bg-waiting-hover active:bg-waiting-active [box-shadow:var(--shadow-btn-colored)]"
               : playState === "playing"
@@ -99,7 +105,12 @@ export function PlaybackControls() {
           }`}
         >
           {playState === "playing" ? (
-            <PauseIcon size={24} weight="fill" color="var(--color-icon-white)" style={{ flexShrink: 0 }} />
+            <PauseIcon
+              size={36}
+              weight="fill"
+              color="var(--color-icon-white)"
+              style={{ flexShrink: 0 }}
+            />
           ) : playState === "waiting" ? (
             <span
               className="font-space-mono text-white text-lg tabular-nums"
@@ -108,7 +119,12 @@ export function PlaybackControls() {
               {countdown !== null ? countdown.toFixed(1) : "…"}
             </span>
           ) : (
-            <PlayIcon size={24} weight="fill" color="var(--color-play)" style={{ flexShrink: 0 }} />
+            <PlayIcon
+              size={40}
+              weight="fill"
+              color="var(--color-play)"
+              style={{ flexShrink: 0 }}
+            />
           )}
         </button>
         <button
@@ -119,23 +135,38 @@ export function PlaybackControls() {
               triggerAction("freeze");
             }
           }}
-          className={`btn-surface p-3.25 flex-1 self-stretch cursor-pointer ${playState === "frozen" ? "bg-freeze hover:bg-freeze-hover active:bg-freeze-active [box-shadow:var(--shadow-btn-colored)]" : ""}`}
+          className={`btn-surface p-3 flex-1 self-stretch cursor-pointer ${playState === "frozen" ? "bg-freeze hover:bg-freeze-hover active:bg-freeze-active [box-shadow:var(--shadow-btn-colored)]" : ""}`}
         >
-          <SnowflakeIcon size={24} weight="fill" color={playState === "frozen" ? "#FFFFFF" : "var(--color-freeze)"} style={{ flexShrink: 0 }} />
+          <SnowflakeIcon
+            size={48}
+            weight="fill"
+            color={playState === "frozen" ? "#FFFFFF" : "var(--color-freeze)"}
+            style={{ flexShrink: 0 }}
+          />
         </button>
       </div>
       <div className="flex items-start gap-4 flex-1 self-stretch">
         <button
           onClick={rewindFiveSeconds}
-          className="btn-surface p-3.25 flex-1 self-stretch cursor-pointer"
+          className="btn-surface p-3 flex-1 self-stretch cursor-pointer"
         >
-          <SkipBackIcon size={24} weight="fill" color="var(--color-icon)" style={{ opacity: 0.67, flexShrink: 0 }} />
+          <SkipBackIcon
+            size={32}
+            weight="fill"
+            color="var(--color-icon)"
+            style={{ opacity: 0.67, flexShrink: 0 }}
+          />
         </button>
         <button
           onClick={fastForwardFiveSeconds}
-          className="btn-surface p-3.25 flex-1 self-stretch cursor-pointer"
+          className="btn-surface p-3 flex-1 self-stretch cursor-pointer"
         >
-          <SkipForwardIcon size={24} weight="fill" color="var(--color-icon)" style={{ opacity: 0.67, flexShrink: 0 }} />
+          <SkipForwardIcon
+            size={32}
+            weight="fill"
+            color="var(--color-icon)"
+            style={{ opacity: 0.67, flexShrink: 0 }}
+          />
         </button>
       </div>
     </div>
