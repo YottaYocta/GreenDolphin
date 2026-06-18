@@ -129,8 +129,8 @@ function RecordingRow({
         </div>
         <div className="flex items-start gap-4 flex-col flex-1 min-w-0">
           <div className="flex flex-col items-start gap-1 self-stretch">
-            <p className="font-inria text-black text-base/5 truncate max-w-full">{file.name}</p>
-            <p className="font-inria text-icon-subtle text-base/5 opacity-40">
+            <p className="truncate max-w-full">{file.name}</p>
+            <p className="opacity-40">
               {uploadedAt != null ? relativeDate(uploadedAt) : ""}
             </p>
           </div>
@@ -159,8 +159,8 @@ function RecordingRow({
         <div className="flex items-center gap-4 w-81 relative shrink-0">
           <div className="w-15 h-13.25 rounded-sm opacity-0 shrink-0 btn-surface" />
           <div className="flex items-start gap-2 flex-col justify-end flex-1 overflow-hidden">
-            <p className="font-inria text-black text-base/5 truncate max-w-full">{file.name}</p>
-            <p className="font-inria text-black text-sm opacity-40">{formatSize(file.size)}</p>
+            <p className="truncate max-w-full">{file.name}</p>
+            <p className="text-sm opacity-40">{formatSize(file.size)}</p>
           </div>
           <div
             className="btn-surface rounded-sm absolute left-0 top-0 w-[61.7px] h-[61.7px] origin-top-left"
@@ -170,7 +170,7 @@ function RecordingRow({
           </div>
         </div>
         <div className="flex items-center gap-2 flex-1 opacity-40">
-          <p className="font-inria text-icon-subtle text-base/5">
+          <p className="opacity-40">
             {uploadedAt != null ? relativeDate(uploadedAt) : ""}
           </p>
         </div>
@@ -179,14 +179,14 @@ function RecordingRow({
             disabled={isLoading}
             onClick={handlePlay}
             aria-label={`Play ${file.name}`}
-            className="btn-surface size-10 shrink-0 h-10 py-3.25 disabled:cursor-default"
+            className="btn-surface size-10 shrink-0 py-3.25 disabled:cursor-default"
           >
             {isLoading ? <Spinner /> : <PlayIcon />}
           </button>
           <button
             onClick={onDelete}
             aria-label={`Delete ${file.name}`}
-            className="btn-surface size-10 shrink-0 h-10 py-3.25"
+            className="btn-surface size-10 shrink-0 py-3.25"
           >
             <DeleteIcon />
           </button>
@@ -210,7 +210,7 @@ function UploadButton({
       className="btn-surface gap-2 px-5.5 py-3.25 self-stretch rounded-none disabled:opacity-60 disabled:cursor-not-allowed hover:bg-surface-track transition-colors"
     >
       {isUploading ? <Spinner /> : <UploadIcon />}
-      <span className="opacity-40 font-inria text-black text-base/5">
+      <span className="opacity-40">
         {isUploading ? "Processing…" : "Upload New File +"}
       </span>
     </button>
@@ -249,7 +249,7 @@ export function Landing() {
   const triggerUpload = () => fileInputRef.current?.click();
 
   return (
-    <main className="[font-synthesis:none] min-h-screen flex flex-col items-center px-4 py-8 bg-surface-track antialiased max-h-screen h-screen overflow-hidden">
+    <main className="[font-synthesis:none] min-h-screen flex flex-col items-center px-4 py-8 bg-surface-track antialiased max-h-screen h-screen overflow-hidden font-inria text-black text-base/5">
       <div className="flex flex-col items-start gap-5 w-full max-w-2xl flex-1 min-h-0">
 
         <header className="flex max-md:flex-col max-md:items-start max-md:pl-8 max-md:gap-4 items-center gap-5 self-stretch rounded-[18px] p-4 justify-center">
@@ -275,7 +275,7 @@ export function Landing() {
           </div>
 
           {cachedFiles.length === 0 ? (
-            <p className="w-full px-6 py-8 text-center opacity-40 font-inria text-black text-base/5">
+            <p className="w-full px-6 py-8 text-center opacity-40">
               No recordings yet. Upload a file to get started.
             </p>
           ) : (
