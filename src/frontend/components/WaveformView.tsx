@@ -6,6 +6,7 @@ import {
   type FC,
   type RefObject,
 } from "react";
+import { XCircleIcon, ArrowSquareLeftIcon } from "@phosphor-icons/react";
 import {
   type WaveformData,
   type Section,
@@ -14,13 +15,6 @@ import {
 import { WaveformCanvas, type WaveformRenderFunction } from "./WaveformCanvas";
 import { MIN_RANGE_THRESHOLD } from "../lib/constants";
 import { clampSection } from "../lib/util";
-
-const iconStyle = {
-  width: 20,
-  height: 20,
-  overflow: "visible",
-  flexShrink: 0,
-} as const;
 
 export interface WaveformViewProps {
   initialData: WaveformData;
@@ -218,18 +212,7 @@ export const WaveformView: FC<WaveformViewProps> = ({
             aria-label="Clear Selection"
             className="cursor-pointer hover:opacity-70"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="32"
-              height="32"
-              viewBox="0 0 256 256"
-              style={iconStyle}
-            >
-              <path
-                d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm37.66,130.34a8,8,0,0,1-11.32,11.32L128,139.31l-26.34,26.35a8,8,0,0,1-11.32-11.32L116.69,128,90.34,101.66a8,8,0,0,1,11.32-11.32L128,116.69l26.34-26.35a8,8,0,0,1,11.32,11.32L139.31,128Z"
-                fill="var(--color-icon-subtle)"
-              />
-            </svg>
+            <XCircleIcon size={24} weight="fill" color="var(--color-icon-subtle)" />
           </button>
           <div className="flex items-center gap-2">
             <button
@@ -238,18 +221,7 @@ export const WaveformView: FC<WaveformViewProps> = ({
               aria-label="Back Up Selection"
               className="cursor-pointer hover:opacity-70"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="32"
-                height="32"
-                viewBox="0 0 256 256"
-                style={iconStyle}
-              >
-                <path
-                  d="M208,32H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM168,136H107.31l18.35,18.34a8,8,0,0,1-11.32,11.32l-32-32a8,8,0,0,1,0-11.32l32-32a8,8,0,0,1,11.32,11.32L107.31,120H168a8,8,0,0,1,0,16Z"
-                  fill="var(--color-icon-subtle)"
-                />
-              </svg>
+              <ArrowSquareLeftIcon size={24} weight="fill" color="var(--color-icon-subtle)" />
             </button>
             <button
               onClick={handleAdvanceSelection}
@@ -257,22 +229,7 @@ export const WaveformView: FC<WaveformViewProps> = ({
               aria-label="Advance Selection"
               className="cursor-pointer hover:opacity-70"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="32"
-                height="32"
-                viewBox="0 0 256 256"
-                style={{
-                  ...iconStyle,
-                  rotate: "180deg",
-                  transformOrigin: "50% 50%",
-                }}
-              >
-                <path
-                  d="M208,32H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM168,136H107.31l18.35,18.34a8,8,0,0,1-11.32,11.32l-32-32a8,8,0,0,1,0-11.32l32-32a8,8,0,0,1,11.32,11.32L107.31,120H168a8,8,0,0,1,0,16Z"
-                  fill="var(--color-icon-subtle)"
-                />
-              </svg>
+              <ArrowSquareLeftIcon size={24} weight="fill" color="var(--color-icon-subtle)" style={{ transform: "scaleX(-1)" }} />
             </button>
           </div>
         </div>

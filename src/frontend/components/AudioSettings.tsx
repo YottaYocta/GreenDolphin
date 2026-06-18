@@ -1,4 +1,5 @@
 import { useContext, useEffect, useRef, useState, type FC } from "react";
+import { SlidersIcon } from "@phosphor-icons/react";
 import { PlaybackContext } from "../playback/PlaybackContext";
 import { useDrag } from "../lib/useDrag";
 import { Dialog } from "@base-ui/react/dialog";
@@ -90,18 +91,7 @@ export function AudioSettings() {
         title="Settings"
         trigger={
           <Dialog.Trigger className="btn-surface rounded-lg gap-3 w-full h-12 shrink-0 cursor-pointer max-md:flex hidden">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 256 256"
-              style={{ opacity: 0.54, flexShrink: 0 }}
-            >
-              <path
-                d="M84,136a28,28,0,0,1-20,26.83V216a8,8,0,0,1-16,0V162.83a28,28,0,0,1,0-53.66V40a8,8,0,0,1,16,0v69.17A28,28,0,0,1,84,136Zm52-74.83V40a8,8,0,0,0-16,0V61.17a28,28,0,0,0,0,53.66V216a8,8,0,0,0,16,0V114.83a28,28,0,0,0,0-53.66Zm72,80V40a8,8,0,0,0-16,0V141.17a28,28,0,0,0,0,53.66V216a8,8,0,0,0,16,0V194.83a28,28,0,0,0,0-53.66Z"
-                fill="var(--color-icon)"
-              />
-            </svg>
+            <SlidersIcon size={24} weight="fill" color="var(--color-icon)" style={{ opacity: 0.54, flexShrink: 0 }} />
             <span className="font-inria text-black/60 text-base/5">
               Settings
             </span>
