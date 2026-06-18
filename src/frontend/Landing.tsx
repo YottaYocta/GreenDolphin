@@ -181,17 +181,15 @@ export function Landing() {
     <main className="[font-synthesis:none] min-h-screen flex flex-col items-center px-4 py-18 bg-[#F5F5F5] antialiased">
       <div className="flex flex-col items-start gap-5 w-full max-w-2xl">
 
-        <div className="flex items-center gap-5 self-stretch rounded-[18px] p-4 justify-center">
-          <div className="flex items-center gap-4">
-            <img
-              src="/favicon/favicon.svg"
-              alt="GreenDolphin"
-              className="w-22.5 h-22.5 rounded-[9px] shrink-0 [box-shadow:#0000000D_0px_2px_5px] border border-solid border-[#0000001A] object-contain bg-white"
-            />
-          </div>
-          <div className="flex items-start flex-col justify-center gap-1 pr-4 py-4">
-            <div className="font-inria font-bold text-[#11B96F] text-2xl/7.5">GreenDolphin</div>
-            <div className="opacity-70 font-inria text-black text-base/5 whitespace-pre">
+        <div className="flex max-md:flex-col items-center gap-5 self-stretch rounded-[18px] p-4 justify-center">
+          <img
+            src="/favicon/favicon.svg"
+            alt="GreenDolphin"
+            className="w-22.5 h-22.5 rounded-[9px] shrink-0 [box-shadow:#0000000D_0px_2px_5px] border border-solid border-[#0000001A] object-contain bg-white"
+          />
+          <div className="flex items-start max-md:items-center flex-col justify-center gap-1 pr-4 py-4">
+            <div className="font-inria font-bold text-[#11B96F] text-2xl/7.5 max-md:text-xl">GreenDolphin</div>
+            <div className="opacity-70 font-inria text-black text-base/5 max-md:text-sm whitespace-pre">
               Audio Looper{'  '}&{'  '}Recording Analyzer
             </div>
           </div>
