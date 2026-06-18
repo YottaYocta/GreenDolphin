@@ -2,7 +2,7 @@ import { useContext, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { useDecodeFile } from "./lib/useDecodeFile";
 import { RecordingsStore } from "./RecordingsStore";
-import { noteColor, relativeDate, formatSize } from "./lib/util";
+import { noteColor, relativeDate } from "./lib/util";
 
 function MusicNoteIcon({ color = "var(--color-icon)" }: { color?: string }) {
   return (
