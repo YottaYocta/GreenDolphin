@@ -205,8 +205,8 @@ export function Landing() {
 
   return (
     <main className="[font-synthesis:none] min-h-screen flex flex-col items-center px-4 py-8 bg-surface-track antialiased max-h-screen h-screen overflow-hidden font-inria text-black text-base/5">
-      <div className="flex flex-col items-start gap-5 w-full max-w-2xl flex-1 min-h-0">
-        <header className="flex max-md:flex-col max-md:items-start max-md:pl-4 max-md:gap-4 items-center gap-4 self-stretch rounded-[18px] p-4 justify-center flex-1">
+      <div className="flex flex-col items-center justify-center gap-5 w-full max-w-2xl flex-1 min-h-0 h-full md:py-24 md:pb-48">
+        <header className="flex max-md:flex-col max-md:items-start max-md:pl-4 max-md:gap-4 items-center gap-4 self-stretch rounded-[18px] p-4 justify-center max-md:flex-1">
           <img
             src="/favicon/favicon.svg"
             alt="GreenDolphin logo"
