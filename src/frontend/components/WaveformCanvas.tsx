@@ -151,59 +151,20 @@ export const WaveformCanvas: FC<
     }
   }, [localData, minRangeThresholdValue, positionReference, renderFunction]);
 
-  const checkScroll = useCallback(() => {
-    if (positionReference && positionReference.current) {
-      const sample =
-        (positionReference.current * waveformData.data.sampleRate) / 1000;
-      if (sample > localData.range.end) {
-        const currentRangeLength = localData.range.end - localData.range.start;
-        const targetStart = sample;
-        const targetEnd = targetStart + currentRangeLength;
-        const clampedSection = clampSection(
-          { start: targetStart, end: targetEnd },
-          { start: 0, end: localData.data.length },
-        );
-        if (handleRangeChange) handleRangeChange(clampedSection);
-      } else if (sample < localData.range.start) {
-        const currentRangeLength = localData.range.end - localData.range.start;
-        const targetEnd = sample;
-        const targetStart = targetEnd - currentRangeLength;
-        const clampedSection = clampSection(
-          { start: targetStart, end: targetEnd },
-          { start: 0, end: localData.data.length },
-        );
-        if (handleRangeChange) handleRangeChange(clampedSection);
-      }
-    }
-  }, [
-    handleRangeChange,
-    localData.data.length,
-    localData.range.end,
-    localData.range.start,
-    positionReference,
-    waveformData.data.sampleRate,
-  ]);
-
   useEffect(() => {
     let animationFrameId: number;
 
     const renderLoop = () => {
       if (canvasRef.current) updateWaveform();
-      if (animate) {
-        checkScroll();
-        animationFrameId = requestAnimationFrame(renderLoop);
-      }
+      if (animate) animationFrameId = requestAnimationFrame(renderLoop);
     };
 
-    if (animate) {
-      checkScroll();
-      animationFrameId = requestAnimationFrame(renderLoop);
-    }
+    if (animate) animationFrameId = requestAnimationFrame(renderLoop);
 
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [animate, checkScroll, updateWaveform]);
+  }, [animate, updateWaveform]);
 
   const [startSelectDrag, endSelectDrag] = useDrag(
     ({ clientX }) => {
