@@ -1,5 +1,6 @@
 import { type ReactNode } from "react";
 import { Dialog } from "@base-ui/react/dialog";
+import { XIcon } from "@phosphor-icons/react";
 
 export function AppDialog({
   trigger,
@@ -21,12 +22,7 @@ export function AppDialog({
               {title}
             </Dialog.Title>
             <Dialog.Close className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-neutral-100 active:bg-neutral-200 cursor-pointer outline-none -mt-0.5 -mr-0.5">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 256 256">
-                <path
-                  d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"
-                  fill="var(--color-icon-muted)"
-                />
-              </svg>
+              <XIcon size={16} weight="bold" color="var(--color-icon-muted)" />
             </Dialog.Close>
           </div>
           <div className="px-6 py-5">
