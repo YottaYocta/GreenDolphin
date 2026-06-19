@@ -4,6 +4,7 @@ import { PlaybackContext } from "../playback/PlaybackContext";
 import { useDrag } from "../lib/useDrag";
 import { Dialog } from "@base-ui/react/dialog";
 import { AppDialog } from "./AppDialog";
+import { loadSession, saveSession } from "../lib/useSessionPersistence";
 
 export function AudioSettings() {
   const playback = useContext(PlaybackContext);
@@ -12,13 +13,25 @@ export function AudioSettings() {
   const { playbackSettings, setAudioSettings, loopLength } = playback;
   const { pitchShift, playbackSpeed } = playbackSettings;
 
-  const [renderedGain, setRenderedGain] = useState(1);
+  const [renderedGain, setRenderedGain] = useState(
+    Math.sqrt(playbackSettings.gain),
+  );
   useEffect(() => {
     setAudioSettings({ gain: renderedGain * renderedGain });
   }, [renderedGain, setAudioSettings]);
 
-  const [delayMode, setDelayMode] = useState<"fixed" | "relative">("fixed");
-  const [delayValue, setDelayValue] = useState(1);
+  const [delayMode, setDelayMode] = useState<"fixed" | "relative">(
+    () => loadSession()?.delayMode ?? "fixed",
+  );
+  const [delayValue, setDelayValue] = useState(() => {
+    const session = loadSession();
+    const mode = session?.delayMode ?? "fixed";
+    // loopDelay is always stored in seconds; convert back to % when restoring relative mode
+    if (session && mode === "relative") {
+      return loopLength > 0 ? (playbackSettings.loopDelay / loopLength) * 100 : 0;
+    }
+    return playbackSettings.loopDelay || 1;
+  });
 
   useEffect(() => {
     if (delayMode === "fixed") {
@@ -36,6 +49,7 @@ export function AudioSettings() {
       setDelayValue(loopLength > 0 ? (delayValue / loopLength) * 100 : 0);
     }
     setDelayMode(next);
+    saveSession({ delayMode: next });
   };
 
   const sliders = (

@@ -7,6 +7,7 @@ interface SessionData {
   filename: string;
   audioSettings: Partial<PlaybackSettings>;
   waveformRange?: Section;
+  delayMode?: "fixed" | "relative";
 }
 
 export function loadSession(): SessionData | null {
