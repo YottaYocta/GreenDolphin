@@ -38,19 +38,11 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
   } = playback;
   const { loop } = playbackSettings;
 
-  const [{ waveformRange, restoredSettings }] = useState(() => {
+  const [waveformRange] = useState(() => {
     const session = loadSession();
     const matched = session?.filename === filename ? session : null;
-    return {
-      waveformRange: matched?.waveformRange ?? { start: 0, end: data.length },
-      restoredSettings: matched?.audioSettings ?? null,
-    };
+    return matched?.waveformRange ?? { start: 0, end: data.length };
   });
-
-  useEffect(() => {
-    if (restoredSettings) setAudioSettings(restoredSettings);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   useEffect(() => {
     saveSession({ filename, audioSettings: playbackSettings });

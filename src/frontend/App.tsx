@@ -42,6 +42,10 @@ function AppView() {
 
   if (!audio) return <Navigate to="/" replace />;
 
+  const session = loadSession();
+  const initialSettings =
+    session?.filename === audio.filename ? session.audioSettings : undefined;
+
   return (
     <div className="w-screen h-screen max-h-full flex flex-col items-center justify-center">
       <AlwaysAwakeIndicator
@@ -49,7 +53,11 @@ function AppView() {
         wakeLockError={wakeLockError}
         videoError={videoError}
       />
-      <PlaybackProvider context={audio.audioCtx} data={audio.buffer}>
+      <PlaybackProvider
+        context={audio.audioCtx}
+        data={audio.buffer}
+        initialSettings={initialSettings}
+      >
         <Loaded onMounted={activate} />
       </PlaybackProvider>
     </div>
