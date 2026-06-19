@@ -1,5 +1,4 @@
 import { useContext, useRef, useState } from "react";
-import { useNavigate } from "react-router";
 import {
   PlayIcon,
   TrashIcon,
@@ -113,7 +112,6 @@ function RecordingRow({
 
 export function Landing() {
   const decodeFile = useDecodeFile();
-  const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { cachedFiles, fileMeta, deleteFile, cacheFile } =
     useContext(RecordingsStore);
@@ -121,7 +119,6 @@ export function Landing() {
 
   const handlePlay = async (file: File) => {
     await decodeFile(file);
-    navigate("/app");
   };
 
   const handleUpload = async (file: File) => {
@@ -129,7 +126,6 @@ export function Landing() {
     try {
       await decodeFile(file);
       await cacheFile(file);
-      navigate("/app");
     } finally {
       setIsUploading(false);
     }

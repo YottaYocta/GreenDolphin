@@ -1,5 +1,4 @@
-import { useContext, useEffect } from "react";
-import { Navigate, Route, Routes, useNavigate } from "react-router";
+import { useContext } from "react";
 import { SpinnerIcon } from "@phosphor-icons/react";
 import { Landing } from "./Landing";
 import { Loaded } from "./Loaded";
@@ -7,41 +6,14 @@ import { PlaybackProvider } from "./playback/PlaybackProvider";
 import { AudioStore } from "./AudioStore";
 import { useAlwaysAwake } from "./lib/useAlwaysAwake";
 import { AlwaysAwakeIndicator } from "./components/AlwaysAwakeIndicator";
-import { RecordingsStore } from "./RecordingsStore";
-import { useDecodeFile } from "./lib/useDecodeFile";
-import { clearSession, loadSession } from "./lib/useSessionPersistence";
-
-function SessionRestorer() {
-  const { cachedFiles } = useContext(RecordingsStore);
-  const { audio } = useContext(AudioStore);
-  const decodeFile = useDecodeFile();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (audio || cachedFiles.length === 0) return;
-    const session = loadSession();
-    if (!session?.filename) return;
-    const file = cachedFiles.find((f) => f.name === session.filename);
-    if (!file) {
-      clearSession();
-      return;
-    }
-    decodeFile(file)
-      .then(() => navigate("/app"))
-      .catch((e) => {
-        clearSession();
-        console.error(e);
-      });
-  }, [audio, cachedFiles, decodeFile, navigate]);
-
-  return null;
-}
+import { loadSession } from "./lib/useSessionPersistence";
+import { SessionRestorer } from "./SessionRestorer";
 
 function AppView() {
   const { audio } = useContext(AudioStore);
   const { activate, method, wakeLockError, videoError } = useAlwaysAwake();
 
-  if (!audio) return <Navigate to="/" replace />;
+  if (!audio) return null;
 
   const session = loadSession();
   const initialSettings =
@@ -66,7 +38,7 @@ function AppView() {
 }
 
 export default function App() {
-  const { isLoading } = useContext(AudioStore);
+  const { isLoading, audio } = useContext(AudioStore);
 
   if (isLoading) {
     return (
@@ -76,18 +48,12 @@ export default function App() {
     );
   }
 
+  if (audio) return <AppView />;
+
   return (
-    <Routes>
-      <Route
-        path="/"
-        element={
-          <>
-            <SessionRestorer />
-            <Landing />
-          </>
-        }
-      />
-      <Route path="/app" element={<AppView />} />
-    </Routes>
+    <>
+      <SessionRestorer />
+      <Landing />
+    </>
   );
 }
