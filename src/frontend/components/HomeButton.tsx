@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router";
 import { HouseIcon } from "@phosphor-icons/react";
-import { clearSession } from "../lib/useSessionPersistence";
 
 const headerBtn = "btn-surface rounded-lg gap-3 px-3.25 py-3.25";
 const headerBtnLabel =
@@ -11,7 +10,7 @@ export function HomeButton() {
 
   return (
     <button
-      onClick={() => { clearSession(); navigate("/"); }}
+      onClick={() => navigate("/")}
       className={`${headerBtn} w-full h-12 cursor-pointer`}
     >
       <HouseIcon size={18} weight="fill" color="var(--color-icon)" style={{ opacity: 0.5, flexShrink: 0 }} />
