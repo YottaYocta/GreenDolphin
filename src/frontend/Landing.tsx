@@ -1,5 +1,4 @@
 import { useContext, useRef, useState } from "react";
-import { useNavigate } from "react-router";
 import {
   PlayIcon,
   TrashIcon,
@@ -22,18 +21,7 @@ function RecordingRow({
   onPlay: () => Promise<void>;
   onDelete: () => void;
 }) {
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handlePlay = async () => {
-    if (isLoading) return;
-    setIsLoading(true);
-    try {
-      await onPlay();
-    } catch (e) {
-      console.error(e);
-      setIsLoading(false);
-    }
-  };
+  const handlePlay = () => onPlay().catch(console.error);
 
   return (
     <article aria-label={file.name} className="self-stretch">
@@ -53,24 +41,16 @@ function RecordingRow({
           </div>
           <div className="flex items-start gap-2 self-stretch">
             <button
-              disabled={isLoading}
               onClick={handlePlay}
               aria-label={`Play ${file.name}`}
-              className="btn-surface flex-1 h-10 py-3.25 disabled:cursor-default"
+              className="btn-surface flex-1 h-10 py-3.25"
             >
-              {isLoading ? (
-                <SpinnerIcon
-                  size={20}
-                  className="animate-spin opacity-40 shrink-0"
-                />
-              ) : (
-                <PlayIcon
-                  size={24}
-                  weight="fill"
-                  color="var(--color-play)"
-                  style={{ flexShrink: 0 }}
-                />
-              )}
+              <PlayIcon
+                size={24}
+                weight="fill"
+                color="var(--color-play)"
+                style={{ flexShrink: 0 }}
+              />
             </button>
             <button
               onClick={onDelete}
@@ -102,24 +82,16 @@ function RecordingRow({
         </div>
         <div className="flex items-start gap-2 absolute top-1/2 right-6 -translate-y-1/2">
           <button
-            disabled={isLoading}
             onClick={handlePlay}
             aria-label={`Play ${file.name}`}
-            className="btn-surface size-10 shrink-0 py-3.25 disabled:cursor-default"
+            className="btn-surface size-10 shrink-0 py-3.25"
           >
-            {isLoading ? (
-              <SpinnerIcon
-                size={20}
-                className="animate-spin opacity-40 shrink-0"
-              />
-            ) : (
-              <PlayIcon
-                size={20}
-                weight="fill"
-                color="var(--color-play)"
-                style={{ flexShrink: 0 }}
-              />
-            )}
+            <PlayIcon
+              size={20}
+              weight="fill"
+              color="var(--color-play)"
+              style={{ flexShrink: 0 }}
+            />
           </button>
           <button
             onClick={onDelete}
@@ -140,7 +112,6 @@ function RecordingRow({
 
 export function Landing() {
   const decodeFile = useDecodeFile();
-  const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { cachedFiles, fileMeta, deleteFile, cacheFile } =
     useContext(RecordingsStore);
@@ -148,7 +119,6 @@ export function Landing() {
 
   const handlePlay = async (file: File) => {
     await decodeFile(file);
-    navigate("/app");
   };
 
   const handleUpload = async (file: File) => {
@@ -156,7 +126,6 @@ export function Landing() {
     try {
       await decodeFile(file);
       await cacheFile(file);
-      navigate("/app");
     } finally {
       setIsUploading(false);
     }

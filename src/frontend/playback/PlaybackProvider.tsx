@@ -13,6 +13,7 @@ import { usePlaybackClock } from "./usePlaybackClock";
 export interface PlaybackProviderProps {
   context: AudioContext;
   data: AudioBuffer;
+  initialSettings?: Partial<PlaybackSettings>;
   children?: ReactNode;
 }
 
@@ -20,12 +21,13 @@ export const PlaybackProvider = ({
   children,
   context,
   data,
+  initialSettings,
 }: PlaybackProviderProps) => {
   const [localData, setLocalData] = useState<AudioBuffer>(data);
   const [seekVersion, setSeekVersion] = useState(0);
   const [chainSettings, setChainSettings] = useState({
-    pitchShift: 0,
-    gain: 1,
+    pitchShift: initialSettings?.pitchShift ?? 0,
+    gain: initialSettings?.gain ?? 1,
   });
   const [readyContext, setReadyContext] = useState<AudioContext | null>(null);
 
@@ -40,7 +42,12 @@ export const PlaybackProvider = ({
     lastStartPosition,
   } = usePlaybackClock({
     duration: localData.duration,
-    initialSettings: { sampleRate: localData.sampleRate },
+    initialSettings: {
+      sampleRate: localData.sampleRate,
+      loop: initialSettings?.loop,
+      loopDelay: initialSettings?.loopDelay,
+      playbackSpeed: initialSettings?.playbackSpeed,
+    },
   });
 
   const { loop, loopDelay, playbackSpeed } = audioSettings;

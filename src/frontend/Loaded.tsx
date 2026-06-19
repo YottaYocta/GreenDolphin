@@ -1,4 +1,5 @@
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
+import { useDebounce } from "./lib/useDebounce";
 import { Tutorial } from "./components/Tutorial";
 import { PianoRoll } from "./components/PianoRoll";
 import { PlaybackContext } from "./playback/PlaybackContext";
@@ -8,11 +9,13 @@ import { useFirstVisit } from "./lib/useFirstVisit";
 import { PlaybackControls } from "./components/PlaybackControls";
 import { AudioSettings } from "./components/AudioSettings";
 import { TitleBar } from "./components/TitleBar";
+import { loadSession, saveSession } from "./lib/useSessionPersistence";
+import type { Section } from "./lib/waveform";
 
 export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
   const { audio } = useContext(AudioStore);
   if (!audio) throw new Error("Loaded must be rendered within an audio route");
-  const { buffer: data } = audio;
+  const { buffer: data, filename } = audio;
 
   const { isFirstVisit: showTutorial, markVisited: markTutorialShown } =
     useFirstVisit();
@@ -36,6 +39,16 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
   } = playback;
   const { loop } = playbackSettings;
 
+  const [waveformRange] = useState(() => {
+    const session = loadSession();
+    const matched = session?.filename === filename ? session : null;
+    return matched?.waveformRange ?? { start: 0, end: data.length };
+  });
+
+  useEffect(() => {
+    saveSession({ filename, audioSettings: playbackSettings });
+  }, [filename, playbackSettings]);
+
   const handlePosition = (sampleIndex: number) => {
     const timeInSeconds = sampleIndex / data.sampleRate;
     const timeInMs = timeInSeconds * 1000;
@@ -46,6 +59,11 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
   useEffect(() => {
     if (triggerUpdate) setTriggerUpdate(false);
   }, [triggerUpdate]);
+
+  const handleRangeChange = useDebounce(
+    useCallback((range: Section) => saveSession({ waveformRange: range }), []),
+    250,
+  );
 
   return (
     <>
@@ -61,12 +79,14 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
                 range: { start: 0, end: data.length },
                 section: loop,
               }}
+              initialRange={waveformRange}
               positionReference={playbackPosition}
               animate={true}
               handlePosition={handlePosition}
               handleSelection={(section) => {
                 setAudioSettings({ loop: section });
               }}
+              onRangeChange={handleRangeChange}
             />
           </div>
         </div>
