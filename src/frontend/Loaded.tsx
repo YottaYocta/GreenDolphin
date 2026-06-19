@@ -1,4 +1,5 @@
 import { useCallback, useContext, useEffect, useState } from "react";
+import { useDebounce } from "./lib/useDebounce";
 import { Tutorial } from "./components/Tutorial";
 import { PianoRoll } from "./components/PianoRoll";
 import { PlaybackContext } from "./playback/PlaybackContext";
@@ -59,9 +60,9 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
     if (triggerUpdate) setTriggerUpdate(false);
   }, [triggerUpdate]);
 
-  const handleRangeChange = useCallback(
-    (range: Section) => saveSession({ waveformRange: range }),
-    [],
+  const handleRangeChange = useDebounce(
+    useCallback((range: Section) => saveSession({ waveformRange: range }), []),
+    250,
   );
 
   return (
