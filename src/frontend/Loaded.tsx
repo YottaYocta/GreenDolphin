@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { Tutorial } from "./components/Tutorial";
 import { PianoRoll } from "./components/PianoRoll";
 import { PlaybackContext } from "./playback/PlaybackContext";
@@ -49,8 +49,7 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
     if (session?.filename === filename && session.audioSettings) {
       setAudioSettings(session.audioSettings);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setAudioSettings]);
+  }, [filename, session?.audioSettings, session?.filename, setAudioSettings]);
 
   useEffect(() => {
     saveSession({ filename, audioSettings: playbackSettings });
@@ -66,6 +65,11 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
   useEffect(() => {
     if (triggerUpdate) setTriggerUpdate(false);
   }, [triggerUpdate]);
+
+  const handleRangeChange = useCallback(
+    (range: Section) => saveSession({ waveformRange: range }),
+    [],
+  );
 
   return (
     <>
@@ -88,7 +92,7 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
               handleSelection={(section) => {
                 setAudioSettings({ loop: section });
               }}
-              onRangeChange={(range) => saveSession({ waveformRange: range })}
+              onRangeChange={handleRangeChange}
             />
           </div>
         </div>
