@@ -1,11 +1,32 @@
-import { useContext } from "react";
-import { Navigate, Route, Routes } from "react-router";
+import { useContext, useEffect } from "react";
+import { Navigate, Route, Routes, useNavigate } from "react-router";
 import { Landing } from "./Landing";
 import { Loaded } from "./Loaded";
 import { PlaybackProvider } from "./playback/PlaybackProvider";
 import { AudioStore } from "./AudioStore";
 import { useAlwaysAwake } from "./lib/useAlwaysAwake";
 import { AlwaysAwakeIndicator } from "./components/AlwaysAwakeIndicator";
+import { RecordingsStore } from "./RecordingsStore";
+import { useDecodeFile } from "./lib/useDecodeFile";
+import { loadSession } from "./lib/useSessionPersistence";
+
+function SessionRestorer() {
+  const { cachedFiles } = useContext(RecordingsStore);
+  const decodeFile = useDecodeFile();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (cachedFiles.length === 0) return;
+    const session = loadSession();
+    if (!session?.filename) return;
+    const file = cachedFiles.find((f) => f.name === session.filename);
+    if (!file) return;
+    decodeFile(file).then(() => navigate("/app")).catch(console.error);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cachedFiles]);
+
+  return null;
+}
 
 function AppView() {
   const { audio } = useContext(AudioStore);
@@ -30,7 +51,7 @@ function AppView() {
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Landing />} />
+      <Route path="/" element={<><SessionRestorer /><Landing /></>} />
       <Route path="/app" element={<AppView />} />
     </Routes>
   );

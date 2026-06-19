@@ -22,6 +22,8 @@ export interface WaveformViewProps {
   animate: boolean;
   handlePosition: (sampleIndex: number) => void;
   handleSelection: (section: Section | undefined) => void;
+  initialRange?: Section;
+  onRangeChange?: (range: Section) => void;
 }
 
 export const WaveformView: FC<WaveformViewProps> = ({
@@ -30,18 +32,27 @@ export const WaveformView: FC<WaveformViewProps> = ({
   animate,
   handlePosition,
   handleSelection,
+  initialRange,
+  onRangeChange,
 }) => {
-  const [localRange, setLocalRange] = useState<Section>({
-    start: 0,
-    end: initialData.data.length,
-  });
+  const [localRange, setLocalRange] = useState<Section>(
+    initialRange ?? { start: 0, end: initialData.data.length },
+  );
+
+  const setLocalRangeAndNotify = useCallback(
+    (range: Section | ((prev: Section) => Section)) => {
+      setLocalRange((prev) => {
+        const next = typeof range === "function" ? range(prev) : range;
+        onRangeChange?.(next);
+        return next;
+      });
+    },
+    [onRangeChange],
+  );
 
   useEffect(() => {
-    setLocalRange({
-      start: 0,
-      end: initialData.data.length,
-    });
-  }, [initialData.data.length]);
+    setLocalRangeAndNotify({ start: 0, end: initialData.data.length });
+  }, [initialData.data.length, setLocalRangeAndNotify]);
 
   const viewportRenderFunction: WaveformRenderFunction = useCallback(
     (
@@ -62,7 +73,7 @@ export const WaveformView: FC<WaveformViewProps> = ({
   }, [initialData.range.end, initialData.range.start]);
 
   const handleZoomIn = useCallback(() => {
-    setLocalRange((prevRange) => {
+    setLocalRangeAndNotify((prevRange) => {
       const zoomAmount = Math.floor((prevRange.end - prevRange.start) * 0.1);
       const targetSection = {
         start: prevRange.start + zoomAmount,
@@ -82,10 +93,10 @@ export const WaveformView: FC<WaveformViewProps> = ({
         { start: 0, end: initialData.data.length },
       );
     });
-  }, [initialData.data.length, minRangeThresholdValue]);
+  }, [initialData.data.length, minRangeThresholdValue, setLocalRangeAndNotify]);
 
   const handleZoomOut = useCallback(() => {
-    setLocalRange((prevRange) => {
+    setLocalRangeAndNotify((prevRange) => {
       const scrollAmount = Math.floor((prevRange.end - prevRange.start) * 0.1);
       return clampSection(
         {
@@ -95,10 +106,10 @@ export const WaveformView: FC<WaveformViewProps> = ({
         { start: 0, end: initialData.data.length },
       );
     });
-  }, [initialData.data.length]);
+  }, [initialData.data.length, setLocalRangeAndNotify]);
 
   const handleScrollLeft = useCallback(() => {
-    setLocalRange((prevRange) => {
+    setLocalRangeAndNotify((prevRange) => {
       const shiftAmount = Math.floor((prevRange.end - prevRange.start) * 0.1);
       const targetRange = {
         start: prevRange.start - shiftAmount,
@@ -111,10 +122,10 @@ export const WaveformView: FC<WaveformViewProps> = ({
         };
       } else return targetRange;
     });
-  }, []);
+  }, [setLocalRangeAndNotify]);
 
   const handleScrollRight = useCallback(() => {
-    setLocalRange((prevRange) => {
+    setLocalRangeAndNotify((prevRange) => {
       const shiftAmount = Math.floor((prevRange.end - prevRange.start) * 0.1);
       const targetRange = {
         start: prevRange.start + shiftAmount,
@@ -127,7 +138,7 @@ export const WaveformView: FC<WaveformViewProps> = ({
         };
       } else return targetRange;
     });
-  }, [initialData.data.length]);
+  }, [initialData.data.length, setLocalRangeAndNotify]);
 
   const handleClearSelection = useCallback(() => {
     handleSelection(undefined);

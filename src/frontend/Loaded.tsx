@@ -8,11 +8,13 @@ import { useFirstVisit } from "./lib/useFirstVisit";
 import { PlaybackControls } from "./components/PlaybackControls";
 import { AudioSettings } from "./components/AudioSettings";
 import { TitleBar } from "./components/TitleBar";
+import { loadSession, saveSession } from "./lib/useSessionPersistence";
+import type { Section } from "./lib/waveform";
 
 export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
   const { audio } = useContext(AudioStore);
   if (!audio) throw new Error("Loaded must be rendered within an audio route");
-  const { buffer: data } = audio;
+  const { buffer: data, filename } = audio;
 
   const { isFirstVisit: showTutorial, markVisited: markTutorialShown } =
     useFirstVisit();
@@ -35,6 +37,25 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
     setAudioSettings,
   } = playback;
   const { loop } = playbackSettings;
+
+  const session = loadSession();
+  const [waveformRange] = useState<Section>(
+    session?.filename === filename && session.waveformRange
+      ? session.waveformRange
+      : { start: 0, end: data.length },
+  );
+
+  useEffect(() => {
+    if (session?.filename === filename && session.audioSettings) {
+      setAudioSettings(session.audioSettings);
+    }
+  // only run on mount
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    saveSession({ filename, audioSettings: playbackSettings });
+  }, [filename, playbackSettings]);
 
   const handlePosition = (sampleIndex: number) => {
     const timeInSeconds = sampleIndex / data.sampleRate;
@@ -61,12 +82,14 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
                 range: { start: 0, end: data.length },
                 section: loop,
               }}
+              initialRange={waveformRange}
               positionReference={playbackPosition}
               animate={true}
               handlePosition={handlePosition}
               handleSelection={(section) => {
                 setAudioSettings({ loop: section });
               }}
+              onRangeChange={(range) => saveSession({ waveformRange: range })}
             />
           </div>
         </div>
