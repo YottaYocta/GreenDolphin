@@ -12,18 +12,18 @@ import { loadSession } from "./lib/useSessionPersistence";
 
 function SessionRestorer() {
   const { cachedFiles } = useContext(RecordingsStore);
+  const { audio } = useContext(AudioStore);
   const decodeFile = useDecodeFile();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (cachedFiles.length === 0) return;
+    if (audio || cachedFiles.length === 0) return;
     const session = loadSession();
     if (!session?.filename) return;
     const file = cachedFiles.find((f) => f.name === session.filename);
     if (!file) return;
     decodeFile(file).then(() => navigate("/app")).catch(console.error);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cachedFiles]);
+  }, [audio, cachedFiles, decodeFile, navigate]);
 
   return null;
 }

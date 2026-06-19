@@ -49,9 +49,8 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
     if (session?.filename === filename && session.audioSettings) {
       setAudioSettings(session.audioSettings);
     }
-  // only run on mount
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [setAudioSettings]);
 
   useEffect(() => {
     saveSession({ filename, audioSettings: playbackSettings });
