@@ -271,7 +271,6 @@ export function Landing() {
       <input
         ref={fileInputRef}
         type="file"
-        accept="audio/*"
         aria-label="Upload audio file"
         className="hidden"
         onChange={handleFileChange}
