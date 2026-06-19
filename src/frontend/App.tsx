@@ -21,7 +21,7 @@ function SessionRestorer() {
     const session = loadSession();
     if (!session?.filename) return;
     const file = cachedFiles.find((f) => f.name === session.filename);
-    if (!file) return;
+    if (!file) { clearSession(); return; }
     decodeFile(file).then(() => navigate("/app")).catch((e) => { clearSession(); console.error(e); });
   }, [audio, cachedFiles, decodeFile, navigate]);
 
