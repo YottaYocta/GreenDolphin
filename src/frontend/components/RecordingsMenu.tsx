@@ -48,7 +48,7 @@ export function RecordingsMenu() {
               </Menu.Item>
               <div className="overflow-y-auto max-h-72 flex flex-col">
                 {cachedFiles.length === 0 ? (
-                  <div className="px-4 py-4 opacity-40 font-inria text-black text-sm text-center">
+                  <div className="px-4 py-4 font-inria text-black/50 text-sm text-center">
                     No recordings yet
                   </div>
                 ) : (

@@ -1,25 +1,15 @@
 import { useContext, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import {
-  MusicNoteIcon,
   PlayIcon,
   TrashIcon,
   SpinnerIcon,
   MusicNotesPlusIcon,
 } from "@phosphor-icons/react";
-function NoteIcon({ color }: { color: string }) {
-  return (
-    <MusicNoteIcon
-      size={32}
-      weight="fill"
-      color={color}
-      style={{ flexShrink: 0 }}
-    />
-  );
-}
 import { useDecodeFile } from "./lib/useDecodeFile";
+import { NoteIcon } from "./components/NoteIcon";
 import { RecordingsStore } from "./RecordingsStore";
-import { noteColor, relativeDate } from "./lib/util";
+import { relativeDate } from "./lib/util";
 
 function RecordingRow({
   file,
@@ -52,7 +42,7 @@ function RecordingRow({
         <div className="flex items-start gap-4 flex-col flex-1 min-w-0">
           <div className="flex items-center gap-4 self-stretch">
             <div className="flex items-center justify-center btn-surface p-2 rounded-full">
-              <NoteIcon color={noteColor(file.name)} />
+              <NoteIcon filename={file.name} />
             </div>
             <div className="flex flex-col gap-2 w-full max-w-full overflow-clip min-w-0">
               <p className="truncate max-w-full">{file.name}</p>
@@ -101,11 +91,11 @@ function RecordingRow({
       <div className="max-md:hidden flex items-center gap-8 p-6 relative">
         <div className="flex items-center gap-4 w-full relative shrink-0">
           <div className="btn-surface w-16 aspect-square rounded-full">
-            <NoteIcon color={noteColor(file.name)} />
+            <NoteIcon filename={file.name} />
           </div>
           <div className="flex items-start gap-1 flex-col justify-end flex-1 overflow-hidden">
             <p className="truncate max-w-full">{file.name}</p>
-            <p className="opacity-40 text-sm">
+            <p className="text-black/50 text-sm">
               {uploadedAt != null ? relativeDate(uploadedAt) : ""}
             </p>
           </div>
@@ -193,7 +183,7 @@ export function Landing() {
             <h1 className="font-inria font-bold text-play text-[29px]/9">
               GreenDolphin
             </h1>
-            <p className="font-inria text-black opacity-60 text-sm/4.5 whitespace-pre">
+            <p className="font-inria text-black/50 text-sm/4.5 whitespace-pre">
               Audio Looper & Recording Analyzer
             </p>
           </div>
@@ -229,7 +219,7 @@ export function Landing() {
 
           <div className="w-full flex-1 min-h-0 flex flex-col overflow-y-scroll divide-y divide-border">
             {cachedFiles.length === 0 ? (
-              <p className="w-full px-6 py-8 text-center opacity-40">
+              <p className="w-full px-6 py-8 text-center text-black/50 text-sm font-inria">
                 No recordings yet. Upload a file to get started.
               </p>
             ) : (

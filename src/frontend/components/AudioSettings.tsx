@@ -97,7 +97,7 @@ export function AudioSettings() {
               color="var(--color-icon)"
               style={{ opacity: 0.54, flexShrink: 0 }}
             />
-            <span className="font-inria text-black/60 text-base/5">
+            <span className="font-inria text-black/50 text-base/5">
               Settings
             </span>
           </Dialog.Trigger>
@@ -118,7 +118,7 @@ const SettingsRow: FC<{
   right: React.ReactNode;
 }> = ({ label, center, right }) => (
   <div className="flex items-center gap-4 self-stretch max-md:flex-col max-md:items-start max-md:gap-1.5">
-    <div className="w-20 shrink-0 font-inria text-black text-base/5 whitespace-nowrap flex justify-end max-md:justify-start max-md:text-sm max-md:opacity-60">
+    <div className="w-20 shrink-0 font-inria text-black text-base/5 whitespace-nowrap flex justify-end max-md:justify-start max-md:text-sm max-md:text-black/50">
       {label}
     </div>
     <div className="flex items-center gap-4 self-stretch flex-1">
@@ -177,7 +177,7 @@ const LoopDelayInput: FC<{
               }}
             />
           </div>
-          <div className="text-black/60 text-sm w-4 shrink-0 flex items-center">
+          <div className="text-black/50 text-sm w-4 shrink-0 flex items-center">
             {mode === "fixed" ? "s" : "%"}
           </div>
         </div>
@@ -243,7 +243,7 @@ const AudioSlider: FC<{
               {formatValue(value)}
             </span>
           </div>
-          <div className="text-black/60 text-sm w-4 shrink-0 flex items-center">
+          <div className="text-black/50 text-sm w-4 shrink-0 flex items-center">
             {unit}
           </div>
         </div>
