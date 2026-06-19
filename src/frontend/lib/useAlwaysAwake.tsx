@@ -64,6 +64,7 @@ export function useAlwaysAwake() {
   const tryVideoFallback = useCallback((wakeLockError: string) => {
     const video = videoRef.current;
     if (!video) {
+      playingRef.current = false;
       setState({ method: null, wakeLockError, videoError: "video element not ready" });
       return;
     }

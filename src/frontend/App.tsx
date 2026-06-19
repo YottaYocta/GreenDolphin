@@ -25,6 +25,7 @@ function AppView() {
         method={method}
         wakeLockError={wakeLockError}
         videoError={videoError}
+        onRetry={activate}
       />
       <PlaybackProvider
         context={audio.audioCtx}
