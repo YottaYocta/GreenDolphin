@@ -8,7 +8,7 @@ import { useAlwaysAwake } from "./lib/useAlwaysAwake";
 import { AlwaysAwakeIndicator } from "./components/AlwaysAwakeIndicator";
 import { RecordingsStore } from "./RecordingsStore";
 import { useDecodeFile } from "./lib/useDecodeFile";
-import { clearSession, loadSession } from "./lib/useSessionPersistence";
+import { loadSession } from "./lib/useSessionPersistence";
 
 function SessionRestorer() {
   const { cachedFiles } = useContext(RecordingsStore);
@@ -31,8 +31,6 @@ function SessionRestorer() {
 function AppView() {
   const { audio } = useContext(AudioStore);
   const { activate, method, wakeLockError, videoError } = useAlwaysAwake();
-
-  useEffect(() => () => clearSession(), []);
 
   if (!audio) return <Navigate to="/" replace />;
 
