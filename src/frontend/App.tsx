@@ -8,7 +8,7 @@ import { useAlwaysAwake } from "./lib/useAlwaysAwake";
 import { AlwaysAwakeIndicator } from "./components/AlwaysAwakeIndicator";
 import { RecordingsStore } from "./RecordingsStore";
 import { useDecodeFile } from "./lib/useDecodeFile";
-import { loadSession } from "./lib/useSessionPersistence";
+import { clearSession, loadSession } from "./lib/useSessionPersistence";
 
 function SessionRestorer() {
   const { cachedFiles } = useContext(RecordingsStore);
@@ -22,7 +22,7 @@ function SessionRestorer() {
     if (!session?.filename) return;
     const file = cachedFiles.find((f) => f.name === session.filename);
     if (!file) return;
-    decodeFile(file).then(() => navigate("/app")).catch(console.error);
+    decodeFile(file).then(() => navigate("/app")).catch((e) => { clearSession(); console.error(e); });
   }, [audio, cachedFiles, decodeFile, navigate]);
 
   return null;
