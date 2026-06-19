@@ -22,7 +22,9 @@ export function saveSession(patch: Partial<SessionData>) {
   try {
     const prev = loadSession() ?? ({} as SessionData);
     localStorage.setItem(KEY, JSON.stringify({ ...prev, ...patch }));
-  } catch {}
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 export function clearSession() {
