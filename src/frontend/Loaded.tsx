@@ -38,18 +38,19 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
   } = playback;
   const { loop } = playbackSettings;
 
-  const session = loadSession();
-  const [waveformRange] = useState<Section>(
-    session?.filename === filename && session.waveformRange
-      ? session.waveformRange
-      : { start: 0, end: data.length },
-  );
+  const [{ waveformRange, restoredSettings }] = useState(() => {
+    const session = loadSession();
+    const matched = session?.filename === filename ? session : null;
+    return {
+      waveformRange: matched?.waveformRange ?? { start: 0, end: data.length },
+      restoredSettings: matched?.audioSettings ?? null,
+    };
+  });
 
   useEffect(() => {
-    if (session?.filename === filename && session.audioSettings) {
-      setAudioSettings(session.audioSettings);
-    }
-  }, [filename, session?.audioSettings, session?.filename, setAudioSettings]);
+    if (restoredSettings) setAudioSettings(restoredSettings);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     saveSession({ filename, audioSettings: playbackSettings });
