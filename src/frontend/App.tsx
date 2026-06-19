@@ -1,5 +1,6 @@
 import { useContext, useEffect } from "react";
 import { Navigate, Route, Routes, useNavigate } from "react-router";
+import { SpinnerIcon } from "@phosphor-icons/react";
 import { Landing } from "./Landing";
 import { Loaded } from "./Loaded";
 import { PlaybackProvider } from "./playback/PlaybackProvider";
@@ -65,6 +66,16 @@ function AppView() {
 }
 
 export default function App() {
+  const { isLoading } = useContext(AudioStore);
+
+  if (isLoading) {
+    return (
+      <div className="w-screen h-screen flex items-center justify-center">
+        <SpinnerIcon size={32} className="animate-spin opacity-40" />
+      </div>
+    );
+  }
+
   return (
     <Routes>
       <Route
