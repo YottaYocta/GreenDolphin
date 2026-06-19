@@ -21,8 +21,16 @@ function SessionRestorer() {
     const session = loadSession();
     if (!session?.filename) return;
     const file = cachedFiles.find((f) => f.name === session.filename);
-    if (!file) { clearSession(); return; }
-    decodeFile(file).then(() => navigate("/app")).catch((e) => { clearSession(); console.error(e); });
+    if (!file) {
+      clearSession();
+      return;
+    }
+    decodeFile(file)
+      .then(() => navigate("/app"))
+      .catch((e) => {
+        clearSession();
+        console.error(e);
+      });
   }, [audio, cachedFiles, decodeFile, navigate]);
 
   return null;
@@ -51,7 +59,15 @@ function AppView() {
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<><SessionRestorer /><Landing /></>} />
+      <Route
+        path="/"
+        element={
+          <>
+            <SessionRestorer />
+            <Landing />
+          </>
+        }
+      />
       <Route path="/app" element={<AppView />} />
     </Routes>
   );
