@@ -50,9 +50,6 @@ export const WaveformView: FC<WaveformViewProps> = ({
     [onRangeChange],
   );
 
-  useEffect(() => {
-    setLocalRangeAndNotify({ start: 0, end: initialData.data.length });
-  }, [initialData.data.length, setLocalRangeAndNotify]);
 
   const viewportRenderFunction: WaveformRenderFunction = useCallback(
     (
@@ -270,7 +267,7 @@ export const WaveformView: FC<WaveformViewProps> = ({
         animate={animate}
         handlePosition={handlePosition}
         handleSelection={handleSelection}
-        handleRangeChange={setLocalRange}
+        handleRangeChange={setLocalRangeAndNotify}
         showHandles={true}
       />
     </div>
