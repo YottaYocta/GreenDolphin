@@ -212,6 +212,49 @@ export const WaveformView: FC<WaveformViewProps> = ({
       className="relative w-full h-min flex flex-col gap-2 max-md:grow"
       id="waveform-view"
     >
+      {initialData.section && (
+        <div className="flex absolute top-2.25 left-2.75 z-10 items-center gap-4 p-2 rounded-lg bg-white border border-[#0000001A]">
+          <button
+            onClick={handleClearSelection}
+            title="Clear Selection (Escape)"
+            aria-label="Clear Selection"
+            className="cursor-pointer hover:opacity-70"
+          >
+            <XCircleIcon
+              size={24}
+              weight="fill"
+              color="var(--color-icon-subtle)"
+            />
+          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleBackUpSelection}
+              title="Back Up Selection ([)"
+              aria-label="Back Up Selection"
+              className="cursor-pointer hover:opacity-70"
+            >
+              <ArrowSquareLeftIcon
+                size={24}
+                weight="fill"
+                color="var(--color-icon-subtle)"
+              />
+            </button>
+            <button
+              onClick={handleAdvanceSelection}
+              title="Advance Selection (])"
+              aria-label="Advance Selection"
+              className="cursor-pointer hover:opacity-70"
+            >
+              <ArrowSquareLeftIcon
+                size={24}
+                weight="fill"
+                color="var(--color-icon-subtle)"
+                style={{ transform: "scaleX(-1)" }}
+              />
+            </button>
+          </div>
+        </div>
+      )}
       <WaveformCanvas
         waveformData={{
           ...initialData,
@@ -227,36 +270,6 @@ export const WaveformView: FC<WaveformViewProps> = ({
         handleRangeChange={setLocalRangeAndNotify}
         showHandles={true}
       />
-      {initialData.section && (
-        <div className="flex absolute top-2.25 left-2.75 items-center gap-4 p-2 rounded-lg bg-white border border-[#0000001A]">
-          <button
-            onClick={handleClearSelection}
-            title="Clear Selection (Escape)"
-            aria-label="Clear Selection"
-            className="cursor-pointer hover:opacity-70"
-          >
-            <XCircleIcon size={24} weight="fill" color="var(--color-icon-subtle)" />
-          </button>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleBackUpSelection}
-              title="Back Up Selection ([)"
-              aria-label="Back Up Selection"
-              className="cursor-pointer hover:opacity-70"
-            >
-              <ArrowSquareLeftIcon size={24} weight="fill" color="var(--color-icon-subtle)" />
-            </button>
-            <button
-              onClick={handleAdvanceSelection}
-              title="Advance Selection (])"
-              aria-label="Advance Selection"
-              className="cursor-pointer hover:opacity-70"
-            >
-              <ArrowSquareLeftIcon size={24} weight="fill" color="var(--color-icon-subtle)" style={{ transform: "scaleX(-1)" }} />
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

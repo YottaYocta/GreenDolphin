@@ -5,7 +5,7 @@ html, body {
   overscroll-behavior: none;
 }
 
-.root {   isolation: isolate; }
+#root { isolation: isolate; }
 
 @theme {
   --color-neutral-2: #c7c7c7;
