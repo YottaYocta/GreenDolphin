@@ -7,6 +7,7 @@ import {
   SkipForwardIcon,
 } from "@phosphor-icons/react";
 import { PlaybackContext } from "../playback/PlaybackContext";
+import { capture } from "../lib/posthog";
 
 export function PlaybackControls() {
   const playback = useContext(PlaybackContext);
@@ -91,8 +92,10 @@ export function PlaybackControls() {
         <button
           onClick={() => {
             if (playState === "playing" || playState === "waiting") {
+              capture("playback_paused");
               triggerAction("pause");
             } else {
+              capture("playback_started");
               triggerAction("play");
             }
           }}
@@ -132,6 +135,7 @@ export function PlaybackControls() {
             if (playState === "frozen") {
               triggerAction("pause");
             } else {
+              capture("audio_frozen");
               triggerAction("freeze");
             }
           }}

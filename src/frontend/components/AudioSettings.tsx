@@ -5,6 +5,7 @@ import { useDrag } from "../lib/useDrag";
 import { Dialog } from "@base-ui/react/dialog";
 import { AppDialog } from "./AppDialog";
 import { loadSession, saveSession } from "../lib/useSessionPersistence";
+import { capture } from "../lib/posthog";
 
 export function AudioSettings() {
   const playback = useContext(PlaybackContext);
@@ -50,6 +51,7 @@ export function AudioSettings() {
     }
     setDelayMode(next);
     saveSession({ delayMode: next });
+    capture("loop_delay_changed", { delay_mode: next });
   };
 
   const sliders = (
@@ -58,7 +60,10 @@ export function AudioSettings() {
         mode={delayMode}
         onModeChange={handleModeChange}
         displayValue={String(Math.round(delayValue * 10) / 10)}
-        onChange={setDelayValue}
+        onChange={(v) => {
+          setDelayValue(v);
+          capture("loop_delay_changed", { delay_value: v, delay_mode: delayMode });
+        }}
       />
       <AudioSlider
         label="Pitch"
@@ -69,6 +74,7 @@ export function AudioSettings() {
         onChange={(v) => {
           const rounded = Math.round(v * 10) / 10;
           setAudioSettings({ pitchShift: rounded });
+          capture("pitch_adjusted", { pitch_shift: rounded });
         }}
         formatValue={(v) => `${Math.round(v * 10) / 10}`}
         unit={"#"}
@@ -82,6 +88,7 @@ export function AudioSettings() {
         onChange={(v) => {
           const rounded = Math.round(v * 10) / 10;
           setAudioSettings({ playbackSpeed: rounded });
+          capture("speed_adjusted", { playback_speed: rounded });
         }}
         formatValue={(v) => `${Math.round(v * 100)}`}
         unit="%"

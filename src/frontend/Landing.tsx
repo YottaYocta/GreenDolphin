@@ -9,6 +9,7 @@ import { useDecodeFile } from "./lib/useDecodeFile";
 import { NoteIcon } from "./components/NoteIcon";
 import { RecordingsStore } from "./RecordingsStore";
 import { relativeDate } from "./lib/util";
+import { capture, captureException } from "./lib/posthog";
 
 function RecordingRow({
   file,
@@ -119,6 +120,7 @@ export function Landing() {
 
   const handlePlay = async (file: File) => {
     await decodeFile(file);
+    capture("recording_played", { filename: file.name, file_size: file.size });
   };
 
   const handleUpload = async (file: File) => {
@@ -126,6 +128,10 @@ export function Landing() {
     try {
       await decodeFile(file);
       await cacheFile(file);
+      capture("file_uploaded", { filename: file.name, file_size: file.size, file_type: file.type });
+    } catch (error) {
+      captureException(error, { filename: file.name });
+      throw error;
     } finally {
       setIsUploading(false);
     }
@@ -198,7 +204,10 @@ export function Landing() {
                   file={file}
                   uploadedAt={fileMeta.get(file.name)?.uploadedAt}
                   onPlay={() => handlePlay(file)}
-                  onDelete={() => deleteFile(file.name)}
+                  onDelete={() => {
+                    capture("recording_deleted", { filename: file.name });
+                    deleteFile(file.name);
+                  }}
                 />
               ))
             )}

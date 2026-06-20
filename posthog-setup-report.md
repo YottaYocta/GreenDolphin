@@ -1,32 +1,41 @@
 # PostHog post-wizard report
 
-The wizard has completed a deep integration of PostHog analytics into GreenDolphin — an offline audio looper for musicians. The integration adds `posthog-js` and `@posthog/react`, initializes PostHog in `main.tsx` with `PostHogProvider` and `PostHogErrorBoundary`, and instruments 12 events across 5 files covering the full user journey from file upload through playback and feature engagement.
+The wizard has completed a deep integration of PostHog analytics into GreenDolphin. A new utility module (`src/frontend/lib/posthog.ts`) wraps the `posthog-node/edge` SDK (browser-compatible edge entrypoint) with a persistent anonymous `distinctId` stored in `localStorage`. An initial `identify` call sets `first_seen` on each new user's profile. Fourteen events are captured across six files covering file uploads, playback control, audio settings, waveform interaction, recordings management, and onboarding. Exception capture is wired into both the upload flow and the audio decode hook.
 
-| Event | Description | File |
+| Event name | Description | File |
 |---|---|---|
-| `recording_uploaded` | User uploads a new audio file from the landing page | `src/frontend/Landing.tsx` |
-| `recording_opened` | User opens an existing cached recording | `src/frontend/Landing.tsx` |
-| `recording_deleted` | User removes a recording from their library | `src/frontend/Landing.tsx` |
-| `app_viewed` | Top of funnel: user arrives at the playback view | `src/frontend/Loaded.tsx` |
-| `loop_region_set` | User drags to select a loop region in the waveform | `src/frontend/Loaded.tsx` |
-| `recording_switched` | User switches recording from the in-app file menu | `src/frontend/Loaded.tsx` |
-| `playback_started` | User presses play to start audio playback | `src/frontend/components/PlaybackControls.tsx` |
-| `playback_frozen` | User activates freeze (slow-motion) mode | `src/frontend/components/PlaybackControls.tsx` |
-| `pitch_changed` | User adjusts the pitch shift setting | `src/frontend/components/AudioSettings.tsx` |
-| `speed_changed` | User adjusts the playback speed setting | `src/frontend/components/AudioSettings.tsx` |
-| `tutorial_completed` | First-time user finishes all tutorial steps | `src/frontend/components/Tutorial.tsx` |
-| `tutorial_skipped` | First-time user skips the tutorial early | `src/frontend/components/Tutorial.tsx` |
+| `file_uploaded` | User uploads an audio file from the recordings page | `src/frontend/Landing.tsx` |
+| `recording_played` | User opens a recording from the landing page recordings list | `src/frontend/Landing.tsx` |
+| `recording_deleted` | User deletes a cached recording from the recordings list | `src/frontend/Landing.tsx` |
+| `playback_started` | User presses play to start audio playback in the player view | `src/frontend/components/PlaybackControls.tsx` |
+| `playback_paused` | User pauses active audio playback | `src/frontend/components/PlaybackControls.tsx` |
+| `audio_frozen` | User activates the freeze mode to hold the current pitch | `src/frontend/components/PlaybackControls.tsx` |
+| `loop_region_set` | User drags on the waveform to set a loop region | `src/frontend/Loaded.tsx` |
+| `loop_region_cleared` | User clears the active loop selection | `src/frontend/components/WaveformView.tsx` |
+| `pitch_adjusted` | User changes the pitch shift value in audio settings | `src/frontend/components/AudioSettings.tsx` |
+| `speed_adjusted` | User changes the playback speed value in audio settings | `src/frontend/components/AudioSettings.tsx` |
+| `loop_delay_changed` | User changes the loop delay amount or mode in audio settings | `src/frontend/components/AudioSettings.tsx` |
+| `tutorial_completed` | First-time user completes and dismisses the onboarding tutorial | `src/frontend/Loaded.tsx` |
+| `recording_switched` | User selects a different recording in the player recordings menu | `src/frontend/components/RecordingsMenu.tsx` |
+| `recording_uploaded_from_player` | User uploads a new audio file from within the player view | `src/frontend/components/RecordingsMenu.tsx` |
 
 ## Next steps
 
 We've built some insights and a dashboard for you to keep an eye on user behavior, based on the events we just instrumented:
 
-- [Analytics basics (wizard) — Dashboard](https://us.posthog.com/project/466757/dashboard/1702684)
-- [Upload-to-playback funnel](https://us.posthog.com/project/466757/insights/lR3SSfcn) — Conversion from file upload → app opened → playback started
-- [Recordings opened vs uploaded](https://us.posthog.com/project/466757/insights/O0asg3RY) — Daily trend of new uploads vs returning users opening existing files
-- [Feature engagement over time](https://us.posthog.com/project/466757/insights/SDii52gu) — Usage of freeze mode, loop region selection, and pitch adjustment
-- [Tutorial completion vs skip](https://us.posthog.com/project/466757/insights/9sKzrUdr) — How many new users complete vs skip the onboarding tutorial
-- [Recordings deleted (churn signal)](https://us.posthog.com/project/466757/insights/nIHWAioo) — Frequency of recording deletions as a proxy for disengagement
+- [Analytics basics (wizard) dashboard](https://us.posthog.com/project/478200/dashboard/1737525)
+- [Upload-to-Playback Funnel](https://us.posthog.com/project/478200/insights/6HzloQDL)
+- [Audio Feature Usage](https://us.posthog.com/project/478200/insights/LZFHCifg)
+- [New vs Returning Users](https://us.posthog.com/project/478200/insights/XTcPe7I3)
+- [Recording Deletions (Churn Signal)](https://us.posthog.com/project/478200/insights/aGKduhHl)
+- [Tutorial Completion Rate](https://us.posthog.com/project/478200/insights/OJA2b7iy)
+
+## Verify before merging
+
+- [ ] Run a full production build (the wizard only verified the files it touched) and fix any lint or type errors introduced by the generated code.
+- [ ] Run the test suite — call sites that were rewritten or instrumented may need updated mocks or fixtures.
+- [ ] Add `VITE_POSTHOG_KEY` and `VITE_POSTHOG_HOST` to `.env.example` and any monorepo/bootstrap scripts so collaborators know what to set.
+- [ ] Wire source-map upload (`posthog-cli sourcemap` or your bundler's upload step) into CI so production stack traces de-minify.
 
 ### Agent skill
 

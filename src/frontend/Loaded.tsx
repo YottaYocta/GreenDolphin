@@ -11,6 +11,7 @@ import { AudioSettings } from "./components/AudioSettings";
 import { TitleBar } from "./components/TitleBar";
 import { loadSession, saveSession } from "./lib/useSessionPersistence";
 import type { Section } from "./lib/waveform";
+import { capture } from "./lib/posthog";
 
 export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
   const { audio } = useContext(AudioStore);
@@ -85,6 +86,7 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
               handlePosition={handlePosition}
               handleSelection={(section) => {
                 setAudioSettings({ loop: section });
+                if (section) capture("loop_region_set");
               }}
               onRangeChange={handleRangeChange}
             />
@@ -99,7 +101,10 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
 
       {showTutorial && (
         <Tutorial
-          handleTutorialFinished={markTutorialShown}
+          handleTutorialFinished={() => {
+            capture("tutorial_completed");
+            markTutorialShown();
+          }}
           steps={[
             {
               htmlSelector: "#waveform-view",

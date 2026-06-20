@@ -9,6 +9,7 @@ import { AudioStore } from "../AudioStore";
 import { RecordingsStore } from "../RecordingsStore";
 import { useDecodeFile } from "../lib/useDecodeFile";
 import { noteColor } from "../lib/util";
+import { capture } from "../lib/posthog";
 
 const headerBtn = "btn-surface rounded-lg gap-3 px-3.25 py-3.25";
 
@@ -58,6 +59,7 @@ export function RecordingsMenu() {
                       className="flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-neutral-50 active:bg-neutral-100"
                       onClick={async () => {
                         await decodeFile(file);
+                        capture("recording_switched", { filename: file.name });
                       }}
                     >
                       <MusicNoteIcon
@@ -98,6 +100,7 @@ export function RecordingsMenu() {
           e.target.value = "";
           await decodeFile(file);
           await cacheFile(file);
+          capture("recording_uploaded_from_player", { filename: file.name, file_size: file.size });
         }}
       />
     </div>

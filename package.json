@@ -15,10 +15,9 @@
     "@phosphor-icons/react": "^2.1.10",
     "@soundtouchjs/audio-worklet": "^2.0.3",
     "@tailwindcss/vite": "^4.1.8",
-    "lucide-react": "^0.513.0",
+    "posthog-node": "^5.38.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-router": "^7.15.1",
     "tailwindcss": "^4.1.8"
   },
   "devDependencies": {

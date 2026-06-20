@@ -15,6 +15,7 @@ import {
 import { WaveformCanvas, type WaveformRenderFunction } from "./WaveformCanvas";
 import { MIN_RANGE_THRESHOLD } from "../lib/constants";
 import { clampSection } from "../lib/util";
+import { capture } from "../lib/posthog";
 
 export interface WaveformViewProps {
   initialData: WaveformData;
@@ -138,6 +139,7 @@ export const WaveformView: FC<WaveformViewProps> = ({
   }, [initialData.data.length, setLocalRangeAndNotify]);
 
   const handleClearSelection = useCallback(() => {
+    capture("loop_region_cleared");
     handleSelection(undefined);
   }, [handleSelection]);
 
