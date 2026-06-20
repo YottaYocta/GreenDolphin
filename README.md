@@ -18,8 +18,6 @@ npm i && npm run dev
 
 If you'd like see or work on a new feature, send me a message at rwq (at) cornell (dot) edu.
 
-Encounter some bugs or have feedback? Please fill out this form: https://forms.gle/XmVubjrPpvwwXJ7U7
-
 ## Roadmap
 
 - [ ] version 2.0:
@@ -45,7 +43,7 @@ Encounter some bugs or have feedback? Please fill out this form: https://forms.g
 
 ## Tracking & Privacy
 
-GreenDolphin uses https://umami.is/ to measure traffic
+GreenDolphin uses Posthog to measure traffic and record user sessions
 
 ## Attribution
 
