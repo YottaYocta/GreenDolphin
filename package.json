@@ -15,6 +15,7 @@
     "@phosphor-icons/react": "^2.1.10",
     "@soundtouchjs/audio-worklet": "^2.0.3",
     "@tailwindcss/vite": "^4.1.8",
+    "posthog-js": "^1.391.2",
     "posthog-node": "^5.38.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
