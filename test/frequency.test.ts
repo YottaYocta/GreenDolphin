@@ -6,7 +6,7 @@ import {
   createFrequencyData,
   fromArray,
   getAmplitude,
-} from "../src/lib/frequency";
+} from "../src/frontend/lib/frequency";
 
 const FREQUENCY_RANGE = 44100 / 2;
 
