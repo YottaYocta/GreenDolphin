@@ -6,7 +6,6 @@ import {
   type FC,
   type RefObject,
 } from "react";
-import { XCircleIcon } from "@phosphor-icons/react";
 import {
   type WaveformData,
   type Section,
@@ -185,7 +184,10 @@ export const WaveformView: FC<WaveformViewProps> = ({
     >
       {initialData.section && (
         <div className="flex absolute top-1 left-1 z-10 items-center">
-          <button onClick={handleClearSelection} className={`mode-btn px-2`}>
+          <button
+            onClick={handleClearSelection}
+            className={`btn-surface px-2 font-inria text-black/50 text-base/5 py-0.5`}
+          >
             Clear loop
           </button>
         </div>
