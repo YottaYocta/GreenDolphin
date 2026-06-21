@@ -57,9 +57,7 @@ export function FileInfoButton() {
     >
       <div className="flex flex-col gap-6">
         <div className="flex items-center gap-3">
-          <div className="btn-surface w-14 aspect-square rounded-full shrink-0">
-            <NoteIcon filename={filename} />
-          </div>
+          <NoteIcon filename={filename} />
           <span className="font-inria font-bold text-black text-base leading-snug min-w-0">
             {filename}
           </span>

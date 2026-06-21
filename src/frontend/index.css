@@ -62,6 +62,7 @@ html, body {
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   box-shadow: var(--shadow-btn);
+  cursor: pointer;
   @media (hover: hover) {
     &:hover {
       background-color: white;

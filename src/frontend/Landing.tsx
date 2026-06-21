@@ -24,87 +24,58 @@ function RecordingRow({
 }) {
   const handlePlay = () => onPlay().catch(console.error);
 
+  const info = (
+    <div className="flex items-center gap-4 flex-1 min-w-0">
+      <NoteIcon filename={file.name} />
+      <div className="flex flex-col gap-1 min-w-0 overflow-hidden">
+        <p className="truncate max-w-full">{file.name}</p>
+        <p className="opacity-40 md:text-sm">
+          {uploadedAt != null ? relativeDate(uploadedAt) : ""}
+        </p>
+      </div>
+    </div>
+  );
+
+  const actions = (
+    <div className="flex items-start gap-2 max-md:self-stretch">
+      <button
+        onClick={handlePlay}
+        aria-label={`Play ${file.name}`}
+        className="btn-surface max-md:flex-1 size-10 shrink-0 py-3.25"
+      >
+        <PlayIcon
+          size={20}
+          weight="fill"
+          color="var(--color-play)"
+          style={{ flexShrink: 0 }}
+        />
+      </button>
+      <button
+        onClick={onDelete}
+        aria-label={`Delete ${file.name}`}
+        className="btn-surface max-md:flex-1 size-10 shrink-0 py-3.25"
+      >
+        <TrashIcon
+          size={20}
+          weight="fill"
+          style={{ opacity: 0.4, flexShrink: 0 }}
+        />
+      </button>
+    </div>
+  );
+
   return (
     <article aria-label={file.name} className="self-stretch">
       {/* mobile */}
-      <div className="md:hidden flex items-end gap-4 p-4 h-full">
-        <div className="flex items-start gap-4 flex-col flex-1 min-w-0">
-          <div className="flex items-center gap-4 self-stretch">
-            <div className="flex items-center justify-center btn-surface p-2 rounded-full">
-              <NoteIcon filename={file.name} />
-            </div>
-            <div className="flex flex-col gap-2 w-full max-w-full overflow-clip min-w-0">
-              <p className="truncate max-w-full">{file.name}</p>
-              <p className="opacity-40">
-                {uploadedAt != null ? relativeDate(uploadedAt) : ""}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-start gap-2 self-stretch">
-            <button
-              onClick={handlePlay}
-              aria-label={`Play ${file.name}`}
-              className="btn-surface flex-1 h-10 py-3.25"
-            >
-              <PlayIcon
-                size={24}
-                weight="fill"
-                color="var(--color-play)"
-                style={{ flexShrink: 0 }}
-              />
-            </button>
-            <button
-              onClick={onDelete}
-              aria-label={`Delete ${file.name}`}
-              className="btn-surface flex-1 h-10 py-3.25"
-            >
-              <TrashIcon
-                size={20}
-                weight="fill"
-                style={{ opacity: 0.5, flexShrink: 0 }}
-              />
-            </button>
-          </div>
-        </div>
+      <div className="md:hidden flex flex-col gap-4 p-4">
+        <div className="flex items-center gap-4">{info}</div>
+        {actions}
       </div>
-
       {/* desktop */}
-      <div className="max-md:hidden flex items-center gap-8 p-6 relative">
-        <div className="flex items-center gap-4 w-full relative shrink-0">
-          <div className="btn-surface w-16 aspect-square rounded-full">
-            <NoteIcon filename={file.name} />
-          </div>
-          <div className="flex items-start gap-1 flex-col justify-end flex-1 overflow-hidden">
-            <p className="truncate max-w-full">{file.name}</p>
-            <p className="text-black/50 text-sm">
-              {uploadedAt != null ? relativeDate(uploadedAt) : ""}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-start gap-2 absolute top-1/2 right-6 -translate-y-1/2">
-          <button
-            onClick={handlePlay}
-            aria-label={`Play ${file.name}`}
-            className="btn-surface size-10 shrink-0 py-3.25"
-          >
-            <PlayIcon
-              size={20}
-              weight="fill"
-              color="var(--color-play)"
-              style={{ flexShrink: 0 }}
-            />
-          </button>
-          <button
-            onClick={onDelete}
-            aria-label={`Delete ${file.name}`}
-            className="btn-surface size-10 shrink-0 py-3.25"
-          >
-            <TrashIcon
-              size={20}
-              weight="fill"
-              style={{ opacity: 0.3, flexShrink: 0 }}
-            />
-          </button>
+      <div className="max-md:hidden flex items-center gap-4 p-6 relative">
+        {info}
+        <div className="absolute top-1/2 right-6 -translate-y-1/2 flex">
+          {actions}
         </div>
       </div>
     </article>
@@ -128,7 +99,11 @@ export function Landing() {
     try {
       await decodeFile(file);
       await cacheFile(file);
-      capture("file_uploaded", { filename: file.name, file_size: file.size, file_type: file.type });
+      capture("file_uploaded", {
+        filename: file.name,
+        file_size: file.size,
+        file_type: file.type,
+      });
     } catch (error) {
       captureException(error, { filename: file.name });
       throw error;
@@ -216,7 +191,7 @@ export function Landing() {
           <button
             disabled={isUploading}
             onClick={triggerUpload}
-            className="max-md:hidden flex overflow-clip items-center gap-2 px-5.5 h-18 justify-center self-stretch shadow-inset-dim bg-surface border-t border-border disabled:opacity-60 disabled:cursor-not-allowed hover:bg-surface-track transition-colors"
+            className="max-md:hidden flex overflow-clip items-center gap-2 px-5.5 min-h-18 justify-center self-stretch shadow-inset-dim bg-surface border-t border-border disabled:opacity-60 disabled:cursor-not-allowed hover:bg-surface-track transition-colors"
           >
             {isUploading ? (
               <SpinnerIcon
