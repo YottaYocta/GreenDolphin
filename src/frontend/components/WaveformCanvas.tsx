@@ -508,7 +508,7 @@ export const WaveformCanvas: FC<
             {positionReference && (
               <div
                 ref={positionHandleRef}
-                className="pointer-events-auto absolute bottom-1/4 translate-y-1/2 w-5 h-5.75 -translate-x-1/2 cursor-ew-resize rounded-sm bg-[#19CA93] border border-border [box-shadow:#FFFFFF80_0px_0px_3px_inset,#00000033_0px_2px_3px]"
+                className="pointer-events-auto absolute top-1/2 -translate-y-1/2 w-6 h-6 -translate-x-1/2 cursor-ew-resize rounded-sm bg-[#19CA93] border border-border [box-shadow:#FFFFFF80_0px_0px_3px_inset,#00000033_0px_2px_3px]"
                 style={{ display: "none" }}
                 onMouseDown={(e) => startPlayheadDrag(e.clientX)}
                 onTouchStart={(e) => {
@@ -556,7 +556,7 @@ const SectionHandle: FC<{
   onDragStart: (clientX: number) => void;
 }> = ({ pct, inBounds, onDragStart }) => (
   <div
-    className={`pointer-events-auto drop-shadow-(--shadow-drop) absolute top-1/2 -translate-y-1/2 w-7 h-8 max-h-8 -translate-x-1/2 btn-surface transition-opacity duration-200 ${inBounds ? "opacity-100" : "opacity-0"}`}
+    className={`pointer-events-auto drop-shadow-(--shadow-drop) absolute top-1/2 -translate-y-1/2 w-4 h-14 max-h-14 -translate-x-1/2 rounded-sm btn-surface cursor-ew-resize transition-opacity duration-200 ${inBounds ? "opacity-100" : "opacity-0"}`}
     style={{ left: `${pct}%` }}
     onMouseDown={(e) => onDragStart(e.clientX)}
     onTouchStart={(e) => {
