@@ -132,12 +132,7 @@ export function PlaybackControls() {
         </button>
         <button
           onClick={() => {
-            if (playState === "frozen") {
-              triggerAction("pause");
-            } else {
-              capture("audio_frozen");
-              triggerAction("freeze");
-            }
+            triggerAction("freeze");
           }}
           className={`btn-surface p-3 flex-1 self-stretch cursor-pointer ${playState === "frozen" ? "bg-freeze hover:bg-freeze-hover active:bg-freeze-active [box-shadow:var(--shadow-btn-colored)]" : ""}`}
         >
