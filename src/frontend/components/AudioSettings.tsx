@@ -29,7 +29,9 @@ export function AudioSettings() {
     const mode = session?.delayMode ?? "fixed";
     // loopDelay is always stored in seconds; convert back to % when restoring relative mode
     if (session && mode === "relative") {
-      return loopLength > 0 ? (playbackSettings.loopDelay / loopLength) * 100 : 0;
+      return loopLength > 0
+        ? (playbackSettings.loopDelay / loopLength) * 100
+        : 0;
     }
     return playbackSettings.loopDelay || 1;
   });
@@ -62,7 +64,10 @@ export function AudioSettings() {
         displayValue={String(Math.round(delayValue * 10) / 10)}
         onChange={(v) => {
           setDelayValue(v);
-          capture("loop_delay_changed", { delay_value: v, delay_mode: delayMode });
+          capture("loop_delay_changed", {
+            delay_value: v,
+            delay_mode: delayMode,
+          });
         }}
       />
       <AudioSlider

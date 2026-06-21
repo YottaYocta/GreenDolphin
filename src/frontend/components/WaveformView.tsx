@@ -6,7 +6,7 @@ import {
   type FC,
   type RefObject,
 } from "react";
-import { XCircleIcon, ArrowSquareLeftIcon } from "@phosphor-icons/react";
+import { XCircleIcon } from "@phosphor-icons/react";
 import {
   type WaveformData,
   type Section,
@@ -50,7 +50,6 @@ export const WaveformView: FC<WaveformViewProps> = ({
     },
     [onRangeChange],
   );
-
 
   const viewportRenderFunction: WaveformRenderFunction = useCallback(
     (
@@ -143,28 +142,6 @@ export const WaveformView: FC<WaveformViewProps> = ({
     handleSelection(undefined);
   }, [handleSelection]);
 
-  const handleBackUpSelection = useCallback(() => {
-    if (initialData.section) {
-      const sectionRange = initialData.section.end - initialData.section.start;
-      const targetStart = initialData.section.start - sectionRange;
-      const clampedStart = Math.max(targetStart, 0);
-      const targetEnd = clampedStart + sectionRange;
-      const clampedEnd = Math.min(initialData.data.length, targetEnd);
-      handleSelection({ start: clampedStart, end: clampedEnd });
-    }
-  }, [initialData.section, initialData.data.length, handleSelection]);
-
-  const handleAdvanceSelection = useCallback(() => {
-    if (initialData.section) {
-      const sectionRange = initialData.section.end - initialData.section.start;
-      const targetEnd = initialData.section.end + sectionRange;
-      const clampedEnd = Math.min(targetEnd, initialData.data.length);
-      const targetStart = clampedEnd - sectionRange;
-      const clampedStart = Math.max(0, targetStart);
-      handleSelection({ start: clampedStart, end: clampedEnd });
-    }
-  }, [initialData.section, initialData.data.length, handleSelection]);
-
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const { key } = e;
@@ -185,12 +162,6 @@ export const WaveformView: FC<WaveformViewProps> = ({
           e.preventDefault();
           handleClearSelection();
           break;
-        case "[":
-          handleBackUpSelection();
-          break;
-        case "]":
-          handleAdvanceSelection();
-          break;
         default:
           break;
       }
@@ -205,8 +176,6 @@ export const WaveformView: FC<WaveformViewProps> = ({
     handleScrollLeft,
     handleScrollRight,
     handleClearSelection,
-    handleBackUpSelection,
-    handleAdvanceSelection,
   ]);
 
   return (
@@ -215,46 +184,10 @@ export const WaveformView: FC<WaveformViewProps> = ({
       id="waveform-view"
     >
       {initialData.section && (
-        <div className="flex absolute top-2.25 left-2.75 z-10 items-center gap-4 p-2 rounded-lg bg-white border border-[#0000001A]">
-          <button
-            onClick={handleClearSelection}
-            title="Clear Selection (Escape)"
-            aria-label="Clear Selection"
-            className="cursor-pointer hover:opacity-70"
-          >
-            <XCircleIcon
-              size={24}
-              weight="fill"
-              color="var(--color-icon-subtle)"
-            />
+        <div className="flex absolute top-1 left-1 z-10 items-center">
+          <button onClick={handleClearSelection} className={`mode-btn px-2`}>
+            Clear loop
           </button>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleBackUpSelection}
-              title="Back Up Selection ([)"
-              aria-label="Back Up Selection"
-              className="cursor-pointer hover:opacity-70"
-            >
-              <ArrowSquareLeftIcon
-                size={24}
-                weight="fill"
-                color="var(--color-icon-subtle)"
-              />
-            </button>
-            <button
-              onClick={handleAdvanceSelection}
-              title="Advance Selection (])"
-              aria-label="Advance Selection"
-              className="cursor-pointer hover:opacity-70"
-            >
-              <ArrowSquareLeftIcon
-                size={24}
-                weight="fill"
-                color="var(--color-icon-subtle)"
-                style={{ transform: "scaleX(-1)" }}
-              />
-            </button>
-          </div>
         </div>
       )}
       <WaveformCanvas
