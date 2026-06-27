@@ -178,7 +178,15 @@ export function usePlaybackClock({
           });
       }
     },
-    [sampleRate, loop, loopDelay, playbackSpeed, playState, applyTransition, duration],
+    [
+      sampleRate,
+      loop,
+      loopDelay,
+      playbackSpeed,
+      playState,
+      applyTransition,
+      duration,
+    ],
   );
 
   useEffect(() => {

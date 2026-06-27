@@ -1,4 +1,5 @@
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { tinykeys } from "tinykeys";
 import {
   PauseIcon,
   PlayIcon,
@@ -57,34 +58,29 @@ export function PlaybackControls() {
   }, [playbackPosition, triggerAction]);
 
   useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "0") {
-        const currentStart = loop ? loop.start : 0;
-        triggerAction({ type: "move", position: currentStart });
-        triggerAction("play");
-      } else if (e.key === "p") {
-        if (playState === "paused" || playState === "frozen") {
+    return tinykeys(window, {
+      "0": () => {
+        triggerAction({ type: "move", position: 0 });
+      },
+      p: () => {
+        if (playState === "paused" || playState === "frozen")
           triggerAction("play");
-        } else {
-          triggerAction("pause");
-        }
-      } else if (e.key === "f") {
+        else triggerAction("pause");
+      },
+      f: () => {
         if (playState === "frozen") triggerAction("pause");
         else triggerAction("freeze");
-      }
-    };
-    window.addEventListener("keypress", handleKey);
-    return () => window.removeEventListener("keypress", handleKey);
-  }, [loop, playState, triggerAction]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "h") rewindFiveSeconds();
-      else if (e.key === "l") fastForwardFiveSeconds();
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [rewindFiveSeconds, fastForwardFiveSeconds]);
+      },
+      h: () => rewindFiveSeconds(),
+      l: () => fastForwardFiveSeconds(),
+    });
+  }, [
+    loop,
+    playState,
+    triggerAction,
+    rewindFiveSeconds,
+    fastForwardFiveSeconds,
+  ]);
 
   return (
     <div className="flex items-start gap-4 flex-col rounded-xl max-md:flex-1 bg-white border border-border [box-shadow:var(--shadow-panel)] p-4">

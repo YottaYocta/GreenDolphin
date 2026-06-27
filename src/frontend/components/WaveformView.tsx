@@ -6,6 +6,7 @@ import {
   type FC,
   type RefObject,
 } from "react";
+import { tinykeys } from "tinykeys";
 import {
   type WaveformData,
   type Section,
@@ -142,33 +143,13 @@ export const WaveformView: FC<WaveformViewProps> = ({
   }, [handleSelection]);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const { key } = e;
-      switch (key) {
-        case "j":
-          handleZoomOut();
-          break;
-        case "k":
-          handleZoomIn();
-          break;
-        case "H":
-          handleScrollLeft();
-          break;
-        case "L":
-          handleScrollRight();
-          break;
-        case "Escape":
-          e.preventDefault();
-          handleClearSelection();
-          break;
-        default:
-          break;
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
+    return tinykeys(window, {
+      "j": () => handleZoomOut(),
+      "k": () => handleZoomIn(),
+      "H": () => handleScrollLeft(),
+      "L": () => handleScrollRight(),
+      "Escape": (e) => { e.preventDefault(); handleClearSelection(); },
+    });
   }, [
     handleZoomIn,
     handleZoomOut,
