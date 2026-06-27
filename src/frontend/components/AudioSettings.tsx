@@ -154,21 +154,45 @@ const SettingsRow: FC<{
   </div>
 );
 
+export const NumericInput: FC<{
+  value: string;
+  onCommit: (v: number) => void;
+}> = ({ value, onCommit }) => {
+  const commit = (el: HTMLInputElement) => {
+    const n = parseFloat(el.value);
+    if (!isNaN(n) && n >= 0) {
+      onCommit(n);
+    } else {
+      el.value = value;
+    }
+  };
+
+  return (
+    <div className="flex items-center px-1 py-0.5 rounded-sm bg-surface-input cursor-text w-14 overflow-hidden">
+      <input
+        key={value}
+        defaultValue={value}
+        className="font-space-mono text-black text-base/5 tabular-nums bg-transparent outline-none w-full min-w-0 text-right"
+        onFocus={(e) => e.currentTarget.select()}
+        onBlur={(e) => commit(e.currentTarget)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") e.currentTarget.blur();
+          if (e.key === "Escape") {
+            e.currentTarget.value = value;
+            e.currentTarget.blur();
+          }
+        }}
+      />
+    </div>
+  );
+};
+
 const LoopDelayInput: FC<{
   mode: "fixed" | "relative";
   onModeChange: (mode: "fixed" | "relative") => void;
   displayValue: string;
   onChange: (v: number) => void;
 }> = ({ mode, onModeChange, displayValue, onChange }) => {
-  const commit = (el: HTMLInputElement) => {
-    const n = parseFloat(el.value);
-    if (!isNaN(n) && n >= 0) {
-      onChange(n);
-    } else {
-      el.value = displayValue;
-    }
-  };
-
   return (
     <SettingsRow
       label="Loop Delay"
@@ -187,22 +211,7 @@ const LoopDelayInput: FC<{
       }
       right={
         <div className="flex items-center gap-1.5  shrink-0">
-          <div className="flex items-center px-1 py-0.5 rounded-sm bg-surface-input cursor-text w-14 overflow-hidden">
-            <input
-              key={displayValue}
-              defaultValue={displayValue}
-              className="font-space-mono text-black text-base/5 tabular-nums bg-transparent outline-none w-full min-w-0 text-right"
-              onFocus={(e) => e.currentTarget.select()}
-              onBlur={(e) => commit(e.currentTarget)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") e.currentTarget.blur();
-                if (e.key === "Escape") {
-                  e.currentTarget.value = displayValue;
-                  e.currentTarget.blur();
-                }
-              }}
-            />
-          </div>
+          <NumericInput value={displayValue} onCommit={onChange} />
           <div className="text-black/50 text-sm w-4 shrink-0 flex items-center">
             {mode === "fixed" ? "s" : "%"}
           </div>

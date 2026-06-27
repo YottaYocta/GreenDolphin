@@ -8,6 +8,7 @@ import { useAlwaysAwake } from "./lib/useAlwaysAwake";
 import { AlwaysAwakeIndicator } from "./components/AlwaysAwakeIndicator";
 import { loadSession } from "./lib/useSessionPersistence";
 import { SessionRestorer } from "./SessionRestorer";
+import { DevDrawer } from "./components/DevDrawer";
 
 function AppView() {
   const { audio } = useContext(AudioStore);
@@ -49,12 +50,13 @@ export default function App() {
     );
   }
 
-  if (audio) return <AppView />;
+  if (audio) return <><AppView /><DevDrawer /></>;
 
   return (
     <>
       <SessionRestorer />
       <Landing />
+      <DevDrawer />
     </>
   );
 }
