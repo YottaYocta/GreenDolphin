@@ -83,8 +83,6 @@ export function reduce(
           case "playing":
             if (pos >= startMS && pos < endMS)
               return { nextState: "playing", nextPositionMS: pos };
-            else if (pos >= endMS && hasDelay)
-              return { nextState: "waiting", nextPositionMS: endMS };
             else return { nextState: "playing", nextPositionMS: startMS };
 
           case "waiting":
