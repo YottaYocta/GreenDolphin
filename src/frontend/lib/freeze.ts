@@ -18,7 +18,6 @@ function granularFreeze(
   regionSamples: number,
   grainSamples: number,
   density: number,
-  pitchJitterCents: number,
   outputSamples: number,
 ): Float32Array {
   const region = new Float32Array(regionSamples);
@@ -35,13 +34,10 @@ function granularFreeze(
     const maxStart = Math.max(0, regionSamples - grainSamples);
     const startInRegion = Math.floor(Math.random() * (maxStart + 1));
 
-    const cents = (Math.random() * 2 - 1) * pitchJitterCents;
-    const rate = Math.pow(2, cents / 1200);
-
-    const outGrainLen = Math.floor(grainSamples / rate);
+    const outGrainLen = grainSamples;
 
     for (let i = 0; i < outGrainLen; i++) {
-      const readPos = startInRegion + i * rate;
+      const readPos = startInRegion + i;
       const i0 = Math.floor(readPos);
       const i1 = i0 + 1;
       if (i1 >= regionSamples) break;
@@ -60,18 +56,6 @@ function granularFreeze(
     }
   }
 
-  let peak = 0;
-  for (let i = 0; i < outputSamples; i++) {
-    const abs = Math.abs(output[i]);
-    if (abs > peak) peak = abs;
-  }
-  if (peak > 0) {
-    const gain = 0.85 / peak;
-    for (let i = 0; i < outputSamples; i++) {
-      output[i] *= gain;
-    }
-  }
-
   return output;
 }
 
@@ -81,26 +65,36 @@ export function buildFreezeBuffer(
   context: AudioContext,
 ): AudioBuffer {
   const sr = audioBuffer.sampleRate;
-  const regionSamples = Math.round(0.1 * sr);
-  const grainSamples = Math.round(0.075 * sr);
+  const regionSamples = Math.round(0.25 * sr);
+  const grainSamples = Math.round(0.15 * sr);
   const outputSamples = Math.round(6 * sr);
   const density = 20;
-  const pitchJitterCents = 6;
 
   const numChannels = audioBuffer.numberOfChannels;
   const outputBuffer = context.createBuffer(numChannels, outputSamples, sr);
 
-  for (let ch = 0; ch < numChannels; ch++) {
-    const frozen = granularFreeze(
+  const channels = Array.from({ length: numChannels }, (_, ch) =>
+    granularFreeze(
       audioBuffer.getChannelData(ch),
       centerSample,
       regionSamples,
       grainSamples,
       density,
-      pitchJitterCents,
       outputSamples,
-    );
-    outputBuffer.getChannelData(ch).set(frozen);
+    ),
+  );
+
+  const TARGET = 0.5;
+  let peak = 0;
+  for (const ch of channels)
+    for (let i = 0; i < ch.length; i++) {
+      const abs = Math.abs(ch[i]);
+      if (abs > peak) peak = abs;
+    }
+  const gain = peak > 0 ? TARGET / peak : 1;
+  for (const ch of channels) {
+    for (let i = 0; i < ch.length; i++) ch[i] *= gain;
+    outputBuffer.getChannelData(channels.indexOf(ch)).set(ch);
   }
 
   return outputBuffer;
