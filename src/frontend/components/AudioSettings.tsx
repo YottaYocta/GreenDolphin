@@ -75,14 +75,18 @@ export function AudioSettings() {
         value={pitchShift}
         min={-12}
         max={12}
-        step={0.2}
+        step={0.1}
         onChange={(v) => {
-          const rounded = Math.round(v * 10) / 10;
-          setAudioSettings({ pitchShift: rounded });
-          capture("pitch_adjusted", { pitch_shift: rounded });
+          setAudioSettings({ pitchShift: v });
+          capture("pitch_adjusted", { pitch_shift: v });
         }}
-        formatValue={(v) => `${Math.round(v * 10) / 10}`}
-        unit={"#"}
+        formatValue={(v) => `${v > 0 ? "+" : ""}${Math.round(v * 10) / 10}`}
+        unit="#"
+        onCommit={(v) => {
+          setAudioSettings({ pitchShift: Math.round(v * 10) / 10 });
+          capture("pitch_adjusted", { pitch_shift: v });
+        }}
+        signed
       />
       <AudioSlider
         label="Speed"
@@ -157,10 +161,11 @@ const SettingsRow: FC<{
 export const NumericInput: FC<{
   value: string;
   onCommit: (v: number) => void;
-}> = ({ value, onCommit }) => {
+  signed?: boolean;
+}> = ({ value, onCommit, signed }) => {
   const commit = (el: HTMLInputElement) => {
-    const n = parseFloat(el.value);
-    if (!isNaN(n) && n >= 0) {
+    const n = parseFloat(el.value.replace(/^\+/, ""));
+    if (!isNaN(n) && (signed || n >= 0)) {
       onCommit(n);
     } else {
       el.value = value;
@@ -230,7 +235,9 @@ const AudioSlider: FC<{
   onChange: (v: number) => void;
   formatValue: (v: number) => string;
   unit: React.ReactNode;
-}> = ({ label, value, min, max, step, onChange, formatValue, unit }) => {
+  onCommit?: (v: number) => void;
+  signed?: boolean;
+}> = ({ label, value, min, max, step, onChange, formatValue, unit, onCommit, signed }) => {
   const trackRef = useRef<HTMLDivElement>(null);
 
   const setValue = (clientX: number) => {
@@ -273,11 +280,19 @@ const AudioSlider: FC<{
       }
       right={
         <div className="flex items-center gap-1.5  shrink-0">
-          <div className="flex items-center px-1 py-0.5 rounded-sm bg-surface-input w-14">
-            <span className="font-space-mono text-black text-base/5 tabular-nums w-full text-right">
-              {formatValue(value)}
-            </span>
-          </div>
+          {onCommit ? (
+            <NumericInput
+              value={formatValue(value)}
+              onCommit={(v) => onCommit(Math.max(min, Math.min(max, v)))}
+              signed={signed}
+            />
+          ) : (
+            <div className="flex items-center px-1 py-0.5 rounded-sm bg-surface-input w-14">
+              <span className="font-space-mono text-black text-base/5 tabular-nums w-full text-right">
+                {formatValue(value)}
+              </span>
+            </div>
+          )}
           <div className="text-black/50 text-sm w-4 shrink-0 flex items-center">
             {unit}
           </div>

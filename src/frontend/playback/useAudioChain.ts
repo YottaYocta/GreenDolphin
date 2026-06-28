@@ -50,6 +50,7 @@ export function useAudioChain({
     analyzer.fftSize = ANALYZER_BUFFER_LENGTH;
 
     const soundTouch = new SoundTouchNode({ context });
+    soundTouch.setStretchParameters({ overlapMs: 4 });
     const gainNode = context.createGain();
 
     soundTouch.connect(gainNode);
