@@ -101,6 +101,11 @@ export function AudioSettings() {
         }}
         formatValue={(v) => `${Math.round(v * 100)}`}
         unit="%"
+        onCommit={(v) => {
+          const rounded = Math.max(10, Math.min(190, Math.round(v))) / 100;
+          setAudioSettings({ playbackSpeed: rounded });
+          capture("speed_adjusted", { playback_speed: rounded });
+        }}
       />
       <AudioSlider
         label="Volume"
@@ -111,6 +116,7 @@ export function AudioSettings() {
         onChange={(v) => setRenderedGain(Math.round(v * 10) / 10)}
         formatValue={(v) => `${Math.round(v * 100)}`}
         unit="%"
+        onCommit={(v) => setRenderedGain(Math.max(0, Math.min(200, Math.round(v))) / 100)}
       />
     </>
   );
@@ -283,7 +289,7 @@ const AudioSlider: FC<{
           {onCommit ? (
             <NumericInput
               value={formatValue(value)}
-              onCommit={(v) => onCommit(Math.max(min, Math.min(max, v)))}
+              onCommit={onCommit}
               signed={signed}
             />
           ) : (
