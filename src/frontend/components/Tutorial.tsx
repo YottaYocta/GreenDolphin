@@ -1,13 +1,14 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
   type FC,
   type ReactNode,
 } from "react";
-import { Button } from "./buttons";
+import { ArrowRightIcon } from "@phosphor-icons/react";
 export interface TutorialStep {
   htmlSelector: string;
   contents: ReactNode;
@@ -25,13 +26,14 @@ export const Tutorial: FC<TutorialProps> = ({
   const HIGHLIGHT_OFFSET = 8;
 
   const [currentStepIndex, setCurrentStepIndex] = useState<number | null>(
-    steps.length > 0 ? 0 : null
+    steps.length > 0 ? 0 : null,
   );
 
   useEffect(() => {
     if (steps.length === 0) setCurrentStepIndex(null);
-    else setCurrentStepIndex(0);
-  }, [steps]);
+    else if (currentStepIndex !== null && currentStepIndex >= steps.length)
+      setCurrentStepIndex(null);
+  }, [currentStepIndex, steps]);
 
   useEffect(() => {
     if (handleTutorialFinished && currentStepIndex === null)
@@ -44,7 +46,7 @@ export const Tutorial: FC<TutorialProps> = ({
     } else return null;
   }, [currentStepIndex, steps]);
 
-  const popupRef = useRef<HTMLDivElement>(null);
+  const [popupBelow, setPopupBelow] = useState(true);
   const highlightRef = useRef<HTMLDivElement>(null);
 
   const advanceStep = (amount: number) => {
@@ -61,43 +63,20 @@ export const Tutorial: FC<TutorialProps> = ({
   };
 
   const updateContainerRef = useCallback(() => {
-    if (popupRef.current && highlightRef.current && currentStep) {
+    if (highlightRef.current && currentStep) {
       const selection = document.querySelector(currentStep.htmlSelector);
       if (selection instanceof HTMLElement) {
         const rect = selection.getBoundingClientRect();
-
-        const topHeight = rect.top;
-        const bottomHeight = window.innerHeight - rect.bottom;
-        const minLeft = HIGHLIGHT_OFFSET;
-        const maxLeft =
-          window.innerWidth - popupRef.current.offsetWidth - HIGHLIGHT_OFFSET;
-        popupRef.current.style.left = `${Math.max(
-          Math.min(
-            maxLeft,
-            rect.left + rect.width / 2 - popupRef.current.clientWidth / 2
-          ),
-          minLeft
-        )}px`;
-
-        popupRef.current.style.top = `${
-          topHeight > bottomHeight
-            ? rect.top - 2 * HIGHLIGHT_OFFSET - popupRef.current.offsetHeight
-            : rect.top + rect.height + 2 * HIGHLIGHT_OFFSET
-        }px`;
-
+        setPopupBelow(rect.top <= window.innerHeight - rect.bottom);
         highlightRef.current.style.left = `${rect.left - HIGHLIGHT_OFFSET}px`;
         highlightRef.current.style.top = `${rect.top - HIGHLIGHT_OFFSET}px`;
-        highlightRef.current.style.width = `${
-          rect.width + HIGHLIGHT_OFFSET * 2
-        }px`;
-        highlightRef.current.style.height = `${
-          rect.height + HIGHLIGHT_OFFSET * 2
-        }px`;
+        highlightRef.current.style.width = `${rect.width + HIGHLIGHT_OFFSET * 2}px`;
+        highlightRef.current.style.height = `${rect.height + HIGHLIGHT_OFFSET * 2}px`;
       }
     }
   }, [currentStep]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     updateContainerRef();
     window.addEventListener("resize", updateContainerRef);
     return () => {
@@ -109,38 +88,38 @@ export const Tutorial: FC<TutorialProps> = ({
     <>
       <div
         ref={highlightRef}
-        className="border-4 border-emerald-500 border-dashed pointer-events-none fixed z-50 animate-ping-custom"
-      ></div>
-      <div
-        ref={popupRef}
-        className="fixed min-w-16 min-h-4 bg-white border border-neutral-2 z-50 max-w-64 p-2 flex flex-col gap-4 shadow-sm"
+        className="border-4 border-emerald-500 rounded-sm fixed z-50 pointer-events-none"
       >
-        {currentStep.contents}
-        <div className="flex items-center justify-between gap-2">
-          <Button
-            onClick={() => {
-              setCurrentStepIndex(null);
-            }}
-            text="Skip"
-          ></Button>
-          <div className="flex items-center gap-2">
-            {currentStepIndex !== null && currentStepIndex > 0 ? (
-              <Button text="Previous" onClick={() => advanceStep(-1)}></Button>
-            ) : (
-              <></>
-            )}
-            <Button
-              onClick={() => {
-                advanceStep(1);
-              }}
-              className="positive-button"
-              text={
-                currentStepIndex !== null &&
-                currentStepIndex === steps.length - 1
-                  ? "Finish"
-                  : "Next"
-              }
-            ></Button>
+        <div
+          className={`absolute left-1/2 -translate-x-1/2 w-min min-w-64 flex flex-col rounded-xl overflow-clip bg-white border border-[#0000001A] [box-shadow:var(--shadow-menu)] ${popupBelow ? "top-full mt-4" : "bottom-full mb-4"} pointer-events-auto`}
+        >
+          <div className="p-4 w-full">{currentStep.contents}</div>
+          <div className="flex items-center gap-2 px-2 py-2 w-full justify-between">
+            <button
+              onClick={() => setCurrentStepIndex(null)}
+              className="btn-surface px-3 py-1 rounded-md cursor-pointer text-sm"
+            >
+              Skip
+            </button>
+            <button
+              onClick={() => advanceStep(-1)}
+              className={`btn-surface px-3 py-1 rounded-md text-sm ${currentStepIndex !== null && currentStepIndex > 0 ? "cursor-pointer" : "opacity-0 pointer-events-none"}`}
+            >
+              Back
+            </button>
+            <span className="text-xs opacity-70 px-3 py-1 bg-neutral-100 rounded-full whitespace-nowrap">
+              {(currentStepIndex ?? 0) + 1} / {steps.length}
+            </span>
+            <button
+              onClick={() => advanceStep(1)}
+              className="btn-surface px-3 py-1 rounded-md cursor-pointer text-sm flex items-center gap-1 bg-play hover:bg-play-hover active:bg-play-active [box-shadow:var(--shadow-btn-colored)] text-white"
+            >
+              {currentStepIndex !== null &&
+              currentStepIndex === steps.length - 1
+                ? "Finish"
+                : "Next"}
+              <ArrowRightIcon size={13} weight="fill" />
+            </button>
           </div>
         </div>
       </div>
