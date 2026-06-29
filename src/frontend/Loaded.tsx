@@ -1,4 +1,5 @@
 import { useCallback, useContext, useEffect, useState } from "react";
+import { InfoIcon } from "@phosphor-icons/react";
 import { useDebounce } from "./lib/useDebounce";
 import { Tutorial } from "./components/Tutorial";
 import { PianoRoll } from "./components/PianoRoll";
@@ -18,8 +19,11 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
   if (!audio) throw new Error("Loaded must be rendered within an audio route");
   const { buffer: data, filename } = audio;
 
-  const { isFirstVisit: showTutorial, markVisited: markTutorialShown } =
-    useFirstVisit();
+  const {
+    isFirstVisit: showTutorial,
+    markVisited: markTutorialShown,
+    resetVisit: retriggerTutorial,
+  } = useFirstVisit();
 
   useEffect(() => {
     onMounted?.();
@@ -98,6 +102,16 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
           <AudioSettings />
         </div>
       </div>
+
+      {!showTutorial && (
+        <button
+          onClick={retriggerTutorial}
+          aria-label="Restart tutorial"
+          className="fixed top-3 left-4 z-50 cursor-pointer bg-transparent border-0 p-0"
+        >
+          <InfoIcon size={20} color="#a3a3a3" weight="fill" />
+        </button>
+      )}
 
       {showTutorial && (
         <Tutorial

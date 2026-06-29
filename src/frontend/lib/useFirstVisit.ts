@@ -12,5 +12,10 @@ export function useFirstVisit() {
     setIsFirstVisit(false);
   }, []);
 
-  return { isFirstVisit, markVisited };
+  const resetVisit = useCallback(() => {
+    localStorage.removeItem(FIRST_VISIT_KEY);
+    setIsFirstVisit(true);
+  }, []);
+
+  return { isFirstVisit, markVisited, resetVisit };
 }
