@@ -198,6 +198,7 @@ export function PianoRoll() {
 
   return (
     <div
+      id="piano"
       ref={scrollRef}
       className="self-stretch overflow-x-auto shrink-0 "
       onMouseDown={(e) => {

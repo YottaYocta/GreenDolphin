@@ -448,6 +448,7 @@ export const WaveformCanvas: FC<
       className="flex flex-col pixelated select-none relative"
     >
       <canvas
+        id="waveform-canvas"
         {...props}
         ref={canvasRef}
         draggable="false"
@@ -518,6 +519,7 @@ export const WaveformCanvas: FC<
             )}
           </div>
           <div
+            id="waveform-nav"
             className="relative w-full min-h-16 cursor-grab select-none flex items-center justify-center overflow-hidden bg-surface shadow-(--shadow-inset) border-t border-border"
             onMouseDown={(e) => {
               dragDistanceRef.current = 0;

@@ -31,8 +31,9 @@ export const Tutorial: FC<TutorialProps> = ({
 
   useEffect(() => {
     if (steps.length === 0) setCurrentStepIndex(null);
-    else setCurrentStepIndex(0);
-  }, [steps]);
+    else if (currentStepIndex !== null && currentStepIndex >= steps.length)
+      setCurrentStepIndex(null);
+  }, [currentStepIndex, steps]);
 
   useEffect(() => {
     if (handleTutorialFinished && currentStepIndex === null)
@@ -87,10 +88,10 @@ export const Tutorial: FC<TutorialProps> = ({
     <>
       <div
         ref={highlightRef}
-        className="border-4 border-emerald-500 rounded-sm fixed z-50"
+        className="border-4 border-emerald-500 rounded-sm fixed z-50 pointer-events-none"
       >
         <div
-          className={`absolute left-1/2 -translate-x-1/2 w-min min-w-64 flex flex-col rounded-xl overflow-clip bg-white border border-[#0000001A] [box-shadow:var(--shadow-menu)] ${popupBelow ? "top-full mt-4" : "bottom-full mb-4"}`}
+          className={`absolute left-1/2 -translate-x-1/2 w-min min-w-64 flex flex-col rounded-xl overflow-clip bg-white border border-[#0000001A] [box-shadow:var(--shadow-menu)] ${popupBelow ? "top-full mt-4" : "bottom-full mb-4"} pointer-events-auto`}
         >
           <div className="p-4 w-full">{currentStep.contents}</div>
           <div className="flex items-center gap-2 px-2 py-2 w-full justify-between">
@@ -113,7 +114,8 @@ export const Tutorial: FC<TutorialProps> = ({
               onClick={() => advanceStep(1)}
               className="btn-surface px-3 py-1 rounded-md cursor-pointer text-sm flex items-center gap-1 bg-play hover:bg-play-hover active:bg-play-active [box-shadow:var(--shadow-btn-colored)] text-white"
             >
-              {currentStepIndex !== null && currentStepIndex === steps.length - 1
+              {currentStepIndex !== null &&
+              currentStepIndex === steps.length - 1
                 ? "Finish"
                 : "Next"}
               <ArrowRightIcon size={13} weight="fill" />

@@ -121,21 +121,24 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
           }}
           steps={[
             {
-              htmlSelector: "#waveform-view",
-              contents: (
-                <p>
-                  Click to set playback position. Drag to select a loop region.
-                  Scroll to zoom. Pan strip to move around.
-                </p>
-              ),
+              htmlSelector: "#waveform-canvas",
+              contents: <p>Click to set playback position</p>,
             },
             {
-              htmlSelector: "#waveform-controls",
-              contents: (
-                <p>
-                  Use these controls to zoom and scroll around the recording.
-                </p>
-              ),
+              htmlSelector: "#waveform-canvas",
+              contents: <p>Drag to select a loop</p>,
+            },
+            {
+              htmlSelector: "#waveform-canvas",
+              contents: <p>Pinch to zoom in/out</p>,
+            },
+            {
+              htmlSelector: "#waveform-nav",
+              contents: <p>Drag to scroll forward/backward</p>,
+            },
+            {
+              htmlSelector: "#piano",
+              contents: <p>Click on piano to play note</p>,
             },
           ]}
         />
