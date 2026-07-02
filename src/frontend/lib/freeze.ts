@@ -73,10 +73,15 @@ export function buildFreezeBuffer(
   const numChannels = audioBuffer.numberOfChannels;
   const outputBuffer = context.createBuffer(numChannels, outputSamples, sr);
 
+  const clampedCenter = Math.max(
+    Math.ceil(regionSamples / 2),
+    Math.min(audioBuffer.length - Math.ceil(regionSamples / 2), centerSample),
+  );
+
   const channels = Array.from({ length: numChannels }, (_, ch) =>
     granularFreeze(
       audioBuffer.getChannelData(ch),
-      centerSample,
+      clampedCenter,
       regionSamples,
       grainSamples,
       density,
@@ -91,7 +96,7 @@ export function buildFreezeBuffer(
       const abs = Math.abs(ch[i]);
       if (abs > peak) peak = abs;
     }
-  const gain = peak > 0 ? TARGET / peak : 1;
+  const gain = peak > TARGET ? TARGET / peak : 1;
   for (const ch of channels) {
     for (let i = 0; i < ch.length; i++) ch[i] *= gain;
     outputBuffer.getChannelData(channels.indexOf(ch)).set(ch);
