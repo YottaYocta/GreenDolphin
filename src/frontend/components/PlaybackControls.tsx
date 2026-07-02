@@ -57,16 +57,22 @@ export function PlaybackControls() {
     });
   }, [playbackPosition, triggerAction]);
 
+  const togglePlay = useCallback(() => {
+    if (playState === "paused" || playState === "frozen")
+      triggerAction("play");
+    else triggerAction("pause");
+  }, [playState, triggerAction]);
+
   useEffect(() => {
     return tinykeys(window, {
       "0": () => {
         triggerAction({ type: "move", position: 0 });
       },
-      p: () => {
-        if (playState === "paused" || playState === "frozen")
-          triggerAction("play");
-        else triggerAction("pause");
+      Space: (e) => {
+        e.preventDefault();
+        togglePlay();
       },
+      p: () => togglePlay(),
       f: () => {
         triggerAction("freeze");
       },
@@ -77,6 +83,7 @@ export function PlaybackControls() {
     loop,
     playState,
     triggerAction,
+    togglePlay,
     rewindFiveSeconds,
     fastForwardFiveSeconds,
   ]);
