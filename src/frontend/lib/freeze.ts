@@ -89,7 +89,7 @@ export function buildFreezeBuffer(
     ),
   );
 
-  const TARGET = 0.5;
+  const TARGET = 0.3;
   let peak = 0;
   for (const ch of channels)
     for (let i = 0; i < ch.length; i++) {
