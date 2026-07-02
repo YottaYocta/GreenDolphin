@@ -8,6 +8,7 @@ const OCTAVE_COUNT = 7;
 const TOTAL_SEMITONES = OCTAVE_COUNT * 12;
 const PIANO_WIDTH_PX = OCTAVE_COUNT * 101;
 const BAR_AREA_H_PX = 56;
+const TONE_GAIN_DB = -10;
 
 function amplitudeToHeight(v: number, idx: number): number {
   const intensity = Math.min(140, v + 140);
@@ -85,6 +86,7 @@ export function PianoRoll() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const pianoRef = useRef<HTMLDivElement>(null);
   const oscRef = useRef<OscillatorNode | null>(null);
+  const oscGainRef = useRef<GainNode | null>(null);
   const activeKeyRef = useRef<number | null>(null);
   const isDraggingRef = useRef(false);
   const startScrollLeftRef = useRef(0);
@@ -119,6 +121,8 @@ export function PianoRoll() {
   const stopTone = useCallback(() => {
     oscRef.current?.stop();
     oscRef.current = null;
+    oscGainRef.current?.disconnect();
+    oscGainRef.current = null;
     activeKeyRef.current = null;
   }, []);
 
@@ -128,13 +132,18 @@ export function PianoRoll() {
       const dest = playback?.analyserNode;
       if (!ctx || !dest || idx === activeKeyRef.current) return;
       oscRef.current?.stop();
+      oscGainRef.current?.disconnect();
+      const gain = ctx.createGain();
+      gain.gain.value = Math.pow(10, TONE_GAIN_DB / 20);
+      gain.connect(dest);
       const osc = ctx.createOscillator();
       osc.type = "sine";
       const bucket = PITCH_BUCKETS[idx];
       osc.frequency.value = (bucket.start + bucket.end) / 2;
-      osc.connect(dest);
+      osc.connect(gain);
       osc.start();
       oscRef.current = osc;
+      oscGainRef.current = gain;
       activeKeyRef.current = idx;
     },
     [playback?.audioContext, playback?.analyserNode],
