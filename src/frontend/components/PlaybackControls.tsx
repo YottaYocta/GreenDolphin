@@ -68,8 +68,7 @@ export function PlaybackControls() {
         else triggerAction("pause");
       },
       f: () => {
-        if (playState === "frozen") triggerAction("pause");
-        else triggerAction("freeze");
+        triggerAction("freeze");
       },
       h: () => rewindFiveSeconds(),
       l: () => fastForwardFiveSeconds(),
