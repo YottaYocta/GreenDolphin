@@ -93,11 +93,10 @@ export function AudioSettings() {
         value={playbackSpeed}
         min={0.1}
         max={1.9}
-        step={0.1}
+        step={0.01}
         onChange={(v) => {
-          const rounded = Math.round(v * 10) / 10;
-          setAudioSettings({ playbackSpeed: rounded });
-          capture("speed_adjusted", { playback_speed: rounded });
+          setAudioSettings({ playbackSpeed: v });
+          capture("speed_adjusted", { playback_speed: v });
         }}
         formatValue={(v) => `${Math.round(v * 100)}`}
         unit="%"
@@ -112,8 +111,8 @@ export function AudioSettings() {
         value={renderedGain}
         min={0}
         max={2}
-        step={0.1}
-        onChange={(v) => setRenderedGain(Math.round(v * 10) / 10)}
+        step={0.01}
+        onChange={(v) => setRenderedGain(v)}
         formatValue={(v) => `${Math.round(v * 100)}`}
         unit="%"
         onCommit={(v) => setRenderedGain(Math.max(0, Math.min(200, Math.round(v))) / 100)}
