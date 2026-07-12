@@ -4,15 +4,15 @@ import { useDebounce } from "./lib/useDebounce";
 import { Tutorial } from "./components/Tutorial";
 import { PianoRoll } from "./components/PianoRoll";
 import { PlaybackContext } from "./playback/PlaybackContext";
-import { WaveformView } from "./components/WaveformView";
 import { AudioStore } from "./AudioStore";
 import { useFirstVisit } from "./lib/useFirstVisit";
 import { PlaybackControls } from "./components/PlaybackControls";
 import { AudioSettings } from "./components/AudioSettings";
 import { TitleBar } from "./components/TitleBar";
-import { loadSession, saveSession } from "./lib/useSessionPersistence";
+import { saveSession } from "./lib/useSessionPersistence";
 import type { Section } from "./lib/waveform";
 import { capture } from "./lib/posthog";
+import { WaveformCanvasV2 } from "./components/WaveformCanvas/WaveformCanvasV2";
 
 export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
   const { audio } = useContext(AudioStore);
@@ -42,13 +42,6 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
     playbackSettings,
     setAudioSettings,
   } = playback;
-  const { loop } = playbackSettings;
-
-  const [waveformRange] = useState(() => {
-    const session = loadSession();
-    const matched = session?.filename === filename ? session : null;
-    return matched?.waveformRange ?? { start: 0, end: data.length };
-  });
 
   useEffect(() => {
     saveSession({ filename, audioSettings: playbackSettings });
@@ -78,22 +71,16 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
         <div className="flex flex-col rounded-xl overflow-x-hidden overflow-y-clip self-stretch [box-shadow:var(--shadow-panel)] bg-white border border-border">
           <PianoRoll />
           <div className="border-t border-border max-md:grow">
-            <WaveformView
-              initialData={{
-                data: data,
-                range: { start: 0, end: data.length },
-                section: loop,
-              }}
-              initialRange={waveformRange}
-              positionReference={playbackPosition}
-              animate={true}
+            <WaveformCanvasV2
+              waveformData={data}
               handlePosition={handlePosition}
+              handleRangeChange={handleRangeChange}
               handleSelection={(section) => {
                 setAudioSettings({ loop: section });
-                if (section) capture("loop_region_set");
+                capture("loop_region_set");
               }}
-              onRangeChange={handleRangeChange}
-            />
+              positionReference={playbackPosition}
+            ></WaveformCanvasV2>
           </div>
         </div>
 
