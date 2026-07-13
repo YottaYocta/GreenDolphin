@@ -11,6 +11,7 @@ import {
 import { type Section } from "../../lib/waveform";
 import type { WaveformMetadata } from "./types";
 import { useAnimateWaveform } from "./useAnimateWaveform";
+import { useMouseDown } from "./useMouseDown";
 import { useWheel } from "./useWheel";
 
 export type WaveformRenderFunction = (
@@ -30,7 +31,13 @@ export interface WaveformCanvasProps {
 
 export const WaveformCanvasV2: FC<
   WaveformCanvasProps & CanvasHTMLAttributes<HTMLCanvasElement>
-> = ({ waveformData, positionReference, handleRangeChange, ...props }) => {
+> = ({
+  waveformData,
+  positionReference,
+  handleRangeChange,
+  handlePosition,
+  ...props
+}) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const [metadata, setMetadata] = useState<WaveformMetadata>({
@@ -57,7 +64,15 @@ export const WaveformCanvasV2: FC<
     [handleRangeChange, metadata],
   );
 
+  const handleSetPosition = useCallback(
+    (position: number) => {
+      handlePosition?.(position);
+    },
+    [handlePosition],
+  );
+
   useWheel(waveformData, metadata, canvasRef, handleRange);
+  useMouseDown(waveformData, metadata, canvasRef, handleRange, handleSetPosition);
   useAnimateWaveform(canvasRef, waveformData, metadata, positionReference);
 
   return (
