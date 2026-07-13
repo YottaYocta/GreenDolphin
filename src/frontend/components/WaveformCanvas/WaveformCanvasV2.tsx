@@ -12,6 +12,7 @@ import { type Section } from "../../lib/waveform";
 import type { WaveformMetadata } from "./types";
 import { useAnimateWaveform } from "./useAnimateWaveform";
 import { useMouseDown } from "./useMouseDown";
+import { useTouch } from "./useTouch";
 import { useWheel } from "./useWheel";
 
 export type WaveformRenderFunction = (
@@ -73,6 +74,7 @@ export const WaveformCanvasV2: FC<
 
   useWheel(waveformData, metadata, canvasRef, handleRange);
   useMouseDown(waveformData, metadata, canvasRef, handleRange, handleSetPosition);
+  useTouch(waveformData, metadata, canvasRef, handleRange, handleSetPosition);
   useAnimateWaveform(canvasRef, waveformData, metadata, positionReference);
 
   return (
