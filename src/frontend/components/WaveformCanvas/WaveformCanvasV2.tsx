@@ -2,7 +2,6 @@ import {
   useCallback,
   useEffect,
   useRef,
-  useState,
   type CanvasHTMLAttributes,
   type FC,
   type RefObject,
@@ -41,28 +40,22 @@ export const WaveformCanvasV2: FC<
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const [metadata, setMetadata] = useState<WaveformMetadata>({
-    range: {
-      start: 0,
-      end: waveformData.length,
-    },
+  const metadataRef = useRef<WaveformMetadata>({
+    range: { start: 0, end: waveformData.length },
   });
 
   useEffect(() => {
-    setMetadata({
-      range: {
-        start: 0,
-        end: waveformData.length,
-      },
-    });
+    metadataRef.current = {
+      range: { start: 0, end: waveformData.length },
+    };
   }, [waveformData]);
 
   const handleRange = useCallback(
     (range: Section) => {
+      metadataRef.current = { ...metadataRef.current, range };
       handleRangeChange?.(range);
-      setMetadata({ ...metadata, range });
     },
-    [handleRangeChange, metadata],
+    [handleRangeChange],
   );
 
   const handleSetPosition = useCallback(
@@ -72,10 +65,22 @@ export const WaveformCanvasV2: FC<
     [handlePosition],
   );
 
-  useWheel(waveformData, metadata, canvasRef, handleRange);
-  useMouseDown(waveformData, metadata, canvasRef, handleRange, handleSetPosition);
-  useTouch(waveformData, metadata, canvasRef, handleRange, handleSetPosition);
-  useAnimateWaveform(canvasRef, waveformData, metadata, positionReference);
+  useWheel(waveformData, metadataRef, canvasRef, handleRange);
+  useMouseDown(
+    waveformData,
+    metadataRef,
+    canvasRef,
+    handleRange,
+    handleSetPosition,
+  );
+  useTouch(
+    waveformData,
+    metadataRef,
+    canvasRef,
+    handleRange,
+    handleSetPosition,
+  );
+  useAnimateWaveform(canvasRef, waveformData, metadataRef, positionReference);
 
   return (
     <canvas

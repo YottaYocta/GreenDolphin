@@ -35,7 +35,7 @@ const findTouch = (list: TouchList, id: number): Touch | null => {
 
 export const useTouch = (
   audioBuffer: AudioBuffer,
-  metadata: WaveformMetadata,
+  metadataRef: RefObject<WaveformMetadata>,
   canvasRef: RefObject<HTMLCanvasElement | null>,
   handleRange: (range: Section) => void,
   handleSetPosition: (position: number) => void,
@@ -56,7 +56,7 @@ export const useTouch = (
       e.preventDefault();
       if (e.touches.length === 0) return;
 
-      const { range } = metadata;
+      const { range } = metadataRef.current;
       const first = e.touches[0];
       const initialRangeStart = range.start;
       const initialRange = range.end - range.start;
@@ -72,7 +72,8 @@ export const useTouch = (
       let dragged = false;
 
       const enterPinch = (touches: TouchList) => {
-        const a = findTouch(touches, (phase as { id: number }).id) ?? touches[0];
+        const a =
+          findTouch(touches, (phase as { id: number }).id) ?? touches[0];
         let b: Touch | null = null;
         for (let i = 0; i < touches.length; i++) {
           if (touches[i].identifier !== a.identifier) {
@@ -189,7 +190,7 @@ export const useTouch = (
     };
   }, [
     audioBuffer,
-    metadata,
+    metadataRef,
     canvasRef,
     handleRange,
     handleSetPosition,

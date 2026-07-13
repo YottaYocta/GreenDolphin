@@ -6,7 +6,7 @@ import type { WaveformMetadata } from "./types";
 
 export const useMouseDown = (
   audioBuffer: AudioBuffer,
-  metadata: WaveformMetadata,
+  metadataRef: RefObject<WaveformMetadata>,
   canvasRef: RefObject<HTMLCanvasElement | null>,
   handleRange: (range: Section) => void,
   handleSetPosition: (position: number) => void,
@@ -17,7 +17,7 @@ export const useMouseDown = (
 
     const onMouseDown = (e: MouseEvent) => {
       e.preventDefault();
-      const { range } = metadata;
+      const { range } = metadataRef.current;
       const currentRange = range.end - range.start;
       const startX = e.offsetX;
       const startRangeStart = range.start;
@@ -57,5 +57,5 @@ export const useMouseDown = (
     return () => {
       canvas.removeEventListener("mousedown", onMouseDown);
     };
-  }, [audioBuffer, metadata, canvasRef, handleRange, handleSetPosition]);
+  }, [audioBuffer, metadataRef, canvasRef, handleRange, handleSetPosition]);
 };

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, type RefObject } from "react";
+import { useEffect, type RefObject } from "react";
 import type { WaveformMetadata } from "./types";
 import { renderWaveform } from "../../lib/waveform";
 import { MStoSampleIndex } from "../../lib/util";
@@ -6,51 +6,44 @@ import { MStoSampleIndex } from "../../lib/util";
 export const useAnimateWaveform = (
   canvasRef: RefObject<HTMLCanvasElement | null>,
   audioBuffer: AudioBuffer,
-  waveformMetadata: WaveformMetadata,
+  metadataRef: RefObject<WaveformMetadata>,
   positionReference: RefObject<number> | undefined,
 ) => {
-  const updateWaveform = useCallback(() => {
-    if (canvasRef.current) {
-      const sr = waveformMetadata.section;
+  useEffect(() => {
+    let animationFrameId: number;
+
+    const updateWaveform = () => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const { range, section } = metadataRef.current;
       renderWaveform(
         {
           data: audioBuffer,
-          range: waveformMetadata.range,
+          range,
           section:
-            sr && Math.abs(sr.end - sr.start)
+            section && Math.abs(section.end - section.start)
               ? {
-                  start: Math.min(sr.end, sr.start),
-                  end: Math.max(sr.end, sr.start),
+                  start: Math.min(section.end, section.start),
+                  end: Math.max(section.end, section.start),
                 }
               : undefined,
         },
         { resolution: 10000 },
-        canvasRef.current,
+        canvas,
         positionReference && positionReference.current
           ? MStoSampleIndex(audioBuffer.sampleRate, positionReference.current)
           : undefined,
       );
-    }
-  }, [
-    canvasRef,
-    waveformMetadata.section,
-    waveformMetadata.range,
-    audioBuffer,
-    positionReference,
-  ]);
-
-  useEffect(() => {
-    let animationFrameId: number;
-
-    const renderLoop = () => {
-      if (canvasRef.current) updateWaveform();
-      animationFrameId = requestAnimationFrame(renderLoop);
     };
 
+    const renderLoop = () => {
+      updateWaveform();
+      animationFrameId = requestAnimationFrame(renderLoop);
+    };
     animationFrameId = requestAnimationFrame(renderLoop);
 
     const canvasElement = canvasRef.current;
-    if (!canvasElement) return;
+    if (!canvasElement) return () => cancelAnimationFrame(animationFrameId);
     const handleResize = () => {
       canvasElement.width = canvasElement.clientWidth;
       canvasElement.height = canvasElement.clientHeight;
@@ -63,5 +56,5 @@ export const useAnimateWaveform = (
       window.removeEventListener("resize", handleResize);
       cancelAnimationFrame(animationFrameId);
     };
-  }, [canvasRef, updateWaveform]);
+  }, [canvasRef, audioBuffer, metadataRef, positionReference]);
 };

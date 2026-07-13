@@ -6,7 +6,7 @@ import { clampSection } from "../../lib/util";
 
 export const useWheel = (
   audioBuffer: AudioBuffer,
-  metadata: WaveformMetadata,
+  metadataRef: RefObject<WaveformMetadata>,
   canvasRef: RefObject<HTMLCanvasElement | null>,
   handleRange: (range: Section) => void,
 ) => {
@@ -23,7 +23,7 @@ export const useWheel = (
       e.preventDefault();
       e.stopPropagation();
       if (!handleRange) return;
-      const { range } = metadata;
+      const { range } = metadataRef.current;
       const data = audioBuffer;
       const currentRange = range.end - range.start;
       const sampleOffset = computeSampleIndex(e.offsetX, currentRange, canvas);
@@ -76,5 +76,5 @@ export const useWheel = (
     return () => {
       canvas.removeEventListener("wheel", onWheel);
     };
-  }, [handleRange, metadata, minRangeThresholdValue, audioBuffer, canvasRef]);
+  }, [handleRange, metadataRef, minRangeThresholdValue, audioBuffer, canvasRef]);
 };
