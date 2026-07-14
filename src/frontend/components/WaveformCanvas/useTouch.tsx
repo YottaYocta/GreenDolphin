@@ -33,6 +33,13 @@ const findTouch = (list: TouchList, id: number): Touch | null => {
   return null;
 };
 
+const findOther = (list: TouchList, excludeId: number): Touch | null => {
+  for (let i = 0; i < list.length; i++) {
+    if (list[i].identifier !== excludeId) return list[i];
+  }
+  return null;
+};
+
 export const useTouch = (
   audioBuffer: AudioBuffer,
   metadataRef: RefObject<WaveformMetadata>,
@@ -48,16 +55,16 @@ export const useTouch = (
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
+    const bounds = { start: 0, end: audioBuffer.length };
     const offsetXOf = (clientX: number) =>
       clientX - canvas.getBoundingClientRect().left;
 
     const onTouchStart = (e: TouchEvent) => {
       e.preventDefault();
-      if (e.touches.length === 0) return;
+      const first = e.touches[0];
+      if (!first) return;
 
       const { range } = metadataRef.current;
-      const first = e.touches[0];
       const initialRangeStart = range.start;
       const initialRange = range.end - range.start;
 
@@ -72,29 +79,23 @@ export const useTouch = (
       let dragged = false;
 
       const enterPinch = (touches: TouchList) => {
-        const a =
-          findTouch(touches, (phase as { id: number }).id) ?? touches[0];
-        let b: Touch | null = null;
-        for (let i = 0; i < touches.length; i++) {
-          if (touches[i].identifier !== a.identifier) {
-            b = touches[i];
-            break;
-          }
-        }
-        if (!b) return;
-        const dist = Math.abs(b.clientX - a.clientX);
+        if (phase.kind !== "single") return;
+        const first = findTouch(touches, phase.id) ?? touches[0];
+        const second = findOther(touches, first.identifier);
+        if (!second) return;
+        const dist = Math.abs(second.clientX - first.clientX);
         if (dist === 0) return;
-        const midpointX = (offsetXOf(a.clientX) + offsetXOf(b.clientX)) / 2;
-        const anchorSample =
-          initialRangeStart +
-          computeSampleIndex(midpointX, initialRange, canvas);
+        const midpointX =
+          (offsetXOf(first.clientX) + offsetXOf(second.clientX)) / 2;
         phase = {
           kind: "pinch",
-          idA: a.identifier,
-          idB: b.identifier,
+          idA: first.identifier,
+          idB: second.identifier,
           initialDist: dist,
           initialRange,
-          anchorSample,
+          anchorSample:
+            initialRangeStart +
+            computeSampleIndex(midpointX, initialRange, canvas),
           anchorX: midpointX,
         };
       };
@@ -102,33 +103,26 @@ export const useTouch = (
       const cleanup = () => {
         window.removeEventListener("touchmove", onMove);
         window.removeEventListener("touchend", onEnd);
-        window.removeEventListener("touchcancel", onCancel);
+        window.removeEventListener("touchcancel", cleanup);
       };
 
       const onMove = (moveEvent: TouchEvent) => {
         moveEvent.preventDefault();
-
         if (phase.kind === "single") {
-          if (moveEvent.touches.length >= 2) {
-            enterPinch(moveEvent.touches);
-            return;
-          }
+          if (moveEvent.touches.length >= 2) return enterPinch(moveEvent.touches);
           const t = findTouch(moveEvent.touches, phase.id);
           if (!t) return;
-          const dragThresholdPx = canvas.width * CLICK_SELECTION_THRESHOLD;
           const netDx = t.clientX - phase.startClientX;
-          if (!dragged && Math.abs(netDx) > dragThresholdPx) dragged = true;
+          if (!dragged && Math.abs(netDx) > canvas.width * CLICK_SELECTION_THRESHOLD)
+            dragged = true;
           if (!dragged) return;
-          const sampleDelta = computeSampleIndex(
-            netDx,
-            phase.startRange,
-            canvas,
-          );
-          const targetStart = phase.startRangeStart - sampleDelta;
+          const targetStart =
+            phase.startRangeStart -
+            computeSampleIndex(netDx, phase.startRange, canvas);
           handleRange(
             clampSection(
               { start: targetStart, end: targetStart + phase.startRange },
-              { start: 0, end: audioBuffer.length },
+              bounds,
             ),
           );
           return;
@@ -139,7 +133,6 @@ export const useTouch = (
         if (!a || !b) return;
         const dist = Math.abs(b.clientX - a.clientX);
         if (dist === 0) return;
-
         const targetLen = Math.max(
           minRangeLen,
           Math.min(
@@ -147,13 +140,11 @@ export const useTouch = (
             phase.initialRange * (phase.initialDist / dist),
           ),
         );
-        const before = phase.anchorX / canvas.width;
-        const start = Math.floor(phase.anchorSample - targetLen * before);
+        const start = Math.floor(
+          phase.anchorSample - targetLen * (phase.anchorX / canvas.width),
+        );
         handleRange(
-          clampSection(
-            { start, end: start + Math.floor(targetLen) },
-            { start: 0, end: audioBuffer.length },
-          ),
+          clampSection({ start, end: start + Math.floor(targetLen) }, bounds),
         );
       };
 
@@ -161,33 +152,29 @@ export const useTouch = (
         if (phase.kind === "single") {
           if (findTouch(endEvent.touches, phase.id)) return;
           if (!dragged) {
-            const sampleOffset = computeSampleIndex(
-              phase.startOffsetX,
-              phase.startRange,
-              canvas,
+            handleSetPosition(
+              phase.startRangeStart +
+                computeSampleIndex(phase.startOffsetX, phase.startRange, canvas),
             );
-            handleSetPosition(phase.startRangeStart + sampleOffset);
           }
           cleanup();
           return;
         }
-        const aDown = findTouch(endEvent.touches, phase.idA);
-        const bDown = findTouch(endEvent.touches, phase.idB);
-        if (aDown && bDown) return;
+        if (
+          findTouch(endEvent.touches, phase.idA) &&
+          findTouch(endEvent.touches, phase.idB)
+        )
+          return;
         cleanup();
       };
 
-      const onCancel = () => cleanup();
-
       window.addEventListener("touchmove", onMove, { passive: false });
       window.addEventListener("touchend", onEnd);
-      window.addEventListener("touchcancel", onCancel);
+      window.addEventListener("touchcancel", cleanup);
     };
 
     canvas.addEventListener("touchstart", onTouchStart, { passive: false });
-    return () => {
-      canvas.removeEventListener("touchstart", onTouchStart);
-    };
+    return () => canvas.removeEventListener("touchstart", onTouchStart);
   }, [
     audioBuffer,
     metadataRef,

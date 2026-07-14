@@ -12,7 +12,7 @@ import { TitleBar } from "./components/TitleBar";
 import { saveSession } from "./lib/useSessionPersistence";
 import type { Section } from "./lib/waveform";
 import { capture } from "./lib/posthog";
-import { WaveformCanvasV2 } from "./components/WaveformCanvas/WaveformCanvasV2";
+import { WaveformCanvasV2 } from "./components/WaveformCanvas";
 
 export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
   const { audio } = useContext(AudioStore);
@@ -73,6 +73,7 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
           <div className="border-t border-border max-md:grow">
             <WaveformCanvasV2
               waveformData={data}
+              filename={filename}
               handlePosition={handlePosition}
               handleRangeChange={handleRangeChange}
               handleSelection={(section) => {
@@ -113,15 +114,15 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
             },
             {
               htmlSelector: "#waveform-canvas",
-              contents: <p>Drag to select a loop</p>,
+              contents: <p>Drag to pan</p>,
             },
             {
               htmlSelector: "#waveform-canvas",
               contents: <p>Pinch to zoom in/out</p>,
             },
             {
-              htmlSelector: "#waveform-nav",
-              contents: <p>Drag to scroll forward/backward</p>,
+              htmlSelector: "#trackbar",
+              contents: <p>Drag endpoints to set loop</p>,
             },
             {
               htmlSelector: "#piano",

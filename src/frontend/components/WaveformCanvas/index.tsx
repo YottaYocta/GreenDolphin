@@ -10,10 +10,12 @@ import {
 import { type Section } from "../../lib/waveform";
 import type { WaveformMetadata } from "./types";
 import { useAnimateWaveform } from "./useAnimateWaveform";
+import { useKeyboardShortcuts } from "./useKeyboardShortcuts";
 import { useMouseDown } from "./useMouseDown";
+import { useSessionRestore } from "./useSessionRestore";
 import { useTouch } from "./useTouch";
 import { useWheel } from "./useWheel";
-import { Trackbar } from "./Trackbar";
+import { Trackbar } from "./trackbar";
 
 export type WaveformRenderFunction = (
   data: AudioBuffer,
@@ -23,6 +25,7 @@ export type WaveformRenderFunction = (
 
 export interface WaveformCanvasProps {
   waveformData: AudioBuffer;
+  filename?: string;
   positionMS?: RefObject<number>;
   showHandles?: boolean;
   handleRangeChange?: (newRange: Section) => void;
@@ -34,6 +37,7 @@ export const WaveformCanvasV2: FC<
   WaveformCanvasProps & CanvasHTMLAttributes<HTMLCanvasElement>
 > = ({
   waveformData,
+  filename,
   positionMS,
   handleRangeChange,
   handleSelection,
@@ -41,10 +45,10 @@ export const WaveformCanvasV2: FC<
   ...props
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-
+  const fullRange = { start: 0, end: waveformData.length };
   const metadataRef = useRef<WaveformMetadata>({
-    range: { start: 0, end: waveformData.length },
-    section: { start: 0, end: waveformData.length },
+    range: fullRange,
+    section: fullRange,
   });
 
   useEffect(() => {
@@ -63,9 +67,7 @@ export const WaveformCanvasV2: FC<
   );
 
   const handleSetPosition = useCallback(
-    (position: number) => {
-      handlePosition?.(position);
-    },
+    (position: number) => handlePosition?.(position),
     [handlePosition],
   );
 
@@ -97,9 +99,11 @@ export const WaveformCanvasV2: FC<
     handleSetPosition,
   );
   useAnimateWaveform(canvasRef, waveformData, metadataRef, positionMS);
+  useKeyboardShortcuts(waveformData, metadataRef, handleRange);
+  useSessionRestore(filename, handleRange);
 
   return (
-    <div className="w-full flex flex-col">
+    <div className="w-full flex flex-col px-4">
       <Trackbar
         positionMS={positionMS}
         metadata={metadataRef}
@@ -108,14 +112,15 @@ export const WaveformCanvasV2: FC<
         handleLoopEdit={handleLoopEdit}
         handleLoopEditFinish={handleLoopEditFinish}
         handlePosition={handleSetPosition}
-      ></Trackbar>
+        handleRange={handleRange}
+      />
       <canvas
         id="waveform-canvas"
         {...props}
         ref={canvasRef}
         draggable="false"
         className="relative z-0 cursor-pointer w-full max-md:h-32 h-48 select-none pixelated"
-      ></canvas>
+      />
     </div>
   );
 };

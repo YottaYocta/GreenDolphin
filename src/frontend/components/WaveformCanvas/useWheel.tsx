@@ -10,40 +10,48 @@ export const useWheel = (
   canvasRef: RefObject<HTMLCanvasElement | null>,
   handleRange: (range: Section) => void,
 ) => {
-  const minRangeThresholdValue = useMemo(() => {
-    const value = Math.floor(MIN_RANGE_THRESHOLD * audioBuffer.length);
-    return value;
-  }, [audioBuffer.length]);
+  const minRangeLen = useMemo(
+    () => Math.floor(MIN_RANGE_THRESHOLD * audioBuffer.length),
+    [audioBuffer.length],
+  );
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    const bounds = { start: 0, end: audioBuffer.length };
+
+    const zoomAround = (
+      currentRange: number,
+      anchor: number,
+      before: number,
+      factor: number,
+    ) => {
+      const targetLen = Math.max(
+        minRangeLen,
+        Math.min(audioBuffer.length, currentRange * factor),
+      );
+      handleRange(
+        clampSection(
+          {
+            start: Math.floor(anchor - targetLen * before),
+            end: Math.floor(anchor + targetLen * (1 - before)),
+          },
+          bounds,
+        ),
+      );
+    };
 
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      if (!handleRange) return;
       const { range } = metadataRef.current;
-      const data = audioBuffer;
       const currentRange = range.end - range.start;
       const sampleOffset = computeSampleIndex(e.offsetX, currentRange, canvas);
       const anchor = sampleOffset + range.start;
       const before = sampleOffset / currentRange;
 
       if (e.ctrlKey) {
-        const targetLen = Math.max(
-          minRangeThresholdValue,
-          Math.min(data.length, currentRange * (1 + e.deltaY / 100)),
-        );
-        handleRange(
-          clampSection(
-            {
-              start: Math.floor(anchor - targetLen * before),
-              end: Math.floor(anchor + targetLen * (1 - before)),
-            },
-            { start: 0, end: data.length },
-          ),
-        );
+        zoomAround(currentRange, anchor, before, 1 + e.deltaY / 100);
       } else if (
         (Math.abs(e.deltaX) + 0.001) / (Math.abs(e.deltaY) + 0.001) >
         0.5
@@ -52,29 +60,15 @@ export const useWheel = (
         handleRange(
           clampSection(
             { start: targetStart, end: targetStart + currentRange },
-            { start: 0, end: data.length },
+            bounds,
           ),
         );
       } else {
-        const targetLen = Math.max(
-          minRangeThresholdValue,
-          Math.min(data.length, currentRange * (1 + -e.deltaY / 1000)),
-        );
-        handleRange(
-          clampSection(
-            {
-              start: Math.floor(anchor - targetLen * before),
-              end: Math.floor(anchor + targetLen * (1 - before)),
-            },
-            { start: 0, end: data.length },
-          ),
-        );
+        zoomAround(currentRange, anchor, before, 1 - e.deltaY / 1000);
       }
     };
 
     canvas.addEventListener("wheel", onWheel, { passive: false });
-    return () => {
-      canvas.removeEventListener("wheel", onWheel);
-    };
-  }, [handleRange, metadataRef, minRangeThresholdValue, audioBuffer, canvasRef]);
+    return () => canvas.removeEventListener("wheel", onWheel);
+  }, [handleRange, metadataRef, minRangeLen, audioBuffer, canvasRef]);
 };

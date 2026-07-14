@@ -10,51 +10,48 @@ export const useAnimateWaveform = (
   positionReference: RefObject<number> | undefined,
 ) => {
   useEffect(() => {
-    let animationFrameId: number;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    let rafId: number;
 
-    const updateWaveform = () => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
+    const draw = () => {
       const { range, section } = metadataRef.current;
+      const hasSection = section && Math.abs(section.end - section.start) > 0;
       renderWaveform(
         {
           data: audioBuffer,
           range,
-          section:
-            section && Math.abs(section.end - section.start)
-              ? {
-                  start: Math.min(section.end, section.start),
-                  end: Math.max(section.end, section.start),
-                }
-              : undefined,
+          section: hasSection
+            ? {
+                start: Math.min(section.end, section.start),
+                end: Math.max(section.end, section.start),
+              }
+            : undefined,
         },
         { resolution: 10000 },
         canvas,
-        positionReference && positionReference.current
+        positionReference?.current
           ? MStoSampleIndex(audioBuffer.sampleRate, positionReference.current)
           : undefined,
       );
     };
 
-    const renderLoop = () => {
-      updateWaveform();
-      animationFrameId = requestAnimationFrame(renderLoop);
+    const loop = () => {
+      draw();
+      rafId = requestAnimationFrame(loop);
     };
-    animationFrameId = requestAnimationFrame(renderLoop);
-
-    const canvasElement = canvasRef.current;
-    if (!canvasElement) return () => cancelAnimationFrame(animationFrameId);
-    const handleResize = () => {
-      canvasElement.width = canvasElement.clientWidth;
-      canvasElement.height = canvasElement.clientHeight;
-      updateWaveform();
+    const onResize = () => {
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+      draw();
     };
-    window.addEventListener("resize", handleResize);
-    handleResize();
 
+    rafId = requestAnimationFrame(loop);
+    window.addEventListener("resize", onResize);
+    onResize();
     return () => {
-      window.removeEventListener("resize", handleResize);
-      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener("resize", onResize);
+      cancelAnimationFrame(rafId);
     };
   }, [canvasRef, audioBuffer, metadataRef, positionReference]);
 };
