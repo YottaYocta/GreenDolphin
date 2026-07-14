@@ -15,16 +15,17 @@ export const useAnimateWaveform = (
     let rafId: number;
 
     const draw = () => {
-      const { range, section } = metadataRef.current;
-      const hasSection = section && Math.abs(section.end - section.start) > 0;
+      const { viewport, selection } = metadataRef.current;
+      const hasSelection =
+        selection && Math.abs(selection.end - selection.start) > 0;
       renderWaveform(
         {
           data: audioBuffer,
-          range,
-          section: hasSection
+          viewport,
+          selection: hasSelection
             ? {
-                start: Math.min(section.end, section.start),
-                end: Math.max(section.end, section.start),
+                start: Math.min(selection.end, selection.start),
+                end: Math.max(selection.end, selection.start),
               }
             : undefined,
         },

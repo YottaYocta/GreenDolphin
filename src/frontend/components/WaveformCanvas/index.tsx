@@ -12,7 +12,6 @@ import type { WaveformMetadata } from "./types";
 import { useAnimateWaveform } from "./useAnimateWaveform";
 import { useKeyboardShortcuts } from "./useKeyboardShortcuts";
 import { useMouseDown } from "./useMouseDown";
-import { useSessionRestore } from "./useSessionRestore";
 import { useTouch } from "./useTouch";
 import { useWheel } from "./useWheel";
 import { Trackbar } from "./trackbar";
@@ -25,9 +24,10 @@ export type WaveformRenderFunction = (
 
 export interface WaveformCanvasProps {
   waveformData: AudioBuffer;
-  filename?: string;
   positionMS?: RefObject<number>;
   showHandles?: boolean;
+  initialViewport?: Section;
+  initialSelection?: Section;
   handleRangeChange?: (newRange: Section) => void;
   handleSelection?: (selection: Section) => void;
   handlePosition?: (position: number) => void;
@@ -37,8 +37,9 @@ export const WaveformCanvasV2: FC<
   WaveformCanvasProps & CanvasHTMLAttributes<HTMLCanvasElement>
 > = ({
   waveformData,
-  filename,
   positionMS,
+  initialViewport,
+  initialSelection,
   handleRangeChange,
   handleSelection,
   handlePosition,
@@ -47,21 +48,21 @@ export const WaveformCanvasV2: FC<
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fullRange = { start: 0, end: waveformData.length };
   const metadataRef = useRef<WaveformMetadata>({
-    range: fullRange,
-    section: fullRange,
+    viewport: initialViewport ?? fullRange,
+    selection: initialSelection ?? fullRange,
   });
 
   useEffect(() => {
     metadataRef.current = {
-      range: { start: 0, end: waveformData.length },
-      section: { start: 0, end: waveformData.length },
+      viewport: initialViewport ?? { start: 0, end: waveformData.length },
+      selection: initialSelection ?? { start: 0, end: waveformData.length },
     };
-  }, [waveformData]);
+  }, [waveformData, initialViewport, initialSelection]);
 
   const handleRange = useCallback(
-    (range: Section) => {
-      metadataRef.current = { ...metadataRef.current, range };
-      handleRangeChange?.(range);
+    (viewport: Section) => {
+      metadataRef.current = { ...metadataRef.current, viewport };
+      handleRangeChange?.(viewport);
     },
     [handleRangeChange],
   );
@@ -71,14 +72,14 @@ export const WaveformCanvasV2: FC<
     [handlePosition],
   );
 
-  const handleLoopEdit = useCallback((section: Section) => {
-    metadataRef.current = { ...metadataRef.current, section };
+  const handleLoopEdit = useCallback((selection: Section) => {
+    metadataRef.current = { ...metadataRef.current, selection };
   }, []);
 
   const handleLoopEditFinish = useCallback(
-    (section: Section) => {
-      metadataRef.current = { ...metadataRef.current, section };
-      handleSelection?.(section);
+    (selection: Section) => {
+      metadataRef.current = { ...metadataRef.current, selection };
+      handleSelection?.(selection);
     },
     [handleSelection],
   );
@@ -100,7 +101,6 @@ export const WaveformCanvasV2: FC<
   );
   useAnimateWaveform(canvasRef, waveformData, metadataRef, positionMS);
   useKeyboardShortcuts(waveformData, metadataRef, handleRange);
-  useSessionRestore(filename, handleRange);
 
   return (
     <div className="w-full flex flex-col px-4">

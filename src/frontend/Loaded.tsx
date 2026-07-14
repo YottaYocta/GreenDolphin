@@ -9,7 +9,7 @@ import { useFirstVisit } from "./lib/useFirstVisit";
 import { PlaybackControls } from "./components/PlaybackControls";
 import { AudioSettings } from "./components/AudioSettings";
 import { TitleBar } from "./components/TitleBar";
-import { saveSession } from "./lib/useSessionPersistence";
+import { loadSession, saveSession } from "./lib/useSessionPersistence";
 import type { Section } from "./lib/waveform";
 import { capture } from "./lib/posthog";
 import { WaveformCanvasV2 } from "./components/WaveformCanvas";
@@ -59,9 +59,18 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
   }, [triggerUpdate]);
 
   const handleRangeChange = useDebounce(
-    useCallback((range: Section) => saveSession({ waveformRange: range }), []),
+    useCallback((viewport: Section) => saveSession({ viewport }), []),
     250,
   );
+
+  const persistedSession = loadSession();
+  const sessionMatches = persistedSession?.filename === filename;
+  const initialViewport = sessionMatches
+    ? persistedSession?.viewport
+    : undefined;
+  const initialSelection = sessionMatches
+    ? persistedSession?.audioSettings?.loop
+    : undefined;
 
   return (
     <>
@@ -73,13 +82,14 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
           <div className="border-t border-border max-md:grow">
             <WaveformCanvasV2
               waveformData={data}
-              filename={filename}
               handlePosition={handlePosition}
               handleRangeChange={handleRangeChange}
-              handleSelection={(section) => {
-                setAudioSettings({ loop: section });
+              handleSelection={(selection) => {
+                setAudioSettings({ loop: selection });
                 capture("loop_region_set");
               }}
+              initialViewport={initialViewport}
+              initialSelection={initialSelection}
               positionMS={playbackPosition}
             ></WaveformCanvasV2>
           </div>

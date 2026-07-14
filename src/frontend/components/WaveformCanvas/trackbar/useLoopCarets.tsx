@@ -14,19 +14,19 @@ export const useLoopCarets = (
 
   const scrollBoundaryIntoView = useCallback(
     (side: "start" | "end") => {
-      const { range, section } = metadataRef.current;
-      const rangeLen = range.end - range.start;
+      const { viewport, selection } = metadataRef.current;
+      const rangeLen = viewport.end - viewport.start;
       if (rangeLen <= 0) return;
       const margin = SCROLL_INTO_VIEW_MARGIN * rangeLen;
       const newRange: Section =
         side === "start"
           ? {
-              start: Math.max(0, Math.floor(section.start - margin)),
-              end: range.end,
+              start: Math.max(0, Math.floor(selection.start - margin)),
+              end: viewport.end,
             }
           : {
-              start: range.start,
-              end: Math.min(totalSamples, Math.ceil(section.end + margin)),
+              start: viewport.start,
+              end: Math.min(totalSamples, Math.ceil(selection.end + margin)),
             };
       if (newRange.end - newRange.start <= 0) return;
       handleRange(newRange);

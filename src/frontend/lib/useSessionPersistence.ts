@@ -6,7 +6,7 @@ const KEY = "gd_session";
 interface SessionData {
   filename: string;
   audioSettings: Partial<PlaybackSettings>;
-  waveformRange?: Section;
+  viewport?: Section;
   delayMode?: "fixed" | "relative";
 }
 

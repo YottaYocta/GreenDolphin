@@ -34,10 +34,10 @@ export const useAnimateTrackbar = (
       const track = trackRef.current;
       if (track) {
         const width = track.clientWidth;
-        const { range, section } = metadata.current;
-        const rangeLen = range.end - range.start;
-        const startPct = ((section.start - range.start) / rangeLen) * 100;
-        const endPct = ((section.end - range.start) / rangeLen) * 100;
+        const { viewport, selection } = metadata.current;
+        const rangeLen = viewport.end - viewport.start;
+        const startPct = ((selection.start - viewport.start) / rangeLen) * 100;
+        const endPct = ((selection.end - viewport.start) / rangeLen) * 100;
         const clampedStart = Math.max(0, Math.min(100, startPct));
         const clampedEnd = Math.max(0, Math.min(100, endPct));
 
@@ -51,7 +51,7 @@ export const useAnimateTrackbar = (
 
         if (playheadRef.current && positionMS) {
           const relativePositionMS =
-            positionMS.current - computeMS(sampleRate, range.start);
+            positionMS.current - computeMS(sampleRate, viewport.start);
           const relativeDurationMS = computeMS(sampleRate, rangeLen);
           playheadRef.current.style.left = `${
             width * (relativePositionMS / relativeDurationMS)

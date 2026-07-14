@@ -1,5 +1,6 @@
-import type { WaveformData } from "../../lib/waveform";
+import type { Section } from "../../lib/waveform";
 
-export type WaveformMetadata = Required<
-  Pick<WaveformData, "range" | "section">
->;
+export interface WaveformMetadata {
+  viewport: Section;
+  selection: Section;
+}

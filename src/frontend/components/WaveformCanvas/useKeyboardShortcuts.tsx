@@ -16,10 +16,10 @@ export const useKeyboardShortcuts = (
     const minRange = Math.floor(MIN_RANGE_THRESHOLD * audioBuffer.length);
     const bounds: Section = { start: 0, end: audioBuffer.length };
 
-    const apply = (mut: (range: Section, step: number) => Section) => {
-      const { range } = metadataRef.current;
-      const step = Math.floor((range.end - range.start) * STEP_FRACTION);
-      handleRange(clampSection(mut(range, step), bounds));
+    const apply = (mut: (viewport: Section, step: number) => Section) => {
+      const { viewport } = metadataRef.current;
+      const step = Math.floor((viewport.end - viewport.start) * STEP_FRACTION);
+      handleRange(clampSection(mut(viewport, step), bounds));
     };
 
     const zoomIn = () =>

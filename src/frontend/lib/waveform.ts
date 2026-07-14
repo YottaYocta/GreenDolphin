@@ -21,8 +21,8 @@ export interface WaveformStyle {
 
 export interface WaveformData {
   data: AudioBuffer;
-  range: Section;
-  section?: Section;
+  viewport: Section;
+  selection?: Section;
 }
 
 const computeFillStyle = (color: Color): string =>
@@ -45,7 +45,7 @@ export const computeSampleIndex = (
 };
 
 export const renderWaveform = (
-  { data, section, range }: WaveformData,
+  { data, selection, viewport }: WaveformData,
   {
     resolution,
     primary = { r: 25, g: 202, b: 147, a: 100 },
@@ -62,7 +62,7 @@ export const renderWaveform = (
 
   canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
 
-  const rangeLength = range.end - range.start;
+  const rangeLength = viewport.end - viewport.start;
   const MIN_WAVE_WIDTH = 1;
 
   const waveWidth = Math.max(MIN_WAVE_WIDTH, canvas.width / resolution);
@@ -77,8 +77,8 @@ export const renderWaveform = (
 
     const subsamplingRate = Math.max(1, samplesPerWave / 10);
     for (
-      let j = range.start;
-      j < channelData.length && j < range.end;
+      let j = viewport.start;
+      j < channelData.length && j < viewport.end;
       j += samplesPerWave
     ) {
       let sampleSum = 0;
@@ -93,13 +93,13 @@ export const renderWaveform = (
       }
       const sampleIntensity = sampleSum / sampleCount;
       const waveHeight = Math.round(Math.abs(sampleIntensity) * channelHeight);
-      canvasCtx.fillStyle = section
-        ? j >= section.start && j <= section.end
+      canvasCtx.fillStyle = selection
+        ? j >= selection.start && j <= selection.end
           ? primaryFill
           : secondaryFill
         : primaryFill;
       canvasCtx.fillRect(
-        ((j - range.start) / samplesPerWave) * waveWidth,
+        ((j - viewport.start) / samplesPerWave) * waveWidth,
         channelHeight * i + channelHeight / 2 - waveHeight / 2,
         waveWidth,
         waveHeight,
@@ -107,21 +107,21 @@ export const renderWaveform = (
     }
   }
 
-  if (section) {
+  if (selection) {
     const startPos = computePixel(
-      section.start - range.start,
+      selection.start - viewport.start,
       rangeLength,
       canvas,
     );
 
-    const endPos = computePixel(section.end - range.start, rangeLength, canvas);
+    const endPos = computePixel(selection.end - viewport.start, rangeLength, canvas);
 
     canvasCtx.fillStyle = primaryFill;
     canvasCtx.fillRect(startPos, 0, 1, canvas.height);
     canvasCtx.fillStyle = "rgb(0 0 0)";
     canvasCtx.fillText(
       `${formatSeconds(
-        Math.trunc((section.start / data.sampleRate) * 100) / 100,
+        Math.trunc((selection.start / data.sampleRate) * 100) / 100,
       )}`,
       startPos + 5,
       10,
@@ -132,7 +132,7 @@ export const renderWaveform = (
 
     if (endPos - startPos > 70) {
       const endString = `${formatSeconds(
-        Math.trunc((section.end / data.sampleRate) * 100) / 100,
+        Math.trunc((selection.end / data.sampleRate) * 100) / 100,
       )}`;
       canvasCtx.fillStyle = "rgb(0 0 0)";
       canvasCtx.fillText(
@@ -144,7 +144,7 @@ export const renderWaveform = (
   }
 
   if (position !== undefined) {
-    const pos = computePixel(position - range.start, rangeLength, canvas);
+    const pos = computePixel(position - viewport.start, rangeLength, canvas);
     if (pos > 0 && pos < canvas.width) {
       canvasCtx.fillStyle = "rgb(10 150 100)";
       canvasCtx.fillRect(pos, 0, 2, canvas.height);
