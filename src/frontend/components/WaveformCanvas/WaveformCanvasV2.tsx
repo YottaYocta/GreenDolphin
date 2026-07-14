@@ -107,6 +107,7 @@ export const WaveformCanvasV2: FC<
         totalSamples={waveformData.length}
         handleLoopEdit={handleLoopEdit}
         handleLoopEditFinish={handleLoopEditFinish}
+        handlePosition={handleSetPosition}
       ></Trackbar>
       <canvas
         id="waveform-canvas"
