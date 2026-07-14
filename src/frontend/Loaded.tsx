@@ -79,7 +79,7 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
                 setAudioSettings({ loop: section });
                 capture("loop_region_set");
               }}
-              positionReference={playbackPosition}
+              positionMS={playbackPosition}
             ></WaveformCanvasV2>
           </div>
         </div>

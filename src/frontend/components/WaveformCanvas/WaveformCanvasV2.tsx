@@ -13,6 +13,7 @@ import { useAnimateWaveform } from "./useAnimateWaveform";
 import { useMouseDown } from "./useMouseDown";
 import { useTouch } from "./useTouch";
 import { useWheel } from "./useWheel";
+import { Trackbar } from "./Trackbar";
 
 export type WaveformRenderFunction = (
   data: AudioBuffer,
@@ -22,7 +23,7 @@ export type WaveformRenderFunction = (
 
 export interface WaveformCanvasProps {
   waveformData: AudioBuffer;
-  positionReference?: RefObject<number>;
+  positionMS?: RefObject<number>;
   showHandles?: boolean;
   handleRangeChange?: (newRange: Section) => void;
   handleSelection?: (selection: Section) => void;
@@ -33,8 +34,9 @@ export const WaveformCanvasV2: FC<
   WaveformCanvasProps & CanvasHTMLAttributes<HTMLCanvasElement>
 > = ({
   waveformData,
-  positionReference,
+  positionMS,
   handleRangeChange,
+  handleSelection,
   handlePosition,
   ...props
 }) => {
@@ -42,11 +44,13 @@ export const WaveformCanvasV2: FC<
 
   const metadataRef = useRef<WaveformMetadata>({
     range: { start: 0, end: waveformData.length },
+    section: { start: 0, end: waveformData.length },
   });
 
   useEffect(() => {
     metadataRef.current = {
       range: { start: 0, end: waveformData.length },
+      section: { start: 0, end: waveformData.length },
     };
   }, [waveformData]);
 
@@ -65,6 +69,18 @@ export const WaveformCanvasV2: FC<
     [handlePosition],
   );
 
+  const handleLoopEdit = useCallback((section: Section) => {
+    metadataRef.current = { ...metadataRef.current, section };
+  }, []);
+
+  const handleLoopEditFinish = useCallback(
+    (section: Section) => {
+      metadataRef.current = { ...metadataRef.current, section };
+      handleSelection?.(section);
+    },
+    [handleSelection],
+  );
+
   useWheel(waveformData, metadataRef, canvasRef, handleRange);
   useMouseDown(
     waveformData,
@@ -80,15 +96,25 @@ export const WaveformCanvasV2: FC<
     handleRange,
     handleSetPosition,
   );
-  useAnimateWaveform(canvasRef, waveformData, metadataRef, positionReference);
+  useAnimateWaveform(canvasRef, waveformData, metadataRef, positionMS);
 
   return (
-    <canvas
-      id="waveform-canvas"
-      {...props}
-      ref={canvasRef}
-      draggable="false"
-      className="relative z-0 cursor-pointer w-full max-md:h-32 h-48 select-none pixelated"
-    ></canvas>
+    <div className="w-full flex flex-col">
+      <Trackbar
+        positionMS={positionMS}
+        metadata={metadataRef}
+        sampleRate={waveformData.sampleRate}
+        totalSamples={waveformData.length}
+        handleLoopEdit={handleLoopEdit}
+        handleLoopEditFinish={handleLoopEditFinish}
+      ></Trackbar>
+      <canvas
+        id="waveform-canvas"
+        {...props}
+        ref={canvasRef}
+        draggable="false"
+        className="relative z-0 cursor-pointer w-full max-md:h-32 h-48 select-none pixelated"
+      ></canvas>
+    </div>
   );
 };
