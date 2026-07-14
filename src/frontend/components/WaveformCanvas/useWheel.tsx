@@ -44,10 +44,10 @@ export const useWheel = (
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      const { range } = metadataRef.current;
-      const currentRange = range.end - range.start;
+      const { viewport } = metadataRef.current;
+      const currentRange = viewport.end - viewport.start;
       const sampleOffset = computeSampleIndex(e.offsetX, currentRange, canvas);
-      const anchor = sampleOffset + range.start;
+      const anchor = sampleOffset + viewport.start;
       const before = sampleOffset / currentRange;
 
       if (e.ctrlKey) {
@@ -56,7 +56,7 @@ export const useWheel = (
         (Math.abs(e.deltaX) + 0.001) / (Math.abs(e.deltaY) + 0.001) >
         0.5
       ) {
-        const targetStart = range.start + e.deltaX * (currentRange / 400);
+        const targetStart = viewport.start + e.deltaX * (currentRange / 400);
         handleRange(
           clampSection(
             { start: targetStart, end: targetStart + currentRange },

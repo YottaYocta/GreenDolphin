@@ -14,11 +14,11 @@ export const useLoopPillDrag = (
     const track = trackRef.current;
     if (!track) return;
     const rect = track.getBoundingClientRect();
-    const { range, section } = metadata.current;
-    const rangeLen = range.end - range.start;
-    const sectionLen = section.end - section.start;
-    const initialStart = section.start;
-    let latest: Section = section;
+    const { viewport, selection } = metadata.current;
+    const rangeLen = viewport.end - viewport.start;
+    const selectionLen = selection.end - selection.start;
+    const initialStart = selection.start;
+    let latest: Section = selection;
     beginDrag(
       (moveClientX) => {
         const dxSamples = Math.round(
@@ -26,9 +26,9 @@ export const useLoopPillDrag = (
         );
         const nextStart = Math.max(
           0,
-          Math.min(totalSamples - sectionLen, initialStart + dxSamples),
+          Math.min(totalSamples - selectionLen, initialStart + dxSamples),
         );
-        latest = { start: nextStart, end: nextStart + sectionLen };
+        latest = { start: nextStart, end: nextStart + selectionLen };
         handleLoopEdit(latest);
       },
       () => handleLoopEditFinish(latest),

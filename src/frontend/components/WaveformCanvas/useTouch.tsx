@@ -64,9 +64,9 @@ export const useTouch = (
       const first = e.touches[0];
       if (!first) return;
 
-      const { range } = metadataRef.current;
-      const initialRangeStart = range.start;
-      const initialRange = range.end - range.start;
+      const { viewport } = metadataRef.current;
+      const initialRangeStart = viewport.start;
+      const initialRange = viewport.end - viewport.start;
 
       let phase: Phase = {
         kind: "single",

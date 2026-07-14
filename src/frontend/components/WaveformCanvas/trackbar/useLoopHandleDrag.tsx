@@ -18,14 +18,14 @@ export const useLoopHandleDrag = (
   handleLoopEditFinish: (section: Section) => void,
 ) => {
   const beginHandleDrag = (side: "start" | "end") => {
-    const initial = metadata.current.section;
+    const initial = metadata.current.selection;
     let latest: Section = initial;
     beginDrag(
       (clientX) => {
         const track = trackRef.current;
         if (!track) return;
         const sample = clampSample(
-          pointerToSample(clientX, track, metadata.current.range),
+          pointerToSample(clientX, track, metadata.current.viewport),
           totalSamples,
         );
         latest =

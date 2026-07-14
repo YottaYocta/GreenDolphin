@@ -18,10 +18,10 @@ export const useMouseDown = (
 
     const onMouseDown = (e: MouseEvent) => {
       e.preventDefault();
-      const { range } = metadataRef.current;
-      const currentRange = range.end - range.start;
+      const { viewport } = metadataRef.current;
+      const currentRange = viewport.end - viewport.start;
       const startX = e.offsetX;
-      const startRangeStart = range.start;
+      const startRangeStart = viewport.start;
       const threshold = canvas.width * CLICK_SELECTION_THRESHOLD;
       let dragging = false;
 
@@ -43,7 +43,7 @@ export const useMouseDown = (
         window.removeEventListener("mouseup", onMouseUp);
         if (dragging) return;
         handleSetPosition(
-          range.start + computeSampleIndex(startX, currentRange, canvas),
+          viewport.start + computeSampleIndex(startX, currentRange, canvas),
         );
       };
       window.addEventListener("mousemove", onMouseMove);

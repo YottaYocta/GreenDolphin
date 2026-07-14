@@ -47,21 +47,21 @@ export const WaveformCanvasV2: FC<
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fullRange = { start: 0, end: waveformData.length };
   const metadataRef = useRef<WaveformMetadata>({
-    range: fullRange,
-    section: fullRange,
+    viewport: fullRange,
+    selection: fullRange,
   });
 
   useEffect(() => {
     metadataRef.current = {
-      range: { start: 0, end: waveformData.length },
-      section: { start: 0, end: waveformData.length },
+      viewport: { start: 0, end: waveformData.length },
+      selection: { start: 0, end: waveformData.length },
     };
   }, [waveformData]);
 
   const handleRange = useCallback(
-    (range: Section) => {
-      metadataRef.current = { ...metadataRef.current, range };
-      handleRangeChange?.(range);
+    (viewport: Section) => {
+      metadataRef.current = { ...metadataRef.current, viewport };
+      handleRangeChange?.(viewport);
     },
     [handleRangeChange],
   );
@@ -71,14 +71,14 @@ export const WaveformCanvasV2: FC<
     [handlePosition],
   );
 
-  const handleLoopEdit = useCallback((section: Section) => {
-    metadataRef.current = { ...metadataRef.current, section };
+  const handleLoopEdit = useCallback((selection: Section) => {
+    metadataRef.current = { ...metadataRef.current, selection };
   }, []);
 
   const handleLoopEditFinish = useCallback(
-    (section: Section) => {
-      metadataRef.current = { ...metadataRef.current, section };
-      handleSelection?.(section);
+    (selection: Section) => {
+      metadataRef.current = { ...metadataRef.current, selection };
+      handleSelection?.(selection);
     },
     [handleSelection],
   );

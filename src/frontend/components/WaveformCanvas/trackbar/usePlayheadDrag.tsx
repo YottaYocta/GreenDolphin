@@ -19,7 +19,7 @@ export const usePlayheadDrag = (
       if (!track) return;
       handlePosition(
         clampSample(
-          pointerToSample(clientX, track, metadata.current.range),
+          pointerToSample(clientX, track, metadata.current.viewport),
           totalSamples,
         ),
       );
