@@ -8,7 +8,7 @@ import { AudioStore } from "./AudioStore";
 import { useFirstVisit } from "./lib/useFirstVisit";
 import { PlaybackControls } from "./components/PlaybackControls";
 import { AudioSettings } from "./components/AudioSettings";
-import { TitleBar } from "./components/TitleBar";
+import { TitleBar } from "./components/TitleBar/TitleBar";
 import { loadSession, saveSession } from "./lib/useSessionPersistence";
 import type { Section } from "./lib/waveform";
 import { capture } from "./lib/posthog";

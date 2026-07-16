@@ -5,13 +5,13 @@ import {
   MusicNoteIcon,
   CheckIcon,
 } from "@phosphor-icons/react";
-import { AudioStore } from "../AudioStore";
-import { RecordingsStore } from "../RecordingsStore";
-import { useDecodeFile } from "../lib/useDecodeFile";
-import { noteColor } from "../lib/util";
-import { capture } from "../lib/posthog";
+import { AudioStore } from "../../AudioStore";
+import { RecordingsStore } from "../../RecordingsStore";
+import { useDecodeFile } from "../../lib/useDecodeFile";
+import { noteColor } from "../../lib/util";
+import { capture } from "../../lib/posthog";
 
-const headerBtn = "btn-surface rounded-lg gap-3 px-3.25 py-3.25";
+const headerBtn = "btn-surface rounded-lg gap-2 px-5 py-3.25";
 
 export function RecordingsMenu() {
   const decodeFile = useDecodeFile();
@@ -21,10 +21,10 @@ export function RecordingsMenu() {
   const uploadInputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <div className="min-w-0">
+    <div className="min-w-0 w-full">
       <Menu.Root>
         <Menu.Trigger
-          className={`${headerBtn} w-full h-12 cursor-pointer min-w-0`}
+          className={`${headerBtn} w-full h-12 cursor-pointer min-w-0 rounded-r-none`}
         >
           <span className="font-inria text-black text-base/5 truncate min-w-0">
             {filename}
@@ -100,7 +100,10 @@ export function RecordingsMenu() {
           e.target.value = "";
           await decodeFile(file);
           await cacheFile(file);
-          capture("recording_uploaded_from_player", { filename: file.name, file_size: file.size });
+          capture("recording_uploaded_from_player", {
+            filename: file.name,
+            file_size: file.size,
+          });
         }}
       />
     </div>
