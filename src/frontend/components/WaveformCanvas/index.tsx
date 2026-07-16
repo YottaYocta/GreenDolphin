@@ -103,7 +103,7 @@ export const WaveformCanvasV2: FC<
   useKeyboardShortcuts(waveformData, metadataRef, handleRange);
 
   return (
-    <div className="w-full flex flex-col px-4">
+    <div className="w-full flex flex-col px-4 h-full min-h-0">
       <Trackbar
         positionMS={positionMS}
         metadata={metadataRef}
@@ -119,7 +119,7 @@ export const WaveformCanvasV2: FC<
         {...props}
         ref={canvasRef}
         draggable="false"
-        className="relative z-0 cursor-pointer w-full max-md:h-32 h-48 select-none pixelated"
+        className="relative z-0 cursor-pointer w-full flex-1 min-w-0 min-h-0 select-none pixelated"
       />
     </div>
   );

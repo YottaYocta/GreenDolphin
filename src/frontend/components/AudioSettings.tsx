@@ -67,7 +67,9 @@ export function AudioSettings() {
         onChange={(v) => setRenderedGain(v)}
         formatValue={(v) => `${Math.round(v * 100)}`}
         unit="%"
-        onCommit={(v) => setRenderedGain(Math.max(0, Math.min(200, Math.round(v))) / 100)}
+        onCommit={(v) =>
+          setRenderedGain(Math.max(0, Math.min(200, Math.round(v))) / 100)
+        }
       />
     </>
   );
@@ -92,7 +94,7 @@ export function AudioSettings() {
       >
         <div className="flex flex-col gap-6 pb-4">{sliders}</div>
       </AppDialog>
-      <div className="flex flex-col justify-center self-stretch h-full rounded-xl py-5 px-4 gap-6 bg-white border border-border [box-shadow:var(--shadow-panel)] max-md:hidden">
+      <div className="flex flex-col justify-center self-stretch h-full rounded-xl py-5 px-4 gap-7 bg-white border border-border [box-shadow:var(--shadow-panel)] max-md:hidden">
         {sliders}
       </div>
     </div>
@@ -160,7 +162,18 @@ const AudioSlider: FC<{
   unit: React.ReactNode;
   onCommit?: (v: number) => void;
   signed?: boolean;
-}> = ({ label, value, min, max, step, onChange, formatValue, unit, onCommit, signed }) => {
+}> = ({
+  label,
+  value,
+  min,
+  max,
+  step,
+  onChange,
+  formatValue,
+  unit,
+  onCommit,
+  signed,
+}) => {
   const trackRef = useRef<HTMLDivElement>(null);
 
   const setValue = (clientX: number) => {
