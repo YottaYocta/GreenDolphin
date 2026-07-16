@@ -73,7 +73,7 @@ export function AudioSettings() {
   );
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col h-full">
       <AppDialog
         title="Settings"
         trigger={
@@ -92,7 +92,7 @@ export function AudioSettings() {
       >
         <div className="flex flex-col gap-6 pb-4">{sliders}</div>
       </AppDialog>
-      <div className="flex flex-col justify-center self-stretch rounded-xl py-5 px-4 gap-6 bg-white border border-border [box-shadow:var(--shadow-panel)] max-md:hidden">
+      <div className="flex flex-col justify-center self-stretch h-full rounded-xl py-5 px-4 gap-6 bg-white border border-border [box-shadow:var(--shadow-panel)] max-md:hidden">
         {sliders}
       </div>
     </div>
