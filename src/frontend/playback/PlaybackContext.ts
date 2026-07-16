@@ -9,6 +9,10 @@ export type LoopOptions =
   | { type: "automatic"; loopDelay: number }
   | { type: "manual" };
 
+export function effectiveLoopDelay(loopOptions: LoopOptions): number {
+  return loopOptions.type === "automatic" ? loopOptions.loopDelay : 0;
+}
+
 export interface PlaybackSettings {
   pitchShift: number;
   playbackSpeed: number;

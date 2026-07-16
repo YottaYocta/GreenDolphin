@@ -3,9 +3,36 @@ import { GearIcon, PlayIcon } from "@phosphor-icons/react";
 import { Dialog } from "@base-ui/react/dialog";
 import { AppDialog } from "../AppDialog";
 import { NumericInput } from "../PlaybackSettings";
-import { PlaybackContext } from "../../playback/PlaybackContext";
+import {
+  PlaybackContext,
+  effectiveLoopDelay,
+} from "../../playback/PlaybackContext";
 import { loadSession, saveSession } from "../../lib/useSessionPersistence";
 import { capture } from "../../lib/posthog";
+
+function ModeToggle<T extends string>({
+  options,
+  value,
+  onChange,
+}: {
+  options: readonly { value: T; label: string }[];
+  value: T;
+  onChange: (next: T) => void;
+}) {
+  return (
+    <div className="flex items-start gap-2 flex-1">
+      {options.map((o) => (
+        <button
+          key={o.value}
+          onClick={() => onChange(o.value)}
+          className={`mode-btn ${value === o.value ? "active" : ""}`}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export function EditorSettings() {
   return (
@@ -40,8 +67,7 @@ function LoopSettings() {
   const { loopOptions } = playbackSettings;
 
   const isManual = loopOptions.type === "manual";
-  const currentDelay =
-    loopOptions.type === "automatic" ? loopOptions.loopDelay : 0;
+  const currentDelay = effectiveLoopDelay(loopOptions);
 
   const [delayMode, setDelayMode] = useState<"fixed" | "relative">(
     () => loadSession()?.delayMode ?? "fixed",
@@ -55,24 +81,23 @@ function LoopSettings() {
     return currentDelay || 1;
   });
 
+  const resolvedDelay =
+    delayMode === "fixed" ? delayValue : (delayValue / 100) * loopLength;
+
   useEffect(() => {
     if (isManual) return;
-    const nextDelay =
-      delayMode === "fixed" ? delayValue : (delayValue / 100) * loopLength;
     setAudioSettings({
-      loopOptions: { type: "automatic", loopDelay: nextDelay },
+      loopOptions: { type: "automatic", loopDelay: resolvedDelay },
     });
-  }, [isManual, delayMode, delayValue, loopLength, setAudioSettings]);
+  }, [isManual, resolvedDelay, setAudioSettings]);
 
   const handleLoopModeChange = (next: "manual" | "automatic") => {
     if (next === loopOptions.type) return;
     if (next === "manual") {
       setAudioSettings({ loopOptions: { type: "manual" } });
     } else {
-      const nextDelay =
-        delayMode === "fixed" ? delayValue : (delayValue / 100) * loopLength;
       setAudioSettings({
-        loopOptions: { type: "automatic", loopDelay: nextDelay },
+        loopOptions: { type: "automatic", loopDelay: resolvedDelay },
       });
     }
     capture("loop_mode_changed", { loop_mode: next });
@@ -91,23 +116,20 @@ function LoopSettings() {
   };
 
   const displayValue = String(Math.round(delayValue * 10) / 10);
-  const formatSeconds = (v: number) => (Math.round(v * 10) / 10).toString();
+  const delayUnit = delayMode === "fixed" ? "s" : "%";
 
   return (
     <>
       <div className="flex flex-col gap-1.5 self-stretch">
         <div className="font-inria text-sm text-black/50">Loop Mode</div>
-        <div className="flex items-start gap-2">
-          {(["manual", "automatic"] as const).map((m) => (
-            <button
-              key={m}
-              onClick={() => handleLoopModeChange(m)}
-              className={`mode-btn ${loopOptions.type === m ? "active" : ""}`}
-            >
-              {m === "manual" ? "Manual" : "Automatic"}
-            </button>
-          ))}
-        </div>
+        <ModeToggle
+          options={[
+            { value: "manual", label: "Manual" },
+            { value: "automatic", label: "Automatic" },
+          ]}
+          value={loopOptions.type}
+          onChange={handleLoopModeChange}
+        />
         <div className="font-inria text-sm text-black/50 leading-snug pt-1">
           {isManual ? (
             <>
@@ -129,17 +151,14 @@ function LoopSettings() {
         <div className="flex flex-col gap-1.5 self-stretch border-l border-border pl-4 ml-2">
           <div className="font-inria text-sm text-black/50">Loop Delay</div>
           <div className="flex items-center gap-4 self-stretch">
-            <div className="flex items-start gap-2 flex-1">
-              {(["fixed", "relative"] as const).map((m) => (
-                <button
-                  key={m}
-                  onClick={() => handleDelayModeChange(m)}
-                  className={`mode-btn ${delayMode === m ? "active" : ""}`}
-                >
-                  {m === "fixed" ? "Fixed" : "Relative"}
-                </button>
-              ))}
-            </div>
+            <ModeToggle
+              options={[
+                { value: "fixed", label: "Fixed" },
+                { value: "relative", label: "Relative" },
+              ]}
+              value={delayMode}
+              onChange={handleDelayModeChange}
+            />
             <div className="flex items-center gap-1.5 shrink-0">
               <NumericInput
                 value={displayValue}
@@ -152,14 +171,12 @@ function LoopSettings() {
                 }}
               />
               <div className="text-black/50 text-sm w-4 shrink-0 flex items-center">
-                {delayMode === "fixed" ? "s" : "%"}
+                {delayUnit}
               </div>
             </div>
           </div>
           <div className="font-inria text-sm text-black/50 leading-snug pt-1">
-            {delayMode === "fixed"
-              ? `A ${formatSeconds(delayValue)}s delay will occur between loops.`
-              : `A ${formatSeconds(delayValue)}% delay will occur between loops.`}
+            {`A ${displayValue}${delayUnit} delay will occur between loops.`}
           </div>
         </div>
       )}

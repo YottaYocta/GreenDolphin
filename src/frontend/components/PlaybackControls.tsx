@@ -7,7 +7,10 @@ import {
   SkipBackIcon,
   SkipForwardIcon,
 } from "@phosphor-icons/react";
-import { PlaybackContext } from "../playback/PlaybackContext";
+import {
+  PlaybackContext,
+  effectiveLoopDelay,
+} from "../playback/PlaybackContext";
 import { capture } from "../lib/posthog";
 
 export function PlaybackControls() {
@@ -23,8 +26,7 @@ export function PlaybackControls() {
     playbackSettings,
   } = playback;
   const { loop, loopOptions } = playbackSettings;
-  const loopDelay =
-    loopOptions.type === "automatic" ? loopOptions.loopDelay : 0;
+  const loopDelay = effectiveLoopDelay(loopOptions);
 
   const [countdown, setCountdown] = useState<number | null>(null);
   const countdownRafRef = useRef(0);

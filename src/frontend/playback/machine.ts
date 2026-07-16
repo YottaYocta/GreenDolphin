@@ -1,4 +1,5 @@
 import type { Section } from "../lib/waveform";
+import { effectiveLoopDelay } from "./PlaybackContext";
 import type { LoopOptions, PlayState } from "./PlaybackContext";
 import { computeMS } from "../lib/util";
 
@@ -40,8 +41,7 @@ export function reduce(
   ctx: MachineContext,
 ): Transition {
   const { startMS, endMS } = loopBounds(ctx);
-  const hasDelay =
-    ctx.loopOptions.type === "automatic" && ctx.loopOptions.loopDelay > 0;
+  const hasDelay = effectiveLoopDelay(ctx.loopOptions) > 0;
 
   switch (event.type) {
     case "play-pause":
