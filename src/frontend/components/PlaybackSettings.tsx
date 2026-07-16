@@ -6,10 +6,10 @@ import { Dialog } from "@base-ui/react/dialog";
 import { AppDialog } from "./AppDialog";
 import { capture } from "../lib/posthog";
 
-export function AudioSettings() {
+export function PlaybackSettings() {
   const playback = useContext(PlaybackContext);
   if (!playback)
-    throw new Error("AudioSettings must be used within a PlaybackProvider");
+    throw new Error("PlaybackSettings must be used within a PlaybackProvider");
   const { playbackSettings, setAudioSettings } = playback;
   const { pitchShift, playbackSpeed } = playbackSettings;
 

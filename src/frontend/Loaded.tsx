@@ -7,12 +7,12 @@ import { PlaybackContext } from "./playback/PlaybackContext";
 import { AudioStore } from "./AudioStore";
 import { useFirstVisit } from "./lib/useFirstVisit";
 import { PlaybackControls } from "./components/PlaybackControls";
-import { AudioSettings } from "./components/AudioSettings";
+import { PlaybackSettings } from "./components/PlaybackSettings";
 import { TitleBar } from "./components/TitleBar/TitleBar";
 import { loadSession, saveSession } from "./lib/useSessionPersistence";
 import type { Section } from "./lib/waveform";
 import { capture } from "./lib/posthog";
-import { WaveformCanvasV2 } from "./components/WaveformCanvas";
+import { Waveform } from "./components/Waveform";
 
 export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
   const { audio } = useContext(AudioStore);
@@ -80,7 +80,7 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
         <div className="flex flex-col rounded-xl overflow-x-hidden overflow-y-clip self-stretch [box-shadow:var(--shadow-panel)] bg-white border border-border h-full min-h-0">
           <PianoRoll />
           <div className="border-t border-border flex-1 min-h-0 md:min-h-56 max-md:grow">
-            <WaveformCanvasV2
+            <Waveform
               waveformData={data}
               handlePosition={handlePosition}
               handleRangeChange={handleRangeChange}
@@ -91,13 +91,13 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
               initialViewport={initialViewport}
               initialSelection={initialSelection}
               positionMS={playbackPosition}
-            ></WaveformCanvasV2>
+            ></Waveform>
           </div>
         </div>
 
         <div className="[font-synthesis:none] md:grid md:grid-cols-2 max-md:flex max-md:flex-col-reverse max-md:flex-1 antialiased gap-4">
           <PlaybackControls />
-          <AudioSettings />
+          <PlaybackSettings />
         </div>
       </div>
 

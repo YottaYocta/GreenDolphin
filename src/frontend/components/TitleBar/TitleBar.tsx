@@ -1,7 +1,7 @@
 import { RecordingsMenu } from "./RecordingsMenu";
 import { FileInfoButton } from "./FileInfoButton";
 import { HomeButton } from "./HomeButton";
-import { SettingsButton } from "./SettingsButton";
+import { EditorSettings } from "./EditorSettings";
 
 export function TitleBar() {
   return (
@@ -11,7 +11,7 @@ export function TitleBar() {
 
         <FileInfoButton />
       </div>
-      <SettingsButton />
+      <EditorSettings />
       <HomeButton />
     </div>
   );

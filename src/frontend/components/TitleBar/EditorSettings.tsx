@@ -2,12 +2,12 @@ import { useContext, useEffect, useState } from "react";
 import { GearIcon } from "@phosphor-icons/react";
 import { Dialog } from "@base-ui/react/dialog";
 import { AppDialog } from "../AppDialog";
-import { NumericInput } from "../AudioSettings";
+import { NumericInput } from "../PlaybackSettings";
 import { PlaybackContext } from "../../playback/PlaybackContext";
 import { loadSession, saveSession } from "../../lib/useSessionPersistence";
 import { capture } from "../../lib/posthog";
 
-export function SettingsButton() {
+export function EditorSettings() {
   return (
     <AppDialog
       title="Settings"
@@ -35,7 +35,7 @@ export function SettingsButton() {
 function LoopDelaySettings() {
   const playback = useContext(PlaybackContext);
   if (!playback)
-    throw new Error("SettingsButton must be used within a PlaybackProvider");
+    throw new Error("EditorSettings must be used within a PlaybackProvider");
   const { playbackSettings, setAudioSettings, loopLength } = playback;
 
   const [delayMode, setDelayMode] = useState<"fixed" | "relative">(

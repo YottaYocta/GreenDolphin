@@ -33,7 +33,7 @@ export interface WaveformCanvasProps {
   handlePosition?: (position: number) => void;
 }
 
-export const WaveformCanvasV2: FC<
+export const Waveform: FC<
   WaveformCanvasProps & CanvasHTMLAttributes<HTMLCanvasElement>
 > = ({
   waveformData,
