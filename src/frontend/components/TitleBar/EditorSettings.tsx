@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { GearIcon } from "@phosphor-icons/react";
+import { GearIcon, PlayIcon } from "@phosphor-icons/react";
 import { Dialog } from "@base-ui/react/dialog";
 import { AppDialog } from "../AppDialog";
 import { NumericInput } from "../PlaybackSettings";
@@ -26,17 +26,22 @@ export function EditorSettings() {
       }
     >
       <div className="flex flex-col gap-6 pb-2">
-        <LoopDelaySettings />
+        <LoopSettings />
       </div>
     </AppDialog>
   );
 }
 
-function LoopDelaySettings() {
+function LoopSettings() {
   const playback = useContext(PlaybackContext);
   if (!playback)
     throw new Error("EditorSettings must be used within a PlaybackProvider");
   const { playbackSettings, setAudioSettings, loopLength } = playback;
+  const { loopOptions } = playbackSettings;
+
+  const isManual = loopOptions.type === "manual";
+  const currentDelay =
+    loopOptions.type === "automatic" ? loopOptions.loopDelay : 0;
 
   const [delayMode, setDelayMode] = useState<"fixed" | "relative">(
     () => loadSession()?.delayMode ?? "fixed",
@@ -45,22 +50,35 @@ function LoopDelaySettings() {
     const session = loadSession();
     const mode = session?.delayMode ?? "fixed";
     if (session && mode === "relative") {
-      return loopLength > 0
-        ? (playbackSettings.loopDelay / loopLength) * 100
-        : 0;
+      return loopLength > 0 ? (currentDelay / loopLength) * 100 : 0;
     }
-    return playbackSettings.loopDelay || 1;
+    return currentDelay || 1;
   });
 
   useEffect(() => {
-    if (delayMode === "fixed") {
-      setAudioSettings({ loopDelay: delayValue });
-    } else {
-      setAudioSettings({ loopDelay: (delayValue / 100) * loopLength });
-    }
-  }, [delayMode, delayValue, loopLength, setAudioSettings]);
+    if (isManual) return;
+    const nextDelay =
+      delayMode === "fixed" ? delayValue : (delayValue / 100) * loopLength;
+    setAudioSettings({
+      loopOptions: { type: "automatic", loopDelay: nextDelay },
+    });
+  }, [isManual, delayMode, delayValue, loopLength, setAudioSettings]);
 
-  const handleModeChange = (next: "fixed" | "relative") => {
+  const handleLoopModeChange = (next: "manual" | "automatic") => {
+    if (next === loopOptions.type) return;
+    if (next === "manual") {
+      setAudioSettings({ loopOptions: { type: "manual" } });
+    } else {
+      const nextDelay =
+        delayMode === "fixed" ? delayValue : (delayValue / 100) * loopLength;
+      setAudioSettings({
+        loopOptions: { type: "automatic", loopDelay: nextDelay },
+      });
+    }
+    capture("loop_mode_changed", { loop_mode: next });
+  };
+
+  const handleDelayModeChange = (next: "fixed" | "relative") => {
     if (next === delayMode) return;
     if (next === "fixed") {
       setDelayValue((delayValue / 100) * loopLength);
@@ -73,38 +91,78 @@ function LoopDelaySettings() {
   };
 
   const displayValue = String(Math.round(delayValue * 10) / 10);
+  const formatSeconds = (v: number) => (Math.round(v * 10) / 10).toString();
 
   return (
-    <div className="flex flex-col gap-1.5 self-stretch">
-      <div className="font-inria text-sm text-black/50">Loop Delay</div>
-      <div className="flex items-center gap-4 self-stretch">
-        <div className="flex items-start gap-2 flex-1">
-          {(["fixed", "relative"] as const).map((m) => (
+    <>
+      <div className="flex flex-col gap-1.5 self-stretch">
+        <div className="font-inria text-sm text-black/50">Loop Mode</div>
+        <div className="flex items-start gap-2">
+          {(["manual", "automatic"] as const).map((m) => (
             <button
               key={m}
-              onClick={() => handleModeChange(m)}
-              className={`mode-btn ${delayMode === m ? "active" : ""}`}
+              onClick={() => handleLoopModeChange(m)}
+              className={`mode-btn ${loopOptions.type === m ? "active" : ""}`}
             >
-              {m === "fixed" ? "Fixed" : "Relative"}
+              {m === "manual" ? "Manual" : "Automatic"}
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-1.5 shrink-0">
-          <NumericInput
-            value={displayValue}
-            onCommit={(v) => {
-              setDelayValue(v);
-              capture("loop_delay_changed", {
-                delay_value: v,
-                delay_mode: delayMode,
-              });
-            }}
-          />
-          <div className="text-black/50 text-sm w-4 shrink-0 flex items-center">
-            {delayMode === "fixed" ? "s" : "%"}
-          </div>
+        <div className="font-inria text-sm text-black/50 leading-snug pt-1">
+          {isManual ? (
+            <>
+              Pauses at loop end; press{" "}
+              <PlayIcon
+                size={12}
+                weight="fill"
+                color="var(--color-play)"
+                style={{ display: "inline", verticalAlign: "middle" }}
+              />{" "}
+              to replay.
+            </>
+          ) : (
+            "Playback loops automatically, with an optional delay between loops."
+          )}
         </div>
       </div>
-    </div>
+      {!isManual && (
+        <div className="flex flex-col gap-1.5 self-stretch border-l border-border pl-4 ml-2">
+          <div className="font-inria text-sm text-black/50">Loop Delay</div>
+          <div className="flex items-center gap-4 self-stretch">
+            <div className="flex items-start gap-2 flex-1">
+              {(["fixed", "relative"] as const).map((m) => (
+                <button
+                  key={m}
+                  onClick={() => handleDelayModeChange(m)}
+                  className={`mode-btn ${delayMode === m ? "active" : ""}`}
+                >
+                  {m === "fixed" ? "Fixed" : "Relative"}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <NumericInput
+                value={displayValue}
+                onCommit={(v) => {
+                  setDelayValue(v);
+                  capture("loop_delay_changed", {
+                    delay_value: v,
+                    delay_mode: delayMode,
+                  });
+                }}
+              />
+              <div className="text-black/50 text-sm w-4 shrink-0 flex items-center">
+                {delayMode === "fixed" ? "s" : "%"}
+              </div>
+            </div>
+          </div>
+          <div className="font-inria text-sm text-black/50 leading-snug pt-1">
+            {delayMode === "fixed"
+              ? `A ${formatSeconds(delayValue)}s delay will occur between loops.`
+              : `A ${formatSeconds(delayValue)}% delay will occur between loops.`}
+          </div>
+        </div>
+      )}
+    </>
   );
 }

@@ -45,12 +45,12 @@ export const PlaybackProvider = ({
     initialSettings: {
       sampleRate: localData.sampleRate,
       loop: initialSettings?.loop,
-      loopDelay: initialSettings?.loopDelay,
+      loopOptions: initialSettings?.loopOptions,
       playbackSpeed: initialSettings?.playbackSpeed,
     },
   });
 
-  const { loop, loopDelay, playbackSpeed } = audioSettings;
+  const { loop, loopOptions, playbackSpeed } = audioSettings;
 
   useEffect(() => {
     setReadyContext(null);
@@ -83,8 +83,8 @@ export const PlaybackProvider = ({
         clockUpdates.loop = settings.loop
           ? clampSection(settings.loop, { start: 0, end: data.length })
           : null;
-      if (settings.loopDelay !== undefined)
-        clockUpdates.loopDelay = settings.loopDelay;
+      if (settings.loopOptions !== undefined)
+        clockUpdates.loopOptions = settings.loopOptions;
       if (settings.playbackSpeed !== undefined)
         clockUpdates.playbackSpeed = settings.playbackSpeed;
       if (Object.keys(clockUpdates).length) updateSettings(clockUpdates);
@@ -157,7 +157,7 @@ export const PlaybackProvider = ({
       positionMS: playbackPosition.current,
       frozen: playState === "frozen",
       loop,
-      loopDelay,
+      loopOptions,
       playbackSpeed,
     });
     node.connect(entryNode);
@@ -176,7 +176,7 @@ export const PlaybackProvider = ({
     entryNode,
     localData,
     loop,
-    loopDelay,
+    loopOptions,
     playbackSpeed,
     playState,
     playbackPosition,
@@ -187,7 +187,7 @@ export const PlaybackProvider = ({
     pitchShift: chainSettings.pitchShift,
     gain: chainSettings.gain,
     loop,
-    loopDelay,
+    loopOptions,
     playbackSpeed,
   };
 

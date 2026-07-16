@@ -22,7 +22,9 @@ export function PlaybackControls() {
     triggerAction,
     playbackSettings,
   } = playback;
-  const { loop, loopDelay } = playbackSettings;
+  const { loop, loopOptions } = playbackSettings;
+  const loopDelay =
+    loopOptions.type === "automatic" ? loopOptions.loopDelay : 0;
 
   const [countdown, setCountdown] = useState<number | null>(null);
   const countdownRafRef = useRef(0);

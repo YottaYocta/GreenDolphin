@@ -5,11 +5,15 @@ import type { FrequencyData } from "../lib/frequency";
 
 export type PlayState = "playing" | "paused" | "frozen" | "waiting";
 
+export type LoopOptions =
+  | { type: "automatic"; loopDelay: number }
+  | { type: "manual" };
+
 export interface PlaybackSettings {
   pitchShift: number;
   playbackSpeed: number;
   gain: number;
-  loopDelay: number;
+  loopOptions: LoopOptions;
   loop: Section | undefined;
 }
 
