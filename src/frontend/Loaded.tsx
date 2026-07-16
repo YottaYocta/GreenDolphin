@@ -79,7 +79,7 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
 
         <div className="flex flex-col rounded-xl overflow-x-hidden overflow-y-clip self-stretch [box-shadow:var(--shadow-panel)] bg-white border border-border h-full min-h-0">
           <PianoRoll />
-          <div className="border-t border-border flex-1 min-h-0 max-md:grow">
+          <div className="border-t border-border flex-1 min-h-0 md:min-h-56 max-md:grow">
             <WaveformCanvasV2
               waveformData={data}
               handlePosition={handlePosition}
