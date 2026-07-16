@@ -4,14 +4,13 @@ import { PlaybackContext } from "../playback/PlaybackContext";
 import { useDrag } from "../lib/useDrag";
 import { Dialog } from "@base-ui/react/dialog";
 import { AppDialog } from "./AppDialog";
-import { loadSession, saveSession } from "../lib/useSessionPersistence";
 import { capture } from "../lib/posthog";
 
-export function AudioSettings() {
+export function PlaybackSettings() {
   const playback = useContext(PlaybackContext);
   if (!playback)
-    throw new Error("AudioSettings must be used within a PlaybackProvider");
-  const { playbackSettings, setAudioSettings, loopLength } = playback;
+    throw new Error("PlaybackSettings must be used within a PlaybackProvider");
+  const { playbackSettings, setAudioSettings } = playback;
   const { pitchShift, playbackSpeed } = playbackSettings;
 
   const [renderedGain, setRenderedGain] = useState(
@@ -21,55 +20,8 @@ export function AudioSettings() {
     setAudioSettings({ gain: renderedGain * renderedGain });
   }, [renderedGain, setAudioSettings]);
 
-  const [delayMode, setDelayMode] = useState<"fixed" | "relative">(
-    () => loadSession()?.delayMode ?? "fixed",
-  );
-  const [delayValue, setDelayValue] = useState(() => {
-    const session = loadSession();
-    const mode = session?.delayMode ?? "fixed";
-    // loopDelay is always stored in seconds; convert back to % when restoring relative mode
-    if (session && mode === "relative") {
-      return loopLength > 0
-        ? (playbackSettings.loopDelay / loopLength) * 100
-        : 0;
-    }
-    return playbackSettings.loopDelay || 1;
-  });
-
-  useEffect(() => {
-    if (delayMode === "fixed") {
-      setAudioSettings({ loopDelay: delayValue });
-    } else {
-      setAudioSettings({ loopDelay: (delayValue / 100) * loopLength });
-    }
-  }, [delayMode, delayValue, loopLength, setAudioSettings]);
-
-  const handleModeChange = (next: "fixed" | "relative") => {
-    if (next === delayMode) return;
-    if (next === "fixed") {
-      setDelayValue((delayValue / 100) * loopLength);
-    } else {
-      setDelayValue(loopLength > 0 ? (delayValue / loopLength) * 100 : 0);
-    }
-    setDelayMode(next);
-    saveSession({ delayMode: next });
-    capture("loop_delay_changed", { delay_mode: next });
-  };
-
   const sliders = (
     <>
-      <LoopDelayInput
-        mode={delayMode}
-        onModeChange={handleModeChange}
-        displayValue={String(Math.round(delayValue * 10) / 10)}
-        onChange={(v) => {
-          setDelayValue(v);
-          capture("loop_delay_changed", {
-            delay_value: v,
-            delay_mode: delayMode,
-          });
-        }}
-      />
       <AudioSlider
         label="Pitch"
         value={pitchShift}
@@ -115,13 +67,15 @@ export function AudioSettings() {
         onChange={(v) => setRenderedGain(v)}
         formatValue={(v) => `${Math.round(v * 100)}`}
         unit="%"
-        onCommit={(v) => setRenderedGain(Math.max(0, Math.min(200, Math.round(v))) / 100)}
+        onCommit={(v) =>
+          setRenderedGain(Math.max(0, Math.min(200, Math.round(v))) / 100)
+        }
       />
     </>
   );
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col h-full">
       <AppDialog
         title="Settings"
         trigger={
@@ -140,7 +94,7 @@ export function AudioSettings() {
       >
         <div className="flex flex-col gap-6 pb-4">{sliders}</div>
       </AppDialog>
-      <div className="flex flex-col justify-center self-stretch rounded-xl py-5 px-4 gap-6 bg-white border border-border [box-shadow:var(--shadow-panel)] max-md:hidden">
+      <div className="flex flex-col justify-center self-stretch h-full rounded-xl py-5 px-4 gap-7 bg-white border border-border [box-shadow:var(--shadow-panel)] max-md:hidden">
         {sliders}
       </div>
     </div>
@@ -197,40 +151,6 @@ export const NumericInput: FC<{
   );
 };
 
-const LoopDelayInput: FC<{
-  mode: "fixed" | "relative";
-  onModeChange: (mode: "fixed" | "relative") => void;
-  displayValue: string;
-  onChange: (v: number) => void;
-}> = ({ mode, onModeChange, displayValue, onChange }) => {
-  return (
-    <SettingsRow
-      label="Loop Delay"
-      center={
-        <div className="flex items-start gap-2 w-full">
-          {(["fixed", "relative"] as const).map((m) => (
-            <button
-              key={m}
-              onClick={() => onModeChange(m)}
-              className={`mode-btn ${mode === m ? "active" : ""}`}
-            >
-              {m === "fixed" ? "Fixed" : "Relative"}
-            </button>
-          ))}
-        </div>
-      }
-      right={
-        <div className="flex items-center gap-1.5  shrink-0">
-          <NumericInput value={displayValue} onCommit={onChange} />
-          <div className="text-black/50 text-sm w-4 shrink-0 flex items-center">
-            {mode === "fixed" ? "s" : "%"}
-          </div>
-        </div>
-      }
-    />
-  );
-};
-
 const AudioSlider: FC<{
   label: string;
   value: number;
@@ -242,7 +162,18 @@ const AudioSlider: FC<{
   unit: React.ReactNode;
   onCommit?: (v: number) => void;
   signed?: boolean;
-}> = ({ label, value, min, max, step, onChange, formatValue, unit, onCommit, signed }) => {
+}> = ({
+  label,
+  value,
+  min,
+  max,
+  step,
+  onChange,
+  formatValue,
+  unit,
+  onCommit,
+  signed,
+}) => {
   const trackRef = useRef<HTMLDivElement>(null);
 
   const setValue = (clientX: number) => {

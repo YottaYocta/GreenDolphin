@@ -1,12 +1,13 @@
 import type { Section } from "../lib/waveform";
-import type { PlayState } from "./PlaybackContext";
+import { effectiveLoopDelay } from "./PlaybackContext";
+import type { LoopOptions, PlayState } from "./PlaybackContext";
 import { computeMS } from "../lib/util";
 
 export interface MachineContext {
   sampleRate: number;
   duration: number;
   loop: Section | undefined;
-  loopDelay: number;
+  loopOptions: LoopOptions;
   currentPositionMS: number;
 }
 
@@ -40,7 +41,7 @@ export function reduce(
   ctx: MachineContext,
 ): Transition {
   const { startMS, endMS } = loopBounds(ctx);
-  const hasDelay = ctx.loopDelay > 0;
+  const hasDelay = effectiveLoopDelay(ctx.loopOptions) > 0;
 
   switch (event.type) {
     case "play-pause":
@@ -95,6 +96,8 @@ export function reduce(
     case "reach-end":
       switch (state) {
         case "playing":
+          if (ctx.loopOptions.type === "manual")
+            return { nextState: "paused", nextPositionMS: startMS };
           if (hasDelay) return { nextState: "waiting", nextPositionMS: endMS };
           return { nextState: "playing", nextPositionMS: startMS };
 

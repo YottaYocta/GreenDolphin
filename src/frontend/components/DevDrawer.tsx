@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { tinykeys } from "tinykeys";
 import { Drawer } from "@base-ui/react/drawer";
-import { NumericInput } from "./AudioSettings";
+import { NumericInput } from "./PlaybackSettings";
 
 const DEV = import.meta.env.VITE_DEV_TOOLS === "true";
 

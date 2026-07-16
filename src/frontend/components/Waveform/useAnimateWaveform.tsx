@@ -48,10 +48,11 @@ export const useAnimateWaveform = (
     };
 
     rafId = requestAnimationFrame(loop);
-    window.addEventListener("resize", onResize);
+    const observer = new ResizeObserver(onResize);
+    observer.observe(canvas);
     onResize();
     return () => {
-      window.removeEventListener("resize", onResize);
+      observer.disconnect();
       cancelAnimationFrame(rafId);
     };
   }, [canvasRef, audioBuffer, metadataRef, positionReference]);

@@ -1,4 +1,5 @@
 import type { Section } from "../lib/waveform";
+import type { LoopOptions } from "./PlaybackContext";
 import { buildFreezeBuffer } from "../lib/freeze";
 
 export interface SourceNodeOptions {
@@ -7,7 +8,7 @@ export interface SourceNodeOptions {
   positionMS: number;
   frozen: boolean;
   loop: Section | undefined;
-  loopDelay: number;
+  loopOptions: LoopOptions;
   playbackSpeed: number;
 }
 
@@ -17,7 +18,7 @@ export function buildSourceNode({
   positionMS,
   frozen,
   loop,
-  loopDelay,
+  loopOptions,
   playbackSpeed,
 }: SourceNodeOptions): AudioBufferSourceNode {
   const node = context.createBufferSource();
@@ -31,9 +32,8 @@ export function buildSourceNode({
   }
 
   node.buffer = data;
-  // when loopDelay > 0 the tick owns the boundary; onended would race and
-  // pause without triggering the delay
-  node.loop = loopDelay === 0;
+  node.loop =
+    loopOptions.type === "automatic" && loopOptions.loopDelay === 0;
   node.playbackRate.value = playbackSpeed;
 
   if (loop) {

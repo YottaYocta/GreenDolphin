@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import type { RefObject } from "react";
 import type { Section } from "../lib/waveform";
-import type { PlayState } from "./PlaybackContext";
+import type { LoopOptions, PlayState } from "./PlaybackContext";
 import type { ClockEvent, UserEvent, Transition } from "./machine";
 import { reduce } from "./machine";
 import { computeMS } from "../lib/util";
@@ -10,14 +10,21 @@ import { useApplyTransition } from "./useApplyTransition";
 export type AudioSettings = {
   sampleRate: number;
   loop: Section | undefined;
-  loopDelay: number;
+  loopOptions: LoopOptions;
   playbackSpeed: number;
 };
+
+function loopOptionsEqual(a: LoopOptions, b: LoopOptions): boolean {
+  if (a.type !== b.type) return false;
+  if (a.type === "automatic" && b.type === "automatic")
+    return a.loopDelay === b.loopDelay;
+  return true;
+}
 
 const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
   sampleRate: 44100,
   loop: undefined,
-  loopDelay: 0,
+  loopOptions: { type: "automatic", loopDelay: 0 },
   playbackSpeed: 1,
 };
 
@@ -51,8 +58,8 @@ export function usePlaybackClock({
   const [loop, setLoop] = useState<Section | undefined>(
     initialSettings?.loop ?? DEFAULT_AUDIO_SETTINGS.loop,
   );
-  const [loopDelay, setLoopDelay] = useState(
-    initialSettings?.loopDelay ?? DEFAULT_AUDIO_SETTINGS.loopDelay,
+  const [loopOptions, setLoopOptions] = useState<LoopOptions>(
+    initialSettings?.loopOptions ?? DEFAULT_AUDIO_SETTINGS.loopOptions,
   );
   const [playbackSpeed, setPlaybackSpeed] = useState(
     initialSettings?.playbackSpeed ?? DEFAULT_AUDIO_SETTINGS.playbackSpeed,
@@ -61,7 +68,7 @@ export function usePlaybackClock({
   const audioSettings: AudioSettings = {
     sampleRate,
     loop,
-    loopDelay,
+    loopOptions,
     playbackSpeed,
   };
 
@@ -113,12 +120,12 @@ export function usePlaybackClock({
         sampleRate,
         duration,
         loop,
-        loopDelay,
+        loopOptions,
         currentPositionMS: playbackPosition.current,
       });
       applyTransition(result);
     },
-    [playState, sampleRate, duration, loop, loopDelay, applyTransition],
+    [playState, sampleRate, duration, loop, loopOptions, applyTransition],
   );
 
   const updateSettings = useCallback(
@@ -144,10 +151,10 @@ export function usePlaybackClock({
         }
       }
       if (
-        settings.loopDelay !== undefined &&
-        settings.loopDelay !== loopDelay
+        settings.loopOptions !== undefined &&
+        !loopOptionsEqual(settings.loopOptions, loopOptions)
       ) {
-        setLoopDelay(settings.loopDelay);
+        setLoopOptions(settings.loopOptions);
         dirty = true;
       }
       if (
@@ -181,7 +188,7 @@ export function usePlaybackClock({
     [
       sampleRate,
       loop,
-      loopDelay,
+      loopOptions,
       playbackSpeed,
       playState,
       applyTransition,
@@ -219,13 +226,14 @@ export function usePlaybackClock({
 
   useEffect(() => {
     if (timerStartedAtMS === null) return;
+    if (loopOptions.type !== "automatic") return;
     const elapsed = performance.now() - timerStartedAtMS;
-    const remaining = Math.max(0, loopDelay * 1000 - elapsed);
+    const remaining = Math.max(0, loopOptions.loopDelay * 1000 - elapsed);
     const id = setTimeout(() => {
       dispatch({ type: "delay-end" });
     }, remaining);
     return () => clearTimeout(id);
-  }, [timerStartedAtMS, loopDelay, dispatch]);
+  }, [timerStartedAtMS, loopOptions, dispatch]);
 
   const reset = useCallback(() => {
     setPlaybackStartTimestamp(null);
