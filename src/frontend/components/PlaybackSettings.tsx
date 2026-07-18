@@ -94,7 +94,7 @@ export function PlaybackSettings() {
       >
         <div className="flex flex-col gap-6 pb-4">{sliders}</div>
       </AppDialog>
-      <div className="flex justify-between h-min py-3 px-4 gap-7 max-md:hidden">
+      <div className="flex justify-between h-min p-5 gap-16 max-md:hidden">
         {sliders}
       </div>
     </div>
@@ -107,7 +107,7 @@ const SettingsRow: FC<{
   right: React.ReactNode;
 }> = ({ label, center, right }) => (
   <div className="flex items-center gap-4 self-stretch max-md:flex-col max-md:items-start max-md:gap-1.5 w-full">
-    <div className="shrink-0 font-inria text-black text-base/5 whitespace-nowrap flex justify-end max-md:justify-start max-md:text-sm max-md:text-black/50">
+    <div className="shrink-0 font-inria text-black/60 text-base/5 whitespace-nowrap flex justify-end max-md:justify-start max-md:text-sm max-md:text-black/50">
       {label}
     </div>
     <div className="flex items-center gap-4 self-stretch flex-1">
@@ -121,7 +121,8 @@ export const NumericInput: FC<{
   value: string;
   onCommit: (v: number) => void;
   signed?: boolean;
-}> = ({ value, onCommit, signed }) => {
+  unit?: React.ReactNode;
+}> = ({ value, onCommit, signed, unit }) => {
   const commit = (el: HTMLInputElement) => {
     const n = parseFloat(el.value.replace(/^\+/, ""));
     if (!isNaN(n) && (signed || n >= 0)) {
@@ -132,11 +133,11 @@ export const NumericInput: FC<{
   };
 
   return (
-    <div className="flex items-center px-1 py-0.5 rounded-sm bg-surface-input cursor-text w-14 overflow-hidden">
+    <div className="flex items-center gap-1 px-1 py-0.5 rounded-sm bg-surface-input cursor-text w-14 overflow-hidden">
       <input
         key={value}
         defaultValue={value}
-        className="font-space-mono text-black text-base/5 tabular-nums bg-transparent outline-none w-full min-w-0 text-right"
+        className="font-space-mono text-black/60 text-base/5 tabular-nums bg-transparent outline-none w-full min-w-0 text-right"
         onFocus={(e) => e.currentTarget.select()}
         onBlur={(e) => commit(e.currentTarget)}
         onKeyDown={(e) => {
@@ -147,6 +148,9 @@ export const NumericInput: FC<{
           }
         }}
       />
+      {unit && (
+        <div className="text-sm text-black/50 opacity-30 shrink-0">{unit}</div>
+      )}
     </div>
   );
 };
@@ -215,24 +219,23 @@ const AudioSlider: FC<{
         </div>
       }
       right={
-        <div className="flex items-center gap-1.5  shrink-0">
-          {onCommit ? (
-            <NumericInput
-              value={formatValue(value)}
-              onCommit={onCommit}
-              signed={signed}
-            />
-          ) : (
-            <div className="flex items-center px-1 py-0.5 rounded-sm bg-surface-input w-14">
-              <span className="font-space-mono text-black text-base/5 tabular-nums w-full text-right">
-                {formatValue(value)}
-              </span>
+        onCommit ? (
+          <NumericInput
+            value={formatValue(value)}
+            onCommit={onCommit}
+            signed={signed}
+            unit={unit}
+          />
+        ) : (
+          <div className="flex items-center gap-1 px-1 py-0.5 rounded-sm bg-surface-input w-14 overflow-hidden">
+            <span className="font-space-mono text-black text-base/5 tabular-nums w-full text-right">
+              {formatValue(value)}
+            </span>
+            <div className="text-sm text-black/50 opacity-30 shrink-0">
+              {unit}
             </div>
-          )}
-          <div className="text-black/50 text-sm w-4 shrink-0 flex items-center">
-            {unit}
           </div>
-        </div>
+        )
       }
     />
   );

@@ -103,7 +103,7 @@ export function PlaybackControls() {
             triggerAction("play");
           }
         }}
-        className={`btn-surface p-5 h-full min-h-0 cursor-pointer ${
+        className={`btn-surface rounded-xl md:p-10 p-5 h-full min-h-0 cursor-pointer ${
           playState === "waiting"
             ? "bg-waiting hover:bg-waiting-hover active:bg-waiting-active [box-shadow:var(--shadow-btn-colored)]"
             : playState === "playing"
@@ -138,7 +138,7 @@ export function PlaybackControls() {
         onClick={() => {
           triggerAction("freeze");
         }}
-        className={`btn-surface p-5 h-full min-h-0 cursor-pointer ${playState === "frozen" ? "bg-freeze hover:bg-freeze-hover active:bg-freeze-active [box-shadow:var(--shadow-btn-colored)]" : ""}`}
+        className={`btn-surface rounded-xl md:p-10 p-5 h-full min-h-0 cursor-pointer ${playState === "frozen" ? "bg-freeze hover:bg-freeze-hover active:bg-freeze-active [box-shadow:var(--shadow-btn-colored)]" : ""}`}
       >
         <SnowflakeIcon
           size={40}
@@ -149,7 +149,7 @@ export function PlaybackControls() {
       </button>
       <button
         onClick={rewindFiveSeconds}
-        className="btn-surface p-5 h-full min-h-0 cursor-pointer"
+        className="btn-surface rounded-xl md:p-10 p-5 h-full min-h-0 cursor-pointer"
       >
         <SkipBackIcon
           size={32}
@@ -160,7 +160,7 @@ export function PlaybackControls() {
       </button>
       <button
         onClick={fastForwardFiveSeconds}
-        className="btn-surface p-5 h-full min-h-0 cursor-pointer"
+        className="btn-surface rounded-xl md:p-10 p-5 h-full min-h-0 cursor-pointer"
       >
         <SkipForwardIcon
           size={32}
