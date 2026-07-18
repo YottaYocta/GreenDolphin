@@ -75,11 +75,11 @@ export function PlaybackSettings() {
   );
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-min">
       <AppDialog
         title="Settings"
         trigger={
-          <Dialog.Trigger className="btn-surface rounded-lg gap-3 w-full h-12 shrink-0 cursor-pointer max-md:flex hidden">
+          <Dialog.Trigger className="btn-surface rounded-none border-0 border-t gap-3 w-full h-12 shrink-0 cursor-pointer max-md:flex hidden">
             <SlidersIcon
               size={24}
               weight="fill"
@@ -94,7 +94,7 @@ export function PlaybackSettings() {
       >
         <div className="flex flex-col gap-6 pb-4">{sliders}</div>
       </AppDialog>
-      <div className="flex flex-col justify-center self-stretch h-full rounded-xl py-5 px-4 gap-7 bg-white border border-border [box-shadow:var(--shadow-panel)] max-md:hidden">
+      <div className="flex justify-between h-min py-3 px-4 gap-7 max-md:hidden">
         {sliders}
       </div>
     </div>
@@ -106,8 +106,8 @@ const SettingsRow: FC<{
   center: React.ReactNode;
   right: React.ReactNode;
 }> = ({ label, center, right }) => (
-  <div className="flex items-center gap-4 self-stretch max-md:flex-col max-md:items-start max-md:gap-1.5">
-    <div className="w-20 shrink-0 font-inria text-black text-base/5 whitespace-nowrap flex justify-end max-md:justify-start max-md:text-sm max-md:text-black/50">
+  <div className="flex items-center gap-4 self-stretch max-md:flex-col max-md:items-start max-md:gap-1.5 w-full">
+    <div className="shrink-0 font-inria text-black text-base/5 whitespace-nowrap flex justify-end max-md:justify-start max-md:text-sm max-md:text-black/50">
       {label}
     </div>
     <div className="flex items-center gap-4 self-stretch flex-1">
@@ -196,7 +196,7 @@ const AudioSlider: FC<{
       center={
         <div
           ref={trackRef}
-          className="relative w-full h-5 rounded-[3px] bg-surface-track border border-border cursor-pointer"
+          className="relative min-w-25 w-full h-2 rounded-[3px] bg-surface-track border border-border cursor-pointer"
           onMouseDown={(e) => {
             setValue(e.clientX);
             startDrag(e.clientX);
@@ -209,7 +209,7 @@ const AudioSlider: FC<{
           }}
         >
           <div
-            className="absolute top-1/2 -translate-y-1/2 w-2.5 h-6.5 rounded-xs [box-shadow:var(--shadow-btn)] bg-surface border border-border"
+            className="absolute top-1/2 -translate-y-1/2 w-2.5 h-3 rounded-xs [box-shadow:var(--shadow-btn)] bg-surface border border-border"
             style={{ left: `calc(${thumbPct * 100}% - 5px)` }}
           />
         </div>

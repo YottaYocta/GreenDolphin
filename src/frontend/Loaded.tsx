@@ -94,13 +94,12 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
               initialSelection={initialSelection}
               positionMS={playbackPosition}
             ></Waveform>
+
+            <PlaybackSettings />
           </div>
         </div>
 
-        <div className="[font-synthesis:none] md:grid md:grid-cols-2 max-md:flex max-md:flex-col-reverse max-md:flex-1 antialiased gap-4">
-          <PlaybackControls />
-          <PlaybackSettings />
-        </div>
+        <PlaybackControls />
       </div>
 
       {!showTutorial && (

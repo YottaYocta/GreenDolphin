@@ -92,7 +92,7 @@ export function PlaybackControls() {
   ]);
 
   return (
-    <div className="grid grid-cols-2 grid-rows-2 gap-4 h-full rounded-xl max-md:flex-1">
+    <div className="grid max-md:grid-cols-2 grid-cols-4 max-md:grid-rows-2 gap-4 w-full h-min rounded-xl max-md:flex-1">
       <button
         onClick={() => {
           if (playState === "playing" || playState === "waiting") {
