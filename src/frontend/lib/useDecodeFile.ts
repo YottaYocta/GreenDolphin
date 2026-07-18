@@ -1,6 +1,7 @@
 import { useCallback, useContext } from "react";
 import { AudioStore } from "../AudioStore";
 import { captureException } from "./posthog";
+import { getCachedChannels } from "./channelCache";
 
 export function useDecodeFile() {
   const { setAudio, audio, setIsLoading } = useContext(AudioStore);
@@ -10,6 +11,7 @@ export function useDecodeFile() {
       try {
         const ctx = audio?.audioCtx ?? new AudioContext();
         const buffer = await ctx.decodeAudioData(await file.arrayBuffer());
+        getCachedChannels(buffer);
         setAudio({
           audioCtx: ctx,
           buffer,

@@ -1,4 +1,5 @@
 import { formatSeconds } from "./util";
+import { getCachedChannels } from "./channelCache";
 
 export interface Section {
   start: number;
@@ -72,8 +73,9 @@ export const renderWaveform = (
   const primaryFill = computeFillStyle(primary);
   const secondaryFill = computeFillStyle(secondary);
 
+  const cachedChannels = getCachedChannels(data);
   for (let i = 0; i < data.numberOfChannels; i++) {
-    const channelData = data.getChannelData(i);
+    const channelData = cachedChannels[i];
 
     const subsamplingRate = Math.max(1, samplesPerWave / 10);
     for (
