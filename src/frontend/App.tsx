@@ -50,7 +50,13 @@ export default function App() {
     );
   }
 
-  if (audio) return <><AppView /><DevDrawer /></>;
+  if (audio)
+    return (
+      <>
+        <AppView />
+        <DevDrawer />
+      </>
+    );
 
   return (
     <>
