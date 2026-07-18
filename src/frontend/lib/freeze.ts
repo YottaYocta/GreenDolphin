@@ -1,3 +1,5 @@
+import { getCachedChannels } from "./channelCache";
+
 function reflect(idx: number, length: number): number {
   if (idx < 0) return -idx;
   if (idx >= length) return length - 1 - (idx - length + 1);
@@ -78,9 +80,10 @@ export function buildFreezeBuffer(
     Math.min(audioBuffer.length - Math.ceil(regionSamples / 2), centerSample),
   );
 
+  const cached = getCachedChannels(audioBuffer);
   const channels = Array.from({ length: numChannels }, (_, ch) =>
     granularFreeze(
-      audioBuffer.getChannelData(ch),
+      cached[ch],
       clampedCenter,
       regionSamples,
       grainSamples,
