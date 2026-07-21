@@ -63,7 +63,7 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
     250,
   );
 
-  const persistedSession = loadSession();
+  const [persistedSession] = useState(loadSession);
   const sessionMatches = persistedSession?.filename === filename;
   const initialViewport = sessionMatches
     ? persistedSession?.viewport
