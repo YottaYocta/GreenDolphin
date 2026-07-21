@@ -1,5 +1,5 @@
 import { useContext, useEffect, useRef, useState, type FC } from "react";
-import { SlidersIcon } from "@phosphor-icons/react";
+import { ArrowClockwiseIcon, SlidersIcon } from "@phosphor-icons/react";
 import { PlaybackContext } from "../playback/PlaybackContext";
 import { useDrag } from "../lib/useDrag";
 import { Dialog } from "@base-ui/react/dialog";
@@ -25,6 +25,7 @@ export function PlaybackSettings() {
       <AudioSlider
         label="Pitch"
         value={pitchShift}
+        defaultValue={0}
         min={-12}
         max={12}
         step={0.1}
@@ -43,6 +44,7 @@ export function PlaybackSettings() {
       <AudioSlider
         label="Speed"
         value={playbackSpeed}
+        defaultValue={1}
         min={0.1}
         max={1.9}
         step={0.01}
@@ -61,6 +63,7 @@ export function PlaybackSettings() {
       <AudioSlider
         label="Volume"
         value={renderedGain}
+        defaultValue={1}
         min={0}
         max={2}
         step={0.01}
@@ -103,12 +106,14 @@ export function PlaybackSettings() {
 
 const SettingsRow: FC<{
   label: string;
+  labelAdornment?: React.ReactNode;
   center: React.ReactNode;
   right: React.ReactNode;
-}> = ({ label, center, right }) => (
+}> = ({ label, labelAdornment, center, right }) => (
   <div className="flex items-center gap-4 self-stretch max-md:flex-col max-md:items-start max-md:gap-1.5 w-full">
-    <div className="shrink-0 font-inria text-black/60 text-base/5 whitespace-nowrap flex justify-end max-md:justify-start max-md:text-sm max-md:text-black/50">
+    <div className="shrink-0 font-inria text-black/60 text-base/5 whitespace-nowrap flex items-center gap-1.5 justify-end max-md:justify-start max-md:text-sm max-md:text-black/50">
       {label}
+      {labelAdornment}
     </div>
     <div className="flex items-center gap-4 self-stretch flex-1">
       <div className="flex-1">{center}</div>
@@ -158,6 +163,7 @@ export const NumericInput: FC<{
 const AudioSlider: FC<{
   label: string;
   value: number;
+  defaultValue: number;
   min: number;
   max: number;
   step: number;
@@ -169,6 +175,7 @@ const AudioSlider: FC<{
 }> = ({
   label,
   value,
+  defaultValue,
   min,
   max,
   step,
@@ -197,6 +204,18 @@ const AudioSlider: FC<{
   return (
     <SettingsRow
       label={label}
+      labelAdornment={
+        value !== defaultValue ? (
+          <button
+            type="button"
+            aria-label={`Reset ${label}`}
+            onClick={() => onChange(defaultValue)}
+            className="flex items-center justify-center cursor-pointer text-black/40 hover:text-black/70 hover:bg-black/5 rounded-sm p-0.5 transition-colors"
+          >
+            <ArrowClockwiseIcon size={14} weight="fill" />
+          </button>
+        ) : null
+      }
       center={
         <div
           ref={trackRef}
