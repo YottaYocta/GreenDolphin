@@ -1,18 +1,15 @@
 import { useContext } from "react";
 import { SpinnerIcon } from "@phosphor-icons/react";
 import { Landing } from "./Landing";
-import { Loaded } from "./Loaded";
+import { Editor } from "./Editor";
 import { PlaybackProvider } from "./playback/PlaybackProvider";
 import { AudioStore } from "./AudioStore";
-import { useAlwaysAwake } from "./lib/useAlwaysAwake";
-import { AlwaysAwakeIndicator } from "./components/AlwaysAwakeIndicator";
 import { loadSession } from "./lib/useSessionPersistence";
 import { SessionRestorer } from "./SessionRestorer";
 import { DevDrawer } from "./components/DevDrawer";
 
 function AppView() {
   const { audio } = useContext(AudioStore);
-  const { activate, method, wakeLockError, videoError } = useAlwaysAwake();
 
   if (!audio) return null;
 
@@ -22,18 +19,12 @@ function AppView() {
 
   return (
     <div className="w-screen h-screen max-h-full flex flex-col items-center justify-center">
-      <AlwaysAwakeIndicator
-        method={method}
-        wakeLockError={wakeLockError}
-        videoError={videoError}
-        onRetry={activate}
-      />
       <PlaybackProvider
         context={audio.audioCtx}
         data={audio.buffer}
         initialSettings={initialSettings}
       >
-        <Loaded onMounted={activate} />
+        <Editor />
       </PlaybackProvider>
     </div>
   );

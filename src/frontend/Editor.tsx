@@ -13,10 +13,12 @@ import { loadSession, saveSession } from "./lib/useSessionPersistence";
 import type { Section } from "./lib/waveform";
 import { capture } from "./lib/posthog";
 import { Waveform } from "./components/Waveform";
+import { useAlwaysAwake } from "./lib/useAlwaysAwake";
+import { AlwaysAwakeIndicator } from "./components/AlwaysAwakeIndicator";
 
-export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
+export const Editor = () => {
   const { audio } = useContext(AudioStore);
-  if (!audio) throw new Error("Loaded must be rendered within an audio route");
+  if (!audio) throw new Error("Editor must be rendered within an audio route");
   const { buffer: data, filename } = audio;
 
   const {
@@ -25,15 +27,15 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
     resetVisit: retriggerTutorial,
   } = useFirstVisit();
 
-  useEffect(() => {
-    onMounted?.();
-  }, [onMounted]);
+  const { activate, method, wakeLockError, videoError } = useAlwaysAwake();
 
-  const [triggerUpdate, setTriggerUpdate] = useState<boolean>(false);
+  useEffect(() => {
+    activate();
+  }, [activate]);
 
   const playback = useContext(PlaybackContext);
   if (!playback) {
-    throw new Error("Loaded must be used within a PlaybackProvider");
+    throw new Error("Editor must be used within a PlaybackProvider");
   }
 
   const {
@@ -50,13 +52,8 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
   const handlePosition = (sampleIndex: number) => {
     const timeInSeconds = sampleIndex / data.sampleRate;
     const timeInMs = timeInSeconds * 1000;
-    setTriggerUpdate(true);
     triggerAction({ type: "move", position: timeInMs });
   };
-
-  useEffect(() => {
-    if (triggerUpdate) setTriggerUpdate(false);
-  }, [triggerUpdate]);
 
   const handleRangeChange = useDebounce(
     useCallback((viewport: Section) => saveSession({ viewport }), []),
@@ -74,6 +71,12 @@ export const Loaded = ({ onMounted }: { onMounted?: () => void }) => {
 
   return (
     <>
+      <AlwaysAwakeIndicator
+        method={method}
+        wakeLockError={wakeLockError}
+        videoError={videoError}
+        onRetry={activate}
+      />
       <div className="w-full max-w-240 h-full md:h-min min-h-0 p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:py-10">
         <TitleBar />
 
