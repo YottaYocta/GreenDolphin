@@ -69,8 +69,7 @@ export const Editor = () => {
         ? persistedSession?.audioSettings?.loop
         : undefined,
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [filename]);
 
   return (
     <>
