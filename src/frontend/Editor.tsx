@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo } from "react";
 import { InfoIcon } from "@phosphor-icons/react";
 import { useDebounce } from "./lib/useDebounce";
 import { Tutorial } from "./components/Tutorial";
@@ -60,14 +60,17 @@ export const Editor = () => {
     250,
   );
 
-  const [persistedSession] = useState(loadSession);
-  const sessionMatches = persistedSession?.filename === filename;
-  const initialViewport = sessionMatches
-    ? persistedSession?.viewport
-    : undefined;
-  const initialSelection = sessionMatches
-    ? persistedSession?.audioSettings?.loop
-    : undefined;
+  const { initialViewport, initialSelection } = useMemo(() => {
+    const persistedSession = loadSession();
+    const sessionMatches = persistedSession?.filename === filename;
+    return {
+      initialViewport: sessionMatches ? persistedSession?.viewport : undefined,
+      initialSelection: sessionMatches
+        ? persistedSession?.audioSettings?.loop
+        : undefined,
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>
