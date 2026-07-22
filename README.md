@@ -22,15 +22,15 @@ If you'd like see or work on a new feature, send me a message at rwq (at) cornel
 
 - [ ] version 2.0:
 
+  - [ ] Audio waveform component
   - [ ] custom shortcuts
-  - [ ] define and store loops
-  - [ ] local recording storage + multiple recordings
-  - [ ] improved freeze algorithm
-  - [ ] Loop with custom delay (pause between loops)
+  - [ ] YouTube import support
+  - [ ] define and store multiple loops
+  - [x] local recording storage + multiple recordings
+  - [x] improved freeze algorithm
+  - [x] Loop with custom delay (pause between loops) and manual loop
+  - [x] UI overhaul
 
-- [ ] version 1.x:
-
-  - [ ] Misc. bug and styling fixes
 
 - [x] version 1.0:
   - [x] offline and PWA support: no recordings leave your device
