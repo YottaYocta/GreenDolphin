@@ -1,7 +1,6 @@
 import type { Section } from "../lib/waveform";
 import type { LoopOptions } from "./PlaybackContext";
 import { buildFreezeBuffer } from "../lib/freeze";
-import { cloneBufferFromCache } from "../lib/channelCache";
 
 export interface SourceNodeOptions {
   context: AudioContext;
@@ -32,7 +31,7 @@ export function buildSourceNode({
     return node;
   }
 
-  node.buffer = cloneBufferFromCache(data, context);
+  node.buffer = data;
   node.loop =
     loopOptions.type === "automatic" && loopOptions.loopDelay === 0;
   node.playbackRate.value = playbackSpeed;

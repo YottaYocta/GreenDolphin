@@ -13,16 +13,3 @@ export function getCachedChannels(buffer: AudioBuffer): Float32Array[] {
   return channels;
 }
 
-export function cloneBufferFromCache(
-  buffer: AudioBuffer,
-  context: BaseAudioContext,
-): AudioBuffer {
-  const channels = getCachedChannels(buffer);
-  const fresh = context.createBuffer(
-    buffer.numberOfChannels,
-    buffer.length,
-    buffer.sampleRate,
-  );
-  for (let i = 0; i < channels.length; i++) fresh.copyToChannel(channels[i], i);
-  return fresh;
-}
