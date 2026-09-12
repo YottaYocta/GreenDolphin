@@ -8,7 +8,11 @@ import { capture } from "../lib/posthog";
 import { YT_MIN_RATE, YT_MAX_RATE } from "./YouTubePlaybackProvider";
 
 // Only the settings the YouTube IFrame API supports: playback rate and volume.
-export function YouTubeSettings() {
+export function YouTubeSettings({
+  children,
+}: {
+  children?: React.ReactNode;
+}) {
   const playback = useContext(PlaybackContext);
   if (!playback)
     throw new Error("YouTubeSettings must be used within a PlaybackProvider");
@@ -69,20 +73,20 @@ export function YouTubeSettings() {
   );
 
   return (
-    <div className="flex items-center border-b border-border shrink-0">
+    <>
       {expanded && (
-        <div className="max-md:hidden flex-1 flex justify-between h-min p-5 gap-16 min-w-0">
+        <div className="max-md:hidden flex justify-between h-min p-5 gap-16 border-b border-border shrink-0">
           {sliders}
         </div>
       )}
-      <div className="ml-auto shrink-0 p-2 flex">
+      <div className="relative flex-1 min-h-0 flex flex-col">
         {/* mobile: single icon opens the settings dialog */}
         <AppDialog
           title="Settings"
           trigger={
             <Dialog.Trigger
               aria-label="Settings"
-              className="md:hidden btn-surface size-9 rounded-lg cursor-pointer"
+              className="md:hidden absolute top-2 right-2 z-20 btn-surface size-9 rounded-lg cursor-pointer"
             >
               {icon}
             </Dialog.Trigger>
@@ -90,16 +94,17 @@ export function YouTubeSettings() {
         >
           <div className="flex flex-col gap-6 pb-4">{sliders}</div>
         </AppDialog>
-        {/* desktop: same icon toggles the inline settings bar */}
+        {/* desktop: same icon toggles the settings bar above */}
         <button
           onClick={() => setExpanded((e) => !e)}
           aria-expanded={expanded}
           aria-label="Settings"
-          className={`max-md:hidden btn-surface size-9 rounded-lg cursor-pointer ${expanded ? "bg-surface-track" : ""}`}
+          className={`max-md:hidden absolute top-2 right-2 z-20 btn-surface size-9 rounded-lg cursor-pointer ${expanded ? "bg-surface-track" : ""}`}
         >
           {icon}
         </button>
+        {children}
       </div>
-    </div>
+    </>
   );
 }

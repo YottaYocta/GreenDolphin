@@ -80,7 +80,7 @@ function YouTubeEditorView({
       <TitleBar />
 
       <div className="relative flex flex-col rounded-xl overflow-x-hidden overflow-y-clip [box-shadow:var(--shadow-panel)] bg-white border border-border shrink-0">
-        <YouTubeSettings />
+        <YouTubeSettings>
         <div className="w-full flex justify-center p-4">
           <div className="relative w-full max-w-120 aspect-video bg-black rounded-lg overflow-hidden">
             <div
@@ -109,6 +109,7 @@ function YouTubeEditorView({
             </div>
           )}
         </div>
+        </YouTubeSettings>
       </div>
 
       <YouTubeControls disabled={!ready} />
