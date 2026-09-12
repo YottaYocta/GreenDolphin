@@ -2,10 +2,10 @@ import { useEffect, useMemo, type RefObject } from "react";
 import {
   CLICK_SELECTION_THRESHOLD,
   MIN_RANGE_THRESHOLD,
-} from "../../../lib/constants";
-import type { Section } from "../../../lib/waveform";
-import { clampSection } from "../../../lib/util";
-import type { WaveformMetadata } from "../types";
+} from "../../lib/constants";
+import type { Section } from "../../lib/waveform";
+import { clampSection } from "../../lib/util";
+import type { WaveformMetadata } from "./types";
 
 // Drags that start on a loop handle / pill / playhead / caret belong to that
 // control; native listeners here fire before React's delegated handlers can
@@ -36,9 +36,10 @@ const findOther = (list: TouchList, excludeId: number): Touch | null => {
   return null;
 };
 
-// The waveform canvas zoom/pan gestures (wheel, drag-pan, pinch), retargeted
-// at the trackbar so views without a canvas (YouTube) can zoom too.
-export const useTrackbarZoom = (
+// Viewport zoom/pan gestures (wheel, drag-pan, pinch, tap) shared by the
+// waveform canvas and the trackbar, so views without a canvas (YouTube) can
+// zoom too. Tap-without-drag is reported via onTap for click-to-position.
+export const useViewportGestures = (
   elementRef: RefObject<HTMLElement | null>,
   metadataRef: RefObject<WaveformMetadata>,
   totalSamples: number,

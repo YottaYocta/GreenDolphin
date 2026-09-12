@@ -11,9 +11,8 @@ import { type Section } from "../../lib/waveform";
 import type { WaveformMetadata } from "./types";
 import { useAnimateWaveform } from "./useAnimateWaveform";
 import { useKeyboardShortcuts } from "./useKeyboardShortcuts";
-import { useMouseDown } from "./useMouseDown";
-import { useTouch } from "./useTouch";
-import { useWheel } from "./useWheel";
+import { useViewportGestures } from "./useViewportGestures";
+import { clampSample, pointerToSample } from "./trackbar/dragUtils";
 import { Trackbar } from "./trackbar";
 
 export type WaveformRenderFunction = (
@@ -84,20 +83,27 @@ export const Waveform: FC<
     [handleSelection],
   );
 
-  useWheel(waveformData, metadataRef, canvasRef, handleRange);
-  useMouseDown(
-    waveformData,
-    metadataRef,
-    canvasRef,
-    handleRange,
-    handleSetPosition,
+  // click/tap without drag sets the playback position
+  const handleTap = useCallback(
+    (clientX: number) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const sample = pointerToSample(
+        clientX,
+        canvas,
+        metadataRef.current.viewport,
+      );
+      handleSetPosition(clampSample(sample, waveformData.length));
+    },
+    [handleSetPosition, waveformData.length],
   );
-  useTouch(
-    waveformData,
-    metadataRef,
+
+  useViewportGestures(
     canvasRef,
+    metadataRef,
+    waveformData.length,
     handleRange,
-    handleSetPosition,
+    handleTap,
   );
   useAnimateWaveform(canvasRef, waveformData, metadataRef, positionMS);
   useKeyboardShortcuts(waveformData, metadataRef, handleRange);

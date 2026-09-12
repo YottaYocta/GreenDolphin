@@ -6,7 +6,7 @@ import { useAnimateTrackbar } from "./useAnimateTrackbar";
 import { useLoopHandleDrag } from "./useLoopHandleDrag";
 import { useLoopPillDrag } from "./useLoopPillDrag";
 import { usePlayheadDrag } from "./usePlayheadDrag";
-import { useTrackbarZoom } from "./useTrackbarZoom";
+import { useViewportGestures } from "../useViewportGestures";
 
 const HANDLE_SHADOW = { filter: "drop-shadow(0 2px 3px rgba(0, 0, 0, 0.05))" };
 
@@ -103,7 +103,7 @@ export const Trackbar: FC<TrackbarProps> = ({
     [metadata, totalSamples, handlePosition],
   );
 
-  useTrackbarZoom(rootRef, metadata, totalSamples, handleRange, handleTap);
+  useViewportGestures(rootRef, metadata, totalSamples, handleRange, handleTap);
 
   const loopHandle = (
     ref: RefObject<HTMLDivElement | null>,
