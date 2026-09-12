@@ -4,6 +4,7 @@ import { Dialog } from "@base-ui/react/dialog";
 import { AudioStore } from "../../AudioStore";
 import { RecordingsStore } from "../../RecordingsStore";
 import { formatSeconds, formatSize } from "../../lib/util";
+import { stripYouTubeExt } from "../../lib/youtubeFile";
 import { AppDialog } from "../AppDialog";
 
 const headerBtn = "btn-surface rounded-l-none gap-2 px-5 py-3.25 border-l-0";
@@ -21,14 +22,7 @@ function FileInfoCell({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function FileInfoButton() {
-  const { audio } = useContext(AudioStore);
-  const { fileMeta } = useContext(RecordingsStore);
-  if (!audio) return null;
-  const { buffer: data, filename, fileSize } = audio;
-
-  const uploadedAt = fileMeta.get(filename)?.uploadedAt;
-
+function InfoDialog({ children }: { children: React.ReactNode }) {
   return (
     <AppDialog
       title="File Info"
@@ -43,6 +37,53 @@ export function FileInfoButton() {
         </Dialog.Trigger>
       }
     >
+      {children}
+    </AppDialog>
+  );
+}
+
+export function FileInfoButton() {
+  const { audio, video } = useContext(AudioStore);
+  const { fileMeta } = useContext(RecordingsStore);
+
+  if (video) {
+    const uploadedAt = fileMeta.get(video.filename)?.uploadedAt;
+    return (
+      <InfoDialog>
+        <div className="flex flex-col gap-6 p-2">
+          <span className="font-inria text-black text-lg min-w-0">
+            {stripYouTubeExt(video.filename)}
+          </span>
+          <div className="flex flex-col gap-6">
+            <div className="flex gap-4">
+              <FileInfoCell label="Source" value="YouTube" />
+              <FileInfoCell label="Video ID" value={video.videoId} />
+            </div>
+            {uploadedAt != null && (
+              <div className="flex gap-4">
+                <FileInfoCell
+                  label="Added"
+                  value={new Date(uploadedAt).toLocaleDateString(undefined, {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </InfoDialog>
+    );
+  }
+
+  if (!audio) return null;
+  const { buffer: data, filename, fileSize } = audio;
+
+  const uploadedAt = fileMeta.get(filename)?.uploadedAt;
+
+  return (
+    <InfoDialog>
       <div className="flex flex-col gap-6 p-2">
         <div className="flex gap-4 flex-col items-start">
           <span className="font-inria text-black text-lg min-w-0">
@@ -81,6 +122,6 @@ export function FileInfoButton() {
           )}
         </div>
       </div>
-    </AppDialog>
+    </InfoDialog>
   );
 }

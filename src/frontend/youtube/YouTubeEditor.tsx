@@ -2,8 +2,7 @@ import { useContext, useEffect, useMemo } from "react";
 import type { RefObject } from "react";
 import { AudioStore } from "../AudioStore";
 import { PlaybackContext } from "../playback/PlaybackContext";
-import { HomeButton } from "../components/TitleBar/HomeButton";
-import { EditorSettings } from "../components/TitleBar/EditorSettings";
+import { TitleBar } from "../components/TitleBar/TitleBar";
 import { loadSession, saveSession } from "../lib/useSessionPersistence";
 import { capture } from "../lib/posthog";
 import { useYouTubePlayer } from "./useYouTubePlayer";
@@ -78,10 +77,7 @@ function YouTubeEditorView({
 
   return (
     <div className="w-full max-w-240 h-full md:h-min min-h-0 p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:py-10">
-      <div className="[font-synthesis:none] grid grid-cols-2 antialiased gap-4">
-        <EditorSettings />
-        <HomeButton />
-      </div>
+      <TitleBar />
 
       <div className="flex flex-col rounded-xl overflow-x-hidden overflow-y-clip [box-shadow:var(--shadow-panel)] bg-white border border-border shrink-0">
         <div className="relative w-full aspect-video bg-black">

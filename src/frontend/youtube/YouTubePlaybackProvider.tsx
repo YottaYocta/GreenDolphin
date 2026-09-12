@@ -101,6 +101,7 @@ export const YouTubePlaybackProvider = ({
   // --- player sync ------------------------------------------------------
 
   const pendingSeekRef = useRef<{ ms: number; at: number } | null>(null);
+  const lastPauseCommandRef = useRef(-Infinity);
 
   const commandSeek = useCallback(
     (ms: number) => {
@@ -141,9 +142,16 @@ export const YouTubePlaybackProvider = ({
   // (seek, loop wrap — signalled by positionEpoch).
   useEffect(() => {
     if (!player) return;
-    commandSeek(playbackPosition.current);
-    if (playState === "playing") player.playVideo();
-    else player.pauseVideo();
+    if (playState === "playing") {
+      commandSeek(playbackPosition.current);
+      player.playVideo();
+    } else {
+      // Pause before seeking: seeking a playing (or ended) video makes the
+      // player emit a transient PLAYING event that would read as a user play.
+      lastPauseCommandRef.current = performance.now();
+      player.pauseVideo();
+      commandSeek(playbackPosition.current);
+    }
   }, [player, playState, positionEpoch, commandSeek, playbackPosition]);
 
   // Player → clock, while playing: glue the clock to the video's time so the
@@ -184,6 +192,12 @@ export const YouTubePlaybackProvider = ({
     if (!player) return;
     return subscribe((state) => {
       if (state === YT_STATE_PLAYING && playState !== "playing") {
+        // Echo of our own pause+seek (seeking from the ended state resumes
+        // playback) — re-assert the pause instead of treating it as the user.
+        if (performance.now() - lastPauseCommandRef.current < SEEK_TIMEOUT_MS) {
+          player.pauseVideo();
+          return;
+        }
         triggerAction({
           type: "move",
           position: player.getCurrentTime() * 1000,

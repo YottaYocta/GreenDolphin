@@ -4,21 +4,39 @@ import {
   MusicNotesPlusIcon,
   MusicNoteIcon,
   CheckIcon,
+  YoutubeLogoIcon,
 } from "@phosphor-icons/react";
 import { AudioStore } from "../../AudioStore";
 import { RecordingsStore } from "../../RecordingsStore";
 import { useDecodeFile } from "../../lib/useDecodeFile";
 import { noteColor } from "../../lib/util";
 import { capture } from "../../lib/posthog";
+import {
+  displayName,
+  isYouTubeFile,
+  readYouTubeFile,
+  stripYouTubeExt,
+} from "../../lib/youtubeFile";
 
 const headerBtn = "btn-surface rounded-lg gap-2 px-5 py-3.25";
 
 export function RecordingsMenu() {
   const decodeFile = useDecodeFile();
   const { cachedFiles, cacheFile } = useContext(RecordingsStore);
-  const { audio } = useContext(AudioStore);
-  const filename = audio?.filename ?? "";
+  const { audio, video, setVideo } = useContext(AudioStore);
+  const filename = audio?.filename ?? video?.filename ?? "";
   const uploadInputRef = useRef<HTMLInputElement>(null);
+
+  const openFile = async (file: File) => {
+    if (isYouTubeFile(file)) {
+      const { videoId } = await readYouTubeFile(file);
+      setVideo({ videoId, filename: file.name });
+      capture("recording_switched", { filename: file.name, source: "youtube" });
+      return;
+    }
+    await decodeFile(file);
+    capture("recording_switched", { filename: file.name });
+  };
 
   return (
     <div className="min-w-0 w-full">
@@ -27,7 +45,7 @@ export function RecordingsMenu() {
           className={`${headerBtn} w-full h-12 cursor-pointer min-w-0 rounded-r-none`}
         >
           <span className="font-inria text-black text-base/5 truncate min-w-0">
-            {filename}
+            {stripYouTubeExt(filename)}
           </span>
         </Menu.Trigger>
         <Menu.Portal>
@@ -57,21 +75,27 @@ export function RecordingsMenu() {
                     <Menu.Item
                       key={file.name}
                       className="flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-neutral-50 active:bg-neutral-100"
-                      onClick={async () => {
-                        await decodeFile(file);
-                        capture("recording_switched", { filename: file.name });
-                      }}
+                      onClick={() => openFile(file).catch(console.error)}
                     >
-                      <MusicNoteIcon
-                        size={18}
-                        weight="fill"
-                        color={noteColor(file.name)}
-                        style={{ flexShrink: 0 }}
-                      />
+                      {isYouTubeFile(file) ? (
+                        <YoutubeLogoIcon
+                          size={18}
+                          weight="fill"
+                          color="#FF0000"
+                          style={{ flexShrink: 0, opacity: 0.8 }}
+                        />
+                      ) : (
+                        <MusicNoteIcon
+                          size={18}
+                          weight="fill"
+                          color={noteColor(file.name)}
+                          style={{ flexShrink: 0 }}
+                        />
+                      )}
                       <span
                         className={`flex-1 min-w-0 font-inria text-base/5 truncate ${file.name === filename ? "font-bold text-black" : "text-black"}`}
                       >
-                        {file.name}
+                        {displayName(file)}
                       </span>
                       {file.name === filename && (
                         <CheckIcon
