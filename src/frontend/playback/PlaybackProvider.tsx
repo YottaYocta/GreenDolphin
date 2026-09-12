@@ -64,7 +64,8 @@ export const PlaybackProvider = ({
       if (document.visibilityState === "visible") context.resume();
     };
     document.addEventListener("visibilitychange", onVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", onVisibilityChange);
   }, [context]);
 
   const { entryNode, analyserNode, frequencyData } = useAudioChain({

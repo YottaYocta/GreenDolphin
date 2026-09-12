@@ -139,14 +139,12 @@ export function PlaybackSettings({
 
 const SettingsRow: FC<{
   label: string;
-  labelAdornment?: React.ReactNode;
   center: React.ReactNode;
   right: React.ReactNode;
-}> = ({ label, labelAdornment, center, right }) => (
+}> = ({ label, center, right }) => (
   <div className="flex items-center gap-4 self-stretch max-md:flex-col max-md:items-start max-md:gap-1.5 w-full">
     <div className="shrink-0 font-inria text-black/60 text-base/5 whitespace-nowrap flex items-center gap-1.5 justify-end max-md:justify-start max-md:text-sm max-md:text-black/50">
       {label}
-      {labelAdornment}
     </div>
     <div className="flex items-center gap-4 self-stretch flex-1">
       <div className="flex-1">{center}</div>
@@ -160,7 +158,10 @@ export const NumericInput: FC<{
   onCommit: (v: number) => void;
   signed?: boolean;
   unit?: React.ReactNode;
-}> = ({ value, onCommit, signed, unit }) => {
+  onReset?: () => void;
+  resetVisible?: boolean;
+  resetLabel?: string;
+}> = ({ value, onCommit, signed, unit, onReset, resetVisible, resetLabel }) => {
   const commit = (el: HTMLInputElement) => {
     const n = parseFloat(el.value.replace(/^\+/, ""));
     if (!isNaN(n) && (signed || n >= 0)) {
@@ -186,8 +187,24 @@ export const NumericInput: FC<{
           }
         }}
       />
-      {unit && (
-        <div className="text-sm text-black/50 opacity-30 shrink-0">{unit}</div>
+      {onReset ? (
+        <button
+          type="button"
+          aria-label={resetLabel ?? "Reset"}
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={onReset}
+          className={`flex items-center justify-center shrink-0 size-4 rounded-xs text-black/40 hover:text-black/70 hover:bg-black/5 cursor-pointer transition-opacity ${
+            resetVisible ? "" : "opacity-0 pointer-events-none"
+          }`}
+        >
+          <ArrowClockwiseIcon size={13} weight="fill" />
+        </button>
+      ) : (
+        unit && (
+          <div className="text-sm text-black/50 opacity-30 shrink-0">
+            {unit}
+          </div>
+        )
       )}
     </div>
   );
@@ -237,18 +254,6 @@ export const AudioSlider: FC<{
   return (
     <SettingsRow
       label={label}
-      labelAdornment={
-        value !== defaultValue ? (
-          <button
-            type="button"
-            aria-label={`Reset ${label}`}
-            onClick={() => onChange(defaultValue)}
-            className="flex items-center justify-center cursor-pointer text-black/40 hover:text-black/70 hover:bg-black/5 rounded-sm p-0.5 transition-colors"
-          >
-            <ArrowClockwiseIcon size={14} weight="fill" />
-          </button>
-        ) : null
-      }
       center={
         <div
           ref={trackRef}
@@ -276,7 +281,9 @@ export const AudioSlider: FC<{
             value={formatValue(value)}
             onCommit={onCommit}
             signed={signed}
-            unit={unit}
+            onReset={() => onChange(defaultValue)}
+            resetVisible={value !== defaultValue}
+            resetLabel={`Reset ${label}`}
           />
         ) : (
           <div className="flex items-center gap-1 px-1 py-0.5 rounded-sm bg-surface-input w-14 overflow-hidden">
