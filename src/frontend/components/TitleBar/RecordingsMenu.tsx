@@ -1,6 +1,7 @@
 import { useContext, useRef, useState } from "react";
 import { Menu } from "@base-ui/react/menu";
 import {
+  CaretRightIcon,
   MusicNotesPlusIcon,
   MusicNoteIcon,
   CheckIcon,
@@ -19,7 +20,7 @@ import {
 import { useAddYouTubeVideo } from "../../lib/useAddYouTube";
 import { NewRecordingDialog } from "../NewRecordingDialog";
 
-const headerBtn = "btn-surface rounded-lg gap-2 px-5 py-3.25";
+const headerBtn = "btn-surface rounded-lg gap-2 py-3.25";
 
 export function RecordingsMenu() {
   const decodeFile = useDecodeFile();
@@ -42,14 +43,18 @@ export function RecordingsMenu() {
   };
 
   return (
-    <div className="min-w-0 w-full">
+    <div className="shrink-0">
       <Menu.Root>
         <Menu.Trigger
-          className={`${headerBtn} w-full h-12 cursor-pointer min-w-0 rounded-r-none`}
+          aria-label="Switch recording"
+          className={`${headerBtn} w-12 h-12 cursor-pointer rounded-r-none`}
         >
-          <span className="font-inria text-black text-base/5 truncate min-w-0">
-            {stripYouTubeExt(filename)}
-          </span>
+          <CaretRightIcon
+            size={16}
+            weight="bold"
+            color="var(--color-icon)"
+            style={{ opacity: 0.5, flexShrink: 0 }}
+          />
         </Menu.Trigger>
         <Menu.Portal>
           <Menu.Positioner side="bottom" align="start" sideOffset={8}>

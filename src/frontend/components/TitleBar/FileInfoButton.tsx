@@ -7,7 +7,8 @@ import { formatSeconds, formatSize } from "../../lib/util";
 import { stripYouTubeExt } from "../../lib/youtubeFile";
 import { AppDialog } from "../AppDialog";
 
-const headerBtn = "btn-surface rounded-l-none gap-2 px-5 py-3.25 border-l-0";
+const headerBtn =
+  "btn-surface rounded-lg rounded-l-none border-l-0 gap-2 px-5 py-3.25";
 
 function FileInfoCell({ label, value }: { label: string; value: string }) {
   return (
@@ -22,18 +23,29 @@ function FileInfoCell({ label, value }: { label: string; value: string }) {
   );
 }
 
-function InfoDialog({ children }: { children: React.ReactNode }) {
+function InfoDialog({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <AppDialog
       title="File Info"
       trigger={
-        <Dialog.Trigger className={`${headerBtn} w-fit h-12 cursor-pointer`}>
+        <Dialog.Trigger
+          className={`${headerBtn} flex-1 min-w-0 h-12 cursor-pointer`}
+        >
           <FileMagnifyingGlassIcon
             size={18}
             weight="fill"
             color="var(--color-icon)"
             style={{ opacity: 0.54, flexShrink: 0 }}
           />
+          <span className="font-inria text-black text-base/5 truncate min-w-0">
+            {label}
+          </span>
         </Dialog.Trigger>
       }
     >
@@ -49,7 +61,7 @@ export function FileInfoButton() {
   if (video) {
     const uploadedAt = fileMeta.get(video.filename)?.uploadedAt;
     return (
-      <InfoDialog>
+      <InfoDialog label={stripYouTubeExt(video.filename)}>
         <div className="flex flex-col gap-6 p-2">
           <span className="font-inria text-black text-lg min-w-0">
             {stripYouTubeExt(video.filename)}
@@ -83,7 +95,7 @@ export function FileInfoButton() {
   const uploadedAt = fileMeta.get(filename)?.uploadedAt;
 
   return (
-    <InfoDialog>
+    <InfoDialog label={filename}>
       <div className="flex flex-col gap-6 p-2">
         <div className="flex gap-4 flex-col items-start">
           <span className="font-inria text-black text-lg min-w-0">
