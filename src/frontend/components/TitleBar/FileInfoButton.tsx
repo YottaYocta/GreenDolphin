@@ -1,5 +1,4 @@
 import { useContext } from "react";
-import { FileMagnifyingGlassIcon } from "@phosphor-icons/react";
 import { Dialog } from "@base-ui/react/dialog";
 import { AudioStore } from "../../AudioStore";
 import { RecordingsStore } from "../../RecordingsStore";
@@ -37,12 +36,6 @@ function InfoDialog({
         <Dialog.Trigger
           className={`${headerBtn} flex-1 min-w-0 h-12 cursor-pointer`}
         >
-          <FileMagnifyingGlassIcon
-            size={18}
-            weight="fill"
-            color="var(--color-icon)"
-            style={{ opacity: 0.54, flexShrink: 0 }}
-          />
           <span className="font-inria text-black text-base/5 truncate min-w-0">
             {label}
           </span>

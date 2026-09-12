@@ -47,12 +47,13 @@ export function RecordingsMenu() {
       <Menu.Root>
         <Menu.Trigger
           aria-label="Switch recording"
-          className={`${headerBtn} w-12 h-12 cursor-pointer rounded-r-none`}
+          className={`${headerBtn} group w-12 h-12 cursor-pointer rounded-r-none`}
         >
           <CaretRightIcon
             size={16}
             weight="bold"
             color="var(--color-icon)"
+            className="transition-transform group-data-[popup-open]:rotate-90"
             style={{ opacity: 0.5, flexShrink: 0 }}
           />
         </Menu.Trigger>
