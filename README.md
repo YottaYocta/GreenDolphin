@@ -20,17 +20,13 @@ If you'd like see or work on a new feature, send me a message at rwq (at) cornel
 
 ## Roadmap
 
-- [ ] version 2.0:
+- [x] version 2.0:
 
-  - [ ] Audio waveform component
-  - [ ] custom shortcuts
-  - [ ] YouTube import support
-  - [ ] define and store multiple loops
+  - [x] YouTube import support
   - [x] local recording storage + multiple recordings
   - [x] improved freeze algorithm
   - [x] Loop with custom delay (pause between loops) and manual loop
   - [x] UI overhaul
-
 
 - [x] version 1.0:
   - [x] offline and PWA support: no recordings leave your device
