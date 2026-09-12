@@ -79,7 +79,7 @@ function YouTubeEditorView({
     <div className="w-full max-w-240 h-full md:h-min min-h-0 p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:py-10">
       <TitleBar />
 
-      <div className="flex flex-col rounded-xl overflow-x-hidden overflow-y-clip [box-shadow:var(--shadow-panel)] bg-white border border-border shrink-0">
+      <div className="relative flex flex-col rounded-xl overflow-x-hidden overflow-y-clip [box-shadow:var(--shadow-panel)] bg-white border border-border shrink-0">
         <YouTubeSettings />
         <div className="w-full flex justify-center p-4">
           <div className="relative w-full max-w-120 aspect-video bg-black rounded-lg overflow-hidden">
