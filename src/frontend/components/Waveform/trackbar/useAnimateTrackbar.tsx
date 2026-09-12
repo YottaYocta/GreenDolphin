@@ -16,6 +16,7 @@ export const useAnimateTrackbar = (
   positionMS: RefObject<number> | undefined,
   sampleRate: number,
   applyCaretVisibility: (startPct: number, endPct: number) => void,
+  applyPlayheadCaretVisibility: (pct: number) => void,
 ) => {
   const { trackRef, pillRef, leftHandleRef, rightHandleRef, playheadRef } =
     refs;
@@ -53,9 +54,9 @@ export const useAnimateTrackbar = (
           const relativePositionMS =
             positionMS.current - computeMS(sampleRate, viewport.start);
           const relativeDurationMS = computeMS(sampleRate, rangeLen);
-          playheadRef.current.style.left = `${
-            width * (relativePositionMS / relativeDurationMS)
-          }px`;
+          const playheadFraction = relativePositionMS / relativeDurationMS;
+          playheadRef.current.style.left = `${width * playheadFraction}px`;
+          applyPlayheadCaretVisibility(playheadFraction * 100);
         }
       }
       rafId = requestAnimationFrame(render);
@@ -74,5 +75,6 @@ export const useAnimateTrackbar = (
     positionMS,
     sampleRate,
     applyCaretVisibility,
+    applyPlayheadCaretVisibility,
   ]);
 };

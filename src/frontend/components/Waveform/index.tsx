@@ -103,7 +103,7 @@ export const Waveform: FC<
   useKeyboardShortcuts(waveformData, metadataRef, handleRange);
 
   return (
-    <div className="w-full flex flex-col px-4 pt-4 pb-7 h-full min-h-0">
+    <div className="w-full flex flex-col p-4 h-full min-h-0">
       <canvas
         id="waveform-canvas"
         {...props}

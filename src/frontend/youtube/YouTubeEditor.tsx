@@ -89,7 +89,7 @@ function YouTubeEditorView({
             />
           </div>
         </div>
-        <div className="px-4 pb-8">
+        <div className="px-4 pb-4">
           {ready ? (
             <YouTubeScrubber
               totalMS={duration * 1000}

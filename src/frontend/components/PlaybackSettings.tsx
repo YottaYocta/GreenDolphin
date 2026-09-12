@@ -1,5 +1,9 @@
 import { useContext, useEffect, useRef, useState, type FC } from "react";
-import { ArrowClockwiseIcon, SlidersIcon } from "@phosphor-icons/react";
+import {
+  ArrowClockwiseIcon,
+  CaretDownIcon,
+  SlidersIcon,
+} from "@phosphor-icons/react";
 import { PlaybackContext } from "../playback/PlaybackContext";
 import { useDrag } from "../lib/useDrag";
 import { Dialog } from "@base-ui/react/dialog";
@@ -12,6 +16,7 @@ export function PlaybackSettings() {
     throw new Error("PlaybackSettings must be used within a PlaybackProvider");
   const { playbackSettings, setAudioSettings } = playback;
   const { pitchShift, playbackSpeed } = playbackSettings;
+  const [expanded, setExpanded] = useState(false);
 
   const [renderedGain, setRenderedGain] = useState(
     Math.sqrt(playbackSettings.gain),
@@ -97,8 +102,32 @@ export function PlaybackSettings() {
       >
         <div className="flex flex-col gap-6 pb-4">{sliders}</div>
       </AppDialog>
-      <div className="flex justify-between h-min p-5 gap-16 border-b border-border max-md:hidden">
-        {sliders}
+      <div className="max-md:hidden flex flex-col border-b border-border">
+        <button
+          onClick={() => setExpanded((e) => !e)}
+          aria-expanded={expanded}
+          className="btn-surface rounded-none border-0 gap-3 w-full h-12 shrink-0 cursor-pointer flex items-center justify-center"
+        >
+          <SlidersIcon
+            size={20}
+            weight="fill"
+            color="var(--color-icon)"
+            style={{ opacity: 0.54, flexShrink: 0 }}
+          />
+          <span className="font-inria text-black/50 text-base/5">Settings</span>
+          <CaretDownIcon
+            size={14}
+            weight="bold"
+            color="var(--color-icon)"
+            style={{ opacity: 0.4, flexShrink: 0 }}
+            className={`transition-transform ${expanded ? "rotate-180" : ""}`}
+          />
+        </button>
+        {expanded && (
+          <div className="flex justify-between h-min p-5 pt-2 gap-16">
+            {sliders}
+          </div>
+        )}
       </div>
     </div>
   );
