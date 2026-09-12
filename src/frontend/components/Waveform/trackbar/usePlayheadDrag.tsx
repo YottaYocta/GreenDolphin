@@ -13,8 +13,8 @@ export const usePlayheadDrag = (
   totalSamples: number,
   handlePosition: (sample: number) => void,
 ) =>
-  dragHandlers(() => {
-    beginDrag((clientX) => {
+  dragHandlers((startClientX) => {
+    const moveTo = (clientX: number) => {
       const track = trackRef.current;
       if (!track) return;
       handlePosition(
@@ -23,5 +23,7 @@ export const usePlayheadDrag = (
           totalSamples,
         ),
       );
-    });
+    };
+    moveTo(startClientX);
+    beginDrag(moveTo);
   });

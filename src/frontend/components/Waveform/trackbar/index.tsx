@@ -1,7 +1,6 @@
-import { useCallback, useRef, type FC, type RefObject } from "react";
+import { useRef, type FC, type RefObject } from "react";
 import type { WaveformMetadata } from "../types";
 import type { Section } from "../../../lib/waveform";
-import { clampSample, pointerToSample } from "./dragUtils";
 import { useAnimateTrackbar } from "./useAnimateTrackbar";
 import { useLoopHandleDrag } from "./useLoopHandleDrag";
 import { useLoopPillDrag } from "./useLoopPillDrag";
@@ -87,22 +86,7 @@ export const Trackbar: FC<TrackbarProps> = ({
     handlePosition,
   );
 
-  const handleTap = useCallback(
-    (clientX: number, target: EventTarget | null) => {
-      if (
-        !(target instanceof Element) ||
-        !target.closest("[data-playhead-row]")
-      )
-        return;
-      const track = trackRef.current;
-      if (!track) return;
-      const sample = pointerToSample(clientX, track, metadata.current.viewport);
-      handlePosition(clampSample(sample, totalSamples));
-    },
-    [metadata, totalSamples, handlePosition],
-  );
-
-  useViewportGestures(rootRef, metadata, totalSamples, handleRange, handleTap);
+  useViewportGestures(rootRef, metadata, totalSamples, handleRange);
 
   const loopHandle = (
     ref: RefObject<HTMLDivElement | null>,
@@ -115,7 +99,7 @@ export const Trackbar: FC<TrackbarProps> = ({
       style={HANDLE_SHADOW}
       {...handleDragProps(side)}
     >
-      <div className="relative w-3.5 h-4">
+      <div className="relative w-3.5 h-5">
         <div
           className="absolute inset-0 bg-border"
           style={{ clipPath: PENTAGON_DOWN }}
@@ -146,16 +130,18 @@ export const Trackbar: FC<TrackbarProps> = ({
           {loopHandle(leftHandleRef, "start")}
           {loopHandle(rightHandleRef, "end")}
         </div>
-        <div className="w-full h-7 relative cursor-pointer" data-playhead-row>
+        <div
+          data-trackbar-control
+          className="w-full h-7 relative cursor-ew-resize touch-none"
+          {...playheadDragProps}
+        >
           <div
             ref={playheadTrackRef}
             className="absolute top-1/2 -translate-y-1/2 h-5 rounded-sm bg-surface border border-neutral-100 pointer-events-none"
           />
           <div
             ref={playheadRef}
-            data-trackbar-control
-            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 size-8 flex items-center justify-center cursor-ew-resize touch-none z-10"
-            {...playheadDragProps}
+            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 size-8 flex items-center justify-center pointer-events-none z-10"
           >
             <div className="size-3 rotate-45 rounded-sm bg-play border border-black/20 [box-shadow:var(--shadow-inset-active)]" />
           </div>
