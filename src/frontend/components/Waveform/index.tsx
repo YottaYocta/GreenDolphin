@@ -15,16 +15,9 @@ import { useViewportGestures } from "./useViewportGestures";
 import { clampSample, pointerToSample } from "./trackbar/dragUtils";
 import { Trackbar } from "./trackbar";
 
-export type WaveformRenderFunction = (
-  data: AudioBuffer,
-  canvas: HTMLCanvasElement,
-  position?: number,
-) => void;
-
-export interface WaveformCanvasProps {
+interface WaveformCanvasProps {
   waveformData: AudioBuffer;
   positionMS?: RefObject<number>;
-  showHandles?: boolean;
   initialViewport?: Section;
   initialSelection?: Section;
   handleRangeChange?: (newRange: Section) => void;

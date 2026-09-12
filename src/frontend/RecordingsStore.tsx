@@ -17,7 +17,6 @@ import { FIRST_VISIT_KEY } from "./lib/useFirstVisit";
 type RecordingsStoreValue = {
   cachedFiles: File[];
   fileMeta: Map<string, FileMeta>;
-  reload: () => Promise<void>;
   cacheFile: (file: File) => Promise<void>;
   deleteFile: (filename: string) => Promise<void>;
 };
@@ -25,7 +24,6 @@ type RecordingsStoreValue = {
 export const RecordingsStore = createContext<RecordingsStoreValue>({
   cachedFiles: [],
   fileMeta: new Map(),
-  reload: async () => {},
   cacheFile: async () => {},
   deleteFile: async () => {},
 });
@@ -33,14 +31,6 @@ export const RecordingsStore = createContext<RecordingsStoreValue>({
 export function RecordingsStoreProvider({ children }: { children: ReactNode }) {
   const [cachedFiles, setCachedFiles] = useState<File[]>([]);
   const [fileMeta, setFileMeta] = useState<Map<string, FileMeta>>(new Map());
-  const reload = useCallback(async () => {
-    const [files, meta] = await Promise.all([
-      loadAllFromCache(),
-      loadMetaFromCache(),
-    ]);
-    setCachedFiles(files);
-    setFileMeta(meta);
-  }, []);
 
   useEffect(() => {
     (async () => {
@@ -91,7 +81,7 @@ export function RecordingsStoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <RecordingsStore.Provider value={{ cachedFiles, fileMeta, reload, cacheFile, deleteFile }}>
+    <RecordingsStore.Provider value={{ cachedFiles, fileMeta, cacheFile, deleteFile }}>
       {children}
     </RecordingsStore.Provider>
   );

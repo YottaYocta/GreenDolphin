@@ -41,7 +41,6 @@ export interface PlaybackClockResult {
   audioSettings: AudioSettings;
   updateSettings: (settings: AudioSettingsUpdate) => void;
   playState: PlayState;
-  lastStartPosition: number;
   playbackPosition: RefObject<number>;
   positionEpoch: number;
   timerStartedAtMS: number | null;
@@ -75,9 +74,6 @@ export function usePlaybackClock({
 
   const [playState, setPlayState] = useState<PlayState>("paused");
   const [positionEpoch, setPositionEpoch] = useState(0);
-  const [lastStartPosition, setLastStartPosition] = useState<number>(
-    loop?.start ?? 0,
-  );
 
   const playbackPosition = useRef<number>(0);
   const [playbackStartTimestamp, setPlaybackStartTimestamp] = useState<
@@ -108,10 +104,7 @@ export function usePlaybackClock({
 
   const applyTransition = useCallback(
     (result: Transition) => {
-      if (result.nextPositionMS !== undefined) {
-        setLastStartPosition(result.nextPositionMS);
-        setPositionEpoch((e) => e + 1);
-      }
+      if (result.nextPositionMS !== undefined) setPositionEpoch((e) => e + 1);
       setPlayState(result.nextState);
       applyTransitionEffects(result);
     },
@@ -255,6 +248,5 @@ export function usePlaybackClock({
     timerStartedAtMS,
     dispatch,
     reset,
-    lastStartPosition,
   };
 }

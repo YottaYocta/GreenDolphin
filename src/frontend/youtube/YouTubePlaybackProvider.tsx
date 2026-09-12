@@ -7,7 +7,8 @@ import type {
 } from "../playback/PlaybackContext";
 import type { AudioSettingsUpdate } from "../playback/usePlaybackClock";
 import { usePlaybackClock } from "../playback/usePlaybackClock";
-import { clampSection, computeMS } from "../lib/util";
+import { useLoopPosition } from "../playback/useLoopPosition";
+import { clampSection } from "../lib/util";
 import type { FrequencyData } from "../lib/frequency";
 import { YT_STATE_PLAYING, YT_STATE_PAUSED } from "./iframeApi";
 import type { YouTubePlayer } from "./iframeApi";
@@ -54,7 +55,6 @@ export const YouTubePlaybackProvider = ({
     positionEpoch,
     timerStartedAtMS,
     dispatch,
-    lastStartPosition,
   } = usePlaybackClock({
     duration,
     initialSettings: {
@@ -197,24 +197,14 @@ export const YouTubePlaybackProvider = ({
 
   const loopLength = loop ? (loop.end - loop.start) / YOUTUBE_SAMPLE_RATE : duration;
 
-  const loopPosition = useRef<number>(0);
-
-  useEffect(() => {
-    const loopStartMS = loop ? computeMS(YOUTUBE_SAMPLE_RATE, loop.start) : 0;
-    let rafId: number;
-    const update = () => {
-      rafId = requestAnimationFrame(update);
-      if (playState === "waiting") {
-        const startedAt = timerStartedAtMS!;
-        loopPosition.current =
-          loopLength + (performance.now() - startedAt) / 1000;
-      } else {
-        loopPosition.current = (playbackPosition.current - loopStartMS) / 1000;
-      }
-    };
-    rafId = requestAnimationFrame(update);
-    return () => cancelAnimationFrame(rafId);
-  }, [loop, loopLength, playbackPosition, playState, timerStartedAtMS]);
+  const loopPosition = useLoopPosition({
+    sampleRate: YOUTUBE_SAMPLE_RATE,
+    loop,
+    loopLength,
+    playbackPosition,
+    playState,
+    timerStartedAtMS,
+  });
 
   const frequencyData = useRef<FrequencyData | undefined>(undefined);
 
@@ -230,7 +220,6 @@ export const YouTubePlaybackProvider = ({
     <PlaybackContext.Provider
       value={{
         playState,
-        lastStartPosition,
         playbackPosition,
         loopPosition,
         loopLength,

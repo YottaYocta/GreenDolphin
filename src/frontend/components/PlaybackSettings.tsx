@@ -234,7 +234,7 @@ export const AudioSlider: FC<{
   onChange: (v: number) => void;
   formatValue: (v: number) => string;
   unit: React.ReactNode;
-  onCommit?: (v: number) => void;
+  onCommit: (v: number) => void;
   signed?: boolean;
 }> = ({
   label,
@@ -290,26 +290,15 @@ export const AudioSlider: FC<{
         </div>
       }
       right={
-        onCommit ? (
-          <NumericInput
-            value={formatValue(value)}
-            onCommit={onCommit}
-            signed={signed}
-            unit={unit}
-            onReset={() => onChange(defaultValue)}
-            resetVisible={value !== defaultValue}
-            resetLabel={`Reset ${label}`}
-          />
-        ) : (
-          <div className="flex items-center gap-1 px-1 py-0.5 rounded-sm bg-surface-input w-14 overflow-hidden">
-            <span className="font-space-mono text-black text-base/5 tabular-nums w-full text-right">
-              {formatValue(value)}
-            </span>
-            <div className="text-sm text-black/50 opacity-30 shrink-0">
-              {unit}
-            </div>
-          </div>
-        )
+        <NumericInput
+          value={formatValue(value)}
+          onCommit={onCommit}
+          signed={signed}
+          unit={unit}
+          onReset={() => onChange(defaultValue)}
+          resetVisible={value !== defaultValue}
+          resetLabel={`Reset ${label}`}
+        />
       }
     />
   );

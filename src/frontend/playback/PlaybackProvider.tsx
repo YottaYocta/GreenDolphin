@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { ReactNode } from "react";
 import { PlaybackContext } from "./PlaybackContext";
 import type { PlaybackSettings, PlaybackAction } from "./PlaybackContext";
 import type { AudioSettingsUpdate } from "./usePlaybackClock";
-import { clampSection, computeMS } from "../lib/util";
+import { clampSection } from "../lib/util";
+import { useLoopPosition } from "./useLoopPosition";
 import { SoundTouchNode } from "@soundtouchjs/audio-worklet";
 import soundTouchProcessorUrl from "@soundtouchjs/audio-worklet/processor?url";
 import { buildSourceNode } from "./sourceNode";
@@ -39,7 +40,6 @@ export const PlaybackProvider = ({
     timerStartedAtMS,
     dispatch,
     reset,
-    lastStartPosition,
   } = usePlaybackClock({
     duration: localData.duration,
     initialSettings: {
@@ -118,31 +118,14 @@ export const PlaybackProvider = ({
     ? (loop.end - loop.start) / localData.sampleRate
     : localData.duration;
 
-  const loopPosition = useRef<number>(0);
-
-  useEffect(() => {
-    const loopStartMS = loop ? computeMS(localData.sampleRate, loop.start) : 0;
-    let rafId: number;
-    const update = () => {
-      rafId = requestAnimationFrame(update);
-      if (playState === "waiting") {
-        const startedAt = timerStartedAtMS!;
-        loopPosition.current =
-          loopLength + (performance.now() - startedAt) / 1000;
-      } else {
-        loopPosition.current = (playbackPosition.current - loopStartMS) / 1000;
-      }
-    };
-    rafId = requestAnimationFrame(update);
-    return () => cancelAnimationFrame(rafId);
-  }, [
-    localData.sampleRate,
+  const loopPosition = useLoopPosition({
+    sampleRate: localData.sampleRate,
     loop,
     loopLength,
     playbackPosition,
     playState,
     timerStartedAtMS,
-  ]);
+  });
 
   useEffect(() => {
     reset();
@@ -196,7 +179,6 @@ export const PlaybackProvider = ({
     <PlaybackContext.Provider
       value={{
         playState,
-        lastStartPosition,
         playbackPosition,
         loopPosition,
         loopLength,

@@ -1,15 +1,20 @@
-import { useContext, useEffect, useMemo } from "react";
+import { useContext, useEffect, useMemo, useRef } from "react";
 import type { RefObject } from "react";
 import type { Section } from "../lib/waveform";
+import type { WaveformMetadata } from "../components/Waveform/types";
 import { AudioStore } from "../AudioStore";
 import { PlaybackContext } from "../playback/PlaybackContext";
 import { TitleBar } from "../components/TitleBar/TitleBar";
+import { Trackbar } from "../components/Waveform/trackbar";
 import { loadSession, saveSession } from "../lib/useSessionPersistence";
 import { loadLoopPrefs } from "../lib/loopPrefs";
+import { clampSection } from "../lib/util";
 import { capture } from "../lib/posthog";
 import { useYouTubePlayer } from "./useYouTubePlayer";
-import { YouTubePlaybackProvider } from "./YouTubePlaybackProvider";
-import { YouTubeScrubber } from "./YouTubeScrubber";
+import {
+  YouTubePlaybackProvider,
+  YOUTUBE_SAMPLE_RATE,
+} from "./YouTubePlaybackProvider";
 import { PlaybackControls } from "../components/PlaybackControls";
 import { YouTubeSettings } from "./YouTubeSettings";
 
@@ -74,6 +79,21 @@ function YouTubeEditorView({
     saveSession({ filename, audioSettings: playbackSettings });
   }, [filename, playbackSettings]);
 
+  const totalMS = duration * 1000;
+  const fullRange = { start: 0, end: totalMS };
+  const metadataRef = useRef<WaveformMetadata>({
+    viewport: fullRange,
+    selection: initialSelection ?? fullRange,
+  });
+
+  useEffect(() => {
+    const full = { start: 0, end: totalMS };
+    metadataRef.current = {
+      viewport: full,
+      selection: clampSection(metadataRef.current.selection, full),
+    };
+  }, [totalMS]);
+
   const ready = duration > 0;
 
   return (
@@ -92,17 +112,25 @@ function YouTubeEditorView({
         </div>
         <div className="px-4 pb-4">
           {ready ? (
-            <YouTubeScrubber
-              totalMS={duration * 1000}
+            <Trackbar
               positionMS={playbackPosition}
-              initialSelection={initialSelection}
-              handleSelection={(selection) => {
+              metadata={metadataRef}
+              sampleRate={YOUTUBE_SAMPLE_RATE}
+              totalSamples={totalMS}
+              handleLoopEdit={(selection) => {
+                metadataRef.current = { ...metadataRef.current, selection };
+              }}
+              handleLoopEditFinish={(selection) => {
+                metadataRef.current = { ...metadataRef.current, selection };
                 setAudioSettings({ loop: selection });
                 capture("loop_region_set", { source: "youtube" });
               }}
               handlePosition={(positionMS) =>
                 triggerAction({ type: "move", position: positionMS })
               }
+              handleRange={(viewport) => {
+                metadataRef.current = { ...metadataRef.current, viewport };
+              }}
             />
           ) : (
             <div className="w-full h-8 pt-1 flex items-center justify-center text-sm text-black/40 font-inria">
