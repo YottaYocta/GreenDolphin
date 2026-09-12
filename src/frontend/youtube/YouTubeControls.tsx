@@ -97,7 +97,7 @@ export function YouTubeControls({ disabled }: { disabled?: boolean }) {
   ]);
 
   return (
-    <div className="grid grid-cols-2 gap-4 w-full h-min rounded-xl max-md:flex-1">
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 w-full h-min rounded-xl max-md:flex-1">
       <button
         onClick={rewindFiveSeconds}
         disabled={disabled}
@@ -125,7 +125,7 @@ export function YouTubeControls({ disabled }: { disabled?: boolean }) {
       <button
         onClick={togglePlay}
         disabled={disabled}
-        className={`col-span-2 btn-surface rounded-xl md:p-8 p-5 h-full min-h-0 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed ${
+        className={`col-span-2 md:col-span-1 md:order-first btn-surface rounded-xl md:p-8 p-5 h-full min-h-0 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed ${
           playState === "waiting"
             ? "bg-waiting hover:bg-waiting-hover active:bg-waiting-active [box-shadow:var(--shadow-btn-colored)]"
             : playState === "playing"
