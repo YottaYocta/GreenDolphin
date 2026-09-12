@@ -12,7 +12,7 @@ const HANDLE_SHADOW = { filter: "drop-shadow(0 2px 3px rgba(0, 0, 0, 0.05))" };
 // Out-of-range elements overflow into the panel's 16px padding and fade out
 // there instead of hard-clipping at the track edge.
 const EDGE_FADE_MASK =
-  "[mask-image:linear-gradient(to_right,transparent,black_16px,black_calc(100%-16px),transparent)] [mask-repeat:no-repeat]";
+  "[mask-image:linear-gradient(to_right,transparent,black_8px,black_calc(100%-8px),transparent)] [mask-repeat:no-repeat]";
 
 const timeLabel =
   "pointer-events-none absolute top-1/2 -translate-y-1/2 z-20 rounded bg-white/85 px-1.5 py-0.5 font-space-mono text-xs text-black/60 tabular-nums opacity-0 transition-opacity duration-200";
