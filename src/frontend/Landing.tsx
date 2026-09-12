@@ -15,11 +15,10 @@ import { relativeDate } from "./lib/util";
 import { capture, captureException } from "./lib/posthog";
 import {
   displayName,
-  fetchYouTubeTitle,
   isYouTubeFile,
-  makeYouTubeFile,
   readYouTubeFile,
 } from "./lib/youtubeFile";
+import { useAddYouTubeVideo } from "./lib/useAddYouTube";
 
 function RecordingRow({
   file,
@@ -123,13 +122,7 @@ export function Landing() {
     capture("recording_played", { filename: file.name, file_size: file.size });
   };
 
-  const handleAddYouTube = async (videoId: string, url: string) => {
-    const title = (await fetchYouTubeTitle(videoId)) ?? `YouTube ${videoId}`;
-    const file = makeYouTubeFile({ videoId, url, title });
-    await cacheFile(file);
-    setVideo({ videoId, filename: file.name });
-    capture("youtube_video_added", { video_id: videoId, title });
-  };
+  const handleAddYouTube = useAddYouTubeVideo();
 
   const handleUpload = async (file: File) => {
     setIsUploading(true);

@@ -1,4 +1,4 @@
-import { useContext, useRef } from "react";
+import { useContext, useRef, useState } from "react";
 import { Menu } from "@base-ui/react/menu";
 import {
   MusicNotesPlusIcon,
@@ -17,6 +17,8 @@ import {
   readYouTubeFile,
   stripYouTubeExt,
 } from "../../lib/youtubeFile";
+import { useAddYouTubeVideo } from "../../lib/useAddYouTube";
+import { NewRecordingDialog } from "../NewRecordingDialog";
 
 const headerBtn = "btn-surface rounded-lg gap-2 px-5 py-3.25";
 
@@ -26,6 +28,8 @@ export function RecordingsMenu() {
   const { audio, video, setVideo } = useContext(AudioStore);
   const filename = audio?.filename ?? video?.filename ?? "";
   const uploadInputRef = useRef<HTMLInputElement>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const handleAddYouTube = useAddYouTubeVideo();
 
   const openFile = async (file: File) => {
     if (isYouTubeFile(file)) {
@@ -53,8 +57,7 @@ export function RecordingsMenu() {
             <Menu.Popup className="z-50 w-80 rounded-xl bg-white border border-border [box-shadow:var(--shadow-menu)] overflow-hidden flex flex-col outline-none">
               <Menu.Item
                 className="shrink-0 flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-neutral-50 active:bg-neutral-100 border-b border-border"
-                closeOnClick={false}
-                onClick={() => uploadInputRef.current?.click()}
+                onClick={() => setDialogOpen(true)}
               >
                 <MusicNotesPlusIcon
                   size={18}
@@ -62,7 +65,7 @@ export function RecordingsMenu() {
                   style={{ opacity: 0.5, flexShrink: 0 }}
                 />
                 <span className="font-inria text-black text-base/5">
-                  Upload a Recording
+                  New Recording
                 </span>
               </Menu.Item>
               <div className="overflow-y-auto max-h-72 flex flex-col">
@@ -113,6 +116,13 @@ export function RecordingsMenu() {
           </Menu.Positioner>
         </Menu.Portal>
       </Menu.Root>
+
+      <NewRecordingDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onUpload={() => uploadInputRef.current?.click()}
+        onAddYouTube={handleAddYouTube}
+      />
 
       <input
         ref={uploadInputRef}
