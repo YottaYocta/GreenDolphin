@@ -21,8 +21,13 @@ export const YT_MAX_RATE = 2;
 const DRIFT_TOLERANCE_MS = 400;
 const SEEK_TIMEOUT_MS = 3000;
 
+export const YT_RATE_STEP = 0.25;
+
 const clampRate = (v: number) =>
-  Math.min(YT_MAX_RATE, Math.max(YT_MIN_RATE, v));
+  Math.min(
+    YT_MAX_RATE,
+    Math.max(YT_MIN_RATE, Math.round(v / YT_RATE_STEP) * YT_RATE_STEP),
+  );
 
 export interface YouTubePlaybackProviderProps {
   player: YouTubePlayer | null;

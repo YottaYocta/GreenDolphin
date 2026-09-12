@@ -2,7 +2,11 @@ import { useContext } from "react";
 import { PlaybackContext } from "../playback/PlaybackContext";
 import { AudioSlider, SettingsPanel } from "../components/PlaybackSettings";
 import { capture } from "../lib/posthog";
-import { YT_MIN_RATE, YT_MAX_RATE } from "./YouTubePlaybackProvider";
+import {
+  YT_MIN_RATE,
+  YT_MAX_RATE,
+  YT_RATE_STEP,
+} from "./YouTubePlaybackProvider";
 
 export function YouTubeSettings({ children }: { children?: React.ReactNode }) {
   const playback = useContext(PlaybackContext);
@@ -19,7 +23,7 @@ export function YouTubeSettings({ children }: { children?: React.ReactNode }) {
         defaultValue={1}
         min={YT_MIN_RATE}
         max={YT_MAX_RATE}
-        step={0.05}
+        step={YT_RATE_STEP}
         onChange={(v) => {
           setAudioSettings({ playbackSpeed: v });
           capture("speed_adjusted", { playback_speed: v, source: "youtube" });
