@@ -10,14 +10,14 @@ import {
 import { loadLoopPrefs, saveLoopPrefs } from "../../lib/loopPrefs";
 import { capture } from "../../lib/posthog";
 
-function ModeToggle<T extends string>({
+function ModeToggle({
   options,
   value,
   onChange,
 }: {
-  options: readonly { value: T; label: string }[];
-  value: T;
-  onChange: (next: T) => void;
+  options: readonly { value: string; label: string }[];
+  value: string;
+  onChange: (next: string) => void;
 }) {
   return (
     <div className="flex flex-1 items-stretch gap-0.5 rounded-lg border border-border bg-surface-track p-0.5 [box-shadow:var(--shadow-inset-dim)]">
@@ -94,7 +94,7 @@ function LoopSettings() {
     saveLoopPrefs({ loopOptions });
   }, [isManual, resolvedDelay, setAudioSettings]);
 
-  const handleLoopModeChange = (next: "manual" | "automatic") => {
+  const handleLoopModeChange = (next: string) => {
     if (next === loopOptions.type) return;
     const nextOptions =
       next === "manual"
@@ -105,18 +105,19 @@ function LoopSettings() {
     capture("loop_mode_changed", { loop_mode: next });
   };
 
-  const handleDelayModeChange = (next: "fixed" | "relative") => {
+  const handleDelayModeChange = (next: string) => {
     if (next === delayMode) return;
+    const nextMode = next === "relative" ? "relative" : "fixed";
     const converted =
-      next === "fixed"
+      nextMode === "fixed"
         ? (delayValue / 100) * loopLength
         : loopLength > 0
           ? (delayValue / loopLength) * 100
           : 0;
     setDelayValue(converted);
-    setDelayMode(next);
-    saveLoopPrefs({ delayMode: next, delayValue: converted });
-    capture("loop_delay_changed", { delay_mode: next });
+    setDelayMode(nextMode);
+    saveLoopPrefs({ delayMode: nextMode, delayValue: converted });
+    capture("loop_delay_changed", { delay_mode: nextMode });
   };
 
   const displayValue = String(Math.round(delayValue * 10) / 10);
