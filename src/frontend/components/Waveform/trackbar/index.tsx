@@ -10,6 +10,8 @@ import { useViewportGestures } from "../useViewportGestures";
 
 const HANDLE_SHADOW = { filter: "drop-shadow(0 2px 3px rgba(0, 0, 0, 0.05))" };
 
+const PENTAGON_DOWN = "polygon(0% 0%, 100% 0%, 100% 62%, 50% 100%, 0% 62%)";
+
 const EDGE_FADE_MASK =
   "[mask-image:linear-gradient(to_right,transparent,black_8px,black_calc(100%-8px),transparent)] [mask-repeat:no-repeat]";
 
@@ -113,7 +115,16 @@ export const Trackbar: FC<TrackbarProps> = ({
       style={HANDLE_SHADOW}
       {...handleDragProps(side)}
     >
-      <div className="size-3.5 rotate-45 rounded-[4px] bg-surface border border-border [box-shadow:var(--shadow-inset)]" />
+      <div className="relative w-3.5 h-4">
+        <div
+          className="absolute inset-0 bg-border"
+          style={{ clipPath: PENTAGON_DOWN }}
+        />
+        <div
+          className="absolute inset-[1.5px] bg-surface [box-shadow:var(--shadow-inset)]"
+          style={{ clipPath: PENTAGON_DOWN }}
+        />
+      </div>
     </div>
   );
 
@@ -121,7 +132,7 @@ export const Trackbar: FC<TrackbarProps> = ({
     <div className={`-mx-4 px-4 shrink-0 ${EDGE_FADE_MASK}`}>
       <div
         ref={rootRef}
-        className="relative w-full z-10 pt-1 flex flex-col gap-1 touch-none"
+        className="relative w-full z-10 pt-1 flex flex-col touch-none"
       >
         <div className="w-full h-7 relative" ref={trackRef} id="trackbar">
           <div
