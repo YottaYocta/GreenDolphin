@@ -67,13 +67,13 @@ export const Trackbar: FC<TrackbarProps> = ({
   ) => (
     <div
       ref={ref}
-      className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-10 flex items-center justify-center size-6 cursor-ew-resize touch-none"
+      className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-10 flex items-center justify-center w-6 h-12 cursor-ew-resize touch-none"
       style={HANDLE_SHADOW}
       {...handleDragProps(side)}
     >
       <div
-        className={`w-1.5 h-5 rounded-xs border-y-2 border-neutral-400 ${
-          side === "start" ? "border-l-2" : "border-r-2"
+        className={`w-2 h-6 rounded-xs border-y-[3px] border-neutral-400 ${
+          side === "start" ? "border-l-[3px]" : "border-r-[3px]"
         }`}
       />
     </div>
