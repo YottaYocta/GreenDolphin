@@ -104,8 +104,8 @@ export const Trackbar: FC<TrackbarProps> = ({
         <polygon
           points="0.75,0.75 13.25,0.75 13.25,12.2 7,19.1 0.75,12.2"
           fill="var(--color-surface)"
-          stroke="#d4d4d4"
-          strokeWidth="1.5"
+          stroke="#d7d7d7"
+          strokeWidth="1"
           strokeLinejoin="round"
         />
       </svg>
@@ -118,7 +118,11 @@ export const Trackbar: FC<TrackbarProps> = ({
         ref={rootRef}
         className="relative w-full z-10 pt-1 flex flex-col touch-none"
       >
-        <div className="w-full h-7 relative" ref={trackRef} id="trackbar">
+        <div
+          className="w-full h-7 relative translate-y-1.5"
+          ref={trackRef}
+          id="trackbar"
+        >
           <div
             ref={pillRef}
             data-trackbar-control
