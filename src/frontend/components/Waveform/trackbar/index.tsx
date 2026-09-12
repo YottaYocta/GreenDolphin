@@ -127,9 +127,11 @@ export const Trackbar: FC<TrackbarProps> = ({
           <div
             ref={pillRef}
             data-trackbar-control
-            className="absolute top-1/2 -translate-y-1/2 h-5 rounded-sm bg-surface border border-neutral-100 cursor-grab active:cursor-grabbing touch-none"
+            className="absolute top-1/2 -translate-y-1/2 h-10 flex items-center cursor-grab active:cursor-grabbing touch-none"
             {...pillDragProps}
-          />
+          >
+            <div className="w-full h-3 rounded-sm bg-surface border border-neutral-100" />
+          </div>
           {loopHandle(leftHandleRef, "start")}
           {loopHandle(rightHandleRef, "end")}
         </div>
