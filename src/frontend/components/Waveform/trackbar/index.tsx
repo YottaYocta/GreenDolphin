@@ -1,6 +1,7 @@
-import { useRef, type FC, type RefObject } from "react";
+import { useCallback, useRef, type FC, type RefObject } from "react";
 import type { WaveformMetadata } from "../types";
 import type { Section } from "../../../lib/waveform";
+import { clampSample, pointerToSample } from "./dragUtils";
 import { useAnimateTrackbar } from "./useAnimateTrackbar";
 import { useLoopHandleDrag } from "./useLoopHandleDrag";
 import { useLoopPillDrag } from "./useLoopPillDrag";
@@ -86,7 +87,23 @@ export const Trackbar: FC<TrackbarProps> = ({
     handlePosition,
   );
 
-  useTrackbarZoom(rootRef, metadata, totalSamples, handleRange);
+  // Tap/click on the playhead row moves the playhead there (a "move" upstream)
+  const handleTap = useCallback(
+    (clientX: number, target: EventTarget | null) => {
+      if (
+        !(target instanceof Element) ||
+        !target.closest("[data-playhead-row]")
+      )
+        return;
+      const track = trackRef.current;
+      if (!track) return;
+      const sample = pointerToSample(clientX, track, metadata.current.viewport);
+      handlePosition(clampSample(sample, totalSamples));
+    },
+    [metadata, totalSamples, handlePosition],
+  );
+
+  useTrackbarZoom(rootRef, metadata, totalSamples, handleRange, handleTap);
 
   const loopHandle = (
     ref: RefObject<HTMLDivElement | null>,
@@ -121,7 +138,7 @@ export const Trackbar: FC<TrackbarProps> = ({
           {loopHandle(rightHandleRef, "end")}
         </div>
         {/* playhead row */}
-        <div className="w-full h-7 relative">
+        <div className="w-full h-7 relative cursor-pointer" data-playhead-row>
           <div
             ref={playheadTrackRef}
             className="absolute top-1/2 -translate-y-1/2 h-5 rounded-sm bg-surface border border-neutral-100 pointer-events-none"

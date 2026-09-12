@@ -1,5 +1,8 @@
 import { useEffect, useMemo, type RefObject } from "react";
-import { MIN_RANGE_THRESHOLD } from "../../../lib/constants";
+import {
+  CLICK_SELECTION_THRESHOLD,
+  MIN_RANGE_THRESHOLD,
+} from "../../../lib/constants";
 import type { Section } from "../../../lib/waveform";
 import { clampSection } from "../../../lib/util";
 import type { WaveformMetadata } from "../types";
@@ -40,6 +43,7 @@ export const useTrackbarZoom = (
   metadataRef: RefObject<WaveformMetadata>,
   totalSamples: number,
   handleRange: (range: Section) => void,
+  onTap?: (clientX: number, target: EventTarget | null) => void,
 ) => {
   const minRangeLen = useMemo(
     () => Math.floor(MIN_RANGE_THRESHOLD * totalSamples),
@@ -107,9 +111,13 @@ export const useTrackbarZoom = (
       const { viewport } = metadataRef.current;
       const currentRange = viewport.end - viewport.start;
       const startRangeStart = viewport.start;
+      const threshold = rect.width * CLICK_SELECTION_THRESHOLD;
+      let dragged = false;
 
       const onMouseMove = (m: MouseEvent) => {
         const netDx = m.clientX - e.clientX;
+        if (!dragged && Math.abs(netDx) > threshold) dragged = true;
+        if (!dragged) return;
         const targetStart =
           startRangeStart - Math.round((netDx / rect.width) * currentRange);
         handleRange(
@@ -122,6 +130,7 @@ export const useTrackbarZoom = (
       const onMouseUp = () => {
         window.removeEventListener("mousemove", onMouseMove);
         window.removeEventListener("mouseup", onMouseUp);
+        if (!dragged) onTap?.(e.clientX, e.target);
       };
       window.addEventListener("mousemove", onMouseMove);
       window.addEventListener("mouseup", onMouseUp);
@@ -139,8 +148,11 @@ export const useTrackbarZoom = (
       const startRange = viewport.end - viewport.start;
 
       let pinch: Pinch | null = null;
+      let dragged = false;
+      const threshold = rect.width * CLICK_SELECTION_THRESHOLD;
       const singleId = first.identifier;
       const startClientX = first.clientX;
+      const startTarget = e.target;
 
       const enterPinch = (touches: TouchList) => {
         const a = findTouch(touches, singleId) ?? touches[0];
@@ -174,6 +186,8 @@ export const useTrackbarZoom = (
           const t = findTouch(moveEvent.touches, singleId);
           if (!t) return;
           const netDx = t.clientX - startClientX;
+          if (!dragged && Math.abs(netDx) > threshold) dragged = true;
+          if (!dragged) return;
           const targetStart =
             startRangeStart - Math.round((netDx / rect.width) * startRange);
           handleRange(
@@ -205,6 +219,7 @@ export const useTrackbarZoom = (
       const onEnd = (endEvent: TouchEvent) => {
         if (!pinch) {
           if (findTouch(endEvent.touches, singleId)) return;
+          if (!dragged) onTap?.(startClientX, startTarget);
           cleanup();
           return;
         }
@@ -229,5 +244,5 @@ export const useTrackbarZoom = (
       el.removeEventListener("mousedown", onMouseDown);
       el.removeEventListener("touchstart", onTouchStart);
     };
-  }, [elementRef, metadataRef, totalSamples, handleRange, minRangeLen]);
+  }, [elementRef, metadataRef, totalSamples, handleRange, minRangeLen, onTap]);
 };
