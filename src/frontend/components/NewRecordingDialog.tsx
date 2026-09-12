@@ -66,17 +66,6 @@ export function NewRecordingDialog({
         </div>
 
         <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <YoutubeLogoIcon
-              size={20}
-              weight="fill"
-              color="#FF0000"
-              style={{ flexShrink: 0, opacity: 0.8 }}
-            />
-            <span className="text-sm text-black/50 font-inria">
-              Add a YouTube video
-            </span>
-          </div>
           <input
             type="url"
             value={url}
@@ -88,7 +77,7 @@ export function NewRecordingDialog({
               if (e.key === "Enter") handleAdd();
             }}
             placeholder="https://www.youtube.com/watch?v=…"
-            className="w-full rounded-lg border border-border bg-surface-input px-3 py-2.5 font-space-mono text-sm text-black/70 outline-none placeholder:text-black/25"
+            className="w-full rounded-sm bg-surface-input px-3 py-2.5 font-space-mono text-base/5 text-black/60 outline-none placeholder:text-black/25"
           />
           {error && (
             <p className="text-sm text-red-600/80 font-inria">{error}</p>
