@@ -11,7 +11,6 @@ export function isYouTubeFile(file: File): boolean {
   return file.type === YOUTUBE_MIME || file.name.endsWith(YOUTUBE_EXT);
 }
 
-// .yt extension stripped for display; a no-op for regular audio filenames
 export function stripYouTubeExt(filename: string): string {
   return filename.replace(/\.yt$/, "");
 }
@@ -32,7 +31,7 @@ export function parseYouTubeVideoId(input: string): string | null {
       if (match) return match[1];
     }
   } catch {
-    // not a URL
+    return null;
   }
   return null;
 }

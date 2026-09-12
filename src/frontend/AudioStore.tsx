@@ -35,7 +35,6 @@ export function AudioStoreProvider({ children }: { children: ReactNode }) {
   const [video, setVideoState] = useState<VideoState>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Only one editor is open at a time: opening audio closes video & vice versa
   const setAudio = useCallback((a: AudioState) => {
     setAudioState(a);
     setVideoState(null);

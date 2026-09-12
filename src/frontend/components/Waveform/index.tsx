@@ -83,7 +83,6 @@ export const Waveform: FC<
     [handleSelection],
   );
 
-  // click/tap without drag sets the playback position
   const handleTap = useCallback(
     (clientX: number) => {
       const canvas = canvasRef.current;

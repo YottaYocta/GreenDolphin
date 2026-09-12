@@ -10,8 +10,6 @@ import { useViewportGestures } from "../useViewportGestures";
 
 const HANDLE_SHADOW = { filter: "drop-shadow(0 2px 3px rgba(0, 0, 0, 0.05))" };
 
-// Out-of-range elements overflow into the panel's 16px padding and fade out
-// there instead of hard-clipping at the track edge.
 const EDGE_FADE_MASK =
   "[mask-image:linear-gradient(to_right,transparent,black_8px,black_calc(100%-8px),transparent)] [mask-repeat:no-repeat]";
 
@@ -87,7 +85,6 @@ export const Trackbar: FC<TrackbarProps> = ({
     handlePosition,
   );
 
-  // Tap/click on the playhead row moves the playhead there (a "move" upstream)
   const handleTap = useCallback(
     (clientX: number, target: EventTarget | null) => {
       if (
@@ -126,7 +123,6 @@ export const Trackbar: FC<TrackbarProps> = ({
         ref={rootRef}
         className="relative w-full z-10 pt-1 flex flex-col gap-1 touch-none"
       >
-        {/* loop row */}
         <div className="w-full h-7 relative" ref={trackRef} id="trackbar">
           <div
             ref={pillRef}
@@ -137,7 +133,6 @@ export const Trackbar: FC<TrackbarProps> = ({
           {loopHandle(leftHandleRef, "start")}
           {loopHandle(rightHandleRef, "end")}
         </div>
-        {/* playhead row */}
         <div className="w-full h-7 relative cursor-pointer" data-playhead-row>
           <div
             ref={playheadTrackRef}
@@ -152,7 +147,6 @@ export const Trackbar: FC<TrackbarProps> = ({
             <div className="size-3 rotate-45 rounded-sm bg-play border border-black/20 [box-shadow:var(--shadow-inset-active)]" />
           </div>
         </div>
-        {/* transient viewport range labels shown while zooming/panning */}
         <div ref={startLabelRef} className={`${timeLabel} left-1`} />
         <div ref={endLabelRef} className={`${timeLabel} right-1`} />
       </div>

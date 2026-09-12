@@ -43,7 +43,6 @@ export interface PlaybackClockResult {
   playState: PlayState;
   lastStartPosition: number;
   playbackPosition: RefObject<number>;
-  /** Increments whenever a transition jumps the position (seek, loop wrap). */
   positionEpoch: number;
   timerStartedAtMS: number | null;
   dispatch: (event: UserEvent) => void;

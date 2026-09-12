@@ -7,9 +7,6 @@ import type { Section } from "../../lib/waveform";
 import { clampSection } from "../../lib/util";
 import type { WaveformMetadata } from "./types";
 
-// Drags that start on a loop handle / pill / playhead / caret belong to that
-// control; native listeners here fire before React's delegated handlers can
-// stopPropagation, so filter by target instead.
 const isControl = (target: EventTarget | null) =>
   target instanceof Element && !!target.closest("[data-trackbar-control]");
 
@@ -36,9 +33,6 @@ const findOther = (list: TouchList, excludeId: number): Touch | null => {
   return null;
 };
 
-// Viewport zoom/pan gestures (wheel, drag-pan, pinch, tap) shared by the
-// waveform canvas and the trackbar, so views without a canvas (YouTube) can
-// zoom too. Tap-without-drag is reported via onTap for click-to-position.
 export const useViewportGestures = (
   elementRef: RefObject<HTMLElement | null>,
   metadataRef: RefObject<WaveformMetadata>,

@@ -132,7 +132,6 @@ export function PlaybackControls({
               : ""
         }`}
       >
-        {/* fixed-size content box so icon size changes don't shift layout */}
         <span className="size-10 shrink-0 flex items-center justify-center">
           {playState === "playing" ? (
             <PauseIcon

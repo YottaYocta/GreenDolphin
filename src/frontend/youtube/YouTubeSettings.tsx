@@ -4,7 +4,6 @@ import { AudioSlider, SettingsPanel } from "../components/PlaybackSettings";
 import { capture } from "../lib/posthog";
 import { YT_MIN_RATE, YT_MAX_RATE } from "./YouTubePlaybackProvider";
 
-// Only the settings the YouTube IFrame API supports: playback rate and volume.
 export function YouTubeSettings({ children }: { children?: React.ReactNode }) {
   const playback = useContext(PlaybackContext);
   if (!playback)

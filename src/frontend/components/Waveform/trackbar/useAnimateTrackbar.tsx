@@ -2,8 +2,6 @@ import { useEffect, type RefObject } from "react";
 import { computeMS } from "../../../lib/util";
 import type { WaveformMetadata } from "../types";
 
-// How far past the track edges elements keep rendering before being dropped;
-// covers the fade bleed zone plus a little slack.
 const EDGE_BUFFER_PX = 24;
 const LABEL_HIDE_DELAY_MS = 800;
 
@@ -62,7 +60,6 @@ export const useAnimateTrackbar = (
         const startPx = ((selection.start - viewport.start) / rangeLen) * width;
         const endPx = ((selection.end - viewport.start) / rangeLen) * width;
 
-        // bound the overflow so extreme zooms don't create huge paint areas
         const applySpan = (
           el: HTMLDivElement | null,
           fromPx: number,
@@ -76,7 +73,6 @@ export const useAnimateTrackbar = (
         };
 
         applySpan(pillRef.current, startPx, endPx);
-        // full-recording background bar under the playhead scales with zoom
         applySpan(
           playheadTrackRef.current,
           ((0 - viewport.start) / rangeLen) * width,
@@ -96,7 +92,6 @@ export const useAnimateTrackbar = (
           );
         }
 
-        // transient viewport-range labels while zooming/panning
         const now = performance.now();
         if (
           viewport.start !== lastViewportStart ||

@@ -13,15 +13,12 @@ import { YT_STATE_PLAYING, YT_STATE_PAUSED } from "./iframeApi";
 import type { YouTubePlayer } from "./iframeApi";
 import type { PlayerStateListener } from "./useYouTubePlayer";
 
-// 1 "sample" = 1ms, so Sections map directly onto milliseconds
 export const YOUTUBE_SAMPLE_RATE = 1000;
 
 export const YT_MIN_RATE = 0.25;
 export const YT_MAX_RATE = 2;
 
-// Beyond this the player is considered to have jumped (user seek) rather than drifted
 const DRIFT_TOLERANCE_MS = 400;
-// How long a commanded seek may take before we stop waiting for it to land
 const SEEK_TIMEOUT_MS = 3000;
 
 const clampRate = (v: number) =>
@@ -89,16 +86,13 @@ export const YouTubePlaybackProvider = ({
     (action: PlaybackAction) => {
       if (action === "play" || action === "pause") {
         dispatch({ type: "play-pause" });
-      } else if (action === "freeze") {
-        // freeze is not supported in YouTube mode
-      } else if (action.type === "move") {
+      } else if (typeof action !== "string") {
         dispatch({ type: "move", positionMS: Math.max(0, action.position) });
       }
     },
     [dispatch],
   );
 
-  // --- player sync ------------------------------------------------------
 
   const pendingSeekRef = useRef<{ ms: number; at: number } | null>(null);
   const lastPauseCommandRef = useRef(-Infinity);
@@ -112,8 +106,6 @@ export const YouTubePlaybackProvider = ({
     [player],
   );
 
-  // Returns true while a commanded seek is still in flight, so drift checks
-  // don't mistake the not-yet-landed player position for a user seek.
   const seekInFlight = useCallback(
     (playerMS: number) => {
       const pending = pendingSeekRef.current;
@@ -138,25 +130,18 @@ export const YouTubePlaybackProvider = ({
     player?.setVolume(Math.round(Math.max(0, Math.min(1, gain)) * 100));
   }, [player, gain]);
 
-  // Clock → player: apply play/pause and any discontinuous position jump
-  // (seek, loop wrap — signalled by positionEpoch).
   useEffect(() => {
     if (!player) return;
     if (playState === "playing") {
       commandSeek(playbackPosition.current);
       player.playVideo();
     } else {
-      // Pause before seeking: seeking a playing (or ended) video makes the
-      // player emit a transient PLAYING event that would read as a user play.
       lastPauseCommandRef.current = performance.now();
       player.pauseVideo();
       commandSeek(playbackPosition.current);
     }
   }, [player, playState, positionEpoch, commandSeek, playbackPosition]);
 
-  // Player → clock, while playing: glue the clock to the video's time so the
-  // scrubber always mirrors the video; a large jump means the user seeked via
-  // the YouTube UI, which routes through the machine (loop rules apply).
   useEffect(() => {
     if (!player || playState !== "playing") return;
     let rafId: number;
@@ -174,8 +159,6 @@ export const YouTubePlaybackProvider = ({
     return () => cancelAnimationFrame(rafId);
   }, [player, playState, playbackPosition, seekInFlight, triggerAction]);
 
-  // Player → clock, while not playing: the user can still scrub the paused
-  // video via the YouTube UI, which emits no state-change event.
   useEffect(() => {
     if (!player || playState === "playing") return;
     const id = setInterval(() => {
@@ -187,13 +170,10 @@ export const YouTubePlaybackProvider = ({
     return () => clearInterval(id);
   }, [player, playState, playbackPosition, seekInFlight, triggerAction]);
 
-  // Player → clock: play/pause initiated from the YouTube UI.
   useEffect(() => {
     if (!player) return;
     return subscribe((state) => {
       if (state === YT_STATE_PLAYING && playState !== "playing") {
-        // Echo of our own pause+seek (seeking from the ended state resumes
-        // playback) — re-assert the pause instead of treating it as the user.
         if (performance.now() - lastPauseCommandRef.current < SEEK_TIMEOUT_MS) {
           player.pauseVideo();
           return;
@@ -202,7 +182,6 @@ export const YouTubePlaybackProvider = ({
           type: "move",
           position: player.getCurrentTime() * 1000,
         });
-        // "move" already resumes playback from the waiting state
         if (playState !== "waiting") triggerAction("play");
       } else if (state === YT_STATE_PAUSED && playState === "playing") {
         triggerAction("pause");
@@ -210,7 +189,6 @@ export const YouTubePlaybackProvider = ({
     });
   }, [player, subscribe, playState, triggerAction]);
 
-  // --- context value ----------------------------------------------------
 
   const loopLength = loop ? (loop.end - loop.start) / YOUTUBE_SAMPLE_RATE : duration;
 

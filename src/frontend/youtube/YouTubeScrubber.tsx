@@ -14,8 +14,6 @@ export interface YouTubeScrubberProps {
   handlePosition: (positionMS: number) => void;
 }
 
-// The trackbar from the waveform view, pinned to a full-length viewport:
-// just the green playhead and the loop range, no waveform underneath.
 export const YouTubeScrubber = ({
   totalMS,
   positionMS,

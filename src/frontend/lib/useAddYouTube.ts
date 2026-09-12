@@ -4,7 +4,6 @@ import { AudioStore } from "../AudioStore";
 import { fetchYouTubeTitle, makeYouTubeFile } from "./youtubeFile";
 import { capture } from "./posthog";
 
-// Saves a YouTube video as a .yt recording and opens it in the video editor.
 export function useAddYouTubeVideo() {
   const { cacheFile } = useContext(RecordingsStore);
   const { setVideo } = useContext(AudioStore);

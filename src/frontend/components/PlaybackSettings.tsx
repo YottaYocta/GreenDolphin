@@ -6,8 +6,6 @@ import { Dialog } from "@base-ui/react/dialog";
 import { AppDialog } from "./AppDialog";
 import { capture } from "../lib/posthog";
 
-// Shared shell: a floating icon over the content that toggles an inline
-// slider bar on desktop, or opens the sliders in a dialog on mobile.
 export function SettingsPanel({
   sliders,
   children,

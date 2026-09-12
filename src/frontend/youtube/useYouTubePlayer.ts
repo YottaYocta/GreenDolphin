@@ -58,7 +58,7 @@ export function useYouTubePlayer(videoId: string) {
       try {
         instance?.destroy();
       } catch {
-        // player already torn down
+        instance = null;
       }
       host.remove();
     };
