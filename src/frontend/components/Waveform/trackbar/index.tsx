@@ -1,19 +1,21 @@
 import { useRef, type FC, type RefObject } from "react";
-import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import type { WaveformMetadata } from "../types";
 import type { Section } from "../../../lib/waveform";
-import { useLoopCarets } from "./useLoopCarets";
-import { usePlayheadCaret } from "./usePlayheadCaret";
-import { useTrackbarZoom } from "./useTrackbarZoom";
 import { useAnimateTrackbar } from "./useAnimateTrackbar";
 import { useLoopHandleDrag } from "./useLoopHandleDrag";
 import { useLoopPillDrag } from "./useLoopPillDrag";
 import { usePlayheadDrag } from "./usePlayheadDrag";
+import { useTrackbarZoom } from "./useTrackbarZoom";
 
 const HANDLE_SHADOW = { filter: "drop-shadow(0 2px 3px rgba(0, 0, 0, 0.05))" };
 
-const caretBtn =
-  "btn-surface absolute top-1/2 -translate-y-1/2 h-7 w-6 rounded-md items-center justify-center text-icon-muted z-10";
+// Out-of-range elements overflow into the panel's 16px padding and fade out
+// there instead of hard-clipping at the track edge.
+const EDGE_FADE_MASK =
+  "[mask-image:linear-gradient(to_right,transparent,black_16px,black_calc(100%-16px),transparent)] [mask-repeat:no-repeat]";
+
+const timeLabel =
+  "pointer-events-none absolute top-1/2 -translate-y-1/2 z-20 rounded bg-white/85 px-1.5 py-0.5 font-space-mono text-xs text-black/60 tabular-nums opacity-0 transition-opacity duration-200";
 
 export type TrackbarProps = {
   positionMS?: RefObject<number>;
@@ -42,36 +44,22 @@ export const Trackbar: FC<TrackbarProps> = ({
   const leftHandleRef = useRef<HTMLDivElement | null>(null);
   const rightHandleRef = useRef<HTMLDivElement | null>(null);
   const playheadRef = useRef<HTMLDivElement | null>(null);
-
-  const {
-    leftCaretRef,
-    rightCaretRef,
-    applyCaretVisibility,
-    onLeftCaretClick,
-    onRightCaretClick,
-  } = useLoopCarets(metadata, totalSamples, handleRange);
-
-  const {
-    leftCaretRef: leftPlayheadCaretRef,
-    rightCaretRef: rightPlayheadCaretRef,
-    applyPlayheadCaretVisibility,
-    onLeftCaretClick: onLeftPlayheadCaretClick,
-    onRightCaretClick: onRightPlayheadCaretClick,
-  } = usePlayheadCaret(
-    metadata,
-    totalSamples,
-    sampleRate,
-    positionMS,
-    handleRange,
-  );
+  const startLabelRef = useRef<HTMLDivElement | null>(null);
+  const endLabelRef = useRef<HTMLDivElement | null>(null);
 
   useAnimateTrackbar(
-    { trackRef, pillRef, leftHandleRef, rightHandleRef, playheadRef },
+    {
+      trackRef,
+      pillRef,
+      leftHandleRef,
+      rightHandleRef,
+      playheadRef,
+      startLabelRef,
+      endLabelRef,
+    },
     metadata,
     positionMS,
     sampleRate,
-    applyCaretVisibility,
-    applyPlayheadCaretVisibility,
   );
 
   const handleDragProps = useLoopHandleDrag(
@@ -113,76 +101,37 @@ export const Trackbar: FC<TrackbarProps> = ({
   );
 
   return (
-    <div
-      ref={rootRef}
-      className="w-full shrink-0 z-10 pt-1 flex flex-col gap-1 touch-none"
-    >
-      {/* loop row */}
-      <div className="w-full h-7 relative" ref={trackRef} id="trackbar">
-        <div
-          ref={pillRef}
-          data-trackbar-control
-          className="absolute top-1/2 -translate-y-1/2 h-5 rounded-sm bg-surface border border-neutral-100 cursor-grab active:cursor-grabbing touch-none"
-          {...pillDragProps}
-        />
-        {loopHandle(leftHandleRef, "start")}
-        {loopHandle(rightHandleRef, "end")}
-        <button
-          ref={leftCaretRef}
-          type="button"
-          data-trackbar-control
-          aria-label="Scroll to loop start"
-          onClick={onLeftCaretClick}
-          className={`${caretBtn} left-0`}
-          style={{ display: "none" }}
-        >
-          <CaretLeftIcon size={14} weight="bold" />
-        </button>
-        <button
-          ref={rightCaretRef}
-          type="button"
-          data-trackbar-control
-          aria-label="Scroll to loop end"
-          onClick={onRightCaretClick}
-          className={`${caretBtn} right-0`}
-          style={{ display: "none" }}
-        >
-          <CaretRightIcon size={14} weight="bold" />
-        </button>
-      </div>
-      {/* playhead row */}
-      <div className="w-full h-7 relative">
-        <div className="absolute top-1/2 -translate-y-1/2 w-full h-5 rounded-sm bg-surface border border-neutral-100 pointer-events-none" />
-        <div
-          ref={playheadRef}
-          data-trackbar-control
-          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 size-8 flex items-center justify-center cursor-ew-resize touch-none z-10"
-          {...playheadDragProps}
-        >
-          <div className="size-3 rotate-45 rounded-sm bg-play border border-black/20 [box-shadow:var(--shadow-inset-active)]" />
+    <div className={`-mx-4 px-4 shrink-0 ${EDGE_FADE_MASK}`}>
+      <div
+        ref={rootRef}
+        className="relative w-full z-10 pt-1 flex flex-col gap-1 touch-none"
+      >
+        {/* loop row */}
+        <div className="w-full h-7 relative" ref={trackRef} id="trackbar">
+          <div
+            ref={pillRef}
+            data-trackbar-control
+            className="absolute top-1/2 -translate-y-1/2 h-5 rounded-sm bg-surface border border-neutral-100 cursor-grab active:cursor-grabbing touch-none"
+            {...pillDragProps}
+          />
+          {loopHandle(leftHandleRef, "start")}
+          {loopHandle(rightHandleRef, "end")}
         </div>
-        <button
-          ref={leftPlayheadCaretRef}
-          type="button"
-          data-trackbar-control
-          aria-label="Scroll to playhead"
-          onClick={onLeftPlayheadCaretClick}
-          className={`${caretBtn} left-0`}
-          style={{ display: "none" }}
-        >
-          <CaretLeftIcon size={14} weight="bold" color="var(--color-play)" />
-        </button>
-        <button
-          ref={rightPlayheadCaretRef}
-          type="button"
-          data-trackbar-control
-          aria-label="Scroll to playhead"
-          onClick={onRightPlayheadCaretClick}
-          className={`${caretBtn} right-0`}
-          style={{ display: "none" }}
-        >
-          <CaretRightIcon size={14} weight="bold" color="var(--color-play)" />
-        </button>
+        {/* playhead row */}
+        <div className="w-full h-7 relative">
+          <div className="absolute top-1/2 -translate-y-1/2 w-full h-5 rounded-sm bg-surface border border-neutral-100 pointer-events-none" />
+          <div
+            ref={playheadRef}
+            data-trackbar-control
+            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 size-8 flex items-center justify-center cursor-ew-resize touch-none z-10"
+            {...playheadDragProps}
+          >
+            <div className="size-3 rotate-45 rounded-sm bg-play border border-black/20 [box-shadow:var(--shadow-inset-active)]" />
+          </div>
+        </div>
+        {/* transient viewport range labels shown while zooming/panning */}
+        <div ref={startLabelRef} className={`${timeLabel} left-1`} />
+        <div ref={endLabelRef} className={`${timeLabel} right-1`} />
       </div>
     </div>
   );

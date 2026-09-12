@@ -2,12 +2,19 @@ import { useEffect, type RefObject } from "react";
 import { computeMS } from "../../../lib/util";
 import type { WaveformMetadata } from "../types";
 
+// How far past the track edges elements keep rendering before being dropped;
+// covers the fade bleed zone plus a little slack.
+const EDGE_BUFFER_PX = 24;
+const LABEL_HIDE_DELAY_MS = 800;
+
 export type TrackbarRefs = {
   trackRef: RefObject<HTMLDivElement | null>;
   pillRef: RefObject<HTMLDivElement | null>;
   leftHandleRef: RefObject<HTMLDivElement | null>;
   rightHandleRef: RefObject<HTMLDivElement | null>;
   playheadRef: RefObject<HTMLDivElement | null>;
+  startLabelRef: RefObject<HTMLDivElement | null>;
+  endLabelRef: RefObject<HTMLDivElement | null>;
 };
 
 export const useAnimateTrackbar = (
@@ -15,20 +22,32 @@ export const useAnimateTrackbar = (
   metadata: RefObject<WaveformMetadata>,
   positionMS: RefObject<number> | undefined,
   sampleRate: number,
-  applyCaretVisibility: (startPct: number, endPct: number) => void,
-  applyPlayheadCaretVisibility: (pct: number) => void,
 ) => {
-  const { trackRef, pillRef, leftHandleRef, rightHandleRef, playheadRef } =
-    refs;
+  const {
+    trackRef,
+    pillRef,
+    leftHandleRef,
+    rightHandleRef,
+    playheadRef,
+    startLabelRef,
+    endLabelRef,
+  } = refs;
 
   useEffect(() => {
     let rafId: number | null = null;
+    let lastViewportStart = NaN;
+    let lastViewportEnd = NaN;
+    let lastViewportChangeAt = -Infinity;
 
-    const applyHandle = (el: HTMLDivElement | null, pct: number) => {
+    const applyOverflowing = (
+      el: HTMLDivElement | null,
+      px: number,
+      width: number,
+    ) => {
       if (!el) return;
-      const inView = pct >= 0 && pct <= 100;
-      el.style.display = inView ? "" : "none";
-      el.style.left = `${pct}%`;
+      el.style.display =
+        px < -EDGE_BUFFER_PX || px > width + EDGE_BUFFER_PX ? "none" : "";
+      el.style.left = `${px}px`;
     };
 
     const render = () => {
@@ -37,27 +56,50 @@ export const useAnimateTrackbar = (
         const width = track.clientWidth;
         const { viewport, selection } = metadata.current;
         const rangeLen = viewport.end - viewport.start;
-        const startPct = ((selection.start - viewport.start) / rangeLen) * 100;
-        const endPct = ((selection.end - viewport.start) / rangeLen) * 100;
-        const clampedStart = Math.max(0, Math.min(100, startPct));
-        const clampedEnd = Math.max(0, Math.min(100, endPct));
+        const startPx = ((selection.start - viewport.start) / rangeLen) * width;
+        const endPx = ((selection.end - viewport.start) / rangeLen) * width;
 
         if (pillRef.current) {
-          pillRef.current.style.left = `${clampedStart}%`;
-          pillRef.current.style.width = `${Math.max(0, clampedEnd - clampedStart)}%`;
+          // bound the overflow so extreme zooms don't create huge paint areas
+          const pillStart = Math.max(-EDGE_BUFFER_PX * 2, startPx);
+          const pillEnd = Math.min(width + EDGE_BUFFER_PX * 2, endPx);
+          pillRef.current.style.left = `${pillStart}px`;
+          pillRef.current.style.width = `${Math.max(0, pillEnd - pillStart)}px`;
         }
-        applyHandle(leftHandleRef.current, startPct);
-        applyHandle(rightHandleRef.current, endPct);
-        applyCaretVisibility(startPct, endPct);
+        applyOverflowing(leftHandleRef.current, startPx, width);
+        applyOverflowing(rightHandleRef.current, endPx, width);
 
         if (playheadRef.current && positionMS) {
           const relativePositionMS =
             positionMS.current - computeMS(sampleRate, viewport.start);
           const relativeDurationMS = computeMS(sampleRate, rangeLen);
-          const playheadFraction = relativePositionMS / relativeDurationMS;
-          playheadRef.current.style.left = `${width * playheadFraction}px`;
-          applyPlayheadCaretVisibility(playheadFraction * 100);
+          applyOverflowing(
+            playheadRef.current,
+            width * (relativePositionMS / relativeDurationMS),
+            width,
+          );
         }
+
+        // transient viewport-range labels while zooming/panning
+        const now = performance.now();
+        if (
+          viewport.start !== lastViewportStart ||
+          viewport.end !== lastViewportEnd
+        ) {
+          if (!Number.isNaN(lastViewportStart)) lastViewportChangeAt = now;
+          lastViewportStart = viewport.start;
+          lastViewportEnd = viewport.end;
+          if (startLabelRef.current)
+            startLabelRef.current.textContent = `${(viewport.start / sampleRate).toFixed(1)}s`;
+          if (endLabelRef.current)
+            endLabelRef.current.textContent = `${(viewport.end / sampleRate).toFixed(1)}s`;
+        }
+        const labelOpacity =
+          now - lastViewportChangeAt < LABEL_HIDE_DELAY_MS ? "1" : "0";
+        if (startLabelRef.current)
+          startLabelRef.current.style.opacity = labelOpacity;
+        if (endLabelRef.current)
+          endLabelRef.current.style.opacity = labelOpacity;
       }
       rafId = requestAnimationFrame(render);
     };
@@ -71,10 +113,10 @@ export const useAnimateTrackbar = (
     leftHandleRef,
     rightHandleRef,
     playheadRef,
+    startLabelRef,
+    endLabelRef,
     metadata,
     positionMS,
     sampleRate,
-    applyCaretVisibility,
-    applyPlayheadCaretVisibility,
   ]);
 };

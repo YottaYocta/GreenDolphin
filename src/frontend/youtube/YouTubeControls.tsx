@@ -97,11 +97,35 @@ export function YouTubeControls({ disabled }: { disabled?: boolean }) {
   ]);
 
   return (
-    <div className="grid grid-cols-3 max-md:grid-cols-1 gap-4 w-full h-min rounded-xl max-md:flex-1">
+    <div className="grid grid-cols-2 gap-4 w-full h-min rounded-xl max-md:flex-1">
+      <button
+        onClick={rewindFiveSeconds}
+        disabled={disabled}
+        className="btn-surface rounded-xl md:p-6 p-5 h-full min-h-0 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+      >
+        <SkipBackIcon
+          size={32}
+          weight="fill"
+          color="var(--color-icon)"
+          style={{ opacity: 0.67, flexShrink: 0 }}
+        />
+      </button>
+      <button
+        onClick={fastForwardFiveSeconds}
+        disabled={disabled}
+        className="btn-surface rounded-xl md:p-6 p-5 h-full min-h-0 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+      >
+        <SkipForwardIcon
+          size={32}
+          weight="fill"
+          color="var(--color-icon)"
+          style={{ opacity: 0.67, flexShrink: 0 }}
+        />
+      </button>
       <button
         onClick={togglePlay}
         disabled={disabled}
-        className={`btn-surface rounded-xl md:p-10 p-5 h-full min-h-0 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed ${
+        className={`col-span-2 btn-surface rounded-xl md:p-8 p-5 h-full min-h-0 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed ${
           playState === "waiting"
             ? "bg-waiting hover:bg-waiting-hover active:bg-waiting-active [box-shadow:var(--shadow-btn-colored)]"
             : playState === "playing"
@@ -131,30 +155,6 @@ export function YouTubeControls({ disabled }: { disabled?: boolean }) {
             style={{ flexShrink: 0 }}
           />
         )}
-      </button>
-      <button
-        onClick={rewindFiveSeconds}
-        disabled={disabled}
-        className="btn-surface rounded-xl md:p-10 p-5 h-full min-h-0 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-      >
-        <SkipBackIcon
-          size={32}
-          weight="fill"
-          color="var(--color-icon)"
-          style={{ opacity: 0.67, flexShrink: 0 }}
-        />
-      </button>
-      <button
-        onClick={fastForwardFiveSeconds}
-        disabled={disabled}
-        className="btn-surface rounded-xl md:p-10 p-5 h-full min-h-0 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-      >
-        <SkipForwardIcon
-          size={32}
-          weight="fill"
-          color="var(--color-icon)"
-          style={{ opacity: 0.67, flexShrink: 0 }}
-        />
       </button>
     </div>
   );
