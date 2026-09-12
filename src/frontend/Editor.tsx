@@ -86,21 +86,21 @@ export const Editor = () => {
           <div className="flex flex-col rounded-xl overflow-x-hidden overflow-y-clip [box-shadow:var(--shadow-panel)] bg-white border border-border shrink-0">
             <PianoRoll />
           </div>
-          <div className="flex flex-col rounded-xl overflow-x-hidden overflow-y-clip [box-shadow:var(--shadow-panel)] bg-white border border-border flex-1 min-h-0 md:min-h-72 max-md:grow">
-            <Waveform
-              waveformData={data}
-              handlePosition={handlePosition}
-              handleRangeChange={handleRangeChange}
-              handleSelection={(selection) => {
-                setAudioSettings({ loop: selection });
-                capture("loop_region_set");
-              }}
-              initialViewport={initialViewport}
-              initialSelection={initialSelection}
-              positionMS={playbackPosition}
-            ></Waveform>
-
-            <PlaybackSettings />
+          <div className="relative flex flex-col rounded-xl overflow-x-hidden overflow-y-clip [box-shadow:var(--shadow-panel)] bg-white border border-border flex-1 min-h-0 md:min-h-72 max-md:grow">
+            <PlaybackSettings>
+              <Waveform
+                waveformData={data}
+                handlePosition={handlePosition}
+                handleRangeChange={handleRangeChange}
+                handleSelection={(selection) => {
+                  setAudioSettings({ loop: selection });
+                  capture("loop_region_set");
+                }}
+                initialViewport={initialViewport}
+                initialSelection={initialSelection}
+                positionMS={playbackPosition}
+              ></Waveform>
+            </PlaybackSettings>
           </div>
         </div>
 

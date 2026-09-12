@@ -5,8 +5,10 @@ import { Editor } from "./Editor";
 import { PlaybackProvider } from "./playback/PlaybackProvider";
 import { AudioStore } from "./AudioStore";
 import { loadSession } from "./lib/useSessionPersistence";
+import { loadLoopPrefs } from "./lib/loopPrefs";
 import { SessionRestorer } from "./SessionRestorer";
 import { DevDrawer } from "./components/DevDrawer";
+import { YouTubeEditor } from "./youtube/YouTubeEditor";
 
 function AppView() {
   const { audio } = useContext(AudioStore);
@@ -14,8 +16,12 @@ function AppView() {
   if (!audio) return null;
 
   const session = loadSession();
-  const initialSettings =
+  const sessionSettings =
     session?.filename === audio.filename ? session.audioSettings : undefined;
+  const initialSettings = {
+    ...sessionSettings,
+    loopOptions: loadLoopPrefs().loopOptions ?? sessionSettings?.loopOptions,
+  };
 
   return (
     <div className="w-screen h-screen max-h-full flex flex-col items-center justify-center">
@@ -31,7 +37,17 @@ function AppView() {
 }
 
 export default function App() {
-  const { isLoading, audio } = useContext(AudioStore);
+  const { isLoading, audio, video } = useContext(AudioStore);
+
+  if (video)
+    return (
+      <>
+        <div className="w-screen h-screen max-h-full flex flex-col items-center justify-center">
+          <YouTubeEditor />
+        </div>
+        <DevDrawer />
+      </>
+    );
 
   if (isLoading) {
     return (

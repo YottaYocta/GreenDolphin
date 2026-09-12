@@ -1,42 +1,68 @@
-import { useContext, useRef } from "react";
+import { useContext, useRef, useState } from "react";
 import { Menu } from "@base-ui/react/menu";
 import {
+  CaretRightIcon,
   MusicNotesPlusIcon,
   MusicNoteIcon,
-  CheckIcon,
+  YoutubeLogoIcon,
 } from "@phosphor-icons/react";
 import { AudioStore } from "../../AudioStore";
 import { RecordingsStore } from "../../RecordingsStore";
 import { useDecodeFile } from "../../lib/useDecodeFile";
 import { noteColor } from "../../lib/util";
 import { capture } from "../../lib/posthog";
+import {
+  isYouTubeFile,
+  readYouTubeFile,
+  stripYouTubeExt,
+} from "../../lib/youtubeFile";
+import { useAddYouTubeVideo } from "../../lib/useAddYouTube";
+import { NewRecordingDialog } from "../NewRecordingDialog";
 
-const headerBtn = "btn-surface rounded-lg gap-2 px-5 py-3.25";
+const headerBtn = "btn-surface rounded-lg gap-2 py-3.25";
 
 export function RecordingsMenu() {
   const decodeFile = useDecodeFile();
   const { cachedFiles, cacheFile } = useContext(RecordingsStore);
-  const { audio } = useContext(AudioStore);
-  const filename = audio?.filename ?? "";
+  const { audio, video, setVideo } = useContext(AudioStore);
+  const filename = audio?.filename ?? video?.filename ?? "";
   const uploadInputRef = useRef<HTMLInputElement>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const handleAddYouTube = useAddYouTubeVideo();
+  const otherFiles = cachedFiles.filter((file) => file.name !== filename);
+
+  const openFile = async (file: File) => {
+    if (isYouTubeFile(file)) {
+      const { videoId } = await readYouTubeFile(file);
+      setVideo({ videoId, filename: file.name });
+      capture("recording_switched", { filename: file.name, source: "youtube" });
+      return;
+    }
+    await decodeFile(file);
+    capture("recording_switched", { filename: file.name });
+  };
 
   return (
-    <div className="min-w-0 w-full">
+    <div className="shrink-0">
       <Menu.Root>
         <Menu.Trigger
-          className={`${headerBtn} w-full h-12 cursor-pointer min-w-0 rounded-r-none`}
+          aria-label="Switch recording"
+          className={`${headerBtn} group w-12 h-12 cursor-pointer rounded-r-none`}
         >
-          <span className="font-inria text-black text-base/5 truncate min-w-0">
-            {filename}
-          </span>
+          <CaretRightIcon
+            size={16}
+            weight="bold"
+            color="var(--color-icon)"
+            className="transition-transform group-data-popup-open:rotate-90"
+            style={{ opacity: 0.5, flexShrink: 0 }}
+          />
         </Menu.Trigger>
         <Menu.Portal>
           <Menu.Positioner side="bottom" align="start" sideOffset={8}>
             <Menu.Popup className="z-50 w-80 rounded-xl bg-white border border-border [box-shadow:var(--shadow-menu)] overflow-hidden flex flex-col outline-none">
               <Menu.Item
                 className="shrink-0 flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-neutral-50 active:bg-neutral-100 border-b border-border"
-                closeOnClick={false}
-                onClick={() => uploadInputRef.current?.click()}
+                onClick={() => setDialogOpen(true)}
               >
                 <MusicNotesPlusIcon
                   size={18}
@@ -44,51 +70,54 @@ export function RecordingsMenu() {
                   style={{ opacity: 0.5, flexShrink: 0 }}
                 />
                 <span className="font-inria text-black text-base/5">
-                  Upload a Recording
+                  New Recording
                 </span>
               </Menu.Item>
               <div className="overflow-y-auto max-h-72 flex flex-col">
-                {cachedFiles.length === 0 ? (
+                {otherFiles.length === 0 ? (
                   <div className="px-4 py-4 font-inria text-black/50 text-sm text-center">
-                    No recordings yet
+                    No other recordings
                   </div>
                 ) : (
-                  cachedFiles.map((file) => (
-                    <Menu.Item
-                      key={file.name}
-                      className="flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-neutral-50 active:bg-neutral-100"
-                      onClick={async () => {
-                        await decodeFile(file);
-                        capture("recording_switched", { filename: file.name });
-                      }}
-                    >
-                      <MusicNoteIcon
-                        size={18}
-                        weight="fill"
-                        color={noteColor(file.name)}
-                        style={{ flexShrink: 0 }}
-                      />
-                      <span
-                        className={`flex-1 min-w-0 font-inria text-base/5 truncate ${file.name === filename ? "font-bold text-black" : "text-black"}`}
+                  otherFiles.map((file) => (
+                      <Menu.Item
+                        key={file.name}
+                        className="flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-neutral-50 active:bg-neutral-100"
+                        onClick={() => openFile(file).catch(console.error)}
                       >
-                        {file.name}
-                      </span>
-                      {file.name === filename && (
-                        <CheckIcon
-                          size={16}
-                          weight="bold"
-                          color="var(--color-play)"
-                          style={{ flexShrink: 0 }}
-                        />
-                      )}
-                    </Menu.Item>
-                  ))
+                        {isYouTubeFile(file) ? (
+                          <YoutubeLogoIcon
+                            size={18}
+                            weight="fill"
+                            color="#FF0000"
+                            style={{ flexShrink: 0, opacity: 0.8 }}
+                          />
+                        ) : (
+                          <MusicNoteIcon
+                            size={18}
+                            weight="fill"
+                            color={noteColor(file.name)}
+                            style={{ flexShrink: 0 }}
+                          />
+                        )}
+                        <span className="flex-1 min-w-0 font-inria text-base/5 truncate text-black">
+                          {stripYouTubeExt(file.name)}
+                        </span>
+                      </Menu.Item>
+                    ))
                 )}
               </div>
             </Menu.Popup>
           </Menu.Positioner>
         </Menu.Portal>
       </Menu.Root>
+
+      <NewRecordingDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onUpload={() => uploadInputRef.current?.click()}
+        onAddYouTube={handleAddYouTube}
+      />
 
       <input
         ref={uploadInputRef}

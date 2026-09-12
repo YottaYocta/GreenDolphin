@@ -6,13 +6,17 @@ export function AppDialog({
   trigger,
   title,
   children,
+  open,
+  onOpenChange,
 }: {
-  trigger: ReactNode;
+  trigger?: ReactNode;
   title: string;
   children: ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
   return (
-    <Dialog.Root>
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
       {trigger}
       <Dialog.Portal>
         <Dialog.Backdrop className="fixed inset-0 bg-black/20 z-40" />

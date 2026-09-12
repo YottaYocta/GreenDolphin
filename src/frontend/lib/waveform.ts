@@ -1,4 +1,3 @@
-import { formatSeconds } from "./util";
 import { getCachedChannels } from "./channelCache";
 
 export interface Section {
@@ -120,29 +119,7 @@ export const renderWaveform = (
 
     canvasCtx.fillStyle = primaryFill;
     canvasCtx.fillRect(startPos, 0, 1, canvas.height);
-    canvasCtx.fillStyle = "rgb(0 0 0)";
-    canvasCtx.fillText(
-      `${formatSeconds(
-        Math.trunc((selection.start / data.sampleRate) * 100) / 100,
-      )}`,
-      startPos + 5,
-      10,
-    );
-
-    canvasCtx.fillStyle = primaryFill;
     canvasCtx.fillRect(endPos, 0, 1, canvas.height);
-
-    if (endPos - startPos > 70) {
-      const endString = `${formatSeconds(
-        Math.trunc((selection.end / data.sampleRate) * 100) / 100,
-      )}`;
-      canvasCtx.fillStyle = "rgb(0 0 0)";
-      canvasCtx.fillText(
-        endString,
-        endPos - 5 - canvasCtx.measureText(endString).width,
-        10,
-      );
-    }
   }
 
   if (position !== undefined) {

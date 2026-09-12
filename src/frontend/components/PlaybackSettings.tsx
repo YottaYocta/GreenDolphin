@@ -1,12 +1,78 @@
 import { useContext, useEffect, useRef, useState, type FC } from "react";
-import { ArrowClockwiseIcon, SlidersIcon } from "@phosphor-icons/react";
+import { ArrowClockwiseIcon, SlidersIcon, XIcon } from "@phosphor-icons/react";
 import { PlaybackContext } from "../playback/PlaybackContext";
 import { useDrag } from "../lib/useDrag";
 import { Dialog } from "@base-ui/react/dialog";
 import { AppDialog } from "./AppDialog";
 import { capture } from "../lib/posthog";
 
-export function PlaybackSettings() {
+export function SettingsPanel({
+  sliders,
+  children,
+}: {
+  sliders: React.ReactNode;
+  children?: React.ReactNode;
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  const icon = (
+    <SlidersIcon
+      size={18}
+      weight="fill"
+      color="var(--color-icon)"
+      style={{ opacity: 0.54, flexShrink: 0 }}
+    />
+  );
+
+  return (
+    <>
+      {expanded && (
+        <div className="max-md:hidden flex justify-between h-min p-5 gap-16 border-b border-border shrink-0">
+          {sliders}
+        </div>
+      )}
+      <div className="relative flex-1 min-h-0 flex flex-col">
+        <AppDialog
+          title="Settings"
+          trigger={
+            <Dialog.Trigger
+              aria-label="Settings"
+              className="md:hidden absolute top-2 right-2 z-20 btn-surface size-9 rounded-lg cursor-pointer"
+            >
+              {icon}
+            </Dialog.Trigger>
+          }
+        >
+          <div className="flex flex-col gap-6 pb-4">{sliders}</div>
+        </AppDialog>
+        <button
+          onClick={() => setExpanded((e) => !e)}
+          aria-expanded={expanded}
+          aria-label={expanded ? "Close settings" : "Settings"}
+          className={`max-md:hidden absolute top-2 right-2 z-20 btn-surface size-9 rounded-lg cursor-pointer ${expanded ? "bg-surface-track" : ""}`}
+        >
+          {expanded ? (
+            <XIcon
+              size={16}
+              weight="bold"
+              color="var(--color-icon)"
+              style={{ opacity: 0.4, flexShrink: 0 }}
+            />
+          ) : (
+            icon
+          )}
+        </button>
+        {children}
+      </div>
+    </>
+  );
+}
+
+export function PlaybackSettings({
+  children,
+}: {
+  children?: React.ReactNode;
+}) {
   const playback = useContext(PlaybackContext);
   if (!playback)
     throw new Error("PlaybackSettings must be used within a PlaybackProvider");
@@ -77,43 +143,17 @@ export function PlaybackSettings() {
     </>
   );
 
-  return (
-    <div className="flex flex-col h-min">
-      <AppDialog
-        title="Settings"
-        trigger={
-          <Dialog.Trigger className="btn-surface rounded-none border-0 border-t gap-3 w-full h-12 shrink-0 cursor-pointer max-md:flex hidden">
-            <SlidersIcon
-              size={24}
-              weight="fill"
-              color="var(--color-icon)"
-              style={{ opacity: 0.54, flexShrink: 0 }}
-            />
-            <span className="font-inria text-black/50 text-base/5">
-              Settings
-            </span>
-          </Dialog.Trigger>
-        }
-      >
-        <div className="flex flex-col gap-6 pb-4">{sliders}</div>
-      </AppDialog>
-      <div className="flex justify-between h-min p-5 gap-16 max-md:hidden">
-        {sliders}
-      </div>
-    </div>
-  );
+  return <SettingsPanel sliders={sliders}>{children}</SettingsPanel>;
 }
 
 const SettingsRow: FC<{
   label: string;
-  labelAdornment?: React.ReactNode;
   center: React.ReactNode;
   right: React.ReactNode;
-}> = ({ label, labelAdornment, center, right }) => (
+}> = ({ label, center, right }) => (
   <div className="flex items-center gap-4 self-stretch max-md:flex-col max-md:items-start max-md:gap-1.5 w-full">
     <div className="shrink-0 font-inria text-black/60 text-base/5 whitespace-nowrap flex items-center gap-1.5 justify-end max-md:justify-start max-md:text-sm max-md:text-black/50">
       {label}
-      {labelAdornment}
     </div>
     <div className="flex items-center gap-4 self-stretch flex-1">
       <div className="flex-1">{center}</div>
@@ -127,7 +167,10 @@ export const NumericInput: FC<{
   onCommit: (v: number) => void;
   signed?: boolean;
   unit?: React.ReactNode;
-}> = ({ value, onCommit, signed, unit }) => {
+  onReset?: () => void;
+  resetVisible?: boolean;
+  resetLabel?: string;
+}> = ({ value, onCommit, signed, unit, onReset, resetVisible, resetLabel }) => {
   const commit = (el: HTMLInputElement) => {
     const n = parseFloat(el.value.replace(/^\+/, ""));
     if (!isNaN(n) && (signed || n >= 0)) {
@@ -138,29 +181,50 @@ export const NumericInput: FC<{
   };
 
   return (
-    <div className="flex items-center gap-1 px-1 py-0.5 rounded-sm bg-surface-input cursor-text w-14 overflow-hidden">
-      <input
-        key={value}
-        defaultValue={value}
-        className="font-space-mono text-black/60 text-base/5 tabular-nums bg-transparent outline-none w-full min-w-0 text-right"
-        onFocus={(e) => e.currentTarget.select()}
-        onBlur={(e) => commit(e.currentTarget)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") e.currentTarget.blur();
-          if (e.key === "Escape") {
-            e.currentTarget.value = value;
-            e.currentTarget.blur();
-          }
-        }}
-      />
-      {unit && (
-        <div className="text-sm text-black/50 opacity-30 shrink-0">{unit}</div>
-      )}
+    <div className={`shrink-0 flex justify-start ${onReset ? "w-19" : "w-14"}`}>
+      <div
+        className={`flex items-center gap-1 px-1 py-0.5 rounded-sm bg-surface-input cursor-text overflow-hidden ${
+          onReset ? "" : "w-full"
+        }`}
+      >
+        <input
+          key={value}
+          defaultValue={value}
+          className={`font-space-mono text-black/60 text-base/5 tabular-nums bg-transparent outline-none min-w-0 text-right ${
+            onReset ? "w-8" : "w-full"
+          }`}
+          onFocus={(e) => e.currentTarget.select()}
+          onBlur={(e) => commit(e.currentTarget)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") e.currentTarget.blur();
+            if (e.key === "Escape") {
+              e.currentTarget.value = value;
+              e.currentTarget.blur();
+            }
+          }}
+        />
+        {unit && (
+          <div className="text-sm text-black/50 opacity-30 shrink-0">
+            {unit}
+          </div>
+        )}
+        {onReset && resetVisible && (
+          <button
+            type="button"
+            aria-label={resetLabel ?? "Reset"}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={onReset}
+            className="flex items-center justify-center shrink-0 size-4 rounded-xs text-black/40 hover:text-black/70 hover:bg-black/5 cursor-pointer"
+          >
+            <ArrowClockwiseIcon size={13} weight="fill" />
+          </button>
+        )}
+      </div>
     </div>
   );
 };
 
-const AudioSlider: FC<{
+export const AudioSlider: FC<{
   label: string;
   value: number;
   defaultValue: number;
@@ -170,7 +234,7 @@ const AudioSlider: FC<{
   onChange: (v: number) => void;
   formatValue: (v: number) => string;
   unit: React.ReactNode;
-  onCommit?: (v: number) => void;
+  onCommit: (v: number) => void;
   signed?: boolean;
 }> = ({
   label,
@@ -204,18 +268,6 @@ const AudioSlider: FC<{
   return (
     <SettingsRow
       label={label}
-      labelAdornment={
-        value !== defaultValue ? (
-          <button
-            type="button"
-            aria-label={`Reset ${label}`}
-            onClick={() => onChange(defaultValue)}
-            className="flex items-center justify-center cursor-pointer text-black/40 hover:text-black/70 hover:bg-black/5 rounded-sm p-0.5 transition-colors"
-          >
-            <ArrowClockwiseIcon size={14} weight="fill" />
-          </button>
-        ) : null
-      }
       center={
         <div
           ref={trackRef}
@@ -238,23 +290,15 @@ const AudioSlider: FC<{
         </div>
       }
       right={
-        onCommit ? (
-          <NumericInput
-            value={formatValue(value)}
-            onCommit={onCommit}
-            signed={signed}
-            unit={unit}
-          />
-        ) : (
-          <div className="flex items-center gap-1 px-1 py-0.5 rounded-sm bg-surface-input w-14 overflow-hidden">
-            <span className="font-space-mono text-black text-base/5 tabular-nums w-full text-right">
-              {formatValue(value)}
-            </span>
-            <div className="text-sm text-black/50 opacity-30 shrink-0">
-              {unit}
-            </div>
-          </div>
-        )
+        <NumericInput
+          value={formatValue(value)}
+          onCommit={onCommit}
+          signed={signed}
+          unit={unit}
+          onReset={() => onChange(defaultValue)}
+          resetVisible={value !== defaultValue}
+          resetLabel={`Reset ${label}`}
+        />
       }
     />
   );

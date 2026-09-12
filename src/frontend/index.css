@@ -81,35 +81,6 @@ html, body {
   font-family: 'Space Mono', monospace;
 }
 
-@utility mode-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 1;
-  border-radius: var(--radius-sm);
-  padding: var(--spacing-0_5) var(--spacing-2);
-  font-family: 'Inria Sans', system-ui, sans-serif;
-  font-size: var(--text-sm);
-  line-height: var(--leading-4_5);
-  cursor: pointer;
-  border: 1px solid var(--color-border);
-  color: rgb(0 0 0 / 0.5);
-  background-color: var(--color-surface);
-  box-shadow: var(--shadow-inset-dim), var(--shadow-drop);
-  &:hover {
-    background-color: white;
-  }
-  &:active{
-    background-color: var(--color-surface-pressed);
-  }
-
-  &.active {
-    color: black;
-    background-color: var(--color-surface-active);
-    box-shadow: var(--shadow-btn);
-    
-  }
-}
 
 @layer utilities {
   .positive-button {
