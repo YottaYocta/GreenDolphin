@@ -1,5 +1,5 @@
 import { useContext, useEffect, useRef, useState, type FC } from "react";
-import { ArrowClockwiseIcon, SlidersIcon } from "@phosphor-icons/react";
+import { ArrowClockwiseIcon, SlidersIcon, XIcon } from "@phosphor-icons/react";
 import { PlaybackContext } from "../playback/PlaybackContext";
 import { useDrag } from "../lib/useDrag";
 import { Dialog } from "@base-ui/react/dialog";
@@ -48,10 +48,19 @@ export function SettingsPanel({
         <button
           onClick={() => setExpanded((e) => !e)}
           aria-expanded={expanded}
-          aria-label="Settings"
+          aria-label={expanded ? "Close settings" : "Settings"}
           className={`max-md:hidden absolute top-2 right-2 z-20 btn-surface size-9 rounded-lg cursor-pointer ${expanded ? "bg-surface-track" : ""}`}
         >
-          {icon}
+          {expanded ? (
+            <XIcon
+              size={16}
+              weight="bold"
+              color="var(--color-icon)"
+              style={{ opacity: 0.4, flexShrink: 0 }}
+            />
+          ) : (
+            icon
+          )}
         </button>
         {children}
       </div>
