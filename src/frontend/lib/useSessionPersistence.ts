@@ -7,7 +7,6 @@ interface SessionData {
   filename: string;
   audioSettings: Partial<PlaybackSettings>;
   viewport?: Section;
-  delayMode?: "fixed" | "relative";
 }
 
 export function loadSession(): SessionData | null {

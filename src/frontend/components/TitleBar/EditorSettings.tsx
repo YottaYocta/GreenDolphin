@@ -7,7 +7,7 @@ import {
   PlaybackContext,
   effectiveLoopDelay,
 } from "../../playback/PlaybackContext";
-import { loadSession, saveSession } from "../../lib/useSessionPersistence";
+import { loadLoopPrefs, saveLoopPrefs } from "../../lib/loopPrefs";
 import { capture } from "../../lib/posthog";
 
 function ModeToggle<T extends string>({
@@ -70,48 +70,47 @@ function LoopSettings() {
   const currentDelay = effectiveLoopDelay(loopOptions);
 
   const [delayMode, setDelayMode] = useState<"fixed" | "relative">(
-    () => loadSession()?.delayMode ?? "fixed",
+    () => loadLoopPrefs().delayMode ?? "fixed",
   );
-  const [delayValue, setDelayValue] = useState(() => {
-    const session = loadSession();
-    const mode = session?.delayMode ?? "fixed";
-    if (session && mode === "relative") {
-      return loopLength > 0 ? (currentDelay / loopLength) * 100 : 0;
-    }
-    return currentDelay || 1;
-  });
+  const [delayValue, setDelayValue] = useState(
+    () => loadLoopPrefs().delayValue ?? (currentDelay || 1),
+  );
 
   const resolvedDelay =
     delayMode === "fixed" ? delayValue : (delayValue / 100) * loopLength;
 
   useEffect(() => {
     if (isManual) return;
-    setAudioSettings({
-      loopOptions: { type: "automatic", loopDelay: resolvedDelay },
-    });
+    const loopOptions = {
+      type: "automatic",
+      loopDelay: resolvedDelay,
+    } as const;
+    setAudioSettings({ loopOptions });
+    saveLoopPrefs({ loopOptions });
   }, [isManual, resolvedDelay, setAudioSettings]);
 
   const handleLoopModeChange = (next: "manual" | "automatic") => {
     if (next === loopOptions.type) return;
-    if (next === "manual") {
-      setAudioSettings({ loopOptions: { type: "manual" } });
-    } else {
-      setAudioSettings({
-        loopOptions: { type: "automatic", loopDelay: resolvedDelay },
-      });
-    }
+    const nextOptions =
+      next === "manual"
+        ? ({ type: "manual" } as const)
+        : ({ type: "automatic", loopDelay: resolvedDelay } as const);
+    setAudioSettings({ loopOptions: nextOptions });
+    saveLoopPrefs({ loopOptions: nextOptions });
     capture("loop_mode_changed", { loop_mode: next });
   };
 
   const handleDelayModeChange = (next: "fixed" | "relative") => {
     if (next === delayMode) return;
-    if (next === "fixed") {
-      setDelayValue((delayValue / 100) * loopLength);
-    } else {
-      setDelayValue(loopLength > 0 ? (delayValue / loopLength) * 100 : 0);
-    }
+    const converted =
+      next === "fixed"
+        ? (delayValue / 100) * loopLength
+        : loopLength > 0
+          ? (delayValue / loopLength) * 100
+          : 0;
+    setDelayValue(converted);
     setDelayMode(next);
-    saveSession({ delayMode: next });
+    saveLoopPrefs({ delayMode: next, delayValue: converted });
     capture("loop_delay_changed", { delay_mode: next });
   };
 
@@ -148,7 +147,7 @@ function LoopSettings() {
         </div>
       </div>
       {!isManual && (
-        <div className="flex flex-col gap-1.5 self-stretch border-l border-border pl-4 ml-2">
+        <div className="flex flex-col gap-1.5 self-stretch">
           <div className="font-inria text-sm text-black/50">Loop Delay</div>
           <div className="flex items-center gap-4 self-stretch">
             <ModeToggle
@@ -164,6 +163,7 @@ function LoopSettings() {
                 value={displayValue}
                 onCommit={(v) => {
                   setDelayValue(v);
+                  saveLoopPrefs({ delayValue: v });
                   capture("loop_delay_changed", {
                     delay_value: v,
                     delay_mode: delayMode,

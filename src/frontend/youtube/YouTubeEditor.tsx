@@ -5,6 +5,7 @@ import { AudioStore } from "../AudioStore";
 import { PlaybackContext } from "../playback/PlaybackContext";
 import { TitleBar } from "../components/TitleBar/TitleBar";
 import { loadSession, saveSession } from "../lib/useSessionPersistence";
+import { loadLoopPrefs } from "../lib/loopPrefs";
 import { capture } from "../lib/posthog";
 import { useYouTubePlayer } from "./useYouTubePlayer";
 import { YouTubePlaybackProvider } from "./YouTubePlaybackProvider";
@@ -23,9 +24,12 @@ export const YouTubeEditor = () => {
 
   const initialSettings = useMemo(() => {
     const session = loadSession();
-    return session?.filename === video.filename
-      ? session.audioSettings
-      : undefined;
+    const sessionSettings =
+      session?.filename === video.filename ? session.audioSettings : undefined;
+    return {
+      ...sessionSettings,
+      loopOptions: loadLoopPrefs().loopOptions ?? sessionSettings?.loopOptions,
+    };
   }, [video.filename]);
 
   return (
