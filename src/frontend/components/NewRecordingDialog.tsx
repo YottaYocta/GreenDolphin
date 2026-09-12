@@ -84,7 +84,7 @@ export function NewRecordingDialog({
           )}
           <button
             onClick={handleAdd}
-            disabled={isAdding || url.trim() === ""}
+            disabled={isAdding}
             className="btn-surface rounded-xl gap-2 h-12 w-full cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {isAdding ? (
