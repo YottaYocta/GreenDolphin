@@ -51,7 +51,9 @@ export const YouTubeScrubber = ({
         handleSelection(selection);
       }}
       handlePosition={handlePosition}
-      handleRange={() => {}}
+      handleRange={(viewport) => {
+        metadataRef.current = { ...metadataRef.current, viewport };
+      }}
     />
   );
 };

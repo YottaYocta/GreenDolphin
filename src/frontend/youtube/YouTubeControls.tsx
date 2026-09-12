@@ -97,7 +97,7 @@ export function YouTubeControls({ disabled }: { disabled?: boolean }) {
   ]);
 
   return (
-    <div className="grid max-md:grid-cols-3 grid-cols-3 gap-4 w-full h-min rounded-xl max-md:flex-1">
+    <div className="grid grid-cols-3 max-md:grid-cols-1 gap-4 w-full h-min rounded-xl max-md:flex-1">
       <button
         onClick={togglePlay}
         disabled={disabled}
