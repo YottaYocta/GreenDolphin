@@ -13,6 +13,7 @@ export type TrackbarRefs = {
   leftHandleRef: RefObject<HTMLDivElement | null>;
   rightHandleRef: RefObject<HTMLDivElement | null>;
   playheadRef: RefObject<HTMLDivElement | null>;
+  playheadTrackRef: RefObject<HTMLDivElement | null>;
   startLabelRef: RefObject<HTMLDivElement | null>;
   endLabelRef: RefObject<HTMLDivElement | null>;
 };
@@ -22,6 +23,7 @@ export const useAnimateTrackbar = (
   metadata: RefObject<WaveformMetadata>,
   positionMS: RefObject<number> | undefined,
   sampleRate: number,
+  totalSamples: number,
 ) => {
   const {
     trackRef,
@@ -29,6 +31,7 @@ export const useAnimateTrackbar = (
     leftHandleRef,
     rightHandleRef,
     playheadRef,
+    playheadTrackRef,
     startLabelRef,
     endLabelRef,
   } = refs;
@@ -59,13 +62,26 @@ export const useAnimateTrackbar = (
         const startPx = ((selection.start - viewport.start) / rangeLen) * width;
         const endPx = ((selection.end - viewport.start) / rangeLen) * width;
 
-        if (pillRef.current) {
-          // bound the overflow so extreme zooms don't create huge paint areas
-          const pillStart = Math.max(-EDGE_BUFFER_PX * 2, startPx);
-          const pillEnd = Math.min(width + EDGE_BUFFER_PX * 2, endPx);
-          pillRef.current.style.left = `${pillStart}px`;
-          pillRef.current.style.width = `${Math.max(0, pillEnd - pillStart)}px`;
-        }
+        // bound the overflow so extreme zooms don't create huge paint areas
+        const applySpan = (
+          el: HTMLDivElement | null,
+          fromPx: number,
+          toPx: number,
+        ) => {
+          if (!el) return;
+          const from = Math.max(-EDGE_BUFFER_PX * 2, fromPx);
+          const to = Math.min(width + EDGE_BUFFER_PX * 2, toPx);
+          el.style.left = `${from}px`;
+          el.style.width = `${Math.max(0, to - from)}px`;
+        };
+
+        applySpan(pillRef.current, startPx, endPx);
+        // full-recording background bar under the playhead scales with zoom
+        applySpan(
+          playheadTrackRef.current,
+          ((0 - viewport.start) / rangeLen) * width,
+          ((totalSamples - viewport.start) / rangeLen) * width,
+        );
         applyOverflowing(leftHandleRef.current, startPx, width);
         applyOverflowing(rightHandleRef.current, endPx, width);
 
@@ -113,10 +129,12 @@ export const useAnimateTrackbar = (
     leftHandleRef,
     rightHandleRef,
     playheadRef,
+    playheadTrackRef,
     startLabelRef,
     endLabelRef,
     metadata,
     positionMS,
     sampleRate,
+    totalSamples,
   ]);
 };

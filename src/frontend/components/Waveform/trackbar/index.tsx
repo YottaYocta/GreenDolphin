@@ -44,6 +44,7 @@ export const Trackbar: FC<TrackbarProps> = ({
   const leftHandleRef = useRef<HTMLDivElement | null>(null);
   const rightHandleRef = useRef<HTMLDivElement | null>(null);
   const playheadRef = useRef<HTMLDivElement | null>(null);
+  const playheadTrackRef = useRef<HTMLDivElement | null>(null);
   const startLabelRef = useRef<HTMLDivElement | null>(null);
   const endLabelRef = useRef<HTMLDivElement | null>(null);
 
@@ -54,12 +55,14 @@ export const Trackbar: FC<TrackbarProps> = ({
       leftHandleRef,
       rightHandleRef,
       playheadRef,
+      playheadTrackRef,
       startLabelRef,
       endLabelRef,
     },
     metadata,
     positionMS,
     sampleRate,
+    totalSamples,
   );
 
   const handleDragProps = useLoopHandleDrag(
@@ -119,7 +122,10 @@ export const Trackbar: FC<TrackbarProps> = ({
         </div>
         {/* playhead row */}
         <div className="w-full h-7 relative">
-          <div className="absolute top-1/2 -translate-y-1/2 w-full h-5 rounded-sm bg-surface border border-neutral-100 pointer-events-none" />
+          <div
+            ref={playheadTrackRef}
+            className="absolute top-1/2 -translate-y-1/2 h-5 rounded-sm bg-surface border border-neutral-100 pointer-events-none"
+          />
           <div
             ref={playheadRef}
             data-trackbar-control
