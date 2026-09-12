@@ -160,7 +160,7 @@ export const NumericInput: FC<{
   );
 };
 
-const AudioSlider: FC<{
+export const AudioSlider: FC<{
   label: string;
   value: number;
   defaultValue: number;

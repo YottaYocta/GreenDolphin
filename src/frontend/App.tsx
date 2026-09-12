@@ -7,6 +7,7 @@ import { AudioStore } from "./AudioStore";
 import { loadSession } from "./lib/useSessionPersistence";
 import { SessionRestorer } from "./SessionRestorer";
 import { DevDrawer } from "./components/DevDrawer";
+import { YouTubeEditor } from "./youtube/YouTubeEditor";
 
 function AppView() {
   const { audio } = useContext(AudioStore);
@@ -31,7 +32,17 @@ function AppView() {
 }
 
 export default function App() {
-  const { isLoading, audio } = useContext(AudioStore);
+  const { isLoading, audio, video } = useContext(AudioStore);
+
+  if (video)
+    return (
+      <>
+        <div className="w-screen h-screen max-h-full flex flex-col items-center justify-center">
+          <YouTubeEditor />
+        </div>
+        <DevDrawer />
+      </>
+    );
 
   if (isLoading) {
     return (

@@ -4,12 +4,22 @@ import {
   TrashIcon,
   SpinnerIcon,
   MusicNotesPlusIcon,
+  YoutubeLogoIcon,
 } from "@phosphor-icons/react";
 import { useDecodeFile } from "./lib/useDecodeFile";
 import { NoteIcon } from "./components/NoteIcon";
+import { NewRecordingDialog } from "./components/NewRecordingDialog";
 import { RecordingsStore } from "./RecordingsStore";
+import { AudioStore } from "./AudioStore";
 import { relativeDate } from "./lib/util";
 import { capture, captureException } from "./lib/posthog";
+import {
+  displayName,
+  fetchYouTubeTitle,
+  isYouTubeFile,
+  makeYouTubeFile,
+  readYouTubeFile,
+} from "./lib/youtubeFile";
 
 function RecordingRow({
   file,
@@ -26,9 +36,20 @@ function RecordingRow({
 
   const info = (
     <div className="flex items-center gap-4 flex-1 min-w-0">
-      <NoteIcon filename={file.name} />
+      {isYouTubeFile(file) ? (
+        <div className="flex items-center justify-center shrink-0 aspect-square rounded-full w-14 bg-white shadow-(--shadow-drop) border border-border">
+          <YoutubeLogoIcon
+            size={32}
+            weight="fill"
+            color="#FF0000"
+            style={{ flexShrink: 0, opacity: 0.8 }}
+          />
+        </div>
+      ) : (
+        <NoteIcon filename={file.name} />
+      )}
       <div className="flex flex-col gap-1 min-w-0 overflow-hidden">
-        <p className="truncate max-w-full">{file.name}</p>
+        <p className="truncate max-w-full">{displayName(file)}</p>
         <p className="opacity-40 md:text-sm">
           {uploadedAt != null ? relativeDate(uploadedAt) : ""}
         </p>
@@ -87,11 +108,27 @@ export function Landing() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { cachedFiles, fileMeta, deleteFile, cacheFile } =
     useContext(RecordingsStore);
+  const { setVideo } = useContext(AudioStore);
   const [isUploading, setIsUploading] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const handlePlay = async (file: File) => {
+    if (isYouTubeFile(file)) {
+      const { videoId } = await readYouTubeFile(file);
+      setVideo({ videoId, filename: file.name });
+      capture("recording_played", { filename: file.name, source: "youtube" });
+      return;
+    }
     await decodeFile(file);
     capture("recording_played", { filename: file.name, file_size: file.size });
+  };
+
+  const handleAddYouTube = async (videoId: string, url: string) => {
+    const title = (await fetchYouTubeTitle(videoId)) ?? `YouTube ${videoId}`;
+    const file = makeYouTubeFile({ videoId, url, title });
+    await cacheFile(file);
+    setVideo({ videoId, filename: file.name });
+    capture("youtube_video_added", { video_id: videoId, title });
   };
 
   const handleUpload = async (file: File) => {
@@ -146,7 +183,7 @@ export function Landing() {
           <div className="md:hidden flex flex-col items-start self-stretch p-4 border-b border-b-border">
             <button
               disabled={isUploading}
-              onClick={triggerUpload}
+              onClick={() => setDialogOpen(true)}
               className="flex overflow-clip items-center gap-2 px-5.5  justify-center self-stretch rounded-2xl shadow-btn bg-surface border border-border disabled:opacity-60 disabled:cursor-not-allowed h-12"
             >
               {isUploading ? (
@@ -162,7 +199,7 @@ export function Landing() {
                 />
               )}
               <span className="opacity-40">
-                {isUploading ? "Processing…" : "Upload New File"}
+                {isUploading ? "Processing…" : "New Recording"}
               </span>
             </button>
           </div>
@@ -190,7 +227,7 @@ export function Landing() {
 
           <button
             disabled={isUploading}
-            onClick={triggerUpload}
+            onClick={() => setDialogOpen(true)}
             className="max-md:hidden flex overflow-clip items-center gap-2 px-5.5 min-h-18 justify-center self-stretch shadow-inset-dim bg-surface border-t border-border disabled:opacity-60 disabled:cursor-not-allowed hover:bg-surface-track transition-colors"
           >
             {isUploading ? (
@@ -206,7 +243,7 @@ export function Landing() {
               />
             )}
             <span className="opacity-40">
-              {isUploading ? "Processing…" : "Upload New File"}
+              {isUploading ? "Processing…" : "New Recording"}
             </span>
           </button>
         </section>
@@ -217,6 +254,12 @@ export function Landing() {
         aria-label="Upload audio file"
         className="hidden"
         onChange={handleFileChange}
+      />
+      <NewRecordingDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onUpload={triggerUpload}
+        onAddYouTube={handleAddYouTube}
       />
     </main>
   );
