@@ -43,6 +43,7 @@ export const Trackbar: FC<TrackbarProps> = ({
   const rightHandleRef = useRef<HTMLDivElement | null>(null);
   const playheadRef = useRef<HTMLDivElement | null>(null);
   const playheadTrackRef = useRef<HTMLDivElement | null>(null);
+  const playheadDragSampleRef = useRef<number | null>(null);
   const startLabelRef = useRef<HTMLDivElement | null>(null);
   const endLabelRef = useRef<HTMLDivElement | null>(null);
 
@@ -54,6 +55,7 @@ export const Trackbar: FC<TrackbarProps> = ({
       rightHandleRef,
       playheadRef,
       playheadTrackRef,
+      playheadDragSampleRef,
       startLabelRef,
       endLabelRef,
     },
@@ -82,6 +84,7 @@ export const Trackbar: FC<TrackbarProps> = ({
     metadata,
     totalSamples,
     handlePosition,
+    playheadDragSampleRef,
   );
 
   useViewportGestures(rootRef, metadata, totalSamples, handleRange);
@@ -101,7 +104,7 @@ export const Trackbar: FC<TrackbarProps> = ({
         <polygon
           points="0.75,0.75 13.25,0.75 13.25,12.2 7,19.1 0.75,12.2"
           fill="var(--color-surface)"
-          stroke="var(--color-border)"
+          stroke="#d4d4d4"
           strokeWidth="1.5"
           strokeLinejoin="round"
         />

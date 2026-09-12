@@ -12,18 +12,26 @@ export const usePlayheadDrag = (
   metadata: RefObject<WaveformMetadata>,
   totalSamples: number,
   handlePosition: (sample: number) => void,
+  dragSampleRef: RefObject<number | null>,
 ) =>
   dragHandlers((startClientX) => {
-    const moveTo = (clientX: number) => {
-      const track = trackRef.current;
-      if (!track) return;
-      handlePosition(
-        clampSample(
-          pointerToSample(clientX, track, metadata.current.viewport),
-          totalSamples,
-        ),
+    const track = trackRef.current;
+    if (!track) return;
+    const toSample = (clientX: number) =>
+      clampSample(
+        pointerToSample(clientX, track, metadata.current.viewport),
+        totalSamples,
       );
-    };
-    moveTo(startClientX);
-    beginDrag(moveTo);
+    let latest = toSample(startClientX);
+    dragSampleRef.current = latest;
+    beginDrag(
+      (clientX) => {
+        latest = toSample(clientX);
+        dragSampleRef.current = latest;
+      },
+      () => {
+        dragSampleRef.current = null;
+        handlePosition(latest);
+      },
+    );
   });

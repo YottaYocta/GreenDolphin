@@ -12,6 +12,7 @@ export type TrackbarRefs = {
   rightHandleRef: RefObject<HTMLDivElement | null>;
   playheadRef: RefObject<HTMLDivElement | null>;
   playheadTrackRef: RefObject<HTMLDivElement | null>;
+  playheadDragSampleRef: RefObject<number | null>;
   startLabelRef: RefObject<HTMLDivElement | null>;
   endLabelRef: RefObject<HTMLDivElement | null>;
 };
@@ -30,6 +31,7 @@ export const useAnimateTrackbar = (
     rightHandleRef,
     playheadRef,
     playheadTrackRef,
+    playheadDragSampleRef,
     startLabelRef,
     endLabelRef,
   } = refs;
@@ -82,14 +84,17 @@ export const useAnimateTrackbar = (
         applyOverflowing(rightHandleRef.current, endPx, width);
 
         if (playheadRef.current && positionMS) {
-          const relativePositionMS =
-            positionMS.current - computeMS(sampleRate, viewport.start);
-          const relativeDurationMS = computeMS(sampleRate, rangeLen);
-          applyOverflowing(
-            playheadRef.current,
-            width * (relativePositionMS / relativeDurationMS),
-            width,
-          );
+          const dragSample = playheadDragSampleRef.current;
+          let playheadPx: number;
+          if (dragSample !== null) {
+            playheadPx = ((dragSample - viewport.start) / rangeLen) * width;
+          } else {
+            const relativePositionMS =
+              positionMS.current - computeMS(sampleRate, viewport.start);
+            const relativeDurationMS = computeMS(sampleRate, rangeLen);
+            playheadPx = width * (relativePositionMS / relativeDurationMS);
+          }
+          applyOverflowing(playheadRef.current, playheadPx, width);
         }
 
         const now = performance.now();
@@ -125,6 +130,7 @@ export const useAnimateTrackbar = (
     rightHandleRef,
     playheadRef,
     playheadTrackRef,
+    playheadDragSampleRef,
     startLabelRef,
     endLabelRef,
     metadata,
