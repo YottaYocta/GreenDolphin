@@ -172,7 +172,7 @@ export const NumericInput: FC<{
   };
 
   return (
-    <div className={`shrink-0 flex justify-end ${onReset ? "w-19" : "w-14"}`}>
+    <div className={`shrink-0 flex justify-start ${onReset ? "w-19" : "w-14"}`}>
       <div
         className={`flex items-center gap-1 px-1 py-0.5 rounded-sm bg-surface-input cursor-text overflow-hidden ${
           onReset ? "" : "w-full"
