@@ -20,12 +20,17 @@ function ModeToggle<T extends string>({
   onChange: (next: T) => void;
 }) {
   return (
-    <div className="flex items-start gap-2 flex-1">
+    <div className="flex flex-1 items-stretch gap-0.5 rounded-lg border border-border bg-surface-track p-0.5 [box-shadow:var(--shadow-inset-dim)]">
       {options.map((o) => (
         <button
           key={o.value}
           onClick={() => onChange(o.value)}
-          className={`mode-btn ${value === o.value ? "active" : ""}`}
+          aria-pressed={value === o.value}
+          className={`flex-1 rounded-md px-2 py-1 font-inria text-sm/4.5 cursor-pointer transition-colors ${
+            value === o.value
+              ? "bg-white text-black border border-border [box-shadow:var(--shadow-btn)]"
+              : "text-black/40 hover:text-black/70"
+          }`}
         >
           {o.label}
         </button>
