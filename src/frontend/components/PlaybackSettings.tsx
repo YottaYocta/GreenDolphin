@@ -78,47 +78,48 @@ export function PlaybackSettings() {
     </>
   );
 
+  const icon = (
+    <SlidersIcon
+      size={18}
+      weight="fill"
+      color="var(--color-icon)"
+      style={{ opacity: 0.54, flexShrink: 0 }}
+    />
+  );
+
   return (
-    <>
-      {/* mobile: single icon opens the settings dialog */}
-      <AppDialog
-        title="Settings"
-        trigger={
-          <Dialog.Trigger
-            aria-label="Settings"
-            className="md:hidden absolute top-2 right-2 z-20 btn-surface size-9 rounded-lg cursor-pointer"
-          >
-            <SlidersIcon
-              size={18}
-              weight="fill"
-              color="var(--color-icon)"
-              style={{ opacity: 0.54, flexShrink: 0 }}
-            />
-          </Dialog.Trigger>
-        }
-      >
-        <div className="flex flex-col gap-6 pb-4">{sliders}</div>
-      </AppDialog>
-      {/* desktop: same icon toggles the inline settings bar */}
-      <button
-        onClick={() => setExpanded((e) => !e)}
-        aria-expanded={expanded}
-        aria-label="Settings"
-        className={`max-md:hidden absolute top-2 right-2 z-20 btn-surface size-9 rounded-lg cursor-pointer ${expanded ? "bg-surface-track" : ""}`}
-      >
-        <SlidersIcon
-          size={18}
-          weight="fill"
-          color="var(--color-icon)"
-          style={{ opacity: 0.54, flexShrink: 0 }}
-        />
-      </button>
+    <div className="flex items-center border-b border-border shrink-0">
       {expanded && (
-        <div className="max-md:hidden flex justify-between h-min p-5 pr-14 gap-16 border-b border-border">
+        <div className="max-md:hidden flex-1 flex justify-between h-min p-5 gap-16 min-w-0">
           {sliders}
         </div>
       )}
-    </>
+      <div className="ml-auto shrink-0 p-2 flex">
+        {/* mobile: single icon opens the settings dialog */}
+        <AppDialog
+          title="Settings"
+          trigger={
+            <Dialog.Trigger
+              aria-label="Settings"
+              className="md:hidden btn-surface size-9 rounded-lg cursor-pointer"
+            >
+              {icon}
+            </Dialog.Trigger>
+          }
+        >
+          <div className="flex flex-col gap-6 pb-4">{sliders}</div>
+        </AppDialog>
+        {/* desktop: same icon toggles the inline settings bar */}
+        <button
+          onClick={() => setExpanded((e) => !e)}
+          aria-expanded={expanded}
+          aria-label="Settings"
+          className={`max-md:hidden btn-surface size-9 rounded-lg cursor-pointer ${expanded ? "bg-surface-track" : ""}`}
+        >
+          {icon}
+        </button>
+      </div>
+    </div>
   );
 }
 
