@@ -9,7 +9,6 @@ export interface YouTubePlayer {
   destroy(): void;
 }
 
-export const YT_STATE_ENDED = 0;
 export const YT_STATE_PLAYING = 1;
 export const YT_STATE_PAUSED = 2;
 

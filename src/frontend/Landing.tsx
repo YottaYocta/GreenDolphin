@@ -14,9 +14,9 @@ import { AudioStore } from "./AudioStore";
 import { relativeDate } from "./lib/util";
 import { capture, captureException } from "./lib/posthog";
 import {
-  displayName,
   isYouTubeFile,
   readYouTubeFile,
+  stripYouTubeExt,
 } from "./lib/youtubeFile";
 import { useAddYouTubeVideo } from "./lib/useAddYouTube";
 
@@ -48,7 +48,7 @@ function RecordingRow({
         <NoteIcon filename={file.name} />
       )}
       <div className="flex flex-col gap-1 min-w-0 overflow-hidden">
-        <p className="truncate max-w-full">{displayName(file)}</p>
+        <p className="truncate max-w-full">{stripYouTubeExt(file.name)}</p>
         <p className="opacity-40 md:text-sm">
           {uploadedAt != null ? relativeDate(uploadedAt) : ""}
         </p>

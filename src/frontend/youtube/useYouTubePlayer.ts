@@ -6,14 +6,14 @@ export type PlayerStateListener = (state: number) => void;
 
 export function useYouTubePlayer(videoId: string) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const listenersRef = useRef(new Set<PlayerStateListener>());
+  const listenerRef = useRef<PlayerStateListener | null>(null);
   const [player, setPlayer] = useState<YouTubePlayer | null>(null);
   const [duration, setDuration] = useState(0);
 
   const subscribe = useCallback((listener: PlayerStateListener) => {
-    listenersRef.current.add(listener);
+    listenerRef.current = listener;
     return () => {
-      listenersRef.current.delete(listener);
+      if (listenerRef.current === listener) listenerRef.current = null;
     };
   }, []);
 
@@ -45,7 +45,7 @@ export function useYouTubePlayer(videoId: string) {
             if (cancelled) return;
             const d = e.target.getDuration();
             if (d > 0) setDuration(d);
-            listenersRef.current.forEach((listener) => listener(e.data));
+            listenerRef.current?.(e.data);
           },
         },
       });

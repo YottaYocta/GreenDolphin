@@ -1,5 +1,6 @@
 import { useContext, useEffect, useMemo } from "react";
 import type { RefObject } from "react";
+import type { Section } from "../lib/waveform";
 import { AudioStore } from "../AudioStore";
 import { PlaybackContext } from "../playback/PlaybackContext";
 import { TitleBar } from "../components/TitleBar/TitleBar";
@@ -38,6 +39,7 @@ export const YouTubeEditor = () => {
         containerRef={containerRef}
         duration={duration}
         filename={video.filename}
+        initialSelection={initialSettings?.loop}
       />
     </YouTubePlaybackProvider>
   );
@@ -47,10 +49,12 @@ function YouTubeEditorView({
   containerRef,
   duration,
   filename,
+  initialSelection,
 }: {
   containerRef: RefObject<HTMLDivElement | null>;
   duration: number;
   filename: string;
+  initialSelection?: Section;
 }) {
   const playback = useContext(PlaybackContext);
   if (!playback)
@@ -65,13 +69,6 @@ function YouTubeEditorView({
   useEffect(() => {
     saveSession({ filename, audioSettings: playbackSettings });
   }, [filename, playbackSettings]);
-
-  const initialSelection = useMemo(() => {
-    const session = loadSession();
-    return session?.filename === filename
-      ? session.audioSettings?.loop
-      : undefined;
-  }, [filename]);
 
   const ready = duration > 0;
 

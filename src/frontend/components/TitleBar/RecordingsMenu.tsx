@@ -12,7 +12,6 @@ import { useDecodeFile } from "../../lib/useDecodeFile";
 import { noteColor } from "../../lib/util";
 import { capture } from "../../lib/posthog";
 import {
-  displayName,
   isYouTubeFile,
   readYouTubeFile,
   stripYouTubeExt,
@@ -98,7 +97,7 @@ export function RecordingsMenu() {
                       <span
                         className={`flex-1 min-w-0 font-inria text-base/5 truncate ${file.name === filename ? "font-bold text-black" : "text-black"}`}
                       >
-                        {displayName(file)}
+                        {stripYouTubeExt(file.name)}
                       </span>
                       {file.name === filename && (
                         <CheckIcon
