@@ -112,7 +112,6 @@ export const Waveform: FC<
         handleLoopEdit={handleLoopEdit}
         handleLoopEditFinish={handleLoopEditFinish}
         handlePosition={handleSetPosition}
-        handleRange={handleRange}
       />
       <canvas
         id="waveform-canvas"

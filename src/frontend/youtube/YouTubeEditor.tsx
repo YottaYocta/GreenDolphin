@@ -86,7 +86,7 @@ function YouTubeEditorView({
             className="absolute inset-0 [&_iframe]:w-full [&_iframe]:h-full"
           />
         </div>
-        <div className="px-4 pb-6 pt-2">
+        <div className="px-4 py-2">
           {ready ? (
             <YouTubeScrubber
               totalMS={duration * 1000}

@@ -15,7 +15,6 @@ export const useAnimateTrackbar = (
   metadata: RefObject<WaveformMetadata>,
   positionMS: RefObject<number> | undefined,
   sampleRate: number,
-  applyCaretVisibility: (startPct: number, endPct: number) => void,
 ) => {
   const { trackRef, pillRef, leftHandleRef, rightHandleRef, playheadRef } =
     refs;
@@ -26,7 +25,7 @@ export const useAnimateTrackbar = (
     const applyHandle = (el: HTMLDivElement | null, pct: number) => {
       if (!el) return;
       const inView = pct >= 0 && pct <= 100;
-      el.style.display = inView ? "block" : "none";
+      el.style.display = inView ? "" : "none";
       el.style.left = `${pct}%`;
     };
 
@@ -47,7 +46,6 @@ export const useAnimateTrackbar = (
         }
         applyHandle(leftHandleRef.current, startPct);
         applyHandle(rightHandleRef.current, endPct);
-        applyCaretVisibility(startPct, endPct);
 
         if (playheadRef.current && positionMS) {
           const relativePositionMS =
@@ -64,15 +62,5 @@ export const useAnimateTrackbar = (
     return () => {
       if (rafId !== null) cancelAnimationFrame(rafId);
     };
-  }, [
-    trackRef,
-    pillRef,
-    leftHandleRef,
-    rightHandleRef,
-    playheadRef,
-    metadata,
-    positionMS,
-    sampleRate,
-    applyCaretVisibility,
-  ]);
+  }, [trackRef, pillRef, leftHandleRef, rightHandleRef, playheadRef, metadata, positionMS, sampleRate]);
 };
