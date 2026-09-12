@@ -4,7 +4,6 @@ import {
   CaretRightIcon,
   MusicNotesPlusIcon,
   MusicNoteIcon,
-  CheckIcon,
   YoutubeLogoIcon,
 } from "@phosphor-icons/react";
 import { AudioStore } from "../../AudioStore";
@@ -30,6 +29,7 @@ export function RecordingsMenu() {
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const handleAddYouTube = useAddYouTubeVideo();
+  const otherFiles = cachedFiles.filter((file) => file.name !== filename);
 
   const openFile = async (file: File) => {
     if (isYouTubeFile(file)) {
@@ -74,47 +74,37 @@ export function RecordingsMenu() {
                 </span>
               </Menu.Item>
               <div className="overflow-y-auto max-h-72 flex flex-col">
-                {cachedFiles.length === 0 ? (
+                {otherFiles.length === 0 ? (
                   <div className="px-4 py-4 font-inria text-black/50 text-sm text-center">
-                    No recordings yet
+                    No other recordings
                   </div>
                 ) : (
-                  cachedFiles.map((file) => (
-                    <Menu.Item
-                      key={file.name}
-                      className="flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-neutral-50 active:bg-neutral-100"
-                      onClick={() => openFile(file).catch(console.error)}
-                    >
-                      {isYouTubeFile(file) ? (
-                        <YoutubeLogoIcon
-                          size={18}
-                          weight="fill"
-                          color="#FF0000"
-                          style={{ flexShrink: 0, opacity: 0.8 }}
-                        />
-                      ) : (
-                        <MusicNoteIcon
-                          size={18}
-                          weight="fill"
-                          color={noteColor(file.name)}
-                          style={{ flexShrink: 0 }}
-                        />
-                      )}
-                      <span
-                        className={`flex-1 min-w-0 font-inria text-base/5 truncate ${file.name === filename ? "font-bold text-black" : "text-black"}`}
+                  otherFiles.map((file) => (
+                      <Menu.Item
+                        key={file.name}
+                        className="flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-neutral-50 active:bg-neutral-100"
+                        onClick={() => openFile(file).catch(console.error)}
                       >
-                        {stripYouTubeExt(file.name)}
-                      </span>
-                      {file.name === filename && (
-                        <CheckIcon
-                          size={16}
-                          weight="bold"
-                          color="var(--color-play)"
-                          style={{ flexShrink: 0 }}
-                        />
-                      )}
-                    </Menu.Item>
-                  ))
+                        {isYouTubeFile(file) ? (
+                          <YoutubeLogoIcon
+                            size={18}
+                            weight="fill"
+                            color="#FF0000"
+                            style={{ flexShrink: 0, opacity: 0.8 }}
+                          />
+                        ) : (
+                          <MusicNoteIcon
+                            size={18}
+                            weight="fill"
+                            color={noteColor(file.name)}
+                            style={{ flexShrink: 0 }}
+                          />
+                        )}
+                        <span className="flex-1 min-w-0 font-inria text-base/5 truncate text-black">
+                          {stripYouTubeExt(file.name)}
+                        </span>
+                      </Menu.Item>
+                    ))
                 )}
               </div>
             </Menu.Popup>
