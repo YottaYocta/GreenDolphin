@@ -133,28 +133,28 @@ export function YouTubeControls({ disabled }: { disabled?: boolean }) {
               : ""
         }`}
       >
-        {playState === "playing" ? (
-          <PauseIcon
-            size={36}
-            weight="fill"
-            color="var(--color-icon-white)"
-            style={{ flexShrink: 0 }}
-          />
-        ) : playState === "waiting" ? (
-          <span
-            className="font-space-mono text-white text-lg tabular-nums"
-            style={{ flexShrink: 0 }}
-          >
-            {countdown !== null ? countdown.toFixed(1) : "…"}
-          </span>
-        ) : (
-          <PlayIcon
-            size={40}
-            weight="fill"
-            color="var(--color-play)"
-            style={{ flexShrink: 0 }}
-          />
-        )}
+        {/* fixed-size content box so icon size changes don't shift layout */}
+        <span className="size-10 shrink-0 flex items-center justify-center">
+          {playState === "playing" ? (
+            <PauseIcon
+              size={36}
+              weight="fill"
+              color="var(--color-icon-white)"
+              style={{ flexShrink: 0 }}
+            />
+          ) : playState === "waiting" ? (
+            <span className="font-space-mono text-white text-lg tabular-nums">
+              {countdown !== null ? countdown.toFixed(1) : "…"}
+            </span>
+          ) : (
+            <PlayIcon
+              size={40}
+              weight="fill"
+              color="var(--color-play)"
+              style={{ flexShrink: 0 }}
+            />
+          )}
+        </span>
       </button>
     </div>
   );
