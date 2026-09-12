@@ -1,6 +1,8 @@
 import { useRef, type FC, type RefObject } from "react";
+import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import type { WaveformMetadata } from "../types";
 import type { Section } from "../../../lib/waveform";
+import { useLoopCarets } from "./useLoopCarets";
 import { useAnimateTrackbar } from "./useAnimateTrackbar";
 import { useLoopHandleDrag } from "./useLoopHandleDrag";
 import { useLoopPillDrag } from "./useLoopPillDrag";
@@ -16,6 +18,7 @@ export type TrackbarProps = {
   handleLoopEdit: (section: Section) => void;
   handleLoopEditFinish: (section: Section) => void;
   handlePosition: (sample: number) => void;
+  handleRange: (range: Section) => void;
 };
 
 export const Trackbar: FC<TrackbarProps> = ({
@@ -26,6 +29,7 @@ export const Trackbar: FC<TrackbarProps> = ({
   handleLoopEdit,
   handleLoopEditFinish,
   handlePosition,
+  handleRange,
 }) => {
   const trackRef = useRef<HTMLDivElement | null>(null);
   const pillRef = useRef<HTMLDivElement | null>(null);
@@ -33,11 +37,20 @@ export const Trackbar: FC<TrackbarProps> = ({
   const rightHandleRef = useRef<HTMLDivElement | null>(null);
   const playheadRef = useRef<HTMLDivElement | null>(null);
 
+  const {
+    leftCaretRef,
+    rightCaretRef,
+    applyCaretVisibility,
+    onLeftCaretClick,
+    onRightCaretClick,
+  } = useLoopCarets(metadata, totalSamples, handleRange);
+
   useAnimateTrackbar(
     { trackRef, pillRef, leftHandleRef, rightHandleRef, playheadRef },
     metadata,
     positionMS,
     sampleRate,
+    applyCaretVisibility,
   );
 
   const handleDragProps = useLoopHandleDrag(
@@ -67,35 +80,50 @@ export const Trackbar: FC<TrackbarProps> = ({
   ) => (
     <div
       ref={ref}
-      className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-10 flex items-center justify-center w-6 h-12 cursor-ew-resize touch-none"
+      className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-10 flex items-center justify-center w-7 h-10 cursor-ew-resize touch-none"
       style={HANDLE_SHADOW}
       {...handleDragProps(side)}
     >
-      <div
-        className={`w-2 h-6 rounded-xs border-y-[3px] border-neutral-400 ${
-          side === "start" ? "border-l-[3px]" : "border-r-[3px]"
-        }`}
-      />
+      <div className="size-3.5 rotate-45 rounded-[4px] bg-surface border border-border [box-shadow:var(--shadow-inset)]" />
     </div>
   );
 
   return (
     <div className="w-full h-8 shrink-0 z-10 pt-1">
       <div className="w-full h-full relative" ref={trackRef} id="trackbar">
-        <div className="absolute top-1/2 -translate-y-1/2 w-full h-2 rounded-full bg-surface-track border border-border pointer-events-none" />
         <div
           ref={pillRef}
-          className="absolute top-1/2 -translate-y-1/2 h-5 cursor-grab active:cursor-grabbing touch-none"
+          className="absolute top-1/2 -translate-y-1/2 h-5 bg-surface border border-neutral-100 cursor-grab active:cursor-grabbing touch-none"
           {...pillDragProps}
         />
         {loopHandle(leftHandleRef, "start")}
         {loopHandle(rightHandleRef, "end")}
+        <button
+          ref={leftCaretRef}
+          type="button"
+          aria-label="Scroll to loop start"
+          onClick={onLeftCaretClick}
+          className="btn-surface absolute top-1/2 -translate-y-1/2 left-0 h-7 w-6 rounded-md items-center justify-center text-icon-muted z-10"
+          style={{ display: "none" }}
+        >
+          <CaretLeftIcon size={14} weight="bold" />
+        </button>
+        <button
+          ref={rightCaretRef}
+          type="button"
+          aria-label="Scroll to loop end"
+          onClick={onRightCaretClick}
+          className="btn-surface absolute top-1/2 -translate-y-1/2 right-0 h-7 w-6 rounded-md items-center justify-center text-icon-muted z-10"
+          style={{ display: "none" }}
+        >
+          <CaretRightIcon size={14} weight="bold" />
+        </button>
         <div
           ref={playheadRef}
-          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 size-7 flex items-center justify-center cursor-ew-resize touch-none z-10"
+          className="absolute top-[calc(100%-4px)] -translate-x-1/2 size-8 flex items-center justify-center cursor-ew-resize touch-none z-10"
           {...playheadDragProps}
         >
-          <div className="size-2.5 rotate-45 rounded-[2px] bg-play border border-black/20 [box-shadow:var(--shadow-inset-active)]" />
+          <div className="size-3 rotate-45 rounded-sm bg-play border border-black/20 [box-shadow:var(--shadow-inset-active)]" />
         </div>
       </div>
     </div>

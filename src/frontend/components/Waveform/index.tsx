@@ -103,7 +103,14 @@ export const Waveform: FC<
   useKeyboardShortcuts(waveformData, metadataRef, handleRange);
 
   return (
-    <div className="w-full flex flex-col px-4 h-full min-h-0">
+    <div className="w-full flex flex-col px-4 pt-4 pb-7 h-full min-h-0">
+      <canvas
+        id="waveform-canvas"
+        {...props}
+        ref={canvasRef}
+        draggable="false"
+        className="relative z-0 cursor-pointer w-full flex-1 min-w-0 min-h-0 select-none pixelated"
+      />
       <Trackbar
         positionMS={positionMS}
         metadata={metadataRef}
@@ -112,13 +119,7 @@ export const Waveform: FC<
         handleLoopEdit={handleLoopEdit}
         handleLoopEditFinish={handleLoopEditFinish}
         handlePosition={handleSetPosition}
-      />
-      <canvas
-        id="waveform-canvas"
-        {...props}
-        ref={canvasRef}
-        draggable="false"
-        className="relative z-0 cursor-pointer w-full flex-1 min-w-0 min-h-0 select-none pixelated"
+        handleRange={handleRange}
       />
     </div>
   );

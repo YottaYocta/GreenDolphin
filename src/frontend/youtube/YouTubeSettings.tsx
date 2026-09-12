@@ -13,7 +13,7 @@ export function YouTubeSettings() {
   const { playbackSpeed, gain } = playbackSettings;
 
   return (
-    <div className="flex justify-between h-min p-5 gap-16 max-md:flex-col max-md:gap-4 border-t border-border">
+    <div className="flex justify-between h-min p-5 gap-16 max-md:flex-col max-md:gap-4 border-b border-border">
       <AudioSlider
         label="Speed"
         value={playbackSpeed}

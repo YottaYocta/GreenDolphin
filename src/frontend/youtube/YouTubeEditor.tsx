@@ -80,13 +80,16 @@ function YouTubeEditorView({
       <TitleBar />
 
       <div className="flex flex-col rounded-xl overflow-x-hidden overflow-y-clip [box-shadow:var(--shadow-panel)] bg-white border border-border shrink-0">
-        <div className="relative w-full aspect-video bg-black">
-          <div
-            ref={containerRef}
-            className="absolute inset-0 [&_iframe]:w-full [&_iframe]:h-full"
-          />
+        <YouTubeSettings />
+        <div className="w-full flex justify-center p-4">
+          <div className="relative w-full max-w-120 aspect-video bg-black rounded-lg overflow-hidden">
+            <div
+              ref={containerRef}
+              className="absolute inset-0 [&_iframe]:w-full [&_iframe]:h-full"
+            />
+          </div>
         </div>
-        <div className="px-4 py-2">
+        <div className="px-4 pb-8">
           {ready ? (
             <YouTubeScrubber
               totalMS={duration * 1000}
@@ -106,7 +109,6 @@ function YouTubeEditorView({
             </div>
           )}
         </div>
-        <YouTubeSettings />
       </div>
 
       <YouTubeControls disabled={!ready} />

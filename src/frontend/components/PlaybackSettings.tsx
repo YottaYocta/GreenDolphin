@@ -82,7 +82,7 @@ export function PlaybackSettings() {
       <AppDialog
         title="Settings"
         trigger={
-          <Dialog.Trigger className="btn-surface rounded-none border-0 border-t gap-3 w-full h-12 shrink-0 cursor-pointer max-md:flex hidden">
+          <Dialog.Trigger className="btn-surface rounded-none border-0 border-b gap-3 w-full h-12 shrink-0 cursor-pointer max-md:flex hidden">
             <SlidersIcon
               size={24}
               weight="fill"
@@ -97,7 +97,7 @@ export function PlaybackSettings() {
       >
         <div className="flex flex-col gap-6 pb-4">{sliders}</div>
       </AppDialog>
-      <div className="flex justify-between h-min p-5 gap-16 max-md:hidden">
+      <div className="flex justify-between h-min p-5 gap-16 border-b border-border max-md:hidden">
         {sliders}
       </div>
     </div>
