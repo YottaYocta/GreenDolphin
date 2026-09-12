@@ -8,7 +8,7 @@ import { capture } from "../lib/posthog";
 import { useYouTubePlayer } from "./useYouTubePlayer";
 import { YouTubePlaybackProvider } from "./YouTubePlaybackProvider";
 import { YouTubeScrubber } from "./YouTubeScrubber";
-import { YouTubeControls } from "./YouTubeControls";
+import { PlaybackControls } from "../components/PlaybackControls";
 import { YouTubeSettings } from "./YouTubeSettings";
 
 export const YouTubeEditor = () => {
@@ -112,7 +112,7 @@ function YouTubeEditorView({
         </YouTubeSettings>
       </div>
 
-      <YouTubeControls disabled={!ready} />
+      <PlaybackControls showFreeze={false} disabled={!ready} />
     </div>
   );
 }

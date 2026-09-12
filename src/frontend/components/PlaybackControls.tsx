@@ -13,7 +13,13 @@ import {
 } from "../playback/PlaybackContext";
 import { capture } from "../lib/posthog";
 
-export function PlaybackControls() {
+export function PlaybackControls({
+  showFreeze = true,
+  disabled = false,
+}: {
+  showFreeze?: boolean;
+  disabled?: boolean;
+}) {
   const playback = useContext(PlaybackContext);
   if (!playback)
     throw new Error("PlaybackControls must be used within a PlaybackProvider");
@@ -25,7 +31,7 @@ export function PlaybackControls() {
     triggerAction,
     playbackSettings,
   } = playback;
-  const { loop, loopOptions } = playbackSettings;
+  const { loopOptions } = playbackSettings;
   const loopDelay = effectiveLoopDelay(loopOptions);
 
   const [countdown, setCountdown] = useState<number | null>(null);
@@ -48,62 +54,77 @@ export function PlaybackControls() {
   }, [playState, loopPosition, loopLength, loopDelay]);
 
   const rewindFiveSeconds = useCallback(() => {
+    if (disabled) return;
     triggerAction({
       type: "move",
       position: Math.max(0, playbackPosition.current - 5000),
     });
-  }, [playbackPosition, triggerAction]);
+  }, [disabled, playbackPosition, triggerAction]);
 
   const fastForwardFiveSeconds = useCallback(() => {
+    if (disabled) return;
     triggerAction({
       type: "move",
       position: Math.max(0, playbackPosition.current + 5000),
     });
-  }, [playbackPosition, triggerAction]);
+  }, [disabled, playbackPosition, triggerAction]);
 
   const togglePlay = useCallback(() => {
-    if (playState === "paused" || playState === "frozen") triggerAction("play");
-    else triggerAction("pause");
-  }, [playState, triggerAction]);
+    if (disabled) return;
+    if (playState === "playing" || playState === "waiting") {
+      capture("playback_paused");
+      triggerAction("pause");
+    } else {
+      capture("playback_started");
+      triggerAction("play");
+    }
+  }, [disabled, playState, triggerAction]);
+
+  const toggleFreeze = useCallback(() => {
+    if (disabled) return;
+    triggerAction("freeze");
+  }, [disabled, triggerAction]);
 
   useEffect(() => {
     return tinykeys(window, {
       "0": () => {
-        triggerAction({ type: "move", position: 0 });
+        if (!disabled) triggerAction({ type: "move", position: 0 });
       },
       Space: (e) => {
         e.preventDefault();
         togglePlay();
       },
       p: () => togglePlay(),
-      f: () => {
-        triggerAction("freeze");
-      },
+      ...(showFreeze ? { f: () => toggleFreeze() } : {}),
       h: () => rewindFiveSeconds(),
       l: () => fastForwardFiveSeconds(),
     });
   }, [
-    loop,
-    playState,
+    disabled,
+    showFreeze,
     triggerAction,
     togglePlay,
+    toggleFreeze,
     rewindFiveSeconds,
     fastForwardFiveSeconds,
   ]);
 
+  const btn = `btn-surface rounded-xl h-full min-h-0 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed p-5 ${
+    showFreeze ? "md:p-10" : "md:p-6"
+  }`;
+
   return (
-    <div className="grid max-md:grid-cols-2 grid-cols-4 max-md:grid-rows-2 gap-4 w-full h-min rounded-xl max-md:flex-1">
+    <div
+      className={`grid gap-4 w-full h-min rounded-xl max-md:flex-1 ${
+        showFreeze
+          ? "max-md:grid-cols-2 grid-cols-4 max-md:grid-rows-2"
+          : "grid-cols-2 md:grid-cols-3"
+      }`}
+    >
       <button
-        onClick={() => {
-          if (playState === "playing" || playState === "waiting") {
-            capture("playback_paused");
-            triggerAction("pause");
-          } else {
-            capture("playback_started");
-            triggerAction("play");
-          }
-        }}
-        className={`btn-surface rounded-xl md:p-10 p-5 h-full min-h-0 cursor-pointer ${
+        onClick={togglePlay}
+        disabled={disabled}
+        className={`${btn} ${showFreeze ? "" : "max-md:order-last max-md:col-span-2 md:p-8"} ${
           playState === "waiting"
             ? "bg-waiting hover:bg-waiting-hover active:bg-waiting-active [box-shadow:var(--shadow-btn-colored)]"
             : playState === "playing"
@@ -111,46 +132,43 @@ export function PlaybackControls() {
               : ""
         }`}
       >
-        {playState === "playing" ? (
-          <PauseIcon
-            size={36}
-            weight="fill"
-            color="var(--color-icon-white)"
-            style={{ flexShrink: 0 }}
-          />
-        ) : playState === "waiting" ? (
-          <span
-            className="font-space-mono text-white text-lg tabular-nums"
-            style={{ flexShrink: 0 }}
-          >
-            {countdown !== null ? countdown.toFixed(1) : "…"}
-          </span>
-        ) : (
-          <PlayIcon
+        {/* fixed-size content box so icon size changes don't shift layout */}
+        <span className="size-10 shrink-0 flex items-center justify-center">
+          {playState === "playing" ? (
+            <PauseIcon
+              size={36}
+              weight="fill"
+              color="var(--color-icon-white)"
+              style={{ flexShrink: 0 }}
+            />
+          ) : playState === "waiting" ? (
+            <span className="font-space-mono text-white text-lg tabular-nums">
+              {countdown !== null ? countdown.toFixed(1) : "…"}
+            </span>
+          ) : (
+            <PlayIcon
+              size={40}
+              weight="fill"
+              color="var(--color-play)"
+              style={{ flexShrink: 0 }}
+            />
+          )}
+        </span>
+      </button>
+      {showFreeze && (
+        <button
+          onClick={toggleFreeze}
+          className={`${btn} ${playState === "frozen" ? "bg-freeze hover:bg-freeze-hover active:bg-freeze-active [box-shadow:var(--shadow-btn-colored)]" : ""}`}
+        >
+          <SnowflakeIcon
             size={40}
             weight="fill"
-            color="var(--color-play)"
+            color={playState === "frozen" ? "#FFFFFF" : "var(--color-freeze)"}
             style={{ flexShrink: 0 }}
           />
-        )}
-      </button>
-      <button
-        onClick={() => {
-          triggerAction("freeze");
-        }}
-        className={`btn-surface rounded-xl md:p-10 p-5 h-full min-h-0 cursor-pointer ${playState === "frozen" ? "bg-freeze hover:bg-freeze-hover active:bg-freeze-active [box-shadow:var(--shadow-btn-colored)]" : ""}`}
-      >
-        <SnowflakeIcon
-          size={40}
-          weight="fill"
-          color={playState === "frozen" ? "#FFFFFF" : "var(--color-freeze)"}
-          style={{ flexShrink: 0 }}
-        />
-      </button>
-      <button
-        onClick={rewindFiveSeconds}
-        className="btn-surface rounded-xl md:p-10 p-5 h-full min-h-0 cursor-pointer"
-      >
+        </button>
+      )}
+      <button onClick={rewindFiveSeconds} disabled={disabled} className={btn}>
         <SkipBackIcon
           size={32}
           weight="fill"
@@ -160,7 +178,8 @@ export function PlaybackControls() {
       </button>
       <button
         onClick={fastForwardFiveSeconds}
-        className="btn-surface rounded-xl md:p-10 p-5 h-full min-h-0 cursor-pointer"
+        disabled={disabled}
+        className={btn}
       >
         <SkipForwardIcon
           size={32}
