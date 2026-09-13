@@ -18,15 +18,7 @@ export interface TutorialStep {
   contents: ReactNode;
 }
 
-export function Tutorial({
-  steps,
-  ready = true,
-  source,
-}: {
-  steps: TutorialStep[];
-  ready?: boolean;
-  source?: string;
-}) {
+export function Tutorial({ steps }: { steps: TutorialStep[] }) {
   const { isFirstVisit: showTutorial, markVisited: markTutorialShown } =
     useFirstVisit();
   const [walkthroughActive, setWalkthroughActive] = useState(false);
@@ -75,10 +67,10 @@ export function Tutorial({
         </Dialog.Portal>
       </Dialog.Root>
 
-      {walkthroughActive && ready && (
+      {walkthroughActive && (
         <Walkthrough
           handleTutorialFinished={() => {
-            capture("tutorial_completed", source ? { source } : undefined);
+            capture("tutorial_completed");
             markTutorialShown();
             setWalkthroughActive(false);
           }}
@@ -138,10 +130,13 @@ const Walkthrough: FC<{
       if (selection instanceof HTMLElement) {
         const rect = selection.getBoundingClientRect();
         setPopupBelow(rect.top <= window.innerHeight - rect.bottom);
+        highlightRef.current.style.visibility = "visible";
         highlightRef.current.style.left = `${rect.left - HIGHLIGHT_OFFSET}px`;
         highlightRef.current.style.top = `${rect.top - HIGHLIGHT_OFFSET}px`;
         highlightRef.current.style.width = `${rect.width + HIGHLIGHT_OFFSET * 2}px`;
         highlightRef.current.style.height = `${rect.height + HIGHLIGHT_OFFSET * 2}px`;
+      } else {
+        highlightRef.current.style.visibility = "hidden";
       }
     }
   }, [currentStep]);
@@ -149,8 +144,11 @@ const Walkthrough: FC<{
   useLayoutEffect(() => {
     updateContainerRef();
     window.addEventListener("resize", updateContainerRef);
+    const observer = new MutationObserver(updateContainerRef);
+    observer.observe(document.body, { childList: true, subtree: true });
     return () => {
       window.removeEventListener("resize", updateContainerRef);
+      observer.disconnect();
     };
   }, [updateContainerRef]);
 

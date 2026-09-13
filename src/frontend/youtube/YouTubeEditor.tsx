@@ -173,8 +173,6 @@ function YouTubeEditorView({
       </div>
 
       <Tutorial
-        ready={ready}
-        source="youtube"
         steps={[
           {
             htmlSelector: "#trackbar-playhead",
