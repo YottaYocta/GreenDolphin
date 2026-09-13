@@ -1,6 +1,7 @@
-import { useCallback, useContext, useEffect, useMemo } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { InfoIcon } from "@phosphor-icons/react";
 import { useDebounce } from "./lib/useDebounce";
+import { AppDialog } from "./components/AppDialog";
 import { Tutorial } from "./components/Tutorial";
 import { PianoRoll } from "./components/PianoRoll";
 import { PlaybackContext } from "./playback/PlaybackContext";
@@ -26,6 +27,7 @@ export const Editor = () => {
     markVisited: markTutorialShown,
     resetVisit: retriggerTutorial,
   } = useFirstVisit();
+  const [walkthroughActive, setWalkthroughActive] = useState(false);
 
   const { activate, method, wakeLockError, videoError } = useAlwaysAwake();
 
@@ -117,11 +119,40 @@ export const Editor = () => {
         </button>
       )}
 
-      {showTutorial && (
+      <AppDialog
+        title="Tutorial"
+        open={showTutorial && !walkthroughActive}
+        onOpenChange={(open) => {
+          if (!open) markTutorialShown();
+        }}
+      >
+        <div className="flex flex-col gap-4">
+          <p className="font-inria text-black/60 text-center">
+            Do you want to see a tutorial?
+          </p>
+          <div className="flex gap-4">
+            <button
+              onClick={markTutorialShown}
+              className="btn-surface rounded-lg h-12 flex-1 cursor-pointer"
+            >
+              <span className="opacity-40">Not now</span>
+            </button>
+            <button
+              onClick={() => setWalkthroughActive(true)}
+              className="btn-surface rounded-lg h-12 flex-1 cursor-pointer bg-play hover:bg-play-hover active:bg-play-active [box-shadow:var(--shadow-btn-colored)] text-white"
+            >
+              Yes
+            </button>
+          </div>
+        </div>
+      </AppDialog>
+
+      {walkthroughActive && (
         <Tutorial
           handleTutorialFinished={() => {
             capture("tutorial_completed");
             markTutorialShown();
+            setWalkthroughActive(false);
           }}
           steps={[
             {
