@@ -171,7 +171,7 @@ function YouTubeEditorView({
         <PlaybackControls showFreeze={false} disabled={!ready} />
       </div>
 
-      <Tutorial steps={TUTORIAL_STEPS} />
+      {ready && <Tutorial steps={TUTORIAL_STEPS} />}
     </>
   );
 }

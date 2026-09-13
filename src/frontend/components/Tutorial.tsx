@@ -105,29 +105,15 @@ function Walkthrough({
 
   useLayoutEffect(() => {
     if (!selector) return;
-    // The step's target may not be in the DOM yet (e.g. the YouTube trackbar
-    // renders only once the video loads) — watch for it until it appears.
-    let observer: MutationObserver | null = null;
     const measure = () => {
       const target = document.querySelector(selector);
-      if (target instanceof HTMLElement) {
-        observer?.disconnect();
-        observer = null;
-        setRect(target.getBoundingClientRect());
-      } else {
-        setRect(null);
-        if (!observer) {
-          observer = new MutationObserver(measure);
-          observer.observe(document.body, { childList: true, subtree: true });
-        }
-      }
+      setRect(
+        target instanceof HTMLElement ? target.getBoundingClientRect() : null,
+      );
     };
     measure();
     window.addEventListener("resize", measure);
-    return () => {
-      window.removeEventListener("resize", measure);
-      observer?.disconnect();
-    };
+    return () => window.removeEventListener("resize", measure);
   }, [selector]);
 
   if (currentStepIndex === null || !currentStep || !rect) return null;
