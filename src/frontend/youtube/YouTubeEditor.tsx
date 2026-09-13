@@ -6,7 +6,7 @@ import { AudioStore } from "../AudioStore";
 import { PlaybackContext } from "../playback/PlaybackContext";
 import { TitleBar } from "../components/TitleBar/TitleBar";
 import { Trackbar } from "../components/Waveform/trackbar";
-import { TutorialFlow } from "../components/TutorialFlow";
+import { Tutorial } from "../components/Tutorial";
 import { loadSession, saveSession } from "../lib/useSessionPersistence";
 import { loadLoopPrefs } from "../lib/loopPrefs";
 import { useAlwaysAwake } from "../lib/useAlwaysAwake";
@@ -172,7 +172,7 @@ function YouTubeEditorView({
         <PlaybackControls showFreeze={false} disabled={!ready} />
       </div>
 
-      <TutorialFlow
+      <Tutorial
         ready={ready}
         source="youtube"
         steps={[

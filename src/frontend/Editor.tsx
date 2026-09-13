@@ -1,6 +1,6 @@
 import { useCallback, useContext, useEffect, useMemo } from "react";
 import { useDebounce } from "./lib/useDebounce";
-import { TutorialFlow } from "./components/TutorialFlow";
+import { Tutorial } from "./components/Tutorial";
 import { PianoRoll } from "./components/PianoRoll";
 import { PlaybackContext } from "./playback/PlaybackContext";
 import { AudioStore } from "./AudioStore";
@@ -99,7 +99,7 @@ export const Editor = () => {
         <PlaybackControls />
       </div>
 
-      <TutorialFlow
+      <Tutorial
         steps={[
           {
             htmlSelector: "#waveform-canvas",
