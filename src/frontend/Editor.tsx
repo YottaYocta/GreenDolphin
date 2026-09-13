@@ -130,16 +130,16 @@ export const Editor = () => {
           <p className="font-inria text-black/60 text-center">
             Do you want to see a tutorial?
           </p>
-          <div className="flex gap-4">
+          <div className="flex justify-center gap-4">
             <button
               onClick={markTutorialShown}
-              className="btn-surface rounded-lg h-12 flex-1 cursor-pointer"
+              className="btn-surface px-3 py-1 rounded-md cursor-pointer text-sm"
             >
               <span className="opacity-40">Not now</span>
             </button>
             <button
               onClick={() => setWalkthroughActive(true)}
-              className="btn-surface rounded-lg h-12 flex-1 cursor-pointer bg-play hover:bg-play-hover active:bg-play-active [box-shadow:var(--shadow-btn-colored)] text-white"
+              className="btn-surface px-3 py-1 rounded-md cursor-pointer text-sm bg-play hover:bg-play-hover active:bg-play-active [box-shadow:var(--shadow-btn-colored)] text-white"
             >
               Yes
             </button>
