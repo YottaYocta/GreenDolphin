@@ -6,6 +6,7 @@ import {
 } from "@phosphor-icons/react";
 import { AppDialog } from "./AppDialog";
 import { parseYouTubeVideoId } from "../lib/youtubeFile";
+import { YouTubeAddError } from "../lib/useAddYouTube";
 
 export function NewRecordingDialog({
   open,
@@ -24,6 +25,7 @@ export function NewRecordingDialog({
 
   const handleAdd = async () => {
     const videoId = parseYouTubeVideoId(url);
+    console.debug("[youtube] parse", JSON.stringify(url), "->", videoId);
     if (!videoId) {
       setError("Couldn't find a video in that link.");
       return;
@@ -34,8 +36,12 @@ export function NewRecordingDialog({
       await onAddYouTube(videoId, url.trim());
       setUrl("");
       onOpenChange(false);
-    } catch {
-      setError("Couldn't add that video. Please try again.");
+    } catch (err) {
+      setError(
+        err instanceof YouTubeAddError
+          ? err.message
+          : "Couldn't add that video. Please try again.",
+      );
     } finally {
       setIsAdding(false);
     }
