@@ -45,7 +45,7 @@ export function RecordingsMenu() {
       <Menu.Root>
         <Menu.Trigger
           aria-label="Switch recording"
-          className="btn-surface group w-full h-12 cursor-pointer min-w-0 justify-start gap-4 px-3 py-3.25 rounded-lg rounded-r-none"
+          className="btn-surface group w-full h-12 cursor-pointer min-w-0 justify-start gap-4 px-4 py-3.25 rounded-lg rounded-r-none"
         >
           <CaretRightIcon
             size={16}
