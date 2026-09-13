@@ -3,8 +3,7 @@ import { FileMagnifyingGlassIcon } from "@phosphor-icons/react";
 import { Dialog } from "@base-ui/react/dialog";
 import { AudioStore } from "../../AudioStore";
 import { RecordingsStore } from "../../RecordingsStore";
-import { formatSeconds, formatSize } from "../../lib/util";
-import { stripYouTubeExt } from "../../lib/youtubeFile";
+import { formatSeconds, formatSize, stripExt } from "../../lib/util";
 import { AppDialog } from "../AppDialog";
 
 function FileInfoCell({ label, value }: { label: string; value: string }) {
@@ -50,7 +49,7 @@ export function FileInfoButton() {
       <InfoDialog>
         <div className="flex flex-col gap-6 p-2">
           <span className="font-inria text-black text-lg min-w-0">
-            {stripYouTubeExt(video.filename)}
+            {stripExt(video.filename)}
           </span>
           <div className="flex flex-col gap-6">
             <div className="flex gap-4">
@@ -85,7 +84,7 @@ export function FileInfoButton() {
       <div className="flex flex-col gap-6 p-2">
         <div className="flex gap-4 flex-col items-start">
           <span className="font-inria text-black text-lg min-w-0">
-            {filename}
+            {stripExt(filename)}
           </span>
         </div>
         <div className="flex flex-col gap-6">

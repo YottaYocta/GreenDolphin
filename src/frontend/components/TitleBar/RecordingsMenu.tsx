@@ -9,13 +9,9 @@ import {
 import { AudioStore } from "../../AudioStore";
 import { RecordingsStore } from "../../RecordingsStore";
 import { useDecodeFile } from "../../lib/useDecodeFile";
-import { noteColor } from "../../lib/util";
+import { noteColor, stripExt } from "../../lib/util";
 import { capture } from "../../lib/posthog";
-import {
-  isYouTubeFile,
-  readYouTubeFile,
-  stripYouTubeExt,
-} from "../../lib/youtubeFile";
+import { isYouTubeFile, readYouTubeFile } from "../../lib/youtubeFile";
 import { useAddYouTubeVideo } from "../../lib/useAddYouTube";
 import { NewRecordingDialog } from "../NewRecordingDialog";
 
@@ -55,7 +51,7 @@ export function RecordingsMenu() {
             style={{ opacity: 0.5, flexShrink: 0 }}
           />
           <span className="font-inria text-black text-base/5 truncate min-w-0">
-            {stripYouTubeExt(filename)}
+            {stripExt(filename)}
           </span>
         </Menu.Trigger>
         <Menu.Portal>
@@ -102,7 +98,7 @@ export function RecordingsMenu() {
                         />
                       )}
                       <span className="flex-1 min-w-0 font-inria text-base/5 truncate text-black">
-                        {stripYouTubeExt(file.name)}
+                        {stripExt(file.name)}
                       </span>
                     </Menu.Item>
                   ))

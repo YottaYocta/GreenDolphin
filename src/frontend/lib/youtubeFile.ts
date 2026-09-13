@@ -11,10 +11,6 @@ export function isYouTubeFile(file: File): boolean {
   return file.type === YOUTUBE_MIME || file.name.endsWith(YOUTUBE_EXT);
 }
 
-export function stripYouTubeExt(filename: string): string {
-  return filename.replace(/\.yt$/, "");
-}
-
 export function parseYouTubeVideoId(input: string): string | null {
   const trimmed = input.trim();
   if (/^[\w-]{11}$/.test(trimmed)) return trimmed;
