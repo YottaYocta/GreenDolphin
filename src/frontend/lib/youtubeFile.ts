@@ -18,8 +18,11 @@ export function stripYouTubeExt(filename: string): string {
 export function parseYouTubeVideoId(input: string): string | null {
   const trimmed = input.trim();
   if (/^[\w-]{11}$/.test(trimmed)) return trimmed;
+  const withScheme = /^[a-z][\w+.-]*:\/\//i.test(trimmed)
+    ? trimmed
+    : `https://${trimmed}`;
   try {
-    const url = new URL(trimmed);
+    const url = new URL(withScheme);
     if (url.hostname === "youtu.be") {
       const id = url.pathname.slice(1).split("/")[0];
       return /^[\w-]{11}$/.test(id) ? id : null;
