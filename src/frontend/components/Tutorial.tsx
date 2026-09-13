@@ -115,10 +115,14 @@ export const Tutorial: FC<TutorialProps> = ({
               className="btn-surface px-3 py-1 rounded-md cursor-pointer text-sm flex items-center gap-1 bg-play hover:bg-play-hover active:bg-play-active [box-shadow:var(--shadow-btn-colored)] text-white"
             >
               {currentStepIndex !== null &&
-              currentStepIndex === steps.length - 1
-                ? "Finish"
-                : "Next"}
-              <ArrowRightIcon size={13} weight="fill" />
+              currentStepIndex === steps.length - 1 ? (
+                "Finish"
+              ) : (
+                <>
+                  Next
+                  <ArrowRightIcon size={13} weight="fill" />
+                </>
+              )}
             </button>
           </div>
         </div>
