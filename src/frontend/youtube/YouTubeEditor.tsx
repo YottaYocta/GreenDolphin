@@ -6,10 +6,9 @@ import { AudioStore } from "../AudioStore";
 import { PlaybackContext } from "../playback/PlaybackContext";
 import { TitleBar } from "../components/TitleBar/TitleBar";
 import { Trackbar } from "../components/Waveform/trackbar";
-import { Tutorial } from "../components/Tutorial";
+import { Tutorial, type TutorialStep } from "../components/Tutorial";
 import { loadSession, saveSession } from "../lib/useSessionPersistence";
 import { loadLoopPrefs } from "../lib/loopPrefs";
-import { useAlwaysAwake } from "../lib/useAlwaysAwake";
 import { AlwaysAwakeIndicator } from "../components/AlwaysAwakeIndicator";
 import { clampSection } from "../lib/util";
 import { capture } from "../lib/posthog";
@@ -21,6 +20,17 @@ import {
 } from "./YouTubePlaybackProvider";
 import { PlaybackControls } from "../components/PlaybackControls";
 import { YouTubeSettings } from "./YouTubeSettings";
+
+const TUTORIAL_STEPS: TutorialStep[] = [
+  {
+    htmlSelector: "#trackbar-playhead",
+    contents: <p>Click to set playback position</p>,
+  },
+  {
+    htmlSelector: "#trackbar",
+    contents: <p>Drag endpoints to set loop</p>,
+  },
+];
 
 export const YouTubeEditor = () => {
   const { video } = useContext(AudioStore);
@@ -81,12 +91,6 @@ function YouTubeEditorView({
     setAudioSettings,
   } = playback;
 
-  const { activate, method, wakeLockError, videoError } = useAlwaysAwake();
-
-  useEffect(() => {
-    activate();
-  }, [activate]);
-
   useEffect(() => {
     saveSession({ filename, audioSettings: playbackSettings });
   }, [filename, playbackSettings]);
@@ -115,12 +119,7 @@ function YouTubeEditorView({
 
   return (
     <>
-      <AlwaysAwakeIndicator
-        method={method}
-        wakeLockError={wakeLockError}
-        videoError={videoError}
-        onRetry={activate}
-      />
+      <AlwaysAwakeIndicator />
       <div className="w-full max-w-240 h-full md:h-min min-h-0 p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:py-10">
         <TitleBar />
 
@@ -172,18 +171,7 @@ function YouTubeEditorView({
         <PlaybackControls showFreeze={false} disabled={!ready} />
       </div>
 
-      <Tutorial
-        steps={[
-          {
-            htmlSelector: "#trackbar-playhead",
-            contents: <p>Click to set playback position</p>,
-          },
-          {
-            htmlSelector: "#trackbar",
-            contents: <p>Drag endpoints to set loop</p>,
-          },
-        ]}
-      />
+      <Tutorial steps={TUTORIAL_STEPS} />
     </>
   );
 }

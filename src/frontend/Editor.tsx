@@ -1,6 +1,6 @@
 import { useCallback, useContext, useEffect, useMemo } from "react";
 import { useDebounce } from "./lib/useDebounce";
-import { Tutorial } from "./components/Tutorial";
+import { Tutorial, type TutorialStep } from "./components/Tutorial";
 import { PianoRoll } from "./components/PianoRoll";
 import { PlaybackContext } from "./playback/PlaybackContext";
 import { AudioStore } from "./AudioStore";
@@ -11,19 +11,35 @@ import { loadSession, saveSession } from "./lib/useSessionPersistence";
 import type { Section } from "./lib/waveform";
 import { capture } from "./lib/posthog";
 import { Waveform } from "./components/Waveform";
-import { useAlwaysAwake } from "./lib/useAlwaysAwake";
 import { AlwaysAwakeIndicator } from "./components/AlwaysAwakeIndicator";
+
+const TUTORIAL_STEPS: TutorialStep[] = [
+  {
+    htmlSelector: "#waveform-canvas",
+    contents: <p>Click to set playback position</p>,
+  },
+  {
+    htmlSelector: "#waveform-canvas",
+    contents: <p>Drag to pan</p>,
+  },
+  {
+    htmlSelector: "#waveform-canvas",
+    contents: <p>Pinch to zoom in/out</p>,
+  },
+  {
+    htmlSelector: "#trackbar",
+    contents: <p>Drag endpoints to set loop</p>,
+  },
+  {
+    htmlSelector: "#piano",
+    contents: <p>Click on piano to play note</p>,
+  },
+];
 
 export const Editor = () => {
   const { audio } = useContext(AudioStore);
   if (!audio) throw new Error("Editor must be rendered within an audio route");
   const { buffer: data, filename } = audio;
-
-  const { activate, method, wakeLockError, videoError } = useAlwaysAwake();
-
-  useEffect(() => {
-    activate();
-  }, [activate]);
 
   const playback = useContext(PlaybackContext);
   if (!playback) {
@@ -65,12 +81,7 @@ export const Editor = () => {
 
   return (
     <>
-      <AlwaysAwakeIndicator
-        method={method}
-        wakeLockError={wakeLockError}
-        videoError={videoError}
-        onRetry={activate}
-      />
+      <AlwaysAwakeIndicator />
       <div className="w-full max-w-240 h-full md:h-min min-h-0 p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:py-10">
         <TitleBar />
 
@@ -99,30 +110,7 @@ export const Editor = () => {
         <PlaybackControls />
       </div>
 
-      <Tutorial
-        steps={[
-          {
-            htmlSelector: "#waveform-canvas",
-            contents: <p>Click to set playback position</p>,
-          },
-          {
-            htmlSelector: "#waveform-canvas",
-            contents: <p>Drag to pan</p>,
-          },
-          {
-            htmlSelector: "#waveform-canvas",
-            contents: <p>Pinch to zoom in/out</p>,
-          },
-          {
-            htmlSelector: "#trackbar",
-            contents: <p>Drag endpoints to set loop</p>,
-          },
-          {
-            htmlSelector: "#piano",
-            contents: <p>Click on piano to play note</p>,
-          },
-        ]}
-      />
+      <Tutorial steps={TUTORIAL_STEPS} />
     </>
   );
 };

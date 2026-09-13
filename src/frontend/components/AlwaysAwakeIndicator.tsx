@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Tooltip } from "@base-ui/react/tooltip";
 import { CoffeeIcon, ArrowCounterClockwiseIcon } from "@phosphor-icons/react";
-import type { AwakeState } from "../lib/useAlwaysAwake";
+import { useAlwaysAwake, type AwakeState } from "../lib/useAlwaysAwake";
 
 function iconColor({ method, wakeLockError, videoError }: AwakeState): string {
   if (method === "wake-lock" || method === "video") return "var(--color-play)";
@@ -9,18 +9,21 @@ function iconColor({ method, wakeLockError, videoError }: AwakeState): string {
   return "#a3a3a3";
 }
 
-export function AlwaysAwakeIndicator(
-  props: AwakeState & { onRetry?: () => void },
-) {
-  const { method, wakeLockError, videoError, onRetry } = props;
+export function AlwaysAwakeIndicator() {
+  const { activate, method, wakeLockError, videoError } = useAlwaysAwake();
+
+  useEffect(() => {
+    activate();
+  }, [activate]);
+
   const [open, setOpen] = useState(false);
   const isFailed = method === null && (wakeLockError || videoError);
 
   return (
     <div className="fixed top-3 right-4 z-50 flex items-center gap-2">
-      {isFailed && onRetry && (
+      {isFailed && (
         <button
-          onClick={onRetry}
+          onClick={activate}
           aria-label="Retry wake lock"
           className="cursor-pointer bg-transparent border-0 p-0"
         >
@@ -35,7 +38,11 @@ export function AlwaysAwakeIndicator(
             setOpen((v) => !v);
           }}
         >
-          <CoffeeIcon size={20} weight="fill" color={iconColor(props)} />
+          <CoffeeIcon
+            size={20}
+            weight="fill"
+            color={iconColor({ method, wakeLockError, videoError })}
+          />
         </Tooltip.Trigger>
         <Tooltip.Portal>
           <Tooltip.Positioner side="bottom" align="end" sideOffset={6}>
