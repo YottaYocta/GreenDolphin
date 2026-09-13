@@ -128,7 +128,7 @@ export const Editor = () => {
             <Dialog.Title className="font-inria text-black/60 text-center">
               Welcome to GreenDolphin!
               <br />
-              Would you like to see a walkthrough of the features?
+              Would you like a tutorial?
             </Dialog.Title>
             <div className="flex justify-center gap-4">
               <button
