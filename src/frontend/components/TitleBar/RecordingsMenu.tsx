@@ -19,8 +19,6 @@ import {
 import { useAddYouTubeVideo } from "../../lib/useAddYouTube";
 import { NewRecordingDialog } from "../NewRecordingDialog";
 
-const headerBtn = "btn-surface rounded-lg gap-2 py-3.25";
-
 export function RecordingsMenu() {
   const decodeFile = useDecodeFile();
   const { cachedFiles, cacheFile } = useContext(RecordingsStore);
@@ -43,11 +41,11 @@ export function RecordingsMenu() {
   };
 
   return (
-    <div className="shrink-0">
+    <div className="flex-1 min-w-0">
       <Menu.Root>
         <Menu.Trigger
           aria-label="Switch recording"
-          className={`${headerBtn} group w-12 h-12 cursor-pointer rounded-r-none`}
+          className="btn-surface group w-full h-12 cursor-pointer min-w-0 justify-start gap-4 px-5 py-3.25 rounded-lg rounded-r-none"
         >
           <CaretRightIcon
             size={16}
@@ -56,6 +54,9 @@ export function RecordingsMenu() {
             className="transition-transform group-data-popup-open:rotate-90"
             style={{ opacity: 0.5, flexShrink: 0 }}
           />
+          <span className="font-inria text-black text-base/5 truncate min-w-0">
+            {stripYouTubeExt(filename)}
+          </span>
         </Menu.Trigger>
         <Menu.Portal>
           <Menu.Positioner side="bottom" align="start" sideOffset={8}>
