@@ -11,6 +11,7 @@ import { loadLoopPrefs } from "../lib/loopPrefs";
 import { clampSection } from "../lib/util";
 import { capture } from "../lib/posthog";
 import { useYouTubePlayer } from "./useYouTubePlayer";
+import { describeYouTubeError } from "./iframeApi";
 import {
   YouTubePlaybackProvider,
   YOUTUBE_SAMPLE_RATE,
@@ -23,9 +24,8 @@ export const YouTubeEditor = () => {
   if (!video)
     throw new Error("YouTubeEditor must be rendered within a video route");
 
-  const { containerRef, player, duration, subscribe } = useYouTubePlayer(
-    video.videoId,
-  );
+  const { containerRef, player, duration, errorCode, subscribe } =
+    useYouTubePlayer(video.videoId);
 
   const initialSettings = useMemo(() => {
     const session = loadSession();
@@ -47,6 +47,7 @@ export const YouTubeEditor = () => {
       <YouTubeEditorView
         containerRef={containerRef}
         duration={duration}
+        errorCode={errorCode}
         filename={video.filename}
         initialSelection={initialSettings?.loop}
       />
@@ -57,11 +58,13 @@ export const YouTubeEditor = () => {
 function YouTubeEditorView({
   containerRef,
   duration,
+  errorCode,
   filename,
   initialSelection,
 }: {
   containerRef: RefObject<HTMLDivElement | null>;
   duration: number;
+  errorCode: number | null;
   filename: string;
   initialSelection?: Section;
 }) {
@@ -111,7 +114,11 @@ function YouTubeEditorView({
           </div>
         </div>
         <div className="px-4 pb-4">
-          {ready ? (
+          {errorCode !== null ? (
+            <div className="w-full h-8 pt-1 flex items-center justify-center text-sm text-red-600/80 font-inria">
+              {describeYouTubeError(errorCode)}
+            </div>
+          ) : ready ? (
             <Trackbar
               positionMS={playbackPosition}
               metadata={metadataRef}

@@ -9,6 +9,7 @@ export function useYouTubePlayer(videoId: string) {
   const listenerRef = useRef<PlayerStateListener | null>(null);
   const [player, setPlayer] = useState<YouTubePlayer | null>(null);
   const [duration, setDuration] = useState(0);
+  const [errorCode, setErrorCode] = useState<number | null>(null);
 
   const subscribe = useCallback((listener: PlayerStateListener) => {
     listenerRef.current = listener;
@@ -47,6 +48,10 @@ export function useYouTubePlayer(videoId: string) {
             if (d > 0) setDuration(d);
             listenerRef.current?.(e.data);
           },
+          onError: (e) => {
+            if (cancelled) return;
+            setErrorCode(e.data);
+          },
         },
       });
     });
@@ -55,6 +60,7 @@ export function useYouTubePlayer(videoId: string) {
       cancelled = true;
       setPlayer(null);
       setDuration(0);
+      setErrorCode(null);
       try {
         instance?.destroy();
       } catch {
@@ -64,5 +70,5 @@ export function useYouTubePlayer(videoId: string) {
     };
   }, [videoId]);
 
-  return { containerRef, player, duration, subscribe };
+  return { containerRef, player, duration, errorCode, subscribe };
 }

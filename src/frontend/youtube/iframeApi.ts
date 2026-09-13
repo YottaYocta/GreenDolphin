@@ -12,6 +12,20 @@ export interface YouTubePlayer {
 export const YT_STATE_PLAYING = 1;
 export const YT_STATE_PAUSED = 2;
 
+export function describeYouTubeError(code: number): string {
+  switch (code) {
+    case 2:
+      return "That video link looks invalid.";
+    case 100:
+      return "This video was removed or is private.";
+    case 101:
+    case 150:
+      return "The owner of this video doesn't allow it to be played outside YouTube.";
+    default:
+      return "This video couldn't be played.";
+  }
+}
+
 export interface YouTubePlayerOptions {
   videoId: string;
   width?: string | number;
@@ -20,6 +34,7 @@ export interface YouTubePlayerOptions {
   events?: {
     onReady?: (e: { target: YouTubePlayer }) => void;
     onStateChange?: (e: { target: YouTubePlayer; data: number }) => void;
+    onError?: (e: { target: YouTubePlayer; data: number }) => void;
   };
 }
 
