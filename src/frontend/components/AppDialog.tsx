@@ -34,7 +34,7 @@ export function AppDialog({
               />
             </Dialog.Close>
           </div>
-          <div className="px-6 py-5">{children}</div>
+          <div className="p-6">{children}</div>
         </Dialog.Popup>
       </Dialog.Portal>
     </Dialog.Root>
