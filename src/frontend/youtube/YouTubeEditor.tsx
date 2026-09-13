@@ -90,10 +90,15 @@ function YouTubeEditorView({
   });
 
   useEffect(() => {
+    if (totalMS <= 0) return;
     const full = { start: 0, end: totalMS };
+    const selection = metadataRef.current.selection;
     metadataRef.current = {
       viewport: full,
-      selection: clampSection(metadataRef.current.selection, full),
+      selection:
+        selection.end > selection.start
+          ? clampSection(selection, full)
+          : full,
     };
   }, [totalMS]);
 
