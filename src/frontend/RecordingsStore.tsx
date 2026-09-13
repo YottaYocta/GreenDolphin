@@ -39,7 +39,7 @@ export function RecordingsStoreProvider({ children }: { children: ReactNode }) {
         loadMetaFromCache(),
       ]);
       if (localStorage.getItem(FIRST_VISIT_KEY) !== "true") {
-        const filename = "Wynton Kelly - On Green Dolphin Street [EXCERPT].mp3";
+        const filename = "Wynton Kelly - On Green Dolphin Street.mp3";
         const res = await fetch(`/${encodeURIComponent(filename)}`).catch(() => null);
         if (res?.ok) {
           const blob = await res.blob();

@@ -1,13 +1,10 @@
 import { useContext } from "react";
+import { FileMagnifyingGlassIcon } from "@phosphor-icons/react";
 import { Dialog } from "@base-ui/react/dialog";
 import { AudioStore } from "../../AudioStore";
 import { RecordingsStore } from "../../RecordingsStore";
-import { formatSeconds, formatSize } from "../../lib/util";
-import { stripYouTubeExt } from "../../lib/youtubeFile";
+import { formatSeconds, formatSize, stripExt } from "../../lib/util";
 import { AppDialog } from "../AppDialog";
-
-const headerBtn =
-  "btn-surface rounded-lg rounded-l-none border-l-0 gap-2 px-5 py-3.25";
 
 function FileInfoCell({ label, value }: { label: string; value: string }) {
   return (
@@ -22,23 +19,18 @@ function FileInfoCell({ label, value }: { label: string; value: string }) {
   );
 }
 
-function InfoDialog({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function InfoDialog({ children }: { children: React.ReactNode }) {
   return (
     <AppDialog
       title="File Info"
       trigger={
-        <Dialog.Trigger
-          className={`${headerBtn} flex-1 min-w-0 h-12 cursor-pointer`}
-        >
-          <span className="font-inria text-black text-base/5 truncate min-w-0">
-            {label}
-          </span>
+        <Dialog.Trigger className="btn-surface rounded-lg rounded-l-none border-l-0 w-12 h-12 shrink-0 cursor-pointer">
+          <FileMagnifyingGlassIcon
+            size={18}
+            weight="fill"
+            color="var(--color-icon)"
+            style={{ opacity: 0.54, flexShrink: 0 }}
+          />
         </Dialog.Trigger>
       }
     >
@@ -54,10 +46,10 @@ export function FileInfoButton() {
   if (video) {
     const uploadedAt = fileMeta.get(video.filename)?.uploadedAt;
     return (
-      <InfoDialog label={stripYouTubeExt(video.filename)}>
+      <InfoDialog>
         <div className="flex flex-col gap-6 p-2">
           <span className="font-inria text-black text-lg min-w-0">
-            {stripYouTubeExt(video.filename)}
+            {stripExt(video.filename)}
           </span>
           <div className="flex flex-col gap-6">
             <div className="flex gap-4">
@@ -88,11 +80,11 @@ export function FileInfoButton() {
   const uploadedAt = fileMeta.get(filename)?.uploadedAt;
 
   return (
-    <InfoDialog label={filename}>
+    <InfoDialog>
       <div className="flex flex-col gap-6 p-2">
         <div className="flex gap-4 flex-col items-start">
           <span className="font-inria text-black text-lg min-w-0">
-            {filename}
+            {stripExt(filename)}
           </span>
         </div>
         <div className="flex flex-col gap-6">

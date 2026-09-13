@@ -9,17 +9,11 @@ import {
 import { AudioStore } from "../../AudioStore";
 import { RecordingsStore } from "../../RecordingsStore";
 import { useDecodeFile } from "../../lib/useDecodeFile";
-import { noteColor } from "../../lib/util";
+import { noteColor, stripExt } from "../../lib/util";
 import { capture } from "../../lib/posthog";
-import {
-  isYouTubeFile,
-  readYouTubeFile,
-  stripYouTubeExt,
-} from "../../lib/youtubeFile";
+import { isYouTubeFile, readYouTubeFile } from "../../lib/youtubeFile";
 import { useAddYouTubeVideo } from "../../lib/useAddYouTube";
 import { NewRecordingDialog } from "../NewRecordingDialog";
-
-const headerBtn = "btn-surface rounded-lg gap-2 py-3.25";
 
 export function RecordingsMenu() {
   const decodeFile = useDecodeFile();
@@ -43,11 +37,11 @@ export function RecordingsMenu() {
   };
 
   return (
-    <div className="shrink-0">
+    <div className="flex-1 min-w-0">
       <Menu.Root>
         <Menu.Trigger
           aria-label="Switch recording"
-          className={`${headerBtn} group w-12 h-12 cursor-pointer rounded-r-none`}
+          className="btn-surface group w-full h-12 cursor-pointer min-w-0 justify-start gap-4 px-4 py-3.25 rounded-lg rounded-r-none"
         >
           <CaretRightIcon
             size={16}
@@ -56,6 +50,9 @@ export function RecordingsMenu() {
             className="transition-transform group-data-popup-open:rotate-90"
             style={{ opacity: 0.5, flexShrink: 0 }}
           />
+          <span className="font-inria text-black text-base/5 truncate min-w-0">
+            {stripExt(filename)}
+          </span>
         </Menu.Trigger>
         <Menu.Portal>
           <Menu.Positioner side="bottom" align="start" sideOffset={8}>
@@ -80,31 +77,31 @@ export function RecordingsMenu() {
                   </div>
                 ) : (
                   otherFiles.map((file) => (
-                      <Menu.Item
-                        key={file.name}
-                        className="flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-neutral-50 active:bg-neutral-100"
-                        onClick={() => openFile(file).catch(console.error)}
-                      >
-                        {isYouTubeFile(file) ? (
-                          <YoutubeLogoIcon
-                            size={18}
-                            weight="fill"
-                            color="#FF0000"
-                            style={{ flexShrink: 0, opacity: 0.8 }}
-                          />
-                        ) : (
-                          <MusicNoteIcon
-                            size={18}
-                            weight="fill"
-                            color={noteColor(file.name)}
-                            style={{ flexShrink: 0 }}
-                          />
-                        )}
-                        <span className="flex-1 min-w-0 font-inria text-base/5 truncate text-black">
-                          {stripYouTubeExt(file.name)}
-                        </span>
-                      </Menu.Item>
-                    ))
+                    <Menu.Item
+                      key={file.name}
+                      className="flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-neutral-50 active:bg-neutral-100"
+                      onClick={() => openFile(file).catch(console.error)}
+                    >
+                      {isYouTubeFile(file) ? (
+                        <YoutubeLogoIcon
+                          size={18}
+                          weight="fill"
+                          color="#FF0000"
+                          style={{ flexShrink: 0, opacity: 0.8 }}
+                        />
+                      ) : (
+                        <MusicNoteIcon
+                          size={18}
+                          weight="fill"
+                          color={noteColor(file.name)}
+                          style={{ flexShrink: 0 }}
+                        />
+                      )}
+                      <span className="flex-1 min-w-0 font-inria text-base/5 truncate text-black">
+                        {stripExt(file.name)}
+                      </span>
+                    </Menu.Item>
+                  ))
                 )}
               </div>
             </Menu.Popup>

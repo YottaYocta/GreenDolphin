@@ -25,6 +25,10 @@ export function noteColor(filename: string): string {
   return NOTE_COLORS[hashFilename(filename) % NOTE_COLORS.length];
 }
 
+export function stripExt(filename: string): string {
+  return filename.replace(/\.[^./\\]+$/, "");
+}
+
 export function relativeDate(ts: number): string {
   const now = Date.now();
   const diffMs = now - ts;

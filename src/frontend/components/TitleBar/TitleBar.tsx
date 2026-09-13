@@ -6,7 +6,7 @@ import { EditorSettings } from "./EditorSettings";
 export function TitleBar() {
   return (
     <div className="[font-synthesis:none] grid grid-cols-4 antialiased gap-4">
-      <div className="col-span-2 flex">
+      <div className="col-span-2 min-w-0 flex">
         <RecordingsMenu />
 
         <FileInfoButton />
