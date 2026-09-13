@@ -25,6 +25,7 @@ export function NewRecordingDialog({
 
   const handleAdd = async () => {
     const videoId = parseYouTubeVideoId(url);
+    console.debug("[youtube] parse", JSON.stringify(url), "->", videoId);
     if (!videoId) {
       setError("Couldn't find a video in that link.");
       return;

@@ -61,6 +61,7 @@ export async function lookupYouTubeVideo(
     const res = await fetch(
       `https://www.youtube.com/oembed?url=${encodeURIComponent(watchUrl)}&format=json`,
     );
+    console.debug("[youtube] oembed lookup", videoId, "status:", res.status);
     if (res.ok) {
       const json = (await res.json()) as { title?: unknown };
       return {
@@ -73,9 +74,10 @@ export async function lookupYouTubeVideo(
     if (res.status === 400 || res.status === 404)
       return { status: "not-found" };
     return { status: "unknown" };
-  } catch {
+  } catch (err) {
     // Network failure or a blocking CSP — can't tell anything about the
     // video, so let the add proceed and rely on the player's onError.
+    console.warn("[youtube] oembed lookup threw for", videoId, err);
     return { status: "unknown" };
   }
 }

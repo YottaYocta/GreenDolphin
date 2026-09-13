@@ -12,6 +12,7 @@ export function useAddYouTubeVideo() {
   return useCallback(
     async (videoId: string, url: string) => {
       const lookup = await lookupYouTubeVideo(videoId);
+      console.debug("[youtube] add", videoId, "lookup:", lookup.status);
       if (lookup.status === "not-embeddable")
         throw new YouTubeAddError(
           "The owner of this video doesn't allow it to be played outside YouTube.",
