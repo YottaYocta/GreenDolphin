@@ -7,9 +7,6 @@ import { formatSeconds, formatSize } from "../../lib/util";
 import { stripYouTubeExt } from "../../lib/youtubeFile";
 import { AppDialog } from "../AppDialog";
 
-const headerBtn =
-  "btn-surface rounded-lg rounded-l-none border-l-0 gap-2 px-5 py-3.25";
-
 function FileInfoCell({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-1 flex-1">
@@ -28,7 +25,7 @@ function InfoDialog({ children }: { children: React.ReactNode }) {
     <AppDialog
       title="File Info"
       trigger={
-        <Dialog.Trigger className={`${headerBtn} w-fit h-12 cursor-pointer`}>
+        <Dialog.Trigger className="btn-surface rounded-lg rounded-l-none border-l-0 w-12 h-12 shrink-0 cursor-pointer">
           <FileMagnifyingGlassIcon
             size={18}
             weight="fill"
