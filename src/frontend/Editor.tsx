@@ -1,7 +1,7 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { InfoIcon } from "@phosphor-icons/react";
 import { useDebounce } from "./lib/useDebounce";
-import { AppDialog } from "./components/AppDialog";
+import { Dialog } from "@base-ui/react/dialog";
 import { Tutorial } from "./components/Tutorial";
 import { PianoRoll } from "./components/PianoRoll";
 import { PlaybackContext } from "./playback/PlaybackContext";
@@ -22,11 +22,8 @@ export const Editor = () => {
   if (!audio) throw new Error("Editor must be rendered within an audio route");
   const { buffer: data, filename } = audio;
 
-  const {
-    isFirstVisit: showTutorial,
-    markVisited: markTutorialShown,
-    resetVisit: retriggerTutorial,
-  } = useFirstVisit();
+  const { isFirstVisit: showTutorial, markVisited: markTutorialShown } =
+    useFirstVisit();
   const [walkthroughActive, setWalkthroughActive] = useState(false);
 
   const { activate, method, wakeLockError, videoError } = useAlwaysAwake();
@@ -109,9 +106,9 @@ export const Editor = () => {
         <PlaybackControls />
       </div>
 
-      {!showTutorial && (
+      {!showTutorial && !walkthroughActive && (
         <button
-          onClick={retriggerTutorial}
+          onClick={() => setWalkthroughActive(true)}
           aria-label="Restart tutorial"
           className="fixed top-3 left-4 z-50 cursor-pointer bg-transparent border-0 p-0"
         >
@@ -119,33 +116,37 @@ export const Editor = () => {
         </button>
       )}
 
-      <AppDialog
-        title="Tutorial"
+      <Dialog.Root
         open={showTutorial && !walkthroughActive}
         onOpenChange={(open) => {
           if (!open) markTutorialShown();
         }}
       >
-        <div className="flex flex-col gap-4">
-          <p className="font-inria text-black/60 text-center">
-            Do you want to see a tutorial?
-          </p>
-          <div className="flex justify-center gap-4">
-            <button
-              onClick={markTutorialShown}
-              className="btn-surface px-3 py-1 rounded-md cursor-pointer text-sm"
-            >
-              <span className="opacity-40">Not now</span>
-            </button>
-            <button
-              onClick={() => setWalkthroughActive(true)}
-              className="btn-surface px-3 py-1 rounded-md cursor-pointer text-sm bg-play hover:bg-play-hover active:bg-play-active [box-shadow:var(--shadow-btn-colored)] text-white"
-            >
-              Yes
-            </button>
-          </div>
-        </div>
-      </AppDialog>
+        <Dialog.Portal>
+          <Dialog.Backdrop className="fixed inset-0 bg-black/20 z-40" />
+          <Dialog.Popup className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-84 rounded-xl bg-white border border-border [box-shadow:var(--shadow-dialog)] flex flex-col gap-6 p-6 outline-none">
+            <Dialog.Title className="font-inria text-black/60 text-center">
+              Welcome to GreenDolphin!
+              <br />
+              Would you like to see a walkthrough of the features?
+            </Dialog.Title>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={markTutorialShown}
+                className="btn-surface px-3 py-1 rounded-md cursor-pointer text-sm"
+              >
+                <span className="opacity-40">Maybe later</span>
+              </button>
+              <button
+                onClick={() => setWalkthroughActive(true)}
+                className="btn-surface px-3 py-1 rounded-md cursor-pointer text-sm bg-play hover:bg-play-hover active:bg-play-active [box-shadow:var(--shadow-btn-colored)] text-white"
+              >
+                Yes
+              </button>
+            </div>
+          </Dialog.Popup>
+        </Dialog.Portal>
+      </Dialog.Root>
 
       {walkthroughActive && (
         <Tutorial
