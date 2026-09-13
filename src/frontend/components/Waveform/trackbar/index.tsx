@@ -137,6 +137,7 @@ export const Trackbar: FC<TrackbarProps> = ({
         <div
           data-trackbar-control
           className="w-full h-7 relative cursor-ew-resize touch-none"
+          id="trackbar-playhead"
           {...playheadDragProps}
         >
           <div

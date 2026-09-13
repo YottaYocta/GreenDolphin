@@ -6,8 +6,10 @@ import { AudioStore } from "../AudioStore";
 import { PlaybackContext } from "../playback/PlaybackContext";
 import { TitleBar } from "../components/TitleBar/TitleBar";
 import { Trackbar } from "../components/Waveform/trackbar";
+import { Tutorial, type TutorialStep } from "../components/Tutorial";
 import { loadSession, saveSession } from "../lib/useSessionPersistence";
 import { loadLoopPrefs } from "../lib/loopPrefs";
+import { AlwaysAwakeIndicator } from "../components/AlwaysAwakeIndicator";
 import { clampSection } from "../lib/util";
 import { capture } from "../lib/posthog";
 import { useYouTubePlayer } from "./useYouTubePlayer";
@@ -18,6 +20,17 @@ import {
 } from "./YouTubePlaybackProvider";
 import { PlaybackControls } from "../components/PlaybackControls";
 import { YouTubeSettings } from "./YouTubeSettings";
+
+const TUTORIAL_STEPS: TutorialStep[] = [
+  {
+    htmlSelector: "#trackbar-playhead",
+    contents: <p>Click to set playback position</p>,
+  },
+  {
+    htmlSelector: "#trackbar",
+    contents: <p>Drag endpoints to set loop</p>,
+  },
+];
 
 export const YouTubeEditor = () => {
   const { video } = useContext(AudioStore);
@@ -105,55 +118,60 @@ function YouTubeEditorView({
   const ready = duration > 0;
 
   return (
-    <div className="w-full max-w-240 h-full md:h-min min-h-0 p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:py-10">
-      <TitleBar />
+    <>
+      <AlwaysAwakeIndicator />
+      <div className="w-full max-w-240 h-full md:h-min min-h-0 p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:py-10">
+        <TitleBar />
 
-      <div className="relative flex flex-col rounded-xl overflow-x-hidden overflow-y-clip [box-shadow:var(--shadow-panel)] bg-white border border-border shrink-0">
-        <YouTubeSettings>
-        <div className="w-full flex justify-center p-4 pt-14 md:pt-6">
-          <div className="relative w-full max-w-120 aspect-video bg-black rounded-lg overflow-hidden">
-            <div
-              ref={containerRef}
-              className="absolute inset-0 [&_iframe]:w-full [&_iframe]:h-full"
-            />
+        <div className="relative flex flex-col rounded-xl overflow-x-hidden overflow-y-clip [box-shadow:var(--shadow-panel)] bg-white border border-border shrink-0">
+          <YouTubeSettings>
+          <div className="w-full flex justify-center p-4 pt-14 md:pt-6">
+            <div className="relative w-full max-w-120 aspect-video bg-black rounded-lg overflow-hidden">
+              <div
+                ref={containerRef}
+                className="absolute inset-0 [&_iframe]:w-full [&_iframe]:h-full"
+              />
+            </div>
           </div>
+          <div className="px-4 pb-4">
+            {errorCode !== null ? (
+              <div className="w-full h-8 pt-1 flex items-center justify-center text-sm text-red-600/80 font-inria">
+                {describeYouTubeError(errorCode)}
+              </div>
+            ) : ready ? (
+              <Trackbar
+                positionMS={playbackPosition}
+                metadata={metadataRef}
+                sampleRate={YOUTUBE_SAMPLE_RATE}
+                totalSamples={totalMS}
+                handleLoopEdit={(selection) => {
+                  metadataRef.current = { ...metadataRef.current, selection };
+                }}
+                handleLoopEditFinish={(selection) => {
+                  metadataRef.current = { ...metadataRef.current, selection };
+                  setAudioSettings({ loop: selection });
+                  capture("loop_region_set", { source: "youtube" });
+                }}
+                handlePosition={(positionMS) =>
+                  triggerAction({ type: "move", position: positionMS })
+                }
+                handleRange={(viewport) => {
+                  metadataRef.current = { ...metadataRef.current, viewport };
+                }}
+              />
+            ) : (
+              <div className="w-full h-8 pt-1 flex items-center justify-center text-sm text-black/40 font-inria">
+                Loading video…
+              </div>
+            )}
+          </div>
+          </YouTubeSettings>
         </div>
-        <div className="px-4 pb-4">
-          {errorCode !== null ? (
-            <div className="w-full h-8 pt-1 flex items-center justify-center text-sm text-red-600/80 font-inria">
-              {describeYouTubeError(errorCode)}
-            </div>
-          ) : ready ? (
-            <Trackbar
-              positionMS={playbackPosition}
-              metadata={metadataRef}
-              sampleRate={YOUTUBE_SAMPLE_RATE}
-              totalSamples={totalMS}
-              handleLoopEdit={(selection) => {
-                metadataRef.current = { ...metadataRef.current, selection };
-              }}
-              handleLoopEditFinish={(selection) => {
-                metadataRef.current = { ...metadataRef.current, selection };
-                setAudioSettings({ loop: selection });
-                capture("loop_region_set", { source: "youtube" });
-              }}
-              handlePosition={(positionMS) =>
-                triggerAction({ type: "move", position: positionMS })
-              }
-              handleRange={(viewport) => {
-                metadataRef.current = { ...metadataRef.current, viewport };
-              }}
-            />
-          ) : (
-            <div className="w-full h-8 pt-1 flex items-center justify-center text-sm text-black/40 font-inria">
-              Loading video…
-            </div>
-          )}
-        </div>
-        </YouTubeSettings>
+
+        <PlaybackControls showFreeze={false} disabled={!ready} />
       </div>
 
-      <PlaybackControls showFreeze={false} disabled={!ready} />
-    </div>
+      {ready && <Tutorial steps={TUTORIAL_STEPS} />}
+    </>
   );
 }
