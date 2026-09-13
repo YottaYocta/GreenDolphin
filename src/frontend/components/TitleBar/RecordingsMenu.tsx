@@ -45,7 +45,7 @@ export function RecordingsMenu() {
       <Menu.Root>
         <Menu.Trigger
           aria-label="Switch recording"
-          className="btn-surface group w-full h-12 cursor-pointer min-w-0 justify-start gap-4 px-5 py-3.25 rounded-lg rounded-r-none"
+          className="btn-surface group w-full h-12 cursor-pointer min-w-0 justify-start gap-4 px-3 py-3.25 rounded-lg rounded-r-none"
         >
           <CaretRightIcon
             size={16}
@@ -81,31 +81,31 @@ export function RecordingsMenu() {
                   </div>
                 ) : (
                   otherFiles.map((file) => (
-                      <Menu.Item
-                        key={file.name}
-                        className="flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-neutral-50 active:bg-neutral-100"
-                        onClick={() => openFile(file).catch(console.error)}
-                      >
-                        {isYouTubeFile(file) ? (
-                          <YoutubeLogoIcon
-                            size={18}
-                            weight="fill"
-                            color="#FF0000"
-                            style={{ flexShrink: 0, opacity: 0.8 }}
-                          />
-                        ) : (
-                          <MusicNoteIcon
-                            size={18}
-                            weight="fill"
-                            color={noteColor(file.name)}
-                            style={{ flexShrink: 0 }}
-                          />
-                        )}
-                        <span className="flex-1 min-w-0 font-inria text-base/5 truncate text-black">
-                          {stripYouTubeExt(file.name)}
-                        </span>
-                      </Menu.Item>
-                    ))
+                    <Menu.Item
+                      key={file.name}
+                      className="flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-neutral-50 active:bg-neutral-100"
+                      onClick={() => openFile(file).catch(console.error)}
+                    >
+                      {isYouTubeFile(file) ? (
+                        <YoutubeLogoIcon
+                          size={18}
+                          weight="fill"
+                          color="#FF0000"
+                          style={{ flexShrink: 0, opacity: 0.8 }}
+                        />
+                      ) : (
+                        <MusicNoteIcon
+                          size={18}
+                          weight="fill"
+                          color={noteColor(file.name)}
+                          style={{ flexShrink: 0 }}
+                        />
+                      )}
+                      <span className="flex-1 min-w-0 font-inria text-base/5 truncate text-black">
+                        {stripYouTubeExt(file.name)}
+                      </span>
+                    </Menu.Item>
+                  ))
                 )}
               </div>
             </Menu.Popup>
