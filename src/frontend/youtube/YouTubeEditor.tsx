@@ -1,17 +1,14 @@
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef } from "react";
 import type { RefObject } from "react";
-import { InfoIcon } from "@phosphor-icons/react";
-import { Dialog } from "@base-ui/react/dialog";
 import type { Section } from "../lib/waveform";
 import type { WaveformMetadata } from "../components/Waveform/types";
 import { AudioStore } from "../AudioStore";
 import { PlaybackContext } from "../playback/PlaybackContext";
 import { TitleBar } from "../components/TitleBar/TitleBar";
 import { Trackbar } from "../components/Waveform/trackbar";
-import { Tutorial } from "../components/Tutorial";
+import { TutorialFlow } from "../components/TutorialFlow";
 import { loadSession, saveSession } from "../lib/useSessionPersistence";
 import { loadLoopPrefs } from "../lib/loopPrefs";
-import { useFirstVisit } from "../lib/useFirstVisit";
 import { useAlwaysAwake } from "../lib/useAlwaysAwake";
 import { AlwaysAwakeIndicator } from "../components/AlwaysAwakeIndicator";
 import { clampSection } from "../lib/util";
@@ -83,10 +80,6 @@ function YouTubeEditorView({
     playbackSettings,
     setAudioSettings,
   } = playback;
-
-  const { isFirstVisit: showTutorial, markVisited: markTutorialShown } =
-    useFirstVisit();
-  const [walkthroughActive, setWalkthroughActive] = useState(false);
 
   const { activate, method, wakeLockError, videoError } = useAlwaysAwake();
 
@@ -179,67 +172,20 @@ function YouTubeEditorView({
         <PlaybackControls showFreeze={false} disabled={!ready} />
       </div>
 
-      {!showTutorial && !walkthroughActive && (
-        <button
-          onClick={() => setWalkthroughActive(true)}
-          aria-label="Restart tutorial"
-          className="fixed top-3 left-4 z-50 cursor-pointer bg-transparent border-0 p-0"
-        >
-          <InfoIcon size={20} color="#a3a3a3" weight="fill" />
-        </button>
-      )}
-
-      <Dialog.Root
-        open={showTutorial && !walkthroughActive}
-        onOpenChange={(open) => {
-          if (!open) markTutorialShown();
-        }}
-      >
-        <Dialog.Portal>
-          <Dialog.Backdrop className="fixed inset-0 bg-black/20 z-40" />
-          <Dialog.Popup className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-84 rounded-xl bg-white border border-border [box-shadow:var(--shadow-dialog)] flex flex-col gap-6 p-6 outline-none">
-            <Dialog.Title className="font-inria text-black/60 text-center">
-              Welcome to GreenDolphin!
-              <br />
-              Would you like a tutorial?
-            </Dialog.Title>
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={markTutorialShown}
-                className="btn-surface px-3 py-1 rounded-md cursor-pointer text-sm"
-              >
-                <span className="opacity-40">Maybe later</span>
-              </button>
-              <button
-                onClick={() => setWalkthroughActive(true)}
-                className="btn-surface px-3 py-1 rounded-md cursor-pointer text-sm bg-play hover:bg-play-hover active:bg-play-active [box-shadow:var(--shadow-btn-colored)] text-white"
-              >
-                Yes
-              </button>
-            </div>
-          </Dialog.Popup>
-        </Dialog.Portal>
-      </Dialog.Root>
-
-      {walkthroughActive && ready && (
-        <Tutorial
-          handleTutorialFinished={() => {
-            capture("tutorial_completed", { source: "youtube" });
-            markTutorialShown();
-            setWalkthroughActive(false);
-          }}
-          steps={[
-            {
-              htmlSelector: "#trackbar",
-              contents: <p>Click to set playback position</p>,
-            },
-            {
-              htmlSelector: "#trackbar",
-              contents: <p>Drag endpoints to set loop</p>,
-            },
-          ]}
-        />
-      )}
+      <TutorialFlow
+        ready={ready}
+        source="youtube"
+        steps={[
+          {
+            htmlSelector: "#trackbar-playhead",
+            contents: <p>Click to set playback position</p>,
+          },
+          {
+            htmlSelector: "#trackbar",
+            contents: <p>Drag endpoints to set loop</p>,
+          },
+        ]}
+      />
     </>
   );
 }
