@@ -20,11 +20,11 @@ const TUTORIAL_STEPS: TutorialStep[] = [
   },
   {
     htmlSelector: "#waveform-canvas",
-    contents: <p>Drag to pan</p>,
+    contents: <p>Pinch to zoom in/out</p>,
   },
   {
     htmlSelector: "#waveform-canvas",
-    contents: <p>Pinch to zoom in/out</p>,
+    contents: <p>Drag to pan</p>,
   },
   {
     htmlSelector: "#trackbar",
