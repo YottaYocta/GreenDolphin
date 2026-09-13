@@ -55,7 +55,7 @@ export function NewRecordingDialog({
             onOpenChange(false);
             onUpload();
           }}
-          className="btn-surface rounded-xl gap-2 h-12 w-full cursor-pointer"
+          className="btn-surface rounded-lg gap-2 h-12 w-full cursor-pointer"
         >
           <MusicNotesPlusIcon
             size={20}
@@ -83,7 +83,7 @@ export function NewRecordingDialog({
               if (e.key === "Enter") handleAdd();
             }}
             placeholder="https://www.youtube.com/watch?v=…"
-            className="w-full rounded-xl bg-surface-input h-12 px-3 font-space-mono text-sm/5 text-black/60 outline-none placeholder:text-black/25"
+            className="w-full rounded-lg bg-surface-input h-12 px-3 font-space-mono text-sm/5 text-black/60 outline-none placeholder:text-black/25"
           />
           {error && (
             <p className="text-sm text-red-600/80 font-inria">{error}</p>
@@ -91,7 +91,7 @@ export function NewRecordingDialog({
           <button
             onClick={handleAdd}
             disabled={isAdding}
-            className="btn-surface rounded-xl gap-2 h-12 w-full cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+            className="btn-surface rounded-lg gap-2 h-12 w-full cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {isAdding ? (
               <SpinnerIcon
