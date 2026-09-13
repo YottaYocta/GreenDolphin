@@ -123,17 +123,17 @@ function YouTubeEditorView({
       <div className="w-full max-w-240 h-full md:h-min min-h-0 p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:py-10">
         <TitleBar />
 
-        <div className="relative flex flex-col rounded-xl overflow-x-hidden overflow-y-clip [box-shadow:var(--shadow-panel)] bg-white border border-border shrink-0">
+        <div className="relative flex flex-col rounded-xl overflow-x-hidden overflow-y-clip [box-shadow:var(--shadow-panel)] bg-white border border-border flex-1 min-h-0 md:min-h-72 max-md:grow">
           <YouTubeSettings>
-          <div className="w-full flex justify-center p-4 pt-14 md:pt-6">
-            <div className="relative w-full max-w-120 aspect-video bg-black rounded-lg overflow-hidden">
+          <div className="w-full flex items-center justify-center p-4 pt-14 md:pt-6 flex-1 min-h-0">
+            <div className="relative aspect-video w-full h-full max-w-150 max-h-full bg-black rounded-lg overflow-hidden">
               <div
                 ref={containerRef}
                 className="absolute inset-0 [&_iframe]:w-full [&_iframe]:h-full"
               />
             </div>
           </div>
-          <div className="px-4 pb-4">
+          <div className="px-4 pb-4 shrink-0">
             {errorCode !== null ? (
               <div className="w-full h-8 pt-1 flex items-center justify-center text-sm text-red-600/80 font-inria">
                 {describeYouTubeError(errorCode)}

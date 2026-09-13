@@ -150,10 +150,12 @@ const SettingsRow: FC<{
   label: string;
   center: React.ReactNode;
   right: React.ReactNode;
-}> = ({ label, center, right }) => (
-  <div className="flex items-center gap-4 self-stretch max-md:flex-col max-md:items-start max-md:gap-1.5 w-full">
-    <div className="shrink-0 font-inria text-black/60 text-base/5 whitespace-nowrap flex items-center gap-1.5 justify-end max-md:justify-start max-md:text-sm max-md:text-black/50">
-      {label}
+  labelExtra?: React.ReactNode;
+}> = ({ label, center, right, labelExtra }) => (
+  <div className="flex flex-col items-start gap-0 self-stretch w-full">
+    <div className="shrink-0 font-inria text-black/50 text-sm whitespace-nowrap flex items-center gap-1.5">
+      <span>{label}</span>
+      {labelExtra}
     </div>
     <div className="flex items-center gap-4 self-stretch flex-1">
       <div className="flex-1">{center}</div>
@@ -167,10 +169,7 @@ export const NumericInput: FC<{
   onCommit: (v: number) => void;
   signed?: boolean;
   unit?: React.ReactNode;
-  onReset?: () => void;
-  resetVisible?: boolean;
-  resetLabel?: string;
-}> = ({ value, onCommit, signed, unit, onReset, resetVisible, resetLabel }) => {
+}> = ({ value, onCommit, signed, unit }) => {
   const commit = (el: HTMLInputElement) => {
     const n = parseFloat(el.value.replace(/^\+/, ""));
     if (!isNaN(n) && (signed || n >= 0)) {
@@ -181,45 +180,24 @@ export const NumericInput: FC<{
   };
 
   return (
-    <div className={`shrink-0 flex justify-start ${onReset ? "w-19" : "w-14"}`}>
-      <div
-        className={`flex items-center gap-1 px-1 py-0.5 rounded-sm bg-surface-input cursor-text overflow-hidden ${
-          onReset ? "" : "w-full"
-        }`}
-      >
-        <input
-          key={value}
-          defaultValue={value}
-          className={`font-space-mono text-black/60 text-base/5 tabular-nums bg-transparent outline-none min-w-0 text-right ${
-            onReset ? "w-8" : "w-full"
-          }`}
-          onFocus={(e) => e.currentTarget.select()}
-          onBlur={(e) => commit(e.currentTarget)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") e.currentTarget.blur();
-            if (e.key === "Escape") {
-              e.currentTarget.value = value;
-              e.currentTarget.blur();
-            }
-          }}
-        />
-        {unit && (
-          <div className="text-sm text-black/50 opacity-30 shrink-0">
-            {unit}
-          </div>
-        )}
-        {onReset && resetVisible && (
-          <button
-            type="button"
-            aria-label={resetLabel ?? "Reset"}
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={onReset}
-            className="flex items-center justify-center shrink-0 size-4 rounded-xs text-black/40 hover:text-black/70 hover:bg-black/5 cursor-pointer"
-          >
-            <ArrowClockwiseIcon size={13} weight="fill" />
-          </button>
-        )}
-      </div>
+    <div className="flex items-center gap-1 px-1 py-0.5 rounded-sm bg-surface-input cursor-text overflow-hidden w-18">
+      <input
+        key={value}
+        defaultValue={value}
+        className="font-space-mono text-black/60 text-base/5 tabular-nums bg-transparent outline-none min-w-0 text-right w-full"
+        onFocus={(e) => e.currentTarget.select()}
+        onBlur={(e) => commit(e.currentTarget)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") e.currentTarget.blur();
+          if (e.key === "Escape") {
+            e.currentTarget.value = value;
+            e.currentTarget.blur();
+          }
+        }}
+      />
+      {unit && (
+        <div className="text-sm text-black/50 opacity-30 shrink-0">{unit}</div>
+      )}
     </div>
   );
 };
@@ -289,15 +267,25 @@ export const AudioSlider: FC<{
           />
         </div>
       }
+      labelExtra={
+        value !== defaultValue && (
+          <button
+            type="button"
+            aria-label={`Reset ${label}`}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => onChange(defaultValue)}
+            className="flex items-center justify-center shrink-0 size-5 rounded-sm text-black/40 hover:text-black/70 hover:bg-black/5 cursor-pointer"
+          >
+            <ArrowClockwiseIcon size={13} weight="fill" />
+          </button>
+        )
+      }
       right={
         <NumericInput
           value={formatValue(value)}
           onCommit={onCommit}
           signed={signed}
           unit={unit}
-          onReset={() => onChange(defaultValue)}
-          resetVisible={value !== defaultValue}
-          resetLabel={`Reset ${label}`}
         />
       }
     />
