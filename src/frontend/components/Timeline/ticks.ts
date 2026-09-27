@@ -1,5 +1,5 @@
 const STEPS_S = [0.1, 0.25, 0.5, 1, 2, 5, 10, 15, 30, 60, 120, 300, 600];
-const MIN_TICK_PX = 56;
+const MIN_TICK_PX = 120;
 
 export const pickTickStep = (viewportSeconds: number, widthPx: number) => {
   const pxPerSecond = widthPx / viewportSeconds;

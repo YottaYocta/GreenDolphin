@@ -68,7 +68,7 @@ export const useAnimateTimeline = (
             const x = ((t - startS) / viewportS) * width;
             const line = `<div class="absolute inset-y-0 w-px bg-border-solid" style="left:${x}px"></div>`;
             lines += line;
-            html += `${line}<div class="absolute top-1/2 -translate-y-1/2 font-space-mono text-[9px] leading-none text-black/45 tabular-nums" style="left:${x + 4}px">${formatTick(t, step)}</div>`;
+            html += `${line}<div class="absolute top-1/2 -translate-y-1/2 font-space-mono text-[10px] leading-none text-black/30 tabular-nums" style="left:${x + 4}px">${formatTick(t, step)}</div>`;
           }
           refs.ticksRef.current.innerHTML = html;
           if (refs.contentTicksRef.current)
