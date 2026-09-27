@@ -3,13 +3,13 @@ import { tinykeys } from "tinykeys";
 import { MIN_RANGE_THRESHOLD } from "../../lib/constants";
 import { clampSection } from "../../lib/util";
 import type { Section } from "../../lib/waveform";
-import type { WaveformMetadata } from "./types";
+import type { TimelineState } from "../Timeline/types";
 
 const STEP_FRACTION = 0.1;
 
 export const useKeyboardShortcuts = (
   audioBuffer: AudioBuffer,
-  metadataRef: RefObject<WaveformMetadata>,
+  metadataRef: RefObject<TimelineState>,
   handleRange: (range: Section) => void,
 ) => {
   useEffect(() => {

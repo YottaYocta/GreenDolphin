@@ -8,12 +8,15 @@ import {
 } from "react";
 
 import { type Section } from "../../lib/waveform";
-import type { WaveformMetadata } from "./types";
+import { Timeline } from "../Timeline";
+import {
+  FULL_LOOP,
+  loopToSection,
+  sectionToLoop,
+  type TimelineState,
+} from "../Timeline/types";
 import { useAnimateWaveform } from "./useAnimateWaveform";
 import { useKeyboardShortcuts } from "./useKeyboardShortcuts";
-import { useViewportGestures } from "./useViewportGestures";
-import { clampSample, pointerToSample } from "./trackbar/dragUtils";
-import { Trackbar } from "./trackbar";
 
 interface WaveformCanvasProps {
   waveformData: AudioBuffer;
@@ -21,6 +24,9 @@ interface WaveformCanvasProps {
   initialViewport?: Section;
   initialSelection?: Section;
   handleRangeChange?: (newRange: Section) => void;
+  /** A gesture that will change the loop has started. */
+  handleLoopEditStart?: () => void;
+  /** The loop under the frame, in samples, after a gesture ends. */
   handleSelection?: (selection: Section) => void;
   handlePosition?: (position: number) => void;
 }
@@ -33,27 +39,36 @@ export const Waveform: FC<
   initialViewport,
   initialSelection,
   handleRangeChange,
+  handleLoopEditStart,
   handleSelection,
   handlePosition,
   ...props
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fullRange = { start: 0, end: waveformData.length };
-  const metadataRef = useRef<WaveformMetadata>({
+  const stateRef = useRef<TimelineState>({
     viewport: initialViewport ?? fullRange,
-    selection: initialSelection ?? fullRange,
+    loop: initialSelection
+      ? sectionToLoop(initialViewport ?? fullRange, initialSelection)
+      : FULL_LOOP,
   });
 
   useEffect(() => {
-    metadataRef.current = {
-      viewport: initialViewport ?? { start: 0, end: waveformData.length },
-      selection: initialSelection ?? { start: 0, end: waveformData.length },
+    const viewport = initialViewport ?? {
+      start: 0,
+      end: waveformData.length,
+    };
+    stateRef.current = {
+      viewport,
+      loop: initialSelection
+        ? sectionToLoop(viewport, initialSelection)
+        : FULL_LOOP,
     };
   }, [waveformData, initialViewport, initialSelection]);
 
   const handleRange = useCallback(
     (viewport: Section) => {
-      metadataRef.current = { ...metadataRef.current, viewport };
+      stateRef.current = { ...stateRef.current, viewport };
       handleRangeChange?.(viewport);
     },
     [handleRangeChange],
@@ -64,61 +79,43 @@ export const Waveform: FC<
     [handlePosition],
   );
 
-  const handleLoopEdit = useCallback((selection: Section) => {
-    metadataRef.current = { ...metadataRef.current, selection };
-  }, []);
-
-  const handleLoopEditFinish = useCallback(
-    (selection: Section) => {
-      metadataRef.current = { ...metadataRef.current, selection };
-      handleSelection?.(selection);
-    },
+  const handleLoopCommit = useCallback(
+    (selection: Section) => handleSelection?.(selection),
     [handleSelection],
   );
 
-  const handleTap = useCallback(
-    (clientX: number) => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const sample = pointerToSample(
-        clientX,
-        canvas,
-        metadataRef.current.viewport,
-      );
-      handleSetPosition(clampSample(sample, waveformData.length));
+  // Keyboard zoom/scroll is discrete, so the loop is committed right away.
+  const handleKeyboardRange = useCallback(
+    (viewport: Section) => {
+      handleRange(viewport);
+      handleLoopCommit(loopToSection(viewport, stateRef.current.loop));
     },
-    [handleSetPosition, waveformData.length],
+    [handleRange, handleLoopCommit],
   );
 
-  useViewportGestures(
-    canvasRef,
-    metadataRef,
-    waveformData.length,
-    handleRange,
-    handleTap,
-  );
-  useAnimateWaveform(canvasRef, waveformData, metadataRef, positionMS);
-  useKeyboardShortcuts(waveformData, metadataRef, handleRange);
+  useAnimateWaveform(canvasRef, waveformData, stateRef);
+  useKeyboardShortcuts(waveformData, stateRef, handleKeyboardRange);
 
   return (
-    <div className="w-full flex flex-col p-4 h-full min-h-0">
-      <canvas
-        id="waveform-canvas"
-        {...props}
-        ref={canvasRef}
-        draggable="false"
-        className="relative z-0 cursor-pointer w-full flex-1 min-w-0 min-h-0 select-none pixelated"
-      />
-      <Trackbar
-        positionMS={positionMS}
-        metadata={metadataRef}
-        sampleRate={waveformData.sampleRate}
+    <div className="w-full h-full min-h-0 p-4">
+      <Timeline
+        stateRef={stateRef}
         totalSamples={waveformData.length}
-        handleLoopEdit={handleLoopEdit}
-        handleLoopEditFinish={handleLoopEditFinish}
-        handlePosition={handleSetPosition}
-        handleRange={handleRange}
-      />
+        sampleRate={waveformData.sampleRate}
+        positionMS={positionMS}
+        onRangeChange={handleRange}
+        onPosition={handleSetPosition}
+        onLoopEditStart={handleLoopEditStart}
+        onLoopCommit={handleLoopCommit}
+      >
+        <canvas
+          id="waveform-canvas"
+          {...props}
+          ref={canvasRef}
+          draggable="false"
+          className="block w-full h-full min-w-0 min-h-0 select-none pixelated"
+        />
+      </Timeline>
     </div>
   );
 };

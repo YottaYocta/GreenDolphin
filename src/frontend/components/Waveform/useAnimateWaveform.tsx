@@ -1,13 +1,11 @@
 import { useEffect, type RefObject } from "react";
-import type { WaveformMetadata } from "./types";
 import { renderWaveform } from "../../lib/waveform";
-import { MStoSampleIndex } from "../../lib/util";
+import { loopToSection, type TimelineState } from "../Timeline/types";
 
 export const useAnimateWaveform = (
   canvasRef: RefObject<HTMLCanvasElement | null>,
   audioBuffer: AudioBuffer,
-  metadataRef: RefObject<WaveformMetadata>,
-  positionReference: RefObject<number> | undefined,
+  stateRef: RefObject<TimelineState>,
 ) => {
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -15,25 +13,16 @@ export const useAnimateWaveform = (
     let rafId: number;
 
     const draw = () => {
-      const { viewport, selection } = metadataRef.current;
-      const hasSelection =
-        selection && Math.abs(selection.end - selection.start) > 0;
+      const { viewport, loop } = stateRef.current;
+      const selection = loopToSection(viewport, loop);
       renderWaveform(
         {
           data: audioBuffer,
           viewport,
-          selection: hasSelection
-            ? {
-                start: Math.min(selection.end, selection.start),
-                end: Math.max(selection.end, selection.start),
-              }
-            : undefined,
+          selection: selection.end > selection.start ? selection : undefined,
         },
         { resolution: 10000 },
         canvas,
-        positionReference?.current
-          ? MStoSampleIndex(audioBuffer.sampleRate, positionReference.current)
-          : undefined,
       );
     };
 
@@ -55,5 +44,5 @@ export const useAnimateWaveform = (
       observer.disconnect();
       cancelAnimationFrame(rafId);
     };
-  }, [canvasRef, audioBuffer, metadataRef, positionReference]);
+  }, [canvasRef, audioBuffer, stateRef]);
 };

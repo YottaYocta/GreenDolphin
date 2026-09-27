@@ -1,11 +1,15 @@
-import { useContext, useEffect, useMemo, useRef } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef } from "react";
 import type { RefObject } from "react";
 import type { Section } from "../lib/waveform";
-import type { WaveformMetadata } from "../components/Waveform/types";
+import { Timeline } from "../components/Timeline";
+import {
+  FULL_LOOP,
+  sectionToLoop,
+  type TimelineState,
+} from "../components/Timeline/types";
 import { AudioStore } from "../AudioStore";
 import { PlaybackContext } from "../playback/PlaybackContext";
 import { TitleBar } from "../components/TitleBar/TitleBar";
-import { Trackbar } from "../components/Waveform/trackbar";
 import { Tutorial, type TutorialStep } from "../components/Tutorial";
 import { loadSession, saveSession } from "../lib/useSessionPersistence";
 import { loadLoopPrefs } from "../lib/loopPrefs";
@@ -23,12 +27,12 @@ import { YouTubeSettings } from "./YouTubeSettings";
 
 const TUTORIAL_STEPS: TutorialStep[] = [
   {
-    htmlSelector: "#trackbar-playhead",
+    htmlSelector: "#timeline-ruler",
     contents: <p>Click to set playback position</p>,
   },
   {
-    htmlSelector: "#trackbar",
-    contents: <p>Drag endpoints to set loop</p>,
+    htmlSelector: "#timeline-loop",
+    contents: <p>The loop stays put — drag the handles or pan the video under it</p>,
   },
 ];
 
@@ -96,24 +100,41 @@ function YouTubeEditorView({
   }, [filename, playbackSettings]);
 
   const totalMS = duration * 1000;
-  const fullRange = { start: 0, end: totalMS };
-  const metadataRef = useRef<WaveformMetadata>({
-    viewport: fullRange,
-    selection: initialSelection ?? fullRange,
+  const stateRef = useRef<TimelineState>({
+    viewport: { start: 0, end: totalMS },
+    loop: FULL_LOOP,
   });
 
   useEffect(() => {
     if (totalMS <= 0) return;
     const full = { start: 0, end: totalMS };
-    const selection = metadataRef.current.selection;
-    metadataRef.current = {
+    stateRef.current = {
       viewport: full,
-      selection:
-        selection.end > selection.start
-          ? clampSection(selection, full)
-          : full,
+      loop:
+        initialSelection && initialSelection.end > initialSelection.start
+          ? sectionToLoop(full, clampSection(initialSelection, full))
+          : FULL_LOOP,
     };
-  }, [totalMS]);
+  }, [totalMS, initialSelection]);
+
+  const handleRange = useCallback((viewport: Section) => {
+    stateRef.current = { ...stateRef.current, viewport };
+  }, []);
+  const handlePosition = useCallback(
+    (positionMS: number) => triggerAction({ type: "move", position: positionMS }),
+    [triggerAction],
+  );
+  const handleLoopEditStart = useCallback(
+    () => setAudioSettings({ loop: undefined }),
+    [setAudioSettings],
+  );
+  const handleLoopCommit = useCallback(
+    (selection: Section) => {
+      setAudioSettings({ loop: selection });
+      capture("loop_region_set", { source: "youtube" });
+    },
+    [setAudioSettings],
+  );
 
   const ready = duration > 0;
 
@@ -139,26 +160,20 @@ function YouTubeEditorView({
                 {describeYouTubeError(errorCode)}
               </div>
             ) : ready ? (
-              <Trackbar
-                positionMS={playbackPosition}
-                metadata={metadataRef}
-                sampleRate={YOUTUBE_SAMPLE_RATE}
-                totalSamples={totalMS}
-                handleLoopEdit={(selection) => {
-                  metadataRef.current = { ...metadataRef.current, selection };
-                }}
-                handleLoopEditFinish={(selection) => {
-                  metadataRef.current = { ...metadataRef.current, selection };
-                  setAudioSettings({ loop: selection });
-                  capture("loop_region_set", { source: "youtube" });
-                }}
-                handlePosition={(positionMS) =>
-                  triggerAction({ type: "move", position: positionMS })
-                }
-                handleRange={(viewport) => {
-                  metadataRef.current = { ...metadataRef.current, viewport };
-                }}
-              />
+              <div className="h-24">
+                <Timeline
+                  stateRef={stateRef}
+                  totalSamples={totalMS}
+                  sampleRate={YOUTUBE_SAMPLE_RATE}
+                  positionMS={playbackPosition}
+                  onRangeChange={handleRange}
+                  onPosition={handlePosition}
+                  onLoopEditStart={handleLoopEditStart}
+                  onLoopCommit={handleLoopCommit}
+                >
+                  <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-1.5 rounded-full bg-surface-input" />
+                </Timeline>
+              </div>
             ) : (
               <div className="w-full h-8 pt-1 flex items-center justify-center text-sm text-black/40 font-inria">
                 Loading video…

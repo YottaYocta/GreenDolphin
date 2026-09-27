@@ -15,7 +15,7 @@ import { AlwaysAwakeIndicator } from "./components/AlwaysAwakeIndicator";
 
 const TUTORIAL_STEPS: TutorialStep[] = [
   {
-    htmlSelector: "#waveform-canvas",
+    htmlSelector: "#timeline-ruler",
     contents: <p>Click to set playback position</p>,
   },
   {
@@ -27,8 +27,8 @@ const TUTORIAL_STEPS: TutorialStep[] = [
     contents: <p>Drag to pan</p>,
   },
   {
-    htmlSelector: "#trackbar",
-    contents: <p>Drag endpoints to set loop</p>,
+    htmlSelector: "#timeline-loop",
+    contents: <p>The loop stays put — drag the handles or pan the recording under it</p>,
   },
   {
     htmlSelector: "#piano",
@@ -68,6 +68,20 @@ export const Editor = () => {
     250,
   );
 
+  // While a gesture is in flight the loop is lifted so playback runs free;
+  // the loop under the frame is re-applied when the gesture ends.
+  const handleLoopEditStart = useCallback(
+    () => setAudioSettings({ loop: undefined }),
+    [setAudioSettings],
+  );
+  const handleSelection = useCallback(
+    (selection: Section) => {
+      setAudioSettings({ loop: selection });
+      capture("loop_region_set");
+    },
+    [setAudioSettings],
+  );
+
   const { initialViewport, initialSelection } = useMemo(() => {
     const persistedSession = loadSession();
     const sessionMatches = persistedSession?.filename === filename;
@@ -95,10 +109,8 @@ export const Editor = () => {
                 waveformData={data}
                 handlePosition={handlePosition}
                 handleRangeChange={handleRangeChange}
-                handleSelection={(selection) => {
-                  setAudioSettings({ loop: selection });
-                  capture("loop_region_set");
-                }}
+                handleLoopEditStart={handleLoopEditStart}
+                handleSelection={handleSelection}
                 initialViewport={initialViewport}
                 initialSelection={initialSelection}
                 positionMS={playbackPosition}

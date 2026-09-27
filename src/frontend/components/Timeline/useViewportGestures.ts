@@ -5,10 +5,21 @@ import {
 } from "../../lib/constants";
 import type { Section } from "../../lib/waveform";
 import { clampSection } from "../../lib/util";
-import type { WaveformMetadata } from "./types";
+import type { TimelineState } from "./types";
+
+const WHEEL_SETTLE_MS = 250;
 
 const isControl = (target: EventTarget | null) =>
-  target instanceof Element && !!target.closest("[data-trackbar-control]");
+  target instanceof Element && !!target.closest("[data-timeline-control]");
+
+export interface ViewportGestureCallbacks {
+  /** Tap without dragging: clientX of the tap. */
+  onTap?: (clientX: number, target: EventTarget | null) => void;
+  /** A real pan / pinch / wheel gesture started (not a tap). */
+  onGestureStart?: () => void;
+  /** The gesture ended (pointer released, or wheel input settled). */
+  onGestureEnd?: () => void;
+}
 
 type Pinch = {
   idA: number;
@@ -35,10 +46,10 @@ const findOther = (list: TouchList, excludeId: number): Touch | null => {
 
 export const useViewportGestures = (
   elementRef: RefObject<HTMLElement | null>,
-  metadataRef: RefObject<WaveformMetadata>,
+  metadataRef: RefObject<TimelineState>,
   totalSamples: number,
   handleRange: (range: Section) => void,
-  onTap?: (clientX: number, target: EventTarget | null) => void,
+  { onTap, onGestureStart, onGestureEnd }: ViewportGestureCallbacks = {},
 ) => {
   const minRangeLen = useMemo(
     () => Math.floor(MIN_RANGE_THRESHOLD * totalSamples),
@@ -50,6 +61,29 @@ export const useViewportGestures = (
     if (!el) return;
     const bounds = { start: 0, end: totalSamples };
     const rectOf = () => el.getBoundingClientRect();
+
+    // Gesture bookkeeping: pointer gestures and wheel input share one
+    // "active" flag so start/end fire exactly once per gesture.
+    let active = false;
+    let wheelTimer: ReturnType<typeof setTimeout> | null = null;
+    const begin = () => {
+      if (active) return;
+      active = true;
+      onGestureStart?.();
+    };
+    const end = () => {
+      if (!active) return;
+      active = false;
+      onGestureEnd?.();
+    };
+    const touchWheel = () => {
+      begin();
+      if (wheelTimer) clearTimeout(wheelTimer);
+      wheelTimer = setTimeout(() => {
+        wheelTimer = null;
+        end();
+      }, WHEEL_SETTLE_MS);
+    };
 
     const zoomAround = (
       currentRange: number,
@@ -75,6 +109,7 @@ export const useViewportGestures = (
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       e.stopPropagation();
+      touchWheel();
       const rect = rectOf();
       const { viewport } = metadataRef.current;
       const currentRange = viewport.end - viewport.start;
@@ -111,7 +146,10 @@ export const useViewportGestures = (
 
       const onMouseMove = (m: MouseEvent) => {
         const netDx = m.clientX - e.clientX;
-        if (!dragged && Math.abs(netDx) > threshold) dragged = true;
+        if (!dragged && Math.abs(netDx) > threshold) {
+          dragged = true;
+          begin();
+        }
         if (!dragged) return;
         const targetStart =
           startRangeStart - Math.round((netDx / rect.width) * currentRange);
@@ -125,7 +163,8 @@ export const useViewportGestures = (
       const onMouseUp = () => {
         window.removeEventListener("mousemove", onMouseMove);
         window.removeEventListener("mouseup", onMouseUp);
-        if (!dragged) onTap?.(e.clientX, e.target);
+        if (dragged) end();
+        else onTap?.(e.clientX, e.target);
       };
       window.addEventListener("mousemove", onMouseMove);
       window.addEventListener("mouseup", onMouseUp);
@@ -155,6 +194,7 @@ export const useViewportGestures = (
         if (!b) return;
         const dist = Math.abs(b.clientX - a.clientX);
         if (dist === 0) return;
+        begin();
         const midFraction =
           ((a.clientX + b.clientX) / 2 - rect.left) / rect.width;
         pinch = {
@@ -181,7 +221,10 @@ export const useViewportGestures = (
           const t = findTouch(moveEvent.touches, singleId);
           if (!t) return;
           const netDx = t.clientX - startClientX;
-          if (!dragged && Math.abs(netDx) > threshold) dragged = true;
+          if (!dragged && Math.abs(netDx) > threshold) {
+            dragged = true;
+            begin();
+          }
           if (!dragged) return;
           const targetStart =
             startRangeStart - Math.round((netDx / rect.width) * startRange);
@@ -214,7 +257,8 @@ export const useViewportGestures = (
       const onEnd = (endEvent: TouchEvent) => {
         if (!pinch) {
           if (findTouch(endEvent.touches, singleId)) return;
-          if (!dragged) onTap?.(startClientX, startTarget);
+          if (dragged) end();
+          else onTap?.(startClientX, startTarget);
           cleanup();
           return;
         }
@@ -223,6 +267,7 @@ export const useViewportGestures = (
           findTouch(endEvent.touches, pinch.idB)
         )
           return;
+        end();
         cleanup();
       };
 
@@ -238,6 +283,16 @@ export const useViewportGestures = (
       el.removeEventListener("wheel", onWheel);
       el.removeEventListener("mousedown", onMouseDown);
       el.removeEventListener("touchstart", onTouchStart);
+      if (wheelTimer) clearTimeout(wheelTimer);
     };
-  }, [elementRef, metadataRef, totalSamples, handleRange, minRangeLen, onTap]);
+  }, [
+    elementRef,
+    metadataRef,
+    totalSamples,
+    handleRange,
+    minRangeLen,
+    onTap,
+    onGestureStart,
+    onGestureEnd,
+  ]);
 };
