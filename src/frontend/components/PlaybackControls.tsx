@@ -143,6 +143,27 @@ export function PlaybackControls({
     </AppDialog>
   );
 
+  const backButton = (size: number) => (
+    <button onClick={rewindFiveSeconds} disabled={disabled} className={btn}>
+      <SkipBackIcon
+        size={size}
+        weight="fill"
+        color="var(--color-icon)"
+        style={{ opacity: 0.67, flexShrink: 0 }}
+      />
+    </button>
+  );
+  const forwardButton = (size: number) => (
+    <button onClick={fastForwardFiveSeconds} disabled={disabled} className={btn}>
+      <SkipForwardIcon
+        size={size}
+        weight="fill"
+        color="var(--color-icon)"
+        style={{ opacity: 0.67, flexShrink: 0 }}
+      />
+    </button>
+  );
+
   return (
     <div className="grid gap-4 w-full h-min rounded-xl max-md:flex-1 max-md:grid-cols-2 max-md:grid-rows-2 grid-cols-4">
       <button
@@ -179,44 +200,33 @@ export function PlaybackControls({
         </span>
       </button>
 
-      {/* Second cell: freeze + settings stacked (or whichever exists). */}
-      <div className="grid grid-rows-[repeat(auto-fit,minmax(0,1fr))] gap-4 min-h-0">
-        {showFreeze && (
+      {showFreeze ? (
+        <>
           <button
             onClick={toggleFreeze}
             className={`${btn} ${playState === "frozen" ? "bg-freeze hover:bg-freeze-hover active:bg-freeze-active [box-shadow:var(--shadow-btn-colored)]" : ""}`}
           >
             <SnowflakeIcon
-              size={showFreeze && settings ? 28 : 40}
+              size={40}
               weight="fill"
               color={playState === "frozen" ? "#FFFFFF" : "var(--color-freeze)"}
               style={{ flexShrink: 0 }}
             />
           </button>
-        )}
-        {settingsButton}
-      </div>
-
-      <button onClick={rewindFiveSeconds} disabled={disabled} className={btn}>
-        <SkipBackIcon
-          size={32}
-          weight="fill"
-          color="var(--color-icon)"
-          style={{ opacity: 0.67, flexShrink: 0 }}
-        />
-      </button>
-      <button
-        onClick={fastForwardFiveSeconds}
-        disabled={disabled}
-        className={btn}
-      >
-        <SkipForwardIcon
-          size={32}
-          weight="fill"
-          color="var(--color-icon)"
-          style={{ opacity: 0.67, flexShrink: 0 }}
-        />
-      </button>
+          {/* Back and forward share one cell, side by side. */}
+          <div className="grid grid-cols-2 gap-4 min-h-0">
+            {backButton(28)}
+            {forwardButton(28)}
+          </div>
+          {settingsButton}
+        </>
+      ) : (
+        <>
+          {settingsButton}
+          {backButton(32)}
+          {forwardButton(32)}
+        </>
+      )}
     </div>
   );
 }
