@@ -9,6 +9,7 @@ import {
 import type { Section } from "../../lib/waveform";
 import { useAnimateTimeline } from "./useAnimateTimeline";
 import { useLoopHandleDrag } from "./useLoopHandleDrag";
+import { useLoopShiftDrag } from "./useLoopShiftDrag";
 import { usePlayheadGrip } from "./usePlayheadGrip";
 import { useViewportGestures } from "./useViewportGestures";
 import { loopToSection, type TimelineState } from "./types";
@@ -130,6 +131,12 @@ export const Timeline: FC<TimelineProps> = ({
     onLoopEditStart ?? (() => {}),
     commitLoop,
   );
+  const shiftDragProps = useLoopShiftDrag(
+    bandRef,
+    stateRef,
+    onLoopEditStart ?? (() => {}),
+    commitLoop,
+  );
   const gripDragProps = usePlayheadGrip(
     contentRef,
     stateRef,
@@ -217,8 +224,14 @@ export const Timeline: FC<TimelineProps> = ({
         <div ref={bandRef} className="relative w-full h-full">
           <div
             ref={bandShadeRef}
-            className="absolute inset-y-0 bg-surface-active pointer-events-none"
-          />
+            data-timeline-control
+            className="absolute inset-y-0 bg-surface-active flex items-center justify-center gap-[3px] overflow-hidden cursor-grab active:cursor-grabbing touch-none"
+            {...shiftDragProps}
+          >
+            <span className="w-px h-2 bg-black/25" />
+            <span className="w-px h-2 bg-black/25" />
+            <span className="w-px h-2 bg-black/25" />
+          </div>
           {loopHandle(leftHandleRef, "start")}
           {loopHandle(rightHandleRef, "end")}
         </div>
