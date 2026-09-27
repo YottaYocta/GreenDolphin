@@ -1,5 +1,5 @@
 import { useContext, useEffect, useRef, useState, type FC } from "react";
-import { ArrowClockwiseIcon, SlidersIcon, XIcon } from "@phosphor-icons/react";
+import { ArrowClockwiseIcon, SlidersIcon } from "@phosphor-icons/react";
 import { PlaybackContext } from "../playback/PlaybackContext";
 import { useDrag } from "../lib/useDrag";
 import { Dialog } from "@base-ui/react/dialog";
@@ -13,57 +13,30 @@ export function SettingsPanel({
   sliders: React.ReactNode;
   children?: React.ReactNode;
 }) {
-  const [expanded, setExpanded] = useState(false);
-
-  const icon = (
-    <SlidersIcon
-      size={18}
-      weight="fill"
-      color="var(--color-icon)"
-      style={{ opacity: 0.54, flexShrink: 0 }}
-    />
-  );
-
   return (
     <>
-      {expanded && (
-        <div className="max-md:hidden flex justify-between h-min p-5 gap-16 border-b border-border shrink-0">
-          {sliders}
-        </div>
-      )}
-      <div className="relative flex-1 min-h-0 flex flex-col">
-        <AppDialog
-          title="Settings"
-          trigger={
-            <Dialog.Trigger
-              aria-label="Settings"
-              className="md:hidden absolute top-2 right-2 z-20 btn-surface size-9 rounded-lg cursor-pointer"
-            >
-              {icon}
-            </Dialog.Trigger>
-          }
-        >
-          <div className="flex flex-col gap-6 pb-4">{sliders}</div>
-        </AppDialog>
-        <button
-          onClick={() => setExpanded((e) => !e)}
-          aria-expanded={expanded}
-          aria-label={expanded ? "Close settings" : "Settings"}
-          className={`max-md:hidden absolute top-2 right-2 z-20 btn-surface size-9 rounded-lg cursor-pointer ${expanded ? "bg-surface-track" : ""}`}
-        >
-          {expanded ? (
-            <XIcon
-              size={16}
-              weight="bold"
-              color="var(--color-icon)"
-              style={{ opacity: 0.4, flexShrink: 0 }}
-            />
-          ) : (
-            icon
-          )}
-        </button>
-        {children}
+      <div className="relative flex-1 min-h-0 flex flex-col">{children}</div>
+      <div className="max-md:hidden flex justify-between h-min p-5 gap-16 border-t border-border shrink-0">
+        {sliders}
       </div>
+      <AppDialog
+        title="Settings"
+        trigger={
+          <Dialog.Trigger className="btn-surface rounded-none border-0 border-t gap-3 w-full h-12 shrink-0 cursor-pointer max-md:flex hidden">
+            <SlidersIcon
+              size={24}
+              weight="fill"
+              color="var(--color-icon)"
+              style={{ opacity: 0.54, flexShrink: 0 }}
+            />
+            <span className="font-inria text-black/50 text-base/5">
+              Settings
+            </span>
+          </Dialog.Trigger>
+        }
+      >
+        <div className="flex flex-col gap-6 pb-4">{sliders}</div>
+      </AppDialog>
     </>
   );
 }

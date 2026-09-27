@@ -146,7 +146,7 @@ function YouTubeEditorView({
 
         <div className="relative flex flex-col rounded-xl overflow-x-hidden overflow-y-clip [box-shadow:var(--shadow-panel)] bg-white border border-border flex-1 min-h-0 md:min-h-72 max-md:grow">
           <YouTubeSettings>
-          <div className="w-full flex items-center justify-center p-4 pt-14 md:pt-6 min-h-0 shrink overflow-hidden">
+          <div className="w-full flex items-center justify-center p-4 md:pt-6 min-h-0 shrink overflow-hidden">
             <div className="relative aspect-video h-[min(9rem,18dvh)] md:h-45 max-w-full bg-black rounded-lg overflow-hidden opacity-90">
               <div
                 ref={containerRef}
