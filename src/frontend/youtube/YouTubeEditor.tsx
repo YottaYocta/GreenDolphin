@@ -24,7 +24,6 @@ import {
 } from "./YouTubePlaybackProvider";
 import { PlaybackControls } from "../components/PlaybackControls";
 import { useYouTubeSliders } from "./YouTubeSettings";
-import { SettingsBar, SettingsPanel } from "../components/PlaybackSettings";
 
 const TUTORIAL_STEPS: TutorialStep[] = [
   {
@@ -148,7 +147,7 @@ function YouTubeEditorView({
         <TitleBar />
 
         <div className="relative flex flex-col rounded-xl overflow-x-hidden overflow-y-clip [box-shadow:var(--shadow-panel)] bg-white border border-border flex-1 min-h-0 md:min-h-72 max-md:grow">
-          <SettingsPanel sliders={sliders}>
+          <div className="relative flex-1 min-h-0 flex flex-col">
           <div className="w-full flex items-center justify-center p-4 md:pt-6 min-h-0 shrink overflow-hidden">
             <div className="relative aspect-video h-[min(9rem,18dvh)] md:h-45 max-w-full bg-black rounded-lg overflow-hidden opacity-90">
               <div
@@ -185,12 +184,14 @@ function YouTubeEditorView({
               </div>
             )}
           </div>
-          </SettingsPanel>
+          </div>
         </div>
 
-        <SettingsBar sliders={sliders} />
-
-        <PlaybackControls showFreeze={false} disabled={!ready} />
+        <PlaybackControls
+          showFreeze={false}
+          disabled={!ready}
+          settings={sliders}
+        />
       </div>
 
       {ready && <Tutorial steps={TUTORIAL_STEPS} />}

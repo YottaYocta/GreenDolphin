@@ -1,52 +1,8 @@
 import { useContext, useEffect, useRef, useState, type FC } from "react";
-import { ArrowClockwiseIcon, SlidersIcon } from "@phosphor-icons/react";
+import { ArrowClockwiseIcon } from "@phosphor-icons/react";
 import { PlaybackContext } from "../playback/PlaybackContext";
 import { useDrag } from "../lib/useDrag";
-import { Dialog } from "@base-ui/react/dialog";
-import { AppDialog } from "./AppDialog";
 import { capture } from "../lib/posthog";
-
-/** Card-internal shell: content plus the mobile Settings button. */
-export function SettingsPanel({
-  sliders,
-  children,
-}: {
-  sliders: React.ReactNode;
-  children?: React.ReactNode;
-}) {
-  return (
-    <>
-      <div className="relative flex-1 min-h-0 flex flex-col">{children}</div>
-      <AppDialog
-        title="Settings"
-        trigger={
-          <Dialog.Trigger className="btn-surface rounded-none border-0 border-t gap-3 w-full h-12 shrink-0 cursor-pointer max-md:flex hidden">
-            <SlidersIcon
-              size={24}
-              weight="fill"
-              color="var(--color-icon)"
-              style={{ opacity: 0.54, flexShrink: 0 }}
-            />
-            <span className="font-inria text-black/50 text-base/5">
-              Settings
-            </span>
-          </Dialog.Trigger>
-        }
-      >
-        <div className="flex flex-col gap-6 pb-4">{sliders}</div>
-      </AppDialog>
-    </>
-  );
-}
-
-/** Desktop settings row, rendered on the page between the card and the controls. */
-export function SettingsBar({ sliders }: { sliders: React.ReactNode }) {
-  return (
-    <div className="max-md:hidden flex justify-between px-10 gap-16 shrink-0">
-      {sliders}
-    </div>
-  );
-}
 
 /** Pitch / Speed / Volume sliders bound to the recording playback context. */
 export function usePlaybackSliders(): React.ReactNode {

@@ -1,12 +1,22 @@
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { tinykeys } from "tinykeys";
+import { Dialog } from "@base-ui/react/dialog";
 import {
   PauseIcon,
   PlayIcon,
+  SlidersIcon,
   SnowflakeIcon,
   SkipBackIcon,
   SkipForwardIcon,
 } from "@phosphor-icons/react";
+import { AppDialog } from "./AppDialog";
 import {
   PlaybackContext,
   effectiveLoopDelay,
@@ -16,9 +26,12 @@ import { capture } from "../lib/posthog";
 export function PlaybackControls({
   showFreeze = true,
   disabled = false,
+  settings,
 }: {
   showFreeze?: boolean;
   disabled?: boolean;
+  /** Settings sliders; when given, a Settings button opens them in a dialog. */
+  settings?: ReactNode;
 }) {
   const playback = useContext(PlaybackContext);
   if (!playback)
@@ -117,8 +130,8 @@ export function PlaybackControls({
     <div
       className={`grid gap-4 w-full h-min rounded-xl max-md:flex-1 ${
         showFreeze
-          ? "max-md:grid-cols-2 grid-cols-4 max-md:grid-rows-2"
-          : "grid-cols-2 md:grid-cols-3"
+          ? `max-md:grid-cols-2 ${settings ? "grid-cols-5 max-md:grid-rows-3" : "grid-cols-4 max-md:grid-rows-2"}`
+          : `grid-cols-2 ${settings ? "md:grid-cols-4" : "md:grid-cols-3"}`
       }`}
     >
       <button
@@ -187,6 +200,26 @@ export function PlaybackControls({
           style={{ opacity: 0.67, flexShrink: 0 }}
         />
       </button>
+      {settings && (
+        <AppDialog
+          title="Settings"
+          trigger={
+            <Dialog.Trigger
+              aria-label="Settings"
+              className={`${btn} max-md:col-span-2`}
+            >
+              <SlidersIcon
+                size={32}
+                weight="fill"
+                color="var(--color-icon)"
+                style={{ opacity: 0.54, flexShrink: 0 }}
+              />
+            </Dialog.Trigger>
+          }
+        >
+          <div className="flex flex-col gap-6 pb-4">{settings}</div>
+        </AppDialog>
+      )}
     </div>
   );
 }
