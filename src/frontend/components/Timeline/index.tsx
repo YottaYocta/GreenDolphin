@@ -28,7 +28,8 @@ export interface TimelineProps {
   onLoopCommit: (loop: Section) => void;
   /** Content between the ruler and the loop band (waveform, progress bar…). */
   children: ReactNode;
-  contentId?: string;
+  /** Draw the ruler's tick lines through the content area as well. */
+  gridLines?: boolean;
 }
 
 /** Horizontal inset so a triangle at 0% / 100% is fully inside the frame. */
@@ -44,11 +45,13 @@ export const Timeline: FC<TimelineProps> = ({
   onLoopEditStart,
   onLoopCommit,
   children,
+  gridLines = false,
 }) => {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
   const bandRef = useRef<HTMLDivElement | null>(null);
   const ticksRef = useRef<HTMLDivElement | null>(null);
+  const contentTicksRef = useRef<HTMLDivElement | null>(null);
   const gripRef = useRef<HTMLDivElement | null>(null);
   const lineRef = useRef<HTMLDivElement | null>(null);
   const bandShadeRef = useRef<HTMLDivElement | null>(null);
@@ -60,6 +63,7 @@ export const Timeline: FC<TimelineProps> = ({
     () => ({
       contentRef,
       ticksRef,
+      contentTicksRef,
       gripRef,
       lineRef,
       bandShadeRef,
@@ -173,6 +177,12 @@ export const Timeline: FC<TimelineProps> = ({
         className={`relative flex-1 min-h-0 border-x border-border-solid overflow-hidden bg-white ${FRAME_PAD}`}
       >
         <div ref={contentRef} className="relative w-full h-full">
+          {gridLines && (
+            <div
+              ref={contentTicksRef}
+              className="absolute inset-0 pointer-events-none"
+            />
+          )}
           {children}
           <div
             ref={lineRef}

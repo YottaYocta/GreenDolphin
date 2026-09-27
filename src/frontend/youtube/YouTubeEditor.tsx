@@ -170,8 +170,9 @@ function YouTubeEditorView({
                   onPosition={handlePosition}
                   onLoopEditStart={handleLoopEditStart}
                   onLoopCommit={handleLoopCommit}
+                  gridLines
                 >
-                  <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-1.5 rounded-full bg-surface-input" />
+                  {null}
                 </Timeline>
               </div>
             ) : (
