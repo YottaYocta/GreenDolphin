@@ -5,7 +5,11 @@ import { PianoRoll } from "./components/PianoRoll";
 import { PlaybackContext } from "./playback/PlaybackContext";
 import { AudioStore } from "./AudioStore";
 import { PlaybackControls } from "./components/PlaybackControls";
-import { PlaybackSettings } from "./components/PlaybackSettings";
+import {
+  SettingsBar,
+  SettingsPanel,
+  usePlaybackSliders,
+} from "./components/PlaybackSettings";
 import { TitleBar } from "./components/TitleBar/TitleBar";
 import { loadSession, saveSession } from "./lib/useSessionPersistence";
 import type { Section } from "./lib/waveform";
@@ -57,6 +61,8 @@ export const Editor = () => {
     saveSession({ filename, audioSettings: playbackSettings });
   }, [filename, playbackSettings]);
 
+  const sliders = usePlaybackSliders();
+
   const handlePosition = (sampleIndex: number) => {
     const timeInSeconds = sampleIndex / data.sampleRate;
     const timeInMs = timeInSeconds * 1000;
@@ -104,7 +110,7 @@ export const Editor = () => {
             <PianoRoll />
           </div>
           <div className="relative flex flex-col rounded-xl overflow-x-hidden overflow-y-clip [box-shadow:var(--shadow-panel)] bg-white border border-border flex-1 min-h-0 md:min-h-72 max-md:grow">
-            <PlaybackSettings>
+            <SettingsPanel sliders={sliders}>
               <Waveform
                 waveformData={data}
                 handlePosition={handlePosition}
@@ -115,9 +121,11 @@ export const Editor = () => {
                 initialSelection={initialSelection}
                 positionMS={playbackPosition}
               ></Waveform>
-            </PlaybackSettings>
+            </SettingsPanel>
           </div>
         </div>
+
+        <SettingsBar sliders={sliders} />
 
         <PlaybackControls />
       </div>

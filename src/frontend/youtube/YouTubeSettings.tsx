@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { PlaybackContext } from "../playback/PlaybackContext";
-import { AudioSlider, SettingsPanel } from "../components/PlaybackSettings";
+import { AudioSlider } from "../components/PlaybackSettings";
 import { capture } from "../lib/posthog";
 import {
   YT_MIN_RATE,
@@ -8,10 +8,11 @@ import {
   YT_RATE_STEP,
 } from "./YouTubePlaybackProvider";
 
-export function YouTubeSettings({ children }: { children?: React.ReactNode }) {
+/** Speed / Volume sliders bound to the YouTube playback context. */
+export function useYouTubeSliders(): React.ReactNode {
   const playback = useContext(PlaybackContext);
   if (!playback)
-    throw new Error("YouTubeSettings must be used within a PlaybackProvider");
+    throw new Error("useYouTubeSliders must be used within a PlaybackProvider");
   const { playbackSettings, setAudioSettings } = playback;
   const { playbackSpeed, gain } = playbackSettings;
 
@@ -58,5 +59,5 @@ export function YouTubeSettings({ children }: { children?: React.ReactNode }) {
     </>
   );
 
-  return <SettingsPanel sliders={sliders}>{children}</SettingsPanel>;
+  return sliders;
 }

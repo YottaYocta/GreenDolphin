@@ -6,6 +6,7 @@ import { Dialog } from "@base-ui/react/dialog";
 import { AppDialog } from "./AppDialog";
 import { capture } from "../lib/posthog";
 
+/** Card-internal shell: content plus the mobile Settings button. */
 export function SettingsPanel({
   sliders,
   children,
@@ -16,9 +17,6 @@ export function SettingsPanel({
   return (
     <>
       <div className="relative flex-1 min-h-0 flex flex-col">{children}</div>
-      <div className="max-md:hidden flex justify-between h-min p-5 gap-16 border-t border-border shrink-0">
-        {sliders}
-      </div>
       <AppDialog
         title="Settings"
         trigger={
@@ -41,14 +39,20 @@ export function SettingsPanel({
   );
 }
 
-export function PlaybackSettings({
-  children,
-}: {
-  children?: React.ReactNode;
-}) {
+/** Desktop settings row, rendered on the page between the card and the controls. */
+export function SettingsBar({ sliders }: { sliders: React.ReactNode }) {
+  return (
+    <div className="max-md:hidden flex justify-between px-10 gap-16 shrink-0">
+      {sliders}
+    </div>
+  );
+}
+
+/** Pitch / Speed / Volume sliders bound to the recording playback context. */
+export function usePlaybackSliders(): React.ReactNode {
   const playback = useContext(PlaybackContext);
   if (!playback)
-    throw new Error("PlaybackSettings must be used within a PlaybackProvider");
+    throw new Error("usePlaybackSliders must be used within a PlaybackProvider");
   const { playbackSettings, setAudioSettings } = playback;
   const { pitchShift, playbackSpeed } = playbackSettings;
 
@@ -116,7 +120,7 @@ export function PlaybackSettings({
     </>
   );
 
-  return <SettingsPanel sliders={sliders}>{children}</SettingsPanel>;
+  return sliders;
 }
 
 const SettingsRow: FC<{

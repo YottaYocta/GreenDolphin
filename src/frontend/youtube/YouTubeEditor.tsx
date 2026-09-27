@@ -23,7 +23,8 @@ import {
   YOUTUBE_SAMPLE_RATE,
 } from "./YouTubePlaybackProvider";
 import { PlaybackControls } from "../components/PlaybackControls";
-import { YouTubeSettings } from "./YouTubeSettings";
+import { useYouTubeSliders } from "./YouTubeSettings";
+import { SettingsBar, SettingsPanel } from "../components/PlaybackSettings";
 
 const TUTORIAL_STEPS: TutorialStep[] = [
   {
@@ -99,6 +100,8 @@ function YouTubeEditorView({
     saveSession({ filename, audioSettings: playbackSettings });
   }, [filename, playbackSettings]);
 
+  const sliders = useYouTubeSliders();
+
   const totalMS = duration * 1000;
   const stateRef = useRef<TimelineState>({
     viewport: { start: 0, end: totalMS },
@@ -145,7 +148,7 @@ function YouTubeEditorView({
         <TitleBar />
 
         <div className="relative flex flex-col rounded-xl overflow-x-hidden overflow-y-clip [box-shadow:var(--shadow-panel)] bg-white border border-border flex-1 min-h-0 md:min-h-72 max-md:grow">
-          <YouTubeSettings>
+          <SettingsPanel sliders={sliders}>
           <div className="w-full flex items-center justify-center p-4 md:pt-6 min-h-0 shrink overflow-hidden">
             <div className="relative aspect-video h-[min(9rem,18dvh)] md:h-45 max-w-full bg-black rounded-lg overflow-hidden opacity-90">
               <div
@@ -182,8 +185,10 @@ function YouTubeEditorView({
               </div>
             )}
           </div>
-          </YouTubeSettings>
+          </SettingsPanel>
         </div>
+
+        <SettingsBar sliders={sliders} />
 
         <PlaybackControls showFreeze={false} disabled={!ready} />
       </div>
