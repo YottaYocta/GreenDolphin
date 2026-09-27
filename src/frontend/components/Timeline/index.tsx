@@ -153,7 +153,7 @@ export const Timeline: FC<TimelineProps> = ({
     >
       <div
         id="timeline-ruler"
-        className={`relative h-6 shrink-0 bg-surface border border-border-solid border-b-0 rounded-t-lg overflow-hidden ${FRAME_PAD}`}
+        className={`relative h-6 shrink-0 bg-surface rounded-t-lg overflow-hidden ${FRAME_PAD}`}
       >
         <div className="relative w-full h-full">
           <div
@@ -174,7 +174,7 @@ export const Timeline: FC<TimelineProps> = ({
       </div>
 
       <div
-        className={`relative flex-1 min-h-0 border-x border-border-solid overflow-hidden bg-white ${FRAME_PAD}`}
+        className={`relative flex-1 min-h-0 overflow-hidden bg-white ${FRAME_PAD}`}
       >
         <div ref={contentRef} className="relative w-full h-full">
           {gridLines && (
@@ -193,7 +193,7 @@ export const Timeline: FC<TimelineProps> = ({
 
       <div
         id="timeline-loop"
-        className={`relative h-7 shrink-0 bg-surface border border-border-solid border-t-0 rounded-b-lg overflow-hidden ${FRAME_PAD}`}
+        className={`relative h-7 shrink-0 bg-surface rounded-b-lg overflow-hidden ${FRAME_PAD}`}
       >
         <div ref={bandRef} className="relative w-full h-full">
           <div
