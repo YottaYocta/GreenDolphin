@@ -61,6 +61,7 @@ export const Timeline: FC<TimelineProps> = ({
   const gripRef = useRef<HTMLDivElement | null>(null);
   const lineRef = useRef<HTMLDivElement | null>(null);
   const bandShadeRef = useRef<HTMLDivElement | null>(null);
+  const loopGripRef = useRef<HTMLDivElement | null>(null);
   const leftHandleRef = useRef<HTMLDivElement | null>(null);
   const rightHandleRef = useRef<HTMLDivElement | null>(null);
   const dragSampleRef = useRef<number | null>(null);
@@ -75,6 +76,7 @@ export const Timeline: FC<TimelineProps> = ({
       gripRef,
       lineRef,
       bandShadeRef,
+      loopGripRef,
       leftHandleRef,
       rightHandleRef,
       dragSampleRef,
@@ -228,9 +230,11 @@ export const Timeline: FC<TimelineProps> = ({
             className="absolute inset-y-0 bg-surface-active flex items-center justify-center gap-[3px] overflow-hidden cursor-grab active:cursor-grabbing touch-none"
             {...shiftDragProps}
           >
-            <span className="w-px h-2 bg-black/25" />
-            <span className="w-px h-2 bg-black/25" />
-            <span className="w-px h-2 bg-black/25" />
+            <div ref={loopGripRef} className="flex gap-[3px]">
+              <span className="w-px h-2 bg-black/25" />
+              <span className="w-px h-2 bg-black/25" />
+              <span className="w-px h-2 bg-black/25" />
+            </div>
           </div>
           {loopHandle(leftHandleRef, "start")}
           {loopHandle(rightHandleRef, "end")}

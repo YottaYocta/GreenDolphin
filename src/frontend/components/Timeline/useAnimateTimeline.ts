@@ -14,6 +14,8 @@ export interface TimelineRefs {
   gripRef: RefObject<HTMLDivElement | null>;
   lineRef: RefObject<HTMLDivElement | null>;
   bandShadeRef: RefObject<HTMLDivElement | null>;
+  /** Three-line grip inside the band shade; hidden when the loop fills the frame. */
+  loopGripRef: RefObject<HTMLDivElement | null>;
   leftHandleRef: RefObject<HTMLDivElement | null>;
   rightHandleRef: RefObject<HTMLDivElement | null>;
   dragSampleRef: RefObject<number | null>;
@@ -77,6 +79,9 @@ export const useAnimateTimeline = (
         const loopFrom = loop.start * width;
         const loopTo = loop.end * width;
         span(refs.bandShadeRef.current, loopFrom, loopTo);
+        if (refs.loopGripRef.current)
+          refs.loopGripRef.current.style.display =
+            loop.start <= 0 && loop.end >= 1 ? "none" : "";
         if (refs.loopStartLineRef.current)
           refs.loopStartLineRef.current.style.left = `${loopFrom}px`;
         if (refs.loopEndLineRef.current)
