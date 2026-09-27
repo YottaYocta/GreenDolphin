@@ -146,21 +146,21 @@ function YouTubeEditorView({
 
         <div className="relative flex flex-col rounded-xl overflow-x-hidden overflow-y-clip [box-shadow:var(--shadow-panel)] bg-white border border-border flex-1 min-h-0 md:min-h-72 max-md:grow">
           <YouTubeSettings>
-          <div className="w-full flex items-center justify-center p-4 pt-14 md:pt-6 flex-1 min-h-0">
-            <div className="relative aspect-video w-full h-full max-w-150 max-h-full bg-black rounded-lg overflow-hidden">
+          <div className="w-full flex items-center justify-center p-4 pt-14 md:pt-6 shrink-0">
+            <div className="relative aspect-video w-full max-w-64 md:max-w-80 bg-black rounded-lg overflow-hidden opacity-90">
               <div
                 ref={containerRef}
                 className="absolute inset-0 [&_iframe]:w-full [&_iframe]:h-full"
               />
             </div>
           </div>
-          <div className="px-4 pb-4 shrink-0">
+          <div className="px-4 pb-4 flex-1 min-h-0">
             {errorCode !== null ? (
               <div className="w-full h-8 pt-1 flex items-center justify-center text-sm text-red-600/80 font-inria">
                 {describeYouTubeError(errorCode)}
               </div>
             ) : ready ? (
-              <div className="h-24">
+              <div className="h-full min-h-24">
                 <Timeline
                   stateRef={stateRef}
                   totalSamples={totalMS}
