@@ -2,6 +2,7 @@ import type {
   MouseEvent as ReactMouseEvent,
   TouchEvent as ReactTouchEvent,
 } from "react";
+import { clamp } from "../../lib/util";
 
 export const beginDrag = (
   onMove: (clientX: number) => void,
@@ -47,5 +48,5 @@ export const pointerToFraction = (
   el: HTMLElement,
 ): number => {
   const rect = el.getBoundingClientRect();
-  return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+  return clamp((clientX - rect.left) / rect.width, 0, 1);
 };

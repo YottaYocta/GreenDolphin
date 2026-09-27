@@ -135,19 +135,10 @@ export const YouTubePlaybackProvider = ({
     player?.setVolume(Math.round(Math.max(0, Math.min(1, gain)) * 100));
   }, [player, gain]);
 
-  const seekIsPending = useCallback(() => {
-    const pending = pendingSeekRef.current;
-    return !!pending && performance.now() - pending.at < SEEK_TIMEOUT_MS;
-  }, []);
-
   useEffect(() => {
     if (!player) return;
     if (playState === "playing") {
-      // Loop edits re-emit the current position; only seek when the player
-      // has actually drifted, otherwise the seek itself can stall playback.
-      const playerMS = player.getCurrentTime() * 1000;
-      if (Math.abs(playerMS - playbackPosition.current) > DRIFT_TOLERANCE_MS)
-        commandSeek(playbackPosition.current);
+      commandSeek(playbackPosition.current);
       player.playVideo();
     } else {
       lastPauseCommandRef.current = performance.now();
@@ -200,14 +191,14 @@ export const YouTubePlaybackProvider = ({
       } else if (state === YT_STATE_PAUSED && playState === "playing") {
         // A commanded seek can surface a transient PAUSED (notably on iOS);
         // that is not the user pausing, so keep the video going.
-        if (seekIsPending()) {
+        if (seekInFlight(player.getCurrentTime() * 1000)) {
           player.playVideo();
           return;
         }
         triggerAction("pause");
       }
     });
-  }, [player, subscribe, playState, triggerAction, seekIsPending]);
+  }, [player, subscribe, playState, triggerAction, seekInFlight]);
 
 
   const loopLength = loop ? (loop.end - loop.start) / YOUTUBE_SAMPLE_RATE : duration;

@@ -12,15 +12,6 @@ const WHEEL_SETTLE_MS = 250;
 const isControl = (target: EventTarget | null) =>
   target instanceof Element && !!target.closest("[data-timeline-control]");
 
-export interface ViewportGestureCallbacks {
-  /** Tap without dragging: clientX of the tap. */
-  onTap?: (clientX: number, target: EventTarget | null) => void;
-  /** A real pan / pinch / wheel gesture started (not a tap). */
-  onGestureStart?: () => void;
-  /** The gesture ended (pointer released, or wheel input settled). */
-  onGestureEnd?: () => void;
-}
-
 type Pinch = {
   idA: number;
   idB: number;
@@ -44,14 +35,20 @@ const findOther = (list: TouchList, excludeId: number): Touch | null => {
   return null;
 };
 
+/**
+ * Tap / pan / pinch / wheel on `elementRef`, measured against `measureRef`.
+ * `onGestureStart` / `onGestureEnd` bracket real pans, pinches and wheel
+ * bursts (never taps); wheel input "ends" after a short settle.
+ */
 export const useViewportGestures = (
   elementRef: RefObject<HTMLElement | null>,
-  metadataRef: RefObject<TimelineState>,
+  measureRef: RefObject<HTMLElement | null>,
+  stateRef: RefObject<TimelineState>,
   totalSamples: number,
   handleRange: (range: Section) => void,
-  { onTap, onGestureStart, onGestureEnd }: ViewportGestureCallbacks = {},
-  /** Element whose width maps to the viewport (defaults to `elementRef`). */
-  measureRef?: RefObject<HTMLElement | null>,
+  onTap: (clientX: number, target: EventTarget | null) => void,
+  onGestureStart: () => void,
+  onGestureEnd: () => void,
 ) => {
   const minRangeLen = useMemo(
     () => Math.floor(MIN_RANGE_THRESHOLD * totalSamples),
@@ -62,8 +59,7 @@ export const useViewportGestures = (
     const el = elementRef.current;
     if (!el) return;
     const bounds = { start: 0, end: totalSamples };
-    const rectOf = () =>
-      (measureRef?.current ?? el).getBoundingClientRect();
+    const rectOf = () => (measureRef.current ?? el).getBoundingClientRect();
 
     // Gesture bookkeeping: pointer gestures and wheel input share one
     // "active" flag so start/end fire exactly once per gesture.
@@ -72,12 +68,12 @@ export const useViewportGestures = (
     const begin = () => {
       if (active) return;
       active = true;
-      onGestureStart?.();
+      onGestureStart();
     };
     const end = () => {
       if (!active) return;
       active = false;
-      onGestureEnd?.();
+      onGestureEnd();
     };
     const touchWheel = () => {
       begin();
@@ -114,7 +110,7 @@ export const useViewportGestures = (
       e.stopPropagation();
       touchWheel();
       const rect = rectOf();
-      const { viewport } = metadataRef.current;
+      const { viewport } = stateRef.current;
       const currentRange = viewport.end - viewport.start;
       const before = (e.clientX - rect.left) / rect.width;
       const anchor = viewport.start + before * currentRange;
@@ -141,7 +137,7 @@ export const useViewportGestures = (
       if (isControl(e.target)) return;
       e.preventDefault();
       const rect = rectOf();
-      const { viewport } = metadataRef.current;
+      const { viewport } = stateRef.current;
       const currentRange = viewport.end - viewport.start;
       const startRangeStart = viewport.start;
       const threshold = rect.width * CLICK_SELECTION_THRESHOLD;
@@ -167,7 +163,7 @@ export const useViewportGestures = (
         window.removeEventListener("mousemove", onMouseMove);
         window.removeEventListener("mouseup", onMouseUp);
         if (dragged) end();
-        else onTap?.(e.clientX, e.target);
+        else onTap(e.clientX, e.target);
       };
       window.addEventListener("mousemove", onMouseMove);
       window.addEventListener("mouseup", onMouseUp);
@@ -180,7 +176,7 @@ export const useViewportGestures = (
       e.preventDefault();
 
       const rect = rectOf();
-      const { viewport } = metadataRef.current;
+      const { viewport } = stateRef.current;
       const startRangeStart = viewport.start;
       const startRange = viewport.end - viewport.start;
 
@@ -261,7 +257,7 @@ export const useViewportGestures = (
         if (!pinch) {
           if (findTouch(endEvent.touches, singleId)) return;
           if (dragged) end();
-          else onTap?.(startClientX, startTarget);
+          else onTap(startClientX, startTarget);
           cleanup();
           return;
         }
@@ -290,13 +286,13 @@ export const useViewportGestures = (
     };
   }, [
     elementRef,
-    metadataRef,
+    measureRef,
+    stateRef,
     totalSamples,
     handleRange,
     minRangeLen,
     onTap,
     onGestureStart,
     onGestureEnd,
-    measureRef,
   ]);
 };

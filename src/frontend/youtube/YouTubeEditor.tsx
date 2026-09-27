@@ -1,12 +1,8 @@
-import { useCallback, useContext, useEffect, useMemo, useRef } from "react";
+import { useCallback, useContext, useEffect, useMemo } from "react";
 import type { RefObject } from "react";
 import type { Section } from "../lib/waveform";
 import { Timeline } from "../components/Timeline";
-import {
-  FULL_LOOP,
-  sectionToLoop,
-  type TimelineState,
-} from "../components/Timeline/types";
+import { useTimelineState } from "../components/Timeline/useTimelineState";
 import { AudioStore } from "../AudioStore";
 import { PlaybackContext } from "../playback/PlaybackContext";
 import { TitleBar } from "../components/TitleBar/TitleBar";
@@ -14,7 +10,6 @@ import { Tutorial, type TutorialStep } from "../components/Tutorial";
 import { loadSession, saveSession } from "../lib/useSessionPersistence";
 import { loadLoopPrefs } from "../lib/loopPrefs";
 import { AlwaysAwakeIndicator } from "../components/AlwaysAwakeIndicator";
-import { clampSection } from "../lib/util";
 import { capture } from "../lib/posthog";
 import { useYouTubePlayer } from "./useYouTubePlayer";
 import { describeYouTubeError } from "./iframeApi";
@@ -23,7 +18,7 @@ import {
   YOUTUBE_SAMPLE_RATE,
 } from "./YouTubePlaybackProvider";
 import { PlaybackControls } from "../components/PlaybackControls";
-import { useYouTubeSliders } from "./YouTubeSettings";
+import { YouTubeSliders } from "./YouTubeSettings";
 
 const TUTORIAL_STEPS: TutorialStep[] = [
   {
@@ -99,41 +94,21 @@ function YouTubeEditorView({
     saveSession({ filename, audioSettings: playbackSettings });
   }, [filename, playbackSettings]);
 
-  const sliders = useYouTubeSliders();
-
   const totalMS = duration * 1000;
-  const stateRef = useRef<TimelineState>({
-    viewport: { start: 0, end: totalMS },
-    loop: FULL_LOOP,
-  });
+  const { stateRef, setViewport } = useTimelineState(
+    totalMS,
+    undefined,
+    initialSelection,
+  );
 
-  useEffect(() => {
-    if (totalMS <= 0) return;
-    const full = { start: 0, end: totalMS };
-    stateRef.current = {
-      viewport: full,
-      loop:
-        initialSelection && initialSelection.end > initialSelection.start
-          ? sectionToLoop(full, clampSection(initialSelection, full))
-          : FULL_LOOP,
-    };
-  }, [totalMS, initialSelection]);
-
-  const handleRange = useCallback((viewport: Section) => {
-    stateRef.current = { ...stateRef.current, viewport };
-  }, []);
   const handlePosition = useCallback(
     (positionMS: number) => triggerAction({ type: "move", position: positionMS }),
     [triggerAction],
   );
-  const handleLoopEditStart = useCallback(
-    () => setAudioSettings({ loop: undefined }),
-    [setAudioSettings],
-  );
-  const handleLoopCommit = useCallback(
-    (selection: Section) => {
-      setAudioSettings({ loop: selection });
-      capture("loop_region_set", { source: "youtube" });
+  const handleLoopChange = useCallback(
+    (loop: Section | undefined) => {
+      setAudioSettings({ loop });
+      if (loop) capture("loop_region_set", { source: "youtube" });
     },
     [setAudioSettings],
   );
@@ -147,7 +122,6 @@ function YouTubeEditorView({
         <TitleBar />
 
         <div className="relative flex flex-col rounded-xl overflow-x-hidden overflow-y-clip [box-shadow:var(--shadow-panel)] bg-white border border-border flex-1 min-h-0 md:min-h-72 max-md:grow">
-          <div className="relative flex-1 min-h-0 flex flex-col">
           <div className="w-full flex items-center justify-center p-4 md:pt-6 min-h-0 shrink overflow-hidden">
             <div className="relative aspect-video h-[min(9rem,18dvh)] md:h-45 max-w-full bg-black rounded-lg overflow-hidden opacity-90">
               <div
@@ -162,35 +136,28 @@ function YouTubeEditorView({
                 {describeYouTubeError(errorCode)}
               </div>
             ) : ready ? (
-              <div className="flex-1 min-h-0 flex flex-col">
-                <Timeline
-                  stateRef={stateRef}
-                  totalSamples={totalMS}
-                  sampleRate={YOUTUBE_SAMPLE_RATE}
-                  positionMS={playbackPosition}
-                  onRangeChange={handleRange}
-                  onPosition={handlePosition}
-                  onLoopEditStart={handleLoopEditStart}
-                  onLoopCommit={handleLoopCommit}
-                  gridLines
-                  loopEdges
-                >
-                  {null}
-                </Timeline>
-              </div>
+              <Timeline
+                stateRef={stateRef}
+                totalSamples={totalMS}
+                sampleRate={YOUTUBE_SAMPLE_RATE}
+                positionMS={playbackPosition}
+                onRangeChange={setViewport}
+                onPosition={handlePosition}
+                onLoopChange={handleLoopChange}
+                gridLines
+              />
             ) : (
               <div className="w-full h-8 pt-1 flex items-center justify-center text-sm text-black/40 font-inria">
                 Loading video…
               </div>
             )}
           </div>
-          </div>
         </div>
 
         <PlaybackControls
           showFreeze={false}
           disabled={!ready}
-          settings={sliders}
+          settings={<YouTubeSliders />}
         />
       </div>
 

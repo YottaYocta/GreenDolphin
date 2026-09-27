@@ -14,6 +14,10 @@ export type AudioSettings = {
   playbackSpeed: number;
 };
 
+function loopsEqual(a?: Section, b?: Section): boolean {
+  return a === b || (!!a && !!b && a.start === b.start && a.end === b.end);
+}
+
 function loopOptionsEqual(a: LoopOptions, b: LoopOptions): boolean {
   if (a.type !== b.type) return false;
   if (a.type === "automatic" && b.type === "automatic")
@@ -141,7 +145,7 @@ export function usePlaybackClock({
       }
       if ("loop" in settings) {
         const resolved = settings.loop ?? undefined;
-        if (resolved !== loop) {
+        if (!loopsEqual(resolved, loop)) {
           setLoop(resolved);
           nextLoop = resolved;
           dirty = true;
@@ -170,10 +174,12 @@ export function usePlaybackClock({
         const pos = playbackPosition.current;
         const inLoop = pos >= loopStartMS && pos < loopEndMS;
 
+        // Only carry a position when it actually moves, so consumers keyed on
+        // the position epoch (e.g. the YouTube seek) don't re-seek in place.
         if (playState === "playing")
           applyTransition({
             nextState: "playing",
-            nextPositionMS: inLoop ? pos : loopStartMS,
+            nextPositionMS: inLoop ? undefined : loopStartMS,
           });
         else if (playState === "waiting")
           applyTransition({

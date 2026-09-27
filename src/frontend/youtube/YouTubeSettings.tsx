@@ -9,14 +9,14 @@ import {
 } from "./YouTubePlaybackProvider";
 
 /** Speed / Volume sliders bound to the YouTube playback context. */
-export function useYouTubeSliders(): React.ReactNode {
+export function YouTubeSliders() {
   const playback = useContext(PlaybackContext);
   if (!playback)
-    throw new Error("useYouTubeSliders must be used within a PlaybackProvider");
+    throw new Error("YouTubeSliders must be used within a PlaybackProvider");
   const { playbackSettings, setAudioSettings } = playback;
   const { playbackSpeed, gain } = playbackSettings;
 
-  const sliders = (
+  return (
     <>
       <AudioSlider
         label="Speed"
@@ -58,6 +58,4 @@ export function useYouTubeSliders(): React.ReactNode {
       />
     </>
   );
-
-  return sliders;
 }

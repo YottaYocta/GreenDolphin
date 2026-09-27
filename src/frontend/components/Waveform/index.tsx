@@ -1,99 +1,55 @@
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  type CanvasHTMLAttributes,
-  type FC,
-  type RefObject,
-} from "react";
-
+import { useCallback, type FC, type RefObject } from "react";
 import { type Section } from "../../lib/waveform";
 import { Timeline } from "../Timeline";
-import {
-  FULL_LOOP,
-  loopToSection,
-  sectionToLoop,
-  type TimelineState,
-} from "../Timeline/types";
+import { loopToSection } from "../Timeline/types";
+import { useTimelineState } from "../Timeline/useTimelineState";
 import { useAnimateWaveform } from "./useAnimateWaveform";
 import { useKeyboardShortcuts } from "./useKeyboardShortcuts";
 
-interface WaveformCanvasProps {
+interface WaveformProps {
   waveformData: AudioBuffer;
-  positionMS?: RefObject<number>;
+  positionMS: RefObject<number>;
   initialViewport?: Section;
   initialSelection?: Section;
-  handleRangeChange?: (newRange: Section) => void;
-  /** A gesture that will change the loop has started. */
-  handleLoopEditStart?: () => void;
-  /** The loop under the frame, in samples, after a gesture ends. */
-  handleSelection?: (selection: Section) => void;
-  handlePosition?: (position: number) => void;
+  onRangeChange?: (viewport: Section) => void;
+  onLoopChange: (loop: Section | undefined) => void;
+  onPosition: (sample: number) => void;
 }
 
-export const Waveform: FC<
-  WaveformCanvasProps & CanvasHTMLAttributes<HTMLCanvasElement>
-> = ({
+/** Audio content slot for the Timeline: waveform canvas + keyboard zoom/scroll. */
+export const Waveform: FC<WaveformProps> = ({
   waveformData,
   positionMS,
   initialViewport,
   initialSelection,
-  handleRangeChange,
-  handleLoopEditStart,
-  handleSelection,
-  handlePosition,
-  ...props
+  onRangeChange,
+  onLoopChange,
+  onPosition,
 }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const fullRange = { start: 0, end: waveformData.length };
-  const stateRef = useRef<TimelineState>({
-    viewport: initialViewport ?? fullRange,
-    loop: initialSelection
-      ? sectionToLoop(initialViewport ?? fullRange, initialSelection)
-      : FULL_LOOP,
-  });
-
-  useEffect(() => {
-    const viewport = initialViewport ?? {
-      start: 0,
-      end: waveformData.length,
-    };
-    stateRef.current = {
-      viewport,
-      loop: initialSelection
-        ? sectionToLoop(viewport, initialSelection)
-        : FULL_LOOP,
-    };
-  }, [waveformData, initialViewport, initialSelection]);
+  const { stateRef, setViewport } = useTimelineState(
+    waveformData.length,
+    initialViewport,
+    initialSelection,
+  );
 
   const handleRange = useCallback(
     (viewport: Section) => {
-      stateRef.current = { ...stateRef.current, viewport };
-      handleRangeChange?.(viewport);
+      setViewport(viewport);
+      onRangeChange?.(viewport);
     },
-    [handleRangeChange],
-  );
-
-  const handleSetPosition = useCallback(
-    (position: number) => handlePosition?.(position),
-    [handlePosition],
-  );
-
-  const handleLoopCommit = useCallback(
-    (selection: Section) => handleSelection?.(selection),
-    [handleSelection],
+    [setViewport, onRangeChange],
   );
 
   // Keyboard zoom/scroll is discrete, so the loop is committed right away.
   const handleKeyboardRange = useCallback(
     (viewport: Section) => {
       handleRange(viewport);
-      handleLoopCommit(loopToSection(viewport, stateRef.current.loop));
+      onLoopChange(loopToSection(viewport, stateRef.current.loop));
     },
-    [handleRange, handleLoopCommit],
+    [handleRange, onLoopChange, stateRef],
   );
 
-  useAnimateWaveform(canvasRef, waveformData, stateRef);
+  const canvasRef = useAnimateWaveform(waveformData, stateRef);
   useKeyboardShortcuts(waveformData, stateRef, handleKeyboardRange);
 
   return (
@@ -104,13 +60,11 @@ export const Waveform: FC<
         sampleRate={waveformData.sampleRate}
         positionMS={positionMS}
         onRangeChange={handleRange}
-        onPosition={handleSetPosition}
-        onLoopEditStart={handleLoopEditStart}
-        onLoopCommit={handleLoopCommit}
+        onPosition={onPosition}
+        onLoopChange={onLoopChange}
       >
         <canvas
           id="waveform-canvas"
-          {...props}
           ref={canvasRef}
           draggable="false"
           className="block w-full flex-1 min-w-0 min-h-0 select-none pixelated"

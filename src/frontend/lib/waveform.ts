@@ -28,14 +28,6 @@ export interface WaveformData {
 const computeFillStyle = (color: Color): string =>
   `rgb(${color.r} ${color.g} ${color.b} / ${color.a}%)`;
 
-const computePixel = (
-  sampleIdx: number,
-  rangeLength: number,
-  canvas: HTMLCanvasElement,
-) => {
-  return canvas.width * (sampleIdx / rangeLength);
-};
-
 export const computeSampleIndex = (
   pixel: number,
   rangeLength: number,
@@ -53,7 +45,6 @@ export const renderWaveform = (
     background = { r: 256, g: 256, b: 256, a: 100 },
   }: WaveformStyle,
   canvas: HTMLCanvasElement,
-  position?: number,
 ) => {
   const channelHeight = canvas.height / data.numberOfChannels;
   const canvasCtx = canvas.getContext("2d")!;
@@ -108,25 +99,4 @@ export const renderWaveform = (
     }
   }
 
-  if (selection) {
-    const startPos = computePixel(
-      selection.start - viewport.start,
-      rangeLength,
-      canvas,
-    );
-
-    const endPos = computePixel(selection.end - viewport.start, rangeLength, canvas);
-
-    canvasCtx.fillStyle = "rgb(0 0 0 / 12%)";
-    canvasCtx.fillRect(startPos, 0, 1, canvas.height);
-    canvasCtx.fillRect(endPos, 0, 1, canvas.height);
-  }
-
-  if (position !== undefined) {
-    const pos = computePixel(position - viewport.start, rangeLength, canvas);
-    if (pos > 0 && pos < canvas.width) {
-      canvasCtx.fillStyle = "rgb(10 150 100)";
-      canvasCtx.fillRect(pos, 0, 2, canvas.height);
-    }
-  }
 };

@@ -5,10 +5,10 @@ import { useDrag } from "../lib/useDrag";
 import { capture } from "../lib/posthog";
 
 /** Pitch / Speed / Volume sliders bound to the recording playback context. */
-export function usePlaybackSliders(): React.ReactNode {
+export function PlaybackSliders() {
   const playback = useContext(PlaybackContext);
   if (!playback)
-    throw new Error("usePlaybackSliders must be used within a PlaybackProvider");
+    throw new Error("PlaybackSliders must be used within a PlaybackProvider");
   const { playbackSettings, setAudioSettings } = playback;
   const { pitchShift, playbackSpeed } = playbackSettings;
 
@@ -19,7 +19,7 @@ export function usePlaybackSliders(): React.ReactNode {
     setAudioSettings({ gain: renderedGain * renderedGain });
   }, [renderedGain, setAudioSettings]);
 
-  const sliders = (
+  return (
     <>
       <AudioSlider
         label="Pitch"
@@ -75,8 +75,6 @@ export function usePlaybackSliders(): React.ReactNode {
       />
     </>
   );
-
-  return sliders;
 }
 
 const SettingsRow: FC<{

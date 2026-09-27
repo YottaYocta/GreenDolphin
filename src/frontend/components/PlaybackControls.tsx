@@ -143,25 +143,23 @@ export function PlaybackControls({
     </AppDialog>
   );
 
-  const backButton = (size: number) => (
-    <button onClick={rewindFiveSeconds} disabled={disabled} className={btn}>
-      <SkipBackIcon
-        size={size}
+  // Back / forward share one cell when freeze is shown, so their icons shrink.
+  const navSize = showFreeze ? 28 : 32;
+  const navButton = (Icon: typeof SkipBackIcon, onClick: () => void) => (
+    <button onClick={onClick} disabled={disabled} className={btn}>
+      <Icon
+        size={navSize}
         weight="fill"
         color="var(--color-icon)"
         style={{ opacity: 0.67, flexShrink: 0 }}
       />
     </button>
   );
-  const forwardButton = (size: number) => (
-    <button onClick={fastForwardFiveSeconds} disabled={disabled} className={btn}>
-      <SkipForwardIcon
-        size={size}
-        weight="fill"
-        color="var(--color-icon)"
-        style={{ opacity: 0.67, flexShrink: 0 }}
-      />
-    </button>
+  const nav = (
+    <>
+      {navButton(SkipBackIcon, rewindFiveSeconds)}
+      {navButton(SkipForwardIcon, fastForwardFiveSeconds)}
+    </>
   );
 
   return (
@@ -200,32 +198,24 @@ export function PlaybackControls({
         </span>
       </button>
 
+      {showFreeze && (
+        <button
+          onClick={toggleFreeze}
+          className={`${btn} ${playState === "frozen" ? "bg-freeze hover:bg-freeze-hover active:bg-freeze-active [box-shadow:var(--shadow-btn-colored)]" : ""}`}
+        >
+          <SnowflakeIcon
+            size={40}
+            weight="fill"
+            color={playState === "frozen" ? "#FFFFFF" : "var(--color-freeze)"}
+            style={{ flexShrink: 0 }}
+          />
+        </button>
+      )}
+      {settingsButton}
       {showFreeze ? (
-        <>
-          <button
-            onClick={toggleFreeze}
-            className={`${btn} ${playState === "frozen" ? "bg-freeze hover:bg-freeze-hover active:bg-freeze-active [box-shadow:var(--shadow-btn-colored)]" : ""}`}
-          >
-            <SnowflakeIcon
-              size={40}
-              weight="fill"
-              color={playState === "frozen" ? "#FFFFFF" : "var(--color-freeze)"}
-              style={{ flexShrink: 0 }}
-            />
-          </button>
-          {settingsButton}
-          {/* Back and forward share one cell, side by side. */}
-          <div className="grid grid-cols-2 gap-4 min-h-0">
-            {backButton(28)}
-            {forwardButton(28)}
-          </div>
-        </>
+        <div className="grid grid-cols-2 gap-4 min-h-0">{nav}</div>
       ) : (
-        <>
-          {settingsButton}
-          {backButton(32)}
-          {forwardButton(32)}
-        </>
+        nav
       )}
     </div>
   );

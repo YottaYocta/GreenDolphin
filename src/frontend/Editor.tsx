@@ -5,7 +5,7 @@ import { PianoRoll } from "./components/PianoRoll";
 import { PlaybackContext } from "./playback/PlaybackContext";
 import { AudioStore } from "./AudioStore";
 import { PlaybackControls } from "./components/PlaybackControls";
-import { usePlaybackSliders } from "./components/PlaybackSettings";
+import { PlaybackSliders } from "./components/PlaybackSettings";
 import { TitleBar } from "./components/TitleBar/TitleBar";
 import { loadSession, saveSession } from "./lib/useSessionPersistence";
 import type { Section } from "./lib/waveform";
@@ -57,29 +57,24 @@ export const Editor = () => {
     saveSession({ filename, audioSettings: playbackSettings });
   }, [filename, playbackSettings]);
 
-  const sliders = usePlaybackSliders();
-
-  const handlePosition = (sampleIndex: number) => {
-    const timeInSeconds = sampleIndex / data.sampleRate;
-    const timeInMs = timeInSeconds * 1000;
-    triggerAction({ type: "move", position: timeInMs });
-  };
+  const handlePosition = useCallback(
+    (sampleIndex: number) =>
+      triggerAction({
+        type: "move",
+        position: (sampleIndex / data.sampleRate) * 1000,
+      }),
+    [data.sampleRate, triggerAction],
+  );
 
   const handleRangeChange = useDebounce(
     useCallback((viewport: Section) => saveSession({ viewport }), []),
     250,
   );
 
-  // While a gesture is in flight the loop is lifted so playback runs free;
-  // the loop under the frame is re-applied when the gesture ends.
-  const handleLoopEditStart = useCallback(
-    () => setAudioSettings({ loop: undefined }),
-    [setAudioSettings],
-  );
-  const handleSelection = useCallback(
-    (selection: Section) => {
-      setAudioSettings({ loop: selection });
-      capture("loop_region_set");
+  const handleLoopChange = useCallback(
+    (loop: Section | undefined) => {
+      setAudioSettings({ loop });
+      if (loop) capture("loop_region_set");
     },
     [setAudioSettings],
   );
@@ -106,22 +101,19 @@ export const Editor = () => {
             <PianoRoll />
           </div>
           <div className="relative flex flex-col rounded-xl overflow-x-hidden overflow-y-clip [box-shadow:var(--shadow-panel)] bg-white border border-border flex-1 min-h-0 md:min-h-72 max-md:grow">
-            <div className="relative flex-1 min-h-0 flex flex-col">
-              <Waveform
-                waveformData={data}
-                handlePosition={handlePosition}
-                handleRangeChange={handleRangeChange}
-                handleLoopEditStart={handleLoopEditStart}
-                handleSelection={handleSelection}
-                initialViewport={initialViewport}
-                initialSelection={initialSelection}
-                positionMS={playbackPosition}
-              ></Waveform>
-            </div>
+            <Waveform
+              waveformData={data}
+              onPosition={handlePosition}
+              onRangeChange={handleRangeChange}
+              onLoopChange={handleLoopChange}
+              initialViewport={initialViewport}
+              initialSelection={initialSelection}
+              positionMS={playbackPosition}
+            />
           </div>
         </div>
 
-        <PlaybackControls settings={sliders} />
+        <PlaybackControls settings={<PlaybackSliders />} />
       </div>
 
       <Tutorial steps={TUTORIAL_STEPS} />

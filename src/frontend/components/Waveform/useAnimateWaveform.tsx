@@ -1,19 +1,23 @@
-import { useEffect, type RefObject } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 import { renderWaveform } from "../../lib/waveform";
 import { loopToSection, type TimelineState } from "../Timeline/types";
 
 export const useAnimateWaveform = (
-  canvasRef: RefObject<HTMLCanvasElement | null>,
   audioBuffer: AudioBuffer,
   stateRef: RefObject<TimelineState>,
 ) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     let rafId: number;
+    let drawnKey = "";
 
-    const draw = () => {
+    const draw = (force = false) => {
       const { viewport, loop } = stateRef.current;
+      const key = `${viewport.start}|${viewport.end}|${loop.start}|${loop.end}`;
+      if (!force && key === drawnKey) return;
+      drawnKey = key;
       const selection = loopToSection(viewport, loop);
       renderWaveform(
         {
@@ -33,7 +37,7 @@ export const useAnimateWaveform = (
     const onResize = () => {
       canvas.width = canvas.clientWidth;
       canvas.height = canvas.clientHeight;
-      draw();
+      draw(true);
     };
 
     rafId = requestAnimationFrame(loop);
@@ -44,5 +48,6 @@ export const useAnimateWaveform = (
       observer.disconnect();
       cancelAnimationFrame(rafId);
     };
-  }, [canvasRef, audioBuffer, stateRef]);
+  }, [audioBuffer, stateRef]);
+  return canvasRef;
 };
