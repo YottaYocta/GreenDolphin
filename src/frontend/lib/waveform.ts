@@ -117,7 +117,7 @@ export const renderWaveform = (
 
     const endPos = computePixel(selection.end - viewport.start, rangeLength, canvas);
 
-    canvasCtx.fillStyle = primaryFill;
+    canvasCtx.fillStyle = "rgb(0 0 0 / 12%)";
     canvasCtx.fillRect(startPos, 0, 1, canvas.height);
     canvasCtx.fillRect(endPos, 0, 1, canvas.height);
   }

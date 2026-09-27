@@ -33,7 +33,7 @@ export interface TimelineProps {
 }
 
 /** Horizontal inset so a triangle at 0% / 100% is fully inside the frame. */
-const FRAME_PAD = "px-3";
+const FRAME_PAD = "px-4";
 
 export const Timeline: FC<TimelineProps> = ({
   stateRef,
@@ -140,8 +140,8 @@ export const Timeline: FC<TimelineProps> = ({
       className="absolute bottom-0 -translate-x-1/2 z-10 flex items-end justify-center w-9 h-full cursor-ew-resize touch-none"
       {...handleDragProps(side)}
     >
-      <svg width="22" height="22" viewBox="0 0 22 22" className="block">
-        <polygon points="11,0 22,22 0,22" fill="var(--color-neutral-2)" />
+      <svg width="16" height="22" viewBox="0 0 16 22" className="block">
+        <polygon points="8,0 16,22 0,22" fill="var(--color-neutral-2)" />
       </svg>
     </div>
   );
@@ -153,7 +153,7 @@ export const Timeline: FC<TimelineProps> = ({
     >
       <div
         id="timeline-ruler"
-        className={`relative h-6 shrink-0 bg-surface rounded-t-lg overflow-hidden ${FRAME_PAD}`}
+        className={`relative h-6 shrink-0 bg-surface rounded-lg overflow-hidden ${FRAME_PAD}`}
       >
         <div className="relative w-full h-full">
           <div
@@ -166,8 +166,8 @@ export const Timeline: FC<TimelineProps> = ({
             className="absolute top-0 -translate-x-1/2 z-10 flex items-start justify-center w-9 h-6 cursor-ew-resize touch-none"
             {...gripDragProps}
           >
-            <svg width="22" height="22" viewBox="0 0 22 22" className="block">
-              <polygon points="0,0 22,0 11,22" fill="var(--color-play)" />
+            <svg width="16" height="22" viewBox="0 0 16 22" className="block">
+              <polygon points="0,0 16,0 8,22" fill="var(--color-play)" />
             </svg>
           </div>
         </div>
@@ -193,7 +193,7 @@ export const Timeline: FC<TimelineProps> = ({
 
       <div
         id="timeline-loop"
-        className={`relative h-7 shrink-0 bg-surface rounded-b-lg overflow-hidden ${FRAME_PAD}`}
+        className={`relative h-7 shrink-0 bg-surface rounded-lg overflow-hidden ${FRAME_PAD}`}
       >
         <div ref={bandRef} className="relative w-full h-full">
           <div
