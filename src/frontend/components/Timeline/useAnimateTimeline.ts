@@ -8,6 +8,9 @@ export interface TimelineRefs {
   ticksRef: RefObject<HTMLDivElement | null>;
   /** Optional layer inside the content track for full-height tick lines. */
   contentTicksRef: RefObject<HTMLDivElement | null>;
+  /** Optional loop start / end lines drawn through the content track. */
+  loopStartLineRef: RefObject<HTMLDivElement | null>;
+  loopEndLineRef: RefObject<HTMLDivElement | null>;
   gripRef: RefObject<HTMLDivElement | null>;
   lineRef: RefObject<HTMLDivElement | null>;
   bandShadeRef: RefObject<HTMLDivElement | null>;
@@ -74,6 +77,10 @@ export const useAnimateTimeline = (
         const loopFrom = loop.start * width;
         const loopTo = loop.end * width;
         span(refs.bandShadeRef.current, loopFrom, loopTo);
+        if (refs.loopStartLineRef.current)
+          refs.loopStartLineRef.current.style.left = `${loopFrom}px`;
+        if (refs.loopEndLineRef.current)
+          refs.loopEndLineRef.current.style.left = `${loopTo}px`;
         if (refs.leftHandleRef.current)
           refs.leftHandleRef.current.style.left = `${loopFrom}px`;
         if (refs.rightHandleRef.current)

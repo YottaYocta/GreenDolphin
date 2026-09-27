@@ -30,6 +30,8 @@ export interface TimelineProps {
   children: ReactNode;
   /** Draw the ruler's tick lines through the content area as well. */
   gridLines?: boolean;
+  /** Draw the loop start / end as lines through the content area. */
+  loopEdges?: boolean;
 }
 
 /** Horizontal inset so a triangle at 0% / 100% is fully inside the frame. */
@@ -46,12 +48,15 @@ export const Timeline: FC<TimelineProps> = ({
   onLoopCommit,
   children,
   gridLines = false,
+  loopEdges = false,
 }) => {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
   const bandRef = useRef<HTMLDivElement | null>(null);
   const ticksRef = useRef<HTMLDivElement | null>(null);
   const contentTicksRef = useRef<HTMLDivElement | null>(null);
+  const loopStartLineRef = useRef<HTMLDivElement | null>(null);
+  const loopEndLineRef = useRef<HTMLDivElement | null>(null);
   const gripRef = useRef<HTMLDivElement | null>(null);
   const lineRef = useRef<HTMLDivElement | null>(null);
   const bandShadeRef = useRef<HTMLDivElement | null>(null);
@@ -64,6 +69,8 @@ export const Timeline: FC<TimelineProps> = ({
       contentRef,
       ticksRef,
       contentTicksRef,
+      loopStartLineRef,
+      loopEndLineRef,
       gripRef,
       lineRef,
       bandShadeRef,
@@ -149,11 +156,11 @@ export const Timeline: FC<TimelineProps> = ({
   return (
     <div
       ref={rootRef}
-      className="relative flex flex-col w-full h-full min-h-0 select-none touch-none"
+      className="relative flex flex-col w-full flex-1 min-h-0 select-none touch-none"
     >
       <div
         id="timeline-ruler"
-        className={`relative h-6 shrink-0 bg-surface rounded-lg overflow-hidden ${FRAME_PAD}`}
+        className={`relative h-7 shrink-0 bg-surface rounded-lg overflow-hidden ${FRAME_PAD}`}
       >
         <div className="relative w-full h-full">
           <div
@@ -163,7 +170,7 @@ export const Timeline: FC<TimelineProps> = ({
           <div
             ref={gripRef}
             data-timeline-control
-            className="absolute top-0 -translate-x-1/2 z-10 flex items-start justify-center w-9 h-6 cursor-ew-resize touch-none"
+            className="absolute top-0 -translate-x-1/2 z-10 flex items-start justify-center w-9 h-7 cursor-ew-resize touch-none"
             {...gripDragProps}
           >
             <svg width="16" height="22" viewBox="0 0 16 22" className="block">
@@ -174,9 +181,9 @@ export const Timeline: FC<TimelineProps> = ({
       </div>
 
       <div
-        className={`relative flex-1 min-h-0 overflow-hidden bg-white ${FRAME_PAD}`}
+        className={`relative flex-1 min-h-0 flex flex-col overflow-hidden bg-white ${FRAME_PAD}`}
       >
-        <div ref={contentRef} className="relative w-full h-full">
+        <div ref={contentRef} className="relative w-full flex-1 min-h-0 flex flex-col">
           {gridLines && (
             <div
               ref={contentTicksRef}
@@ -184,6 +191,18 @@ export const Timeline: FC<TimelineProps> = ({
             />
           )}
           {children}
+          {loopEdges && (
+            <>
+              <div
+                ref={loopStartLineRef}
+                className="absolute inset-y-0 w-px bg-black/12 pointer-events-none"
+              />
+              <div
+                ref={loopEndLineRef}
+                className="absolute inset-y-0 w-px -translate-x-full bg-black/12 pointer-events-none"
+              />
+            </>
+          )}
           <div
             ref={lineRef}
             className="absolute inset-y-0 w-0.5 -translate-x-1/2 bg-play pointer-events-none z-10"

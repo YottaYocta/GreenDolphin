@@ -154,13 +154,13 @@ function YouTubeEditorView({
               />
             </div>
           </div>
-          <div className="px-4 pb-4 flex-1 min-h-0">
+          <div className="px-4 pb-4 flex-1 min-h-0 flex flex-col">
             {errorCode !== null ? (
               <div className="w-full h-8 pt-1 flex items-center justify-center text-sm text-red-600/80 font-inria">
                 {describeYouTubeError(errorCode)}
               </div>
             ) : ready ? (
-              <div className="h-full min-h-24">
+              <div className="flex-1 min-h-24 flex flex-col">
                 <Timeline
                   stateRef={stateRef}
                   totalSamples={totalMS}
@@ -171,6 +171,7 @@ function YouTubeEditorView({
                   onLoopEditStart={handleLoopEditStart}
                   onLoopCommit={handleLoopCommit}
                   gridLines
+                  loopEdges
                 >
                   {null}
                 </Timeline>

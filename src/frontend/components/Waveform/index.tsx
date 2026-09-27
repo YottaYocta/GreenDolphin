@@ -97,7 +97,7 @@ export const Waveform: FC<
   useKeyboardShortcuts(waveformData, stateRef, handleKeyboardRange);
 
   return (
-    <div className="w-full h-full min-h-0 p-4">
+    <div className="w-full flex-1 min-h-0 flex flex-col p-4">
       <Timeline
         stateRef={stateRef}
         totalSamples={waveformData.length}
@@ -113,7 +113,7 @@ export const Waveform: FC<
           {...props}
           ref={canvasRef}
           draggable="false"
-          className="block w-full h-full min-w-0 min-h-0 select-none pixelated"
+          className="block w-full flex-1 min-w-0 min-h-0 select-none pixelated"
         />
       </Timeline>
     </div>
