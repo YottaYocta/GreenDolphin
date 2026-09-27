@@ -213,12 +213,12 @@ export function PlaybackControls({
               style={{ flexShrink: 0 }}
             />
           </button>
+          {settingsButton}
           {/* Back and forward share one cell, side by side. */}
           <div className="grid grid-cols-2 gap-4 min-h-0">
             {backButton(28)}
             {forwardButton(28)}
           </div>
-          {settingsButton}
         </>
       ) : (
         <>
