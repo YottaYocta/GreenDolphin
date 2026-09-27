@@ -123,104 +123,100 @@ export function PlaybackControls({
   ]);
 
   const btn =
-    "btn-surface rounded-xl h-full min-h-0 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed p-5 md:p-8";
+    "btn-surface rounded-xl h-full min-h-0 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed p-3 md:p-6";
+
+  const settingsButton = settings && (
+    <AppDialog
+      title="Settings"
+      trigger={
+        <Dialog.Trigger aria-label="Settings" className={btn}>
+          <SlidersIcon
+            size={32}
+            weight="fill"
+            color="var(--color-icon)"
+            style={{ opacity: 0.54, flexShrink: 0 }}
+          />
+        </Dialog.Trigger>
+      }
+    >
+      <div className="flex flex-col gap-6 pb-4">{settings}</div>
+    </AppDialog>
+  );
 
   return (
-    <div className="flex flex-col md:flex-row gap-4 w-full h-min max-md:flex-1">
-      {/* Transport: play (+ freeze) */}
-      <div
-        className={`grid gap-4 flex-1 min-h-0 ${showFreeze ? "grid-cols-2" : "grid-cols-1"}`}
+    <div className="grid gap-4 w-full h-min rounded-xl max-md:flex-1 max-md:grid-cols-2 max-md:grid-rows-2 grid-cols-4">
+      <button
+        onClick={togglePlay}
+        disabled={disabled}
+        className={`${btn} ${
+          playState === "waiting"
+            ? "bg-waiting hover:bg-waiting-hover active:bg-waiting-active [box-shadow:var(--shadow-btn-colored)]"
+            : playState === "playing"
+              ? "bg-play hover:bg-play-hover active:bg-play-active [box-shadow:var(--shadow-btn-colored)]"
+              : ""
+        }`}
       >
-        <button
-          onClick={togglePlay}
-          disabled={disabled}
-          className={`${btn} ${
-            playState === "waiting"
-              ? "bg-waiting hover:bg-waiting-hover active:bg-waiting-active [box-shadow:var(--shadow-btn-colored)]"
-              : playState === "playing"
-                ? "bg-play hover:bg-play-hover active:bg-play-active [box-shadow:var(--shadow-btn-colored)]"
-                : ""
-          }`}
-        >
-          <span className="size-10 shrink-0 flex items-center justify-center">
-            {playState === "playing" ? (
-              <PauseIcon
-                size={36}
-                weight="fill"
-                color="var(--color-icon-white)"
-                style={{ flexShrink: 0 }}
-              />
-            ) : playState === "waiting" ? (
-              <span className="font-space-mono text-white text-lg tabular-nums">
-                {countdown !== null ? countdown.toFixed(1) : "…"}
-              </span>
-            ) : (
-              <PlayIcon
-                size={40}
-                weight="fill"
-                color="var(--color-play)"
-                style={{ flexShrink: 0 }}
-              />
-            )}
-          </span>
-        </button>
+        <span className="size-10 shrink-0 flex items-center justify-center">
+          {playState === "playing" ? (
+            <PauseIcon
+              size={36}
+              weight="fill"
+              color="var(--color-icon-white)"
+              style={{ flexShrink: 0 }}
+            />
+          ) : playState === "waiting" ? (
+            <span className="font-space-mono text-white text-lg tabular-nums">
+              {countdown !== null ? countdown.toFixed(1) : "…"}
+            </span>
+          ) : (
+            <PlayIcon
+              size={40}
+              weight="fill"
+              color="var(--color-play)"
+              style={{ flexShrink: 0 }}
+            />
+          )}
+        </span>
+      </button>
+
+      {/* Second cell: freeze + settings stacked (or whichever exists). */}
+      <div className="grid grid-rows-[repeat(auto-fit,minmax(0,1fr))] gap-4 min-h-0">
         {showFreeze && (
           <button
             onClick={toggleFreeze}
             className={`${btn} ${playState === "frozen" ? "bg-freeze hover:bg-freeze-hover active:bg-freeze-active [box-shadow:var(--shadow-btn-colored)]" : ""}`}
           >
             <SnowflakeIcon
-              size={40}
+              size={showFreeze && settings ? 28 : 40}
               weight="fill"
               color={playState === "frozen" ? "#FFFFFF" : "var(--color-freeze)"}
               style={{ flexShrink: 0 }}
             />
           </button>
         )}
+        {settingsButton}
       </div>
 
-      {/* Navigation: back, forward, settings */}
-      <div
-        className={`grid gap-4 flex-1 min-h-0 ${settings ? "grid-cols-3" : "grid-cols-2"}`}
+      <button onClick={rewindFiveSeconds} disabled={disabled} className={btn}>
+        <SkipBackIcon
+          size={32}
+          weight="fill"
+          color="var(--color-icon)"
+          style={{ opacity: 0.67, flexShrink: 0 }}
+        />
+      </button>
+      <button
+        onClick={fastForwardFiveSeconds}
+        disabled={disabled}
+        className={btn}
       >
-        <button onClick={rewindFiveSeconds} disabled={disabled} className={btn}>
-          <SkipBackIcon
-            size={32}
-            weight="fill"
-            color="var(--color-icon)"
-            style={{ opacity: 0.67, flexShrink: 0 }}
-          />
-        </button>
-        <button
-          onClick={fastForwardFiveSeconds}
-          disabled={disabled}
-          className={btn}
-        >
-          <SkipForwardIcon
-            size={32}
-            weight="fill"
-            color="var(--color-icon)"
-            style={{ opacity: 0.67, flexShrink: 0 }}
-          />
-        </button>
-        {settings && (
-          <AppDialog
-            title="Settings"
-            trigger={
-              <Dialog.Trigger aria-label="Settings" className={btn}>
-                <SlidersIcon
-                  size={32}
-                  weight="fill"
-                  color="var(--color-icon)"
-                  style={{ opacity: 0.54, flexShrink: 0 }}
-                />
-              </Dialog.Trigger>
-            }
-          >
-            <div className="flex flex-col gap-6 pb-4">{settings}</div>
-          </AppDialog>
-        )}
-      </div>
+        <SkipForwardIcon
+          size={32}
+          weight="fill"
+          color="var(--color-icon)"
+          style={{ opacity: 0.67, flexShrink: 0 }}
+        />
+      </button>
     </div>
   );
 }
