@@ -1,16 +1,15 @@
-import { useContext, useEffect, useMemo, useRef } from "react";
+import { useCallback, useContext, useEffect, useMemo } from "react";
 import type { RefObject } from "react";
 import type { Section } from "../lib/waveform";
-import type { WaveformMetadata } from "../components/Waveform/types";
+import { Timeline } from "../components/Timeline";
+import { useTimelineState } from "../components/Timeline/useTimelineState";
 import { AudioStore } from "../AudioStore";
 import { PlaybackContext } from "../playback/PlaybackContext";
 import { TitleBar } from "../components/TitleBar/TitleBar";
-import { Trackbar } from "../components/Waveform/trackbar";
 import { Tutorial, type TutorialStep } from "../components/Tutorial";
 import { loadSession, saveSession } from "../lib/useSessionPersistence";
 import { loadLoopPrefs } from "../lib/loopPrefs";
 import { AlwaysAwakeIndicator } from "../components/AlwaysAwakeIndicator";
-import { clampSection } from "../lib/util";
 import { capture } from "../lib/posthog";
 import { useYouTubePlayer } from "./useYouTubePlayer";
 import { describeYouTubeError } from "./iframeApi";
@@ -19,16 +18,16 @@ import {
   YOUTUBE_SAMPLE_RATE,
 } from "./YouTubePlaybackProvider";
 import { PlaybackControls } from "../components/PlaybackControls";
-import { YouTubeSettings } from "./YouTubeSettings";
+import { YouTubeSliders } from "./YouTubeSettings";
 
 const TUTORIAL_STEPS: TutorialStep[] = [
   {
-    htmlSelector: "#trackbar-playhead",
+    htmlSelector: "#timeline-ruler",
     contents: <p>Click to set playback position</p>,
   },
   {
-    htmlSelector: "#trackbar",
-    contents: <p>Drag endpoints to set loop</p>,
+    htmlSelector: "#timeline-loop",
+    contents: <p>The loop stays put — drag the handles or pan the video under it</p>,
   },
 ];
 
@@ -96,24 +95,23 @@ function YouTubeEditorView({
   }, [filename, playbackSettings]);
 
   const totalMS = duration * 1000;
-  const fullRange = { start: 0, end: totalMS };
-  const metadataRef = useRef<WaveformMetadata>({
-    viewport: fullRange,
-    selection: initialSelection ?? fullRange,
-  });
+  const { stateRef, setViewport } = useTimelineState(
+    totalMS,
+    undefined,
+    initialSelection,
+  );
 
-  useEffect(() => {
-    if (totalMS <= 0) return;
-    const full = { start: 0, end: totalMS };
-    const selection = metadataRef.current.selection;
-    metadataRef.current = {
-      viewport: full,
-      selection:
-        selection.end > selection.start
-          ? clampSection(selection, full)
-          : full,
-    };
-  }, [totalMS]);
+  const handlePosition = useCallback(
+    (positionMS: number) => triggerAction({ type: "move", position: positionMS }),
+    [triggerAction],
+  );
+  const handleLoopChange = useCallback(
+    (loop: Section | undefined) => {
+      setAudioSettings({ loop });
+      if (loop) capture("loop_region_set", { source: "youtube" });
+    },
+    [setAudioSettings],
+  );
 
   const ready = duration > 0;
 
@@ -124,40 +122,29 @@ function YouTubeEditorView({
         <TitleBar />
 
         <div className="relative flex flex-col rounded-xl overflow-x-hidden overflow-y-clip [box-shadow:var(--shadow-panel)] bg-white border border-border flex-1 min-h-0 md:min-h-72 max-md:grow">
-          <YouTubeSettings>
-          <div className="w-full flex items-center justify-center p-4 pt-14 md:pt-6 flex-1 min-h-0">
-            <div className="relative aspect-video w-full h-full max-w-150 max-h-full bg-black rounded-lg overflow-hidden">
+          <div className="w-full flex items-center justify-center p-4 md:pt-6 min-h-0 shrink overflow-hidden">
+            <div className="relative aspect-video h-[min(9rem,18dvh)] md:h-45 max-w-full bg-black rounded-lg overflow-hidden opacity-90">
               <div
                 ref={containerRef}
                 className="absolute inset-0 [&_iframe]:w-full [&_iframe]:h-full"
               />
             </div>
           </div>
-          <div className="px-4 pb-4 shrink-0">
+          <div className="px-4 pb-4 flex-1 shrink-0 min-h-0 flex flex-col">
             {errorCode !== null ? (
               <div className="w-full h-8 pt-1 flex items-center justify-center text-sm text-red-600/80 font-inria">
                 {describeYouTubeError(errorCode)}
               </div>
             ) : ready ? (
-              <Trackbar
-                positionMS={playbackPosition}
-                metadata={metadataRef}
-                sampleRate={YOUTUBE_SAMPLE_RATE}
+              <Timeline
+                stateRef={stateRef}
                 totalSamples={totalMS}
-                handleLoopEdit={(selection) => {
-                  metadataRef.current = { ...metadataRef.current, selection };
-                }}
-                handleLoopEditFinish={(selection) => {
-                  metadataRef.current = { ...metadataRef.current, selection };
-                  setAudioSettings({ loop: selection });
-                  capture("loop_region_set", { source: "youtube" });
-                }}
-                handlePosition={(positionMS) =>
-                  triggerAction({ type: "move", position: positionMS })
-                }
-                handleRange={(viewport) => {
-                  metadataRef.current = { ...metadataRef.current, viewport };
-                }}
+                sampleRate={YOUTUBE_SAMPLE_RATE}
+                positionMS={playbackPosition}
+                onRangeChange={setViewport}
+                onPosition={handlePosition}
+                onLoopChange={handleLoopChange}
+                gridLines
               />
             ) : (
               <div className="w-full h-8 pt-1 flex items-center justify-center text-sm text-black/40 font-inria">
@@ -165,10 +152,13 @@ function YouTubeEditorView({
               </div>
             )}
           </div>
-          </YouTubeSettings>
         </div>
 
-        <PlaybackControls showFreeze={false} disabled={!ready} />
+        <PlaybackControls
+          showFreeze={false}
+          disabled={!ready}
+          settings={<YouTubeSliders />}
+        />
       </div>
 
       {ready && <Tutorial steps={TUTORIAL_STEPS} />}

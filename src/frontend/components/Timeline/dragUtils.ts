@@ -2,7 +2,7 @@ import type {
   MouseEvent as ReactMouseEvent,
   TouchEvent as ReactTouchEvent,
 } from "react";
-import type { Section } from "../../../lib/waveform";
+import { clamp } from "../../lib/util";
 
 export const beginDrag = (
   onMove: (clientX: number) => void,
@@ -42,17 +42,11 @@ export const dragHandlers = (begin: (clientX: number) => void) => ({
   },
 });
 
-export const pointerToSample = (
+/** Pointer x → fraction (0..1) of the element's width. */
+export const pointerToFraction = (
   clientX: number,
-  trackEl: HTMLElement,
-  range: Section,
+  el: HTMLElement,
 ): number => {
-  const rect = trackEl.getBoundingClientRect();
-  const rangeLen = range.end - range.start;
-  return (
-    range.start + Math.round(((clientX - rect.left) / rect.width) * rangeLen)
-  );
+  const rect = el.getBoundingClientRect();
+  return clamp((clientX - rect.left) / rect.width, 0, 1);
 };
-
-export const clampSample = (sample: number, totalSamples: number): number =>
-  Math.max(0, Math.min(totalSamples, sample));

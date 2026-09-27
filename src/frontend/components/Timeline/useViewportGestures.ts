@@ -5,10 +5,12 @@ import {
 } from "../../lib/constants";
 import type { Section } from "../../lib/waveform";
 import { clampSection } from "../../lib/util";
-import type { WaveformMetadata } from "./types";
+import type { TimelineState } from "./types";
+
+const WHEEL_SETTLE_MS = 250;
 
 const isControl = (target: EventTarget | null) =>
-  target instanceof Element && !!target.closest("[data-trackbar-control]");
+  target instanceof Element && !!target.closest("[data-timeline-control]");
 
 type Pinch = {
   idA: number;
@@ -33,12 +35,20 @@ const findOther = (list: TouchList, excludeId: number): Touch | null => {
   return null;
 };
 
+/**
+ * Tap / pan / pinch / wheel on `elementRef`, measured against `measureRef`.
+ * `onGestureStart` / `onGestureEnd` bracket real pans, pinches and wheel
+ * bursts (never taps); wheel input "ends" after a short settle.
+ */
 export const useViewportGestures = (
   elementRef: RefObject<HTMLElement | null>,
-  metadataRef: RefObject<WaveformMetadata>,
+  measureRef: RefObject<HTMLElement | null>,
+  stateRef: RefObject<TimelineState>,
   totalSamples: number,
   handleRange: (range: Section) => void,
-  onTap?: (clientX: number, target: EventTarget | null) => void,
+  onTap: (clientX: number, target: EventTarget | null) => void,
+  onGestureStart: () => void,
+  onGestureEnd: () => void,
 ) => {
   const minRangeLen = useMemo(
     () => Math.floor(MIN_RANGE_THRESHOLD * totalSamples),
@@ -49,7 +59,30 @@ export const useViewportGestures = (
     const el = elementRef.current;
     if (!el) return;
     const bounds = { start: 0, end: totalSamples };
-    const rectOf = () => el.getBoundingClientRect();
+    const rectOf = () => (measureRef.current ?? el).getBoundingClientRect();
+
+    // Gesture bookkeeping: pointer gestures and wheel input share one
+    // "active" flag so start/end fire exactly once per gesture.
+    let active = false;
+    let wheelTimer: ReturnType<typeof setTimeout> | null = null;
+    const begin = () => {
+      if (active) return;
+      active = true;
+      onGestureStart();
+    };
+    const end = () => {
+      if (!active) return;
+      active = false;
+      onGestureEnd();
+    };
+    const touchWheel = () => {
+      begin();
+      if (wheelTimer) clearTimeout(wheelTimer);
+      wheelTimer = setTimeout(() => {
+        wheelTimer = null;
+        end();
+      }, WHEEL_SETTLE_MS);
+    };
 
     const zoomAround = (
       currentRange: number,
@@ -75,8 +108,9 @@ export const useViewportGestures = (
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       e.stopPropagation();
+      touchWheel();
       const rect = rectOf();
-      const { viewport } = metadataRef.current;
+      const { viewport } = stateRef.current;
       const currentRange = viewport.end - viewport.start;
       const before = (e.clientX - rect.left) / rect.width;
       const anchor = viewport.start + before * currentRange;
@@ -103,7 +137,7 @@ export const useViewportGestures = (
       if (isControl(e.target)) return;
       e.preventDefault();
       const rect = rectOf();
-      const { viewport } = metadataRef.current;
+      const { viewport } = stateRef.current;
       const currentRange = viewport.end - viewport.start;
       const startRangeStart = viewport.start;
       const threshold = rect.width * CLICK_SELECTION_THRESHOLD;
@@ -111,7 +145,10 @@ export const useViewportGestures = (
 
       const onMouseMove = (m: MouseEvent) => {
         const netDx = m.clientX - e.clientX;
-        if (!dragged && Math.abs(netDx) > threshold) dragged = true;
+        if (!dragged && Math.abs(netDx) > threshold) {
+          dragged = true;
+          begin();
+        }
         if (!dragged) return;
         const targetStart =
           startRangeStart - Math.round((netDx / rect.width) * currentRange);
@@ -125,7 +162,8 @@ export const useViewportGestures = (
       const onMouseUp = () => {
         window.removeEventListener("mousemove", onMouseMove);
         window.removeEventListener("mouseup", onMouseUp);
-        if (!dragged) onTap?.(e.clientX, e.target);
+        if (dragged) end();
+        else onTap(e.clientX, e.target);
       };
       window.addEventListener("mousemove", onMouseMove);
       window.addEventListener("mouseup", onMouseUp);
@@ -138,7 +176,7 @@ export const useViewportGestures = (
       e.preventDefault();
 
       const rect = rectOf();
-      const { viewport } = metadataRef.current;
+      const { viewport } = stateRef.current;
       const startRangeStart = viewport.start;
       const startRange = viewport.end - viewport.start;
 
@@ -155,6 +193,7 @@ export const useViewportGestures = (
         if (!b) return;
         const dist = Math.abs(b.clientX - a.clientX);
         if (dist === 0) return;
+        begin();
         const midFraction =
           ((a.clientX + b.clientX) / 2 - rect.left) / rect.width;
         pinch = {
@@ -181,7 +220,10 @@ export const useViewportGestures = (
           const t = findTouch(moveEvent.touches, singleId);
           if (!t) return;
           const netDx = t.clientX - startClientX;
-          if (!dragged && Math.abs(netDx) > threshold) dragged = true;
+          if (!dragged && Math.abs(netDx) > threshold) {
+            dragged = true;
+            begin();
+          }
           if (!dragged) return;
           const targetStart =
             startRangeStart - Math.round((netDx / rect.width) * startRange);
@@ -214,7 +256,8 @@ export const useViewportGestures = (
       const onEnd = (endEvent: TouchEvent) => {
         if (!pinch) {
           if (findTouch(endEvent.touches, singleId)) return;
-          if (!dragged) onTap?.(startClientX, startTarget);
+          if (dragged) end();
+          else onTap(startClientX, startTarget);
           cleanup();
           return;
         }
@@ -223,6 +266,7 @@ export const useViewportGestures = (
           findTouch(endEvent.touches, pinch.idB)
         )
           return;
+        end();
         cleanup();
       };
 
@@ -238,6 +282,17 @@ export const useViewportGestures = (
       el.removeEventListener("wheel", onWheel);
       el.removeEventListener("mousedown", onMouseDown);
       el.removeEventListener("touchstart", onTouchStart);
+      if (wheelTimer) clearTimeout(wheelTimer);
     };
-  }, [elementRef, metadataRef, totalSamples, handleRange, minRangeLen, onTap]);
+  }, [
+    elementRef,
+    measureRef,
+    stateRef,
+    totalSamples,
+    handleRange,
+    minRangeLen,
+    onTap,
+    onGestureStart,
+    onGestureEnd,
+  ]);
 };

@@ -56,6 +56,9 @@ export const formatSeconds = (seconds: number) => {
   }`;
 };
 
+export const clamp = (v: number, lo: number, hi: number) =>
+  Math.max(lo, Math.min(hi, v));
+
 export const clampSection = (
   targetSection: Section,
   clampToSection: Section
@@ -85,10 +88,6 @@ export const clampSection = (
 
 export const computeMS = (sampleRate: number, sampleIndex: number) => {
   return (sampleIndex / sampleRate) * 1000;
-};
-
-export const MStoSampleIndex = (sampleRate: number, ms: number) => {
-  return Math.floor((ms / 1000) * sampleRate);
 };
 
 export function errorMessage(e: unknown): string {

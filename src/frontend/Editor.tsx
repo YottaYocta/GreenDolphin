@@ -5,7 +5,7 @@ import { PianoRoll } from "./components/PianoRoll";
 import { PlaybackContext } from "./playback/PlaybackContext";
 import { AudioStore } from "./AudioStore";
 import { PlaybackControls } from "./components/PlaybackControls";
-import { PlaybackSettings } from "./components/PlaybackSettings";
+import { PlaybackSliders } from "./components/PlaybackSettings";
 import { TitleBar } from "./components/TitleBar/TitleBar";
 import { loadSession, saveSession } from "./lib/useSessionPersistence";
 import type { Section } from "./lib/waveform";
@@ -15,7 +15,7 @@ import { AlwaysAwakeIndicator } from "./components/AlwaysAwakeIndicator";
 
 const TUTORIAL_STEPS: TutorialStep[] = [
   {
-    htmlSelector: "#waveform-canvas",
+    htmlSelector: "#timeline-ruler",
     contents: <p>Click to set playback position</p>,
   },
   {
@@ -27,8 +27,8 @@ const TUTORIAL_STEPS: TutorialStep[] = [
     contents: <p>Drag to pan</p>,
   },
   {
-    htmlSelector: "#trackbar",
-    contents: <p>Drag endpoints to set loop</p>,
+    htmlSelector: "#timeline-loop",
+    contents: <p>The loop stays put — drag the handles or pan the recording under it</p>,
   },
   {
     htmlSelector: "#piano",
@@ -57,15 +57,26 @@ export const Editor = () => {
     saveSession({ filename, audioSettings: playbackSettings });
   }, [filename, playbackSettings]);
 
-  const handlePosition = (sampleIndex: number) => {
-    const timeInSeconds = sampleIndex / data.sampleRate;
-    const timeInMs = timeInSeconds * 1000;
-    triggerAction({ type: "move", position: timeInMs });
-  };
+  const handlePosition = useCallback(
+    (sampleIndex: number) =>
+      triggerAction({
+        type: "move",
+        position: (sampleIndex / data.sampleRate) * 1000,
+      }),
+    [data.sampleRate, triggerAction],
+  );
 
   const handleRangeChange = useDebounce(
     useCallback((viewport: Section) => saveSession({ viewport }), []),
     250,
+  );
+
+  const handleLoopChange = useCallback(
+    (loop: Section | undefined) => {
+      setAudioSettings({ loop });
+      if (loop) capture("loop_region_set");
+    },
+    [setAudioSettings],
   );
 
   const { initialViewport, initialSelection } = useMemo(() => {
@@ -90,24 +101,19 @@ export const Editor = () => {
             <PianoRoll />
           </div>
           <div className="relative flex flex-col rounded-xl overflow-x-hidden overflow-y-clip [box-shadow:var(--shadow-panel)] bg-white border border-border flex-1 min-h-0 md:min-h-72 max-md:grow">
-            <PlaybackSettings>
-              <Waveform
-                waveformData={data}
-                handlePosition={handlePosition}
-                handleRangeChange={handleRangeChange}
-                handleSelection={(selection) => {
-                  setAudioSettings({ loop: selection });
-                  capture("loop_region_set");
-                }}
-                initialViewport={initialViewport}
-                initialSelection={initialSelection}
-                positionMS={playbackPosition}
-              ></Waveform>
-            </PlaybackSettings>
+            <Waveform
+              waveformData={data}
+              onPosition={handlePosition}
+              onRangeChange={handleRangeChange}
+              onLoopChange={handleLoopChange}
+              initialViewport={initialViewport}
+              initialSelection={initialSelection}
+              positionMS={playbackPosition}
+            />
           </div>
         </div>
 
-        <PlaybackControls />
+        <PlaybackControls settings={<PlaybackSliders />} />
       </div>
 
       <Tutorial steps={TUTORIAL_STEPS} />

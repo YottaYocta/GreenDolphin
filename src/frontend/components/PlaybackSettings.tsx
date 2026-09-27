@@ -1,81 +1,14 @@
 import { useContext, useEffect, useRef, useState, type FC } from "react";
-import { ArrowClockwiseIcon, SlidersIcon, XIcon } from "@phosphor-icons/react";
+import { ArrowClockwiseIcon } from "@phosphor-icons/react";
 import { PlaybackContext } from "../playback/PlaybackContext";
 import { useDrag } from "../lib/useDrag";
-import { Dialog } from "@base-ui/react/dialog";
-import { AppDialog } from "./AppDialog";
 import { capture } from "../lib/posthog";
 
-export function SettingsPanel({
-  sliders,
-  children,
-}: {
-  sliders: React.ReactNode;
-  children?: React.ReactNode;
-}) {
-  const [expanded, setExpanded] = useState(false);
-
-  const icon = (
-    <SlidersIcon
-      size={18}
-      weight="fill"
-      color="var(--color-icon)"
-      style={{ opacity: 0.54, flexShrink: 0 }}
-    />
-  );
-
-  return (
-    <>
-      {expanded && (
-        <div className="max-md:hidden flex justify-between h-min p-5 gap-16 border-b border-border shrink-0">
-          {sliders}
-        </div>
-      )}
-      <div className="relative flex-1 min-h-0 flex flex-col">
-        <AppDialog
-          title="Settings"
-          trigger={
-            <Dialog.Trigger
-              aria-label="Settings"
-              className="md:hidden absolute top-2 right-2 z-20 btn-surface size-9 rounded-lg cursor-pointer"
-            >
-              {icon}
-            </Dialog.Trigger>
-          }
-        >
-          <div className="flex flex-col gap-6 pb-4">{sliders}</div>
-        </AppDialog>
-        <button
-          onClick={() => setExpanded((e) => !e)}
-          aria-expanded={expanded}
-          aria-label={expanded ? "Close settings" : "Settings"}
-          className={`max-md:hidden absolute top-2 right-2 z-20 btn-surface size-9 rounded-lg cursor-pointer ${expanded ? "bg-surface-track" : ""}`}
-        >
-          {expanded ? (
-            <XIcon
-              size={16}
-              weight="bold"
-              color="var(--color-icon)"
-              style={{ opacity: 0.4, flexShrink: 0 }}
-            />
-          ) : (
-            icon
-          )}
-        </button>
-        {children}
-      </div>
-    </>
-  );
-}
-
-export function PlaybackSettings({
-  children,
-}: {
-  children?: React.ReactNode;
-}) {
+/** Pitch / Speed / Volume sliders bound to the recording playback context. */
+export function PlaybackSliders() {
   const playback = useContext(PlaybackContext);
   if (!playback)
-    throw new Error("PlaybackSettings must be used within a PlaybackProvider");
+    throw new Error("PlaybackSliders must be used within a PlaybackProvider");
   const { playbackSettings, setAudioSettings } = playback;
   const { pitchShift, playbackSpeed } = playbackSettings;
 
@@ -86,7 +19,7 @@ export function PlaybackSettings({
     setAudioSettings({ gain: renderedGain * renderedGain });
   }, [renderedGain, setAudioSettings]);
 
-  const sliders = (
+  return (
     <>
       <AudioSlider
         label="Pitch"
@@ -142,8 +75,6 @@ export function PlaybackSettings({
       />
     </>
   );
-
-  return <SettingsPanel sliders={sliders}>{children}</SettingsPanel>;
 }
 
 const SettingsRow: FC<{

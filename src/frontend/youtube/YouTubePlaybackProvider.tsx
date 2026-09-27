@@ -189,10 +189,16 @@ export const YouTubePlaybackProvider = ({
         });
         if (playState !== "waiting") triggerAction("play");
       } else if (state === YT_STATE_PAUSED && playState === "playing") {
+        // A commanded seek can surface a transient PAUSED (notably on iOS);
+        // that is not the user pausing, so keep the video going.
+        if (seekInFlight(player.getCurrentTime() * 1000)) {
+          player.playVideo();
+          return;
+        }
         triggerAction("pause");
       }
     });
-  }, [player, subscribe, playState, triggerAction]);
+  }, [player, subscribe, playState, triggerAction, seekInFlight]);
 
 
   const loopLength = loop ? (loop.end - loop.start) / YOUTUBE_SAMPLE_RATE : duration;

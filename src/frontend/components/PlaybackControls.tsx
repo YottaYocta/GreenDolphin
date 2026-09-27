@@ -1,12 +1,22 @@
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { tinykeys } from "tinykeys";
+import { Dialog } from "@base-ui/react/dialog";
 import {
   PauseIcon,
   PlayIcon,
+  SlidersIcon,
   SnowflakeIcon,
   SkipBackIcon,
   SkipForwardIcon,
 } from "@phosphor-icons/react";
+import { AppDialog } from "./AppDialog";
 import {
   PlaybackContext,
   effectiveLoopDelay,
@@ -16,9 +26,12 @@ import { capture } from "../lib/posthog";
 export function PlaybackControls({
   showFreeze = true,
   disabled = false,
+  settings,
 }: {
   showFreeze?: boolean;
   disabled?: boolean;
+  /** Settings sliders; when given, a Settings button opens them in a dialog. */
+  settings?: ReactNode;
 }) {
   const playback = useContext(PlaybackContext);
   if (!playback)
@@ -109,22 +122,52 @@ export function PlaybackControls({
     fastForwardFiveSeconds,
   ]);
 
-  const btn = `btn-surface rounded-xl h-full min-h-0 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed p-5 ${
-    showFreeze ? "md:p-10" : "md:p-6"
-  }`;
+  const btn =
+    "btn-surface rounded-xl h-full min-h-0 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed p-3 md:p-6";
+
+  const settingsButton = settings && (
+    <AppDialog
+      title="Settings"
+      trigger={
+        <Dialog.Trigger aria-label="Settings" className={btn}>
+          <SlidersIcon
+            size={32}
+            weight="fill"
+            color="var(--color-icon)"
+            style={{ opacity: 0.54, flexShrink: 0 }}
+          />
+        </Dialog.Trigger>
+      }
+    >
+      <div className="flex flex-col gap-6 pb-4">{settings}</div>
+    </AppDialog>
+  );
+
+  // Back / forward share one cell when freeze is shown, so their icons shrink.
+  const navSize = showFreeze ? 28 : 32;
+  const navButton = (Icon: typeof SkipBackIcon, onClick: () => void) => (
+    <button onClick={onClick} disabled={disabled} className={btn}>
+      <Icon
+        size={navSize}
+        weight="fill"
+        color="var(--color-icon)"
+        style={{ opacity: 0.67, flexShrink: 0 }}
+      />
+    </button>
+  );
+  const nav = (
+    <>
+      {navButton(SkipBackIcon, rewindFiveSeconds)}
+      {navButton(SkipForwardIcon, fastForwardFiveSeconds)}
+    </>
+  );
 
   return (
-    <div
-      className={`grid gap-4 w-full h-min rounded-xl max-md:flex-1 ${
-        showFreeze
-          ? "max-md:grid-cols-2 grid-cols-4 max-md:grid-rows-2"
-          : "grid-cols-2 md:grid-cols-3"
-      }`}
-    >
+    <div className="grid gap-4 w-full h-min rounded-xl max-md:flex-1 max-md:grid-cols-2 max-md:grid-rows-2 grid-cols-4">
       <button
         onClick={togglePlay}
         disabled={disabled}
-        className={`${btn} ${showFreeze ? "" : "max-md:order-last max-md:col-span-2 md:p-8"} ${
+        className={`${btn} ${
           playState === "waiting"
             ? "bg-waiting hover:bg-waiting-hover active:bg-waiting-active [box-shadow:var(--shadow-btn-colored)]"
             : playState === "playing"
@@ -154,6 +197,7 @@ export function PlaybackControls({
           )}
         </span>
       </button>
+
       {showFreeze && (
         <button
           onClick={toggleFreeze}
@@ -167,26 +211,12 @@ export function PlaybackControls({
           />
         </button>
       )}
-      <button onClick={rewindFiveSeconds} disabled={disabled} className={btn}>
-        <SkipBackIcon
-          size={32}
-          weight="fill"
-          color="var(--color-icon)"
-          style={{ opacity: 0.67, flexShrink: 0 }}
-        />
-      </button>
-      <button
-        onClick={fastForwardFiveSeconds}
-        disabled={disabled}
-        className={btn}
-      >
-        <SkipForwardIcon
-          size={32}
-          weight="fill"
-          color="var(--color-icon)"
-          style={{ opacity: 0.67, flexShrink: 0 }}
-        />
-      </button>
+      {settingsButton}
+      {showFreeze ? (
+        <div className="grid grid-cols-2 gap-4 min-h-0">{nav}</div>
+      ) : (
+        nav
+      )}
     </div>
   );
 }
