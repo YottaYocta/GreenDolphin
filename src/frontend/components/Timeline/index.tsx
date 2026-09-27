@@ -140,8 +140,8 @@ export const Timeline: FC<TimelineProps> = ({
       className="absolute bottom-0 -translate-x-1/2 z-10 flex items-end justify-center w-9 h-full cursor-ew-resize touch-none"
       {...handleDragProps(side)}
     >
-      <svg width="18" height="14" viewBox="0 0 18 14" className="block">
-        <polygon points="9,0 18,14 0,14" fill="var(--color-neutral-2)" />
+      <svg width="22" height="22" viewBox="0 0 22 22" className="block">
+        <polygon points="11,0 22,22 0,22" fill="var(--color-neutral-2)" />
       </svg>
     </div>
   );
