@@ -8,24 +8,17 @@ export interface TimelineRefs {
   ticksRef: RefObject<HTMLDivElement | null>;
   gripRef: RefObject<HTMLDivElement | null>;
   lineRef: RefObject<HTMLDivElement | null>;
-  contentShadeRef: RefObject<HTMLDivElement | null>;
   bandShadeRef: RefObject<HTMLDivElement | null>;
   leftHandleRef: RefObject<HTMLDivElement | null>;
   rightHandleRef: RefObject<HTMLDivElement | null>;
   dragSampleRef: RefObject<number | null>;
 }
 
-/** Half-width of a triangle grip; keeps it fully inside the frame at 0 / 100%. */
-const GRIP_INSET_PX = 9;
-
-const clampInset = (px: number, width: number) =>
-  Math.max(GRIP_INSET_PX, Math.min(width - GRIP_INSET_PX, px));
-
 const place = (el: HTMLElement | null, px: number, width: number) => {
   if (!el) return;
   const visible = px >= 0 && px <= width;
   el.style.display = visible ? "" : "none";
-  el.style.left = `${clampInset(px, width)}px`;
+  el.style.left = `${px}px`;
 };
 
 const span = (el: HTMLElement | null, fromPx: number, toPx: number) => {
@@ -65,7 +58,7 @@ export const useAnimateTimeline = (
           let html = "";
           for (let t = first; t <= endS; t += step) {
             const x = ((t - startS) / viewportS) * width;
-            html += `<div class="absolute bottom-0 w-px h-1.5 bg-black/20" style="left:${x}px"></div><div class="absolute top-0.5 font-space-mono text-[9px] leading-none text-black/45 tabular-nums" style="left:${x + 3}px">${formatTick(t, step)}</div>`;
+            html += `<div class="absolute inset-y-0 w-px bg-border-solid" style="left:${x}px"></div><div class="absolute top-1/2 -translate-y-1/2 font-space-mono text-[9px] leading-none text-black/45 tabular-nums" style="left:${x + 4}px">${formatTick(t, step)}</div>`;
           }
           refs.ticksRef.current.innerHTML = html;
         }
@@ -73,12 +66,11 @@ export const useAnimateTimeline = (
         // Loop shading (fractions of the viewport, fixed on screen).
         const loopFrom = loop.start * width;
         const loopTo = loop.end * width;
-        span(refs.contentShadeRef.current, loopFrom, loopTo);
         span(refs.bandShadeRef.current, loopFrom, loopTo);
         if (refs.leftHandleRef.current)
-          refs.leftHandleRef.current.style.left = `${clampInset(loopFrom, width)}px`;
+          refs.leftHandleRef.current.style.left = `${loopFrom}px`;
         if (refs.rightHandleRef.current)
-          refs.rightHandleRef.current.style.left = `${clampInset(loopTo, width)}px`;
+          refs.rightHandleRef.current.style.left = `${loopTo}px`;
 
         // Playhead.
         if (positionMS) {
@@ -89,10 +81,7 @@ export const useAnimateTimeline = (
               : (width * (positionMS.current - computeMS(sampleRate, viewport.start))) /
                 computeMS(sampleRate, rangeLen);
           place(refs.gripRef.current, px, width);
-          if (refs.lineRef.current) {
-            refs.lineRef.current.style.display = px >= 0 && px <= width ? "" : "none";
-            refs.lineRef.current.style.left = `${px}px`;
-          }
+          place(refs.lineRef.current, px, width);
         }
       }
       rafId = requestAnimationFrame(render);

@@ -31,8 +31,6 @@ export interface TimelineProps {
   contentId?: string;
 }
 
-const HANDLE_SHADOW = { filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.12))" };
-
 export const Timeline: FC<TimelineProps> = ({
   stateRef,
   totalSamples,
@@ -50,7 +48,6 @@ export const Timeline: FC<TimelineProps> = ({
   const ticksRef = useRef<HTMLDivElement | null>(null);
   const gripRef = useRef<HTMLDivElement | null>(null);
   const lineRef = useRef<HTMLDivElement | null>(null);
-  const contentShadeRef = useRef<HTMLDivElement | null>(null);
   const bandShadeRef = useRef<HTMLDivElement | null>(null);
   const leftHandleRef = useRef<HTMLDivElement | null>(null);
   const rightHandleRef = useRef<HTMLDivElement | null>(null);
@@ -62,7 +59,6 @@ export const Timeline: FC<TimelineProps> = ({
       ticksRef,
       gripRef,
       lineRef,
-      contentShadeRef,
       bandShadeRef,
       leftHandleRef,
       rightHandleRef,
@@ -134,17 +130,10 @@ export const Timeline: FC<TimelineProps> = ({
       ref={ref}
       data-timeline-control
       className="absolute bottom-0 -translate-x-1/2 z-10 flex items-end justify-center w-9 h-full cursor-ew-resize touch-none"
-      style={HANDLE_SHADOW}
       {...handleDragProps(side)}
     >
-      <svg width="16" height="12" viewBox="0 0 16 12" className="block mb-1">
-        <polygon
-          points="8,0.8 15.2,11.2 0.8,11.2"
-          fill="var(--color-surface)"
-          stroke="#c8c8c8"
-          strokeWidth="1"
-          strokeLinejoin="round"
-        />
+      <svg width="18" height="14" viewBox="0 0 18 14" className="block">
+        <polygon points="9,0 18,14 0,14" fill="var(--color-neutral-2)" />
       </svg>
     </div>
   );
@@ -156,36 +145,26 @@ export const Timeline: FC<TimelineProps> = ({
     >
       <div
         id="timeline-ruler"
-        className="relative h-6 shrink-0 bg-surface-input border border-border border-b-0 rounded-t-lg overflow-hidden"
+        className="relative h-6 shrink-0 bg-surface border border-border-solid border-b-0 rounded-t-lg overflow-hidden"
       >
         <div ref={ticksRef} className="absolute inset-0 pointer-events-none" />
         <div
           ref={gripRef}
           data-timeline-control
-          className="absolute top-0 -translate-x-1/2 z-10 flex items-start justify-center w-8 h-6 cursor-ew-resize touch-none"
+          className="absolute top-0 -translate-x-1/2 z-10 flex items-start justify-center w-9 h-6 cursor-ew-resize touch-none"
           {...gripDragProps}
         >
-          <svg width="16" height="12" viewBox="0 0 16 12" className="block mt-1">
-            <polygon
-              points="0.8,0.8 15.2,0.8 8,11.2"
-              fill="var(--color-play)"
-              stroke="rgba(0,0,0,0.2)"
-              strokeWidth="1"
-              strokeLinejoin="round"
-            />
+          <svg width="22" height="22" viewBox="0 0 22 22" className="block">
+            <polygon points="0,0 22,0 11,22" fill="var(--color-play)" />
           </svg>
         </div>
       </div>
 
       <div
         ref={contentRef}
-        className="relative flex-1 min-h-0 border-x border-border overflow-hidden bg-white"
+        className="relative flex-1 min-h-0 border-x border-border-solid overflow-hidden bg-white"
       >
         {children}
-        <div
-          ref={contentShadeRef}
-          className="absolute inset-y-0 bg-black/[0.04] pointer-events-none"
-        />
         <div
           ref={lineRef}
           className="absolute inset-y-0 w-0.5 -translate-x-1/2 bg-play pointer-events-none z-10"
@@ -195,11 +174,11 @@ export const Timeline: FC<TimelineProps> = ({
       <div
         id="timeline-loop"
         ref={bandRef}
-        className="relative h-7 shrink-0 bg-surface border border-border border-t-0 rounded-b-lg overflow-hidden"
+        className="relative h-7 shrink-0 bg-surface border border-border-solid border-t-0 rounded-b-lg overflow-hidden"
       >
         <div
           ref={bandShadeRef}
-          className="absolute inset-y-0 bg-surface-input pointer-events-none"
+          className="absolute inset-y-0 bg-surface-active pointer-events-none"
         />
         {loopHandle(leftHandleRef, "start")}
         {loopHandle(rightHandleRef, "end")}
