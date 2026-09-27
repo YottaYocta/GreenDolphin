@@ -31,6 +31,9 @@ export interface TimelineProps {
   contentId?: string;
 }
 
+/** Horizontal inset so a triangle at 0% / 100% is fully inside the frame. */
+const FRAME_PAD = "px-3";
+
 export const Timeline: FC<TimelineProps> = ({
   stateRef,
   totalSamples,
@@ -107,6 +110,7 @@ export const Timeline: FC<TimelineProps> = ({
     totalSamples,
     onRangeChange,
     gestureCallbacks,
+    contentRef,
   );
 
   const handleDragProps = useLoopHandleDrag(
@@ -145,43 +149,50 @@ export const Timeline: FC<TimelineProps> = ({
     >
       <div
         id="timeline-ruler"
-        className="relative h-6 shrink-0 bg-surface border border-border-solid border-b-0 rounded-t-lg overflow-hidden"
+        className={`relative h-6 shrink-0 bg-surface border border-border-solid border-b-0 rounded-t-lg overflow-hidden ${FRAME_PAD}`}
       >
-        <div ref={ticksRef} className="absolute inset-0 pointer-events-none" />
-        <div
-          ref={gripRef}
-          data-timeline-control
-          className="absolute top-0 -translate-x-1/2 z-10 flex items-start justify-center w-9 h-6 cursor-ew-resize touch-none"
-          {...gripDragProps}
-        >
-          <svg width="22" height="22" viewBox="0 0 22 22" className="block">
-            <polygon points="0,0 22,0 11,22" fill="var(--color-play)" />
-          </svg>
+        <div className="relative w-full h-full">
+          <div
+            ref={ticksRef}
+            className="absolute inset-0 pointer-events-none"
+          />
+          <div
+            ref={gripRef}
+            data-timeline-control
+            className="absolute top-0 -translate-x-1/2 z-10 flex items-start justify-center w-9 h-6 cursor-ew-resize touch-none"
+            {...gripDragProps}
+          >
+            <svg width="22" height="22" viewBox="0 0 22 22" className="block">
+              <polygon points="0,0 22,0 11,22" fill="var(--color-play)" />
+            </svg>
+          </div>
         </div>
       </div>
 
       <div
-        ref={contentRef}
-        className="relative flex-1 min-h-0 border-x border-border-solid overflow-hidden bg-white"
+        className={`relative flex-1 min-h-0 border-x border-border-solid overflow-hidden bg-white ${FRAME_PAD}`}
       >
-        {children}
-        <div
-          ref={lineRef}
-          className="absolute inset-y-0 w-0.5 -translate-x-1/2 bg-play pointer-events-none z-10"
-        />
+        <div ref={contentRef} className="relative w-full h-full">
+          {children}
+          <div
+            ref={lineRef}
+            className="absolute inset-y-0 w-0.5 -translate-x-1/2 bg-play pointer-events-none z-10"
+          />
+        </div>
       </div>
 
       <div
         id="timeline-loop"
-        ref={bandRef}
-        className="relative h-7 shrink-0 bg-surface border border-border-solid border-t-0 rounded-b-lg overflow-hidden"
+        className={`relative h-7 shrink-0 bg-surface border border-border-solid border-t-0 rounded-b-lg overflow-hidden ${FRAME_PAD}`}
       >
-        <div
-          ref={bandShadeRef}
-          className="absolute inset-y-0 bg-surface-active pointer-events-none"
-        />
-        {loopHandle(leftHandleRef, "start")}
-        {loopHandle(rightHandleRef, "end")}
+        <div ref={bandRef} className="relative w-full h-full">
+          <div
+            ref={bandShadeRef}
+            className="absolute inset-y-0 bg-surface-active pointer-events-none"
+          />
+          {loopHandle(leftHandleRef, "start")}
+          {loopHandle(rightHandleRef, "end")}
+        </div>
       </div>
     </div>
   );

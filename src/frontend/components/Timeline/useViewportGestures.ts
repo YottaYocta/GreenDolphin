@@ -50,6 +50,8 @@ export const useViewportGestures = (
   totalSamples: number,
   handleRange: (range: Section) => void,
   { onTap, onGestureStart, onGestureEnd }: ViewportGestureCallbacks = {},
+  /** Element whose width maps to the viewport (defaults to `elementRef`). */
+  measureRef?: RefObject<HTMLElement | null>,
 ) => {
   const minRangeLen = useMemo(
     () => Math.floor(MIN_RANGE_THRESHOLD * totalSamples),
@@ -60,7 +62,8 @@ export const useViewportGestures = (
     const el = elementRef.current;
     if (!el) return;
     const bounds = { start: 0, end: totalSamples };
-    const rectOf = () => el.getBoundingClientRect();
+    const rectOf = () =>
+      (measureRef?.current ?? el).getBoundingClientRect();
 
     // Gesture bookkeeping: pointer gestures and wheel input share one
     // "active" flag so start/end fire exactly once per gesture.
@@ -294,5 +297,6 @@ export const useViewportGestures = (
     onTap,
     onGestureStart,
     onGestureEnd,
+    measureRef,
   ]);
 };
