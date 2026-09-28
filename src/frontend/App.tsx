@@ -26,6 +26,7 @@ function AppView() {
   return (
     <div className="w-screen h-screen max-h-full flex flex-col items-center justify-center">
       <PlaybackProvider
+        key={audio.filename}
         context={audio.audioCtx}
         data={audio.buffer}
         initialSettings={initialSettings}
@@ -43,7 +44,7 @@ export default function App() {
     return (
       <>
         <div className="w-screen h-screen max-h-full flex flex-col items-center justify-center">
-          <YouTubeEditor />
+          <YouTubeEditor key={video.filename} />
         </div>
         <DevDrawer />
       </>
