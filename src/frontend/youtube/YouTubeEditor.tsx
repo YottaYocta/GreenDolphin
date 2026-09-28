@@ -130,7 +130,7 @@ function YouTubeEditorView({
               />
             </div>
           </div>
-          <div className="px-4 pb-4 flex-1 shrink-0 min-h-0 flex flex-col">
+          <div className="px-4 pb-4 flex-1 shrink-0 min-h-0 md:min-h-36 flex flex-col">
             {errorCode !== null ? (
               <div className="w-full h-8 pt-1 flex items-center justify-center text-sm text-red-600/80 font-inria">
                 {describeYouTubeError(errorCode)}
