@@ -35,7 +35,7 @@ export function useYouTubePlayer(videoId: string) {
         width: "100%",
         height: "100%",
         videoId,
-        playerVars: { disablekb: 1, rel: 0, playsinline: 1 },
+        playerVars: { controls: 0, disablekb: 1, rel: 0, playsinline: 1 },
         events: {
           onReady: (e) => {
             if (cancelled) return;
