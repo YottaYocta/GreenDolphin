@@ -1,7 +1,11 @@
 import { useContext, useEffect, useRef, useState, type FC } from "react";
-import { ArrowClockwiseIcon } from "@phosphor-icons/react";
-import { PlaybackContext } from "../playback/PlaybackContext";
+import { ArrowClockwiseIcon, PlayIcon } from "@phosphor-icons/react";
+import {
+  PlaybackContext,
+  effectiveLoopDelay,
+} from "../playback/PlaybackContext";
 import { useDrag } from "../lib/useDrag";
+import { loadLoopPrefs, saveLoopPrefs } from "../lib/loopPrefs";
 import { capture } from "../lib/posthog";
 
 /** Pitch / Speed / Volume sliders bound to the recording playback context. */
@@ -222,3 +226,159 @@ export const AudioSlider: FC<{
     />
   );
 };
+
+function ModeToggle({
+  options,
+  value,
+  onChange,
+}: {
+  options: readonly { value: string; label: string }[];
+  value: string;
+  onChange: (next: string) => void;
+}) {
+  return (
+    <div className="flex flex-1 items-stretch gap-0.5 rounded-lg border border-border bg-surface-track p-0.5 [box-shadow:var(--shadow-inset-dim)]">
+      {options.map((o) => (
+        <button
+          key={o.value}
+          onClick={() => onChange(o.value)}
+          aria-pressed={value === o.value}
+          className={`flex-1 rounded-md px-2 py-1 font-inria text-sm/4.5 cursor-pointer transition-colors ${
+            value === o.value
+              ? "bg-white text-black border border-border [box-shadow:var(--shadow-btn)]"
+              : "text-black/40 hover:text-black/70"
+          }`}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** Loop mode (manual / automatic) and loop delay controls. */
+export function LoopSettings() {
+  const playback = useContext(PlaybackContext);
+  if (!playback)
+    throw new Error("LoopSettings must be used within a PlaybackProvider");
+  const { playbackSettings, setAudioSettings, loopLength } = playback;
+  const { loopOptions } = playbackSettings;
+
+  const isManual = loopOptions.type === "manual";
+  const currentDelay = effectiveLoopDelay(loopOptions);
+
+  const [delayMode, setDelayMode] = useState<"fixed" | "relative">(
+    () => loadLoopPrefs().delayMode ?? "fixed",
+  );
+  const [delayValue, setDelayValue] = useState(
+    () => loadLoopPrefs().delayValue ?? (currentDelay || 1),
+  );
+
+  const resolvedDelay =
+    delayMode === "fixed" ? delayValue : (delayValue / 100) * loopLength;
+
+  useEffect(() => {
+    if (isManual) return;
+    const loopOptions = {
+      type: "automatic",
+      loopDelay: resolvedDelay,
+    } as const;
+    setAudioSettings({ loopOptions });
+    saveLoopPrefs({ loopOptions });
+  }, [isManual, resolvedDelay, setAudioSettings]);
+
+  const handleLoopModeChange = (next: string) => {
+    if (next === loopOptions.type) return;
+    const nextOptions =
+      next === "manual"
+        ? ({ type: "manual" } as const)
+        : ({ type: "automatic", loopDelay: resolvedDelay } as const);
+    setAudioSettings({ loopOptions: nextOptions });
+    saveLoopPrefs({ loopOptions: nextOptions });
+    capture("loop_mode_changed", { loop_mode: next });
+  };
+
+  const handleDelayModeChange = (next: string) => {
+    if (next === delayMode) return;
+    const nextMode = next === "relative" ? "relative" : "fixed";
+    const converted =
+      nextMode === "fixed"
+        ? (delayValue / 100) * loopLength
+        : loopLength > 0
+          ? (delayValue / loopLength) * 100
+          : 0;
+    setDelayValue(converted);
+    setDelayMode(nextMode);
+    saveLoopPrefs({ delayMode: nextMode, delayValue: converted });
+    capture("loop_delay_changed", { delay_mode: nextMode });
+  };
+
+  const displayValue = String(Math.round(delayValue * 10) / 10);
+  const delayUnit = delayMode === "fixed" ? "s" : "%";
+
+  return (
+    <>
+      <div className="flex flex-col gap-1.5 self-stretch">
+        <div className="font-inria text-sm text-black/50">Loop Mode</div>
+        <ModeToggle
+          options={[
+            { value: "manual", label: "Manual" },
+            { value: "automatic", label: "Automatic" },
+          ]}
+          value={loopOptions.type}
+          onChange={handleLoopModeChange}
+        />
+        <div className="font-inria text-sm text-black/50 leading-snug pt-1">
+          {isManual ? (
+            <>
+              Pauses at loop end; press{" "}
+              <PlayIcon
+                size={12}
+                weight="fill"
+                color="var(--color-play)"
+                style={{ display: "inline", verticalAlign: "middle" }}
+              />{" "}
+              to replay.
+            </>
+          ) : (
+            "Playback loops automatically, with an optional delay between loops."
+          )}
+        </div>
+      </div>
+      {!isManual && (
+        <div className="flex flex-col gap-1.5 self-stretch">
+          <div className="font-inria text-sm text-black/50">Loop Delay</div>
+          <div className="flex items-center gap-4 self-stretch">
+            <ModeToggle
+              options={[
+                { value: "fixed", label: "Fixed" },
+                { value: "relative", label: "Relative" },
+              ]}
+              value={delayMode}
+              onChange={handleDelayModeChange}
+            />
+            <div className="flex items-center gap-1.5 shrink-0">
+              <NumericInput
+                value={displayValue}
+                onCommit={(v) => {
+                  setDelayValue(v);
+                  saveLoopPrefs({ delayValue: v });
+                  capture("loop_delay_changed", {
+                    delay_value: v,
+                    delay_mode: delayMode,
+                  });
+                }}
+              />
+              <div className="text-black/50 text-sm w-4 shrink-0 flex items-center">
+                {delayUnit}
+              </div>
+            </div>
+          </div>
+          <div className="font-inria text-sm text-black/50 leading-snug pt-1">
+            {`A ${displayValue}${delayUnit} delay will occur between loops.`}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

@@ -2,6 +2,7 @@ import { useContext, useRef, useState } from "react";
 import { Menu } from "@base-ui/react/menu";
 import {
   CaretRightIcon,
+  FileMagnifyingGlassIcon,
   MusicNotesPlusIcon,
   MusicNoteIcon,
   YoutubeLogoIcon,
@@ -14,6 +15,7 @@ import { capture } from "../../lib/posthog";
 import { isYouTubeFile, readYouTubeFile } from "../../lib/youtubeFile";
 import { useAddYouTubeVideo } from "../../lib/useAddYouTube";
 import { NewRecordingDialog } from "../NewRecordingDialog";
+import { FileInfoDialog } from "./FileInfoDialog";
 
 export function RecordingsMenu() {
   const decodeFile = useDecodeFile();
@@ -22,6 +24,7 @@ export function RecordingsMenu() {
   const filename = audio?.filename ?? video?.filename ?? "";
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
   const handleAddYouTube = useAddYouTubeVideo();
   const otherFiles = cachedFiles.filter((file) => file.name !== filename);
 
@@ -37,20 +40,20 @@ export function RecordingsMenu() {
   };
 
   return (
-    <div className="flex-1 min-w-0">
+    <div className="flex flex-1 min-w-0">
       <Menu.Root>
         <Menu.Trigger
           aria-label="Switch recording"
-          className="btn-surface group w-full h-12 cursor-pointer min-w-0 justify-start gap-4 px-4 py-3.25 rounded-lg rounded-r-none"
+          className="group flex items-center justify-start gap-2 h-12 max-w-full min-w-0 px-2 py-3.25 rounded-lg cursor-pointer hover:bg-black/5 active:bg-black/10 transition-colors"
         >
           <CaretRightIcon
-            size={16}
+            size={14}
             weight="bold"
             color="var(--color-icon)"
             className="transition-transform group-data-popup-open:rotate-90"
             style={{ opacity: 0.5, flexShrink: 0 }}
           />
-          <span className="font-inria text-black text-base/5 truncate min-w-0">
+          <span className="font-inria text-black text-base/5 whitespace-nowrap truncate min-w-0">
             {stripExt(filename)}
           </span>
         </Menu.Trigger>
@@ -68,6 +71,19 @@ export function RecordingsMenu() {
                 />
                 <span className="font-inria text-black text-base/5">
                   New Recording
+                </span>
+              </Menu.Item>
+              <Menu.Item
+                className="shrink-0 flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-neutral-50 active:bg-neutral-100 border-b border-border"
+                onClick={() => setInfoOpen(true)}
+              >
+                <FileMagnifyingGlassIcon
+                  size={18}
+                  weight="fill"
+                  style={{ opacity: 0.5, flexShrink: 0 }}
+                />
+                <span className="font-inria text-black text-base/5">
+                  File Info
                 </span>
               </Menu.Item>
               <div className="overflow-y-auto max-h-72 flex flex-col">
@@ -108,6 +124,8 @@ export function RecordingsMenu() {
           </Menu.Positioner>
         </Menu.Portal>
       </Menu.Root>
+
+      <FileInfoDialog open={infoOpen} onOpenChange={setInfoOpen} />
 
       <NewRecordingDialog
         open={dialogOpen}

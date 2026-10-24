@@ -1,6 +1,4 @@
 import { useContext } from "react";
-import { FileMagnifyingGlassIcon } from "@phosphor-icons/react";
-import { Dialog } from "@base-ui/react/dialog";
 import { AudioStore } from "../../AudioStore";
 import { RecordingsStore } from "../../RecordingsStore";
 import { formatSeconds, formatSize, stripExt } from "../../lib/util";
@@ -19,34 +17,31 @@ function FileInfoCell({ label, value }: { label: string; value: string }) {
   );
 }
 
-function InfoDialog({ children }: { children: React.ReactNode }) {
+type DialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+};
+
+function InfoDialog({
+  children,
+  ...props
+}: DialogProps & { children: React.ReactNode }) {
   return (
-    <AppDialog
-      title="File Info"
-      trigger={
-        <Dialog.Trigger className="btn-surface rounded-lg rounded-l-none border-l-0 w-12 h-12 shrink-0 cursor-pointer">
-          <FileMagnifyingGlassIcon
-            size={18}
-            weight="fill"
-            color="var(--color-icon)"
-            style={{ opacity: 0.54, flexShrink: 0 }}
-          />
-        </Dialog.Trigger>
-      }
-    >
+    <AppDialog title="File Info" {...props}>
       {children}
     </AppDialog>
   );
 }
 
-export function FileInfoButton() {
+/** File metadata dialog for the current recording; opened from the recordings menu. */
+export function FileInfoDialog(props: DialogProps) {
   const { audio, video } = useContext(AudioStore);
   const { fileMeta } = useContext(RecordingsStore);
 
   if (video) {
     const uploadedAt = fileMeta.get(video.filename)?.uploadedAt;
     return (
-      <InfoDialog>
+      <InfoDialog {...props}>
         <div className="flex flex-col gap-6 p-2">
           <span className="font-inria text-black text-lg min-w-0">
             {stripExt(video.filename)}
@@ -80,7 +75,7 @@ export function FileInfoButton() {
   const uploadedAt = fileMeta.get(filename)?.uploadedAt;
 
   return (
-    <InfoDialog>
+    <InfoDialog {...props}>
       <div className="flex flex-col gap-6 p-2">
         <div className="flex gap-4 flex-col items-start">
           <span className="font-inria text-black text-lg min-w-0">

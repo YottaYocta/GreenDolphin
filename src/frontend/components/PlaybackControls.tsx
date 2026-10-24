@@ -17,6 +17,7 @@ import {
   SkipForwardIcon,
 } from "@phosphor-icons/react";
 import { AppDialog } from "./AppDialog";
+import { LoopSettings } from "./PlaybackSettings";
 import {
   PlaybackContext,
   effectiveLoopDelay,
@@ -30,7 +31,7 @@ export function PlaybackControls({
 }: {
   showFreeze?: boolean;
   disabled?: boolean;
-  /** Settings sliders; when given, a Settings button opens them in a dialog. */
+  /** Settings sliders; when given, a Settings button opens them (plus loop settings) in a dialog. */
   settings?: ReactNode;
 }) {
   const playback = useContext(PlaybackContext);
@@ -139,7 +140,10 @@ export function PlaybackControls({
         </Dialog.Trigger>
       }
     >
-      <div className="flex flex-col gap-6 pb-4">{settings}</div>
+      <div className="flex flex-col gap-6 pb-4">
+        {settings}
+        <LoopSettings />
+      </div>
     </AppDialog>
   );
 

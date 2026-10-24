@@ -3,10 +3,6 @@ import { HouseIcon } from "@phosphor-icons/react";
 import { AudioStore } from "../../AudioStore";
 import { clearSession } from "../../lib/useSessionPersistence";
 
-const headerBtn = "btn-surface rounded-lg gap-2 px-3.25 py-3.25";
-const headerBtnLabel =
-  "opacity-40 font-inria text-black text-base/5 whitespace-nowrap max-md:hidden";
-
 export function HomeButton() {
   const { setAudio } = useContext(AudioStore);
 
@@ -16,7 +12,7 @@ export function HomeButton() {
         clearSession();
         setAudio(null);
       }}
-      className={`${headerBtn} w-full h-12 cursor-pointer`}
+      className="flex items-center justify-center gap-2 h-12 p-3.25 rounded-lg shrink-0 cursor-pointer hover:bg-black/5 active:bg-black/10 transition-colors"
     >
       <HouseIcon
         size={16}
@@ -24,7 +20,9 @@ export function HomeButton() {
         color="var(--color-icon)"
         style={{ opacity: 0.5, flexShrink: 0 }}
       />
-      <span className={headerBtnLabel}>Home</span>
+      <span className="opacity-40 font-inria text-black text-base/5 whitespace-nowrap">
+        Home
+      </span>
     </button>
   );
 }
