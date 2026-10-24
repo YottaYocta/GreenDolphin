@@ -119,9 +119,9 @@ function YouTubeEditorView({
     <>
       <AlwaysAwakeIndicator />
       <div className="w-full max-w-240 h-full md:h-min min-h-0 p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:py-10">
-        <TitleBar />
-
-        <div className="relative flex flex-col rounded-xl overflow-x-hidden overflow-y-clip [box-shadow:var(--shadow-panel)] bg-white border border-border flex-1 min-h-0 md:min-h-72 max-md:grow">
+        <div className="flex flex-col gap-4 max-md:gap-2 self-stretch h-full min-h-0">
+          <TitleBar />
+          <div className="relative flex flex-col rounded-xl overflow-x-hidden overflow-y-clip [box-shadow:var(--shadow-panel)] bg-white border border-border flex-1 min-h-0 md:min-h-72 max-md:grow">
           <div className="w-full flex items-center justify-center p-4 md:pt-6 min-h-0 shrink overflow-hidden">
             <div className="relative aspect-video h-[min(9rem,18dvh)] md:h-45 max-w-full bg-black rounded-lg overflow-hidden opacity-90">
               <div
@@ -152,6 +152,7 @@ function YouTubeEditorView({
               </div>
             )}
           </div>
+        </div>
         </div>
 
         <PlaybackControls

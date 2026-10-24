@@ -94,9 +94,8 @@ export const Editor = () => {
     <>
       <AlwaysAwakeIndicator />
       <div className="w-full max-w-240 h-full md:h-min min-h-0 p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:py-10">
-        <TitleBar />
-
-        <div className="flex flex-col gap-4 self-stretch h-full min-h-0">
+        <div className="flex flex-col gap-4 max-md:gap-2 self-stretch h-full min-h-0">
+          <TitleBar />
           <div className="flex flex-col rounded-xl overflow-x-hidden overflow-y-clip [box-shadow:var(--shadow-panel)] bg-white border border-border shrink-0">
             <PianoRoll />
           </div>

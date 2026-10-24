@@ -17,6 +17,7 @@ import {
   SkipForwardIcon,
 } from "@phosphor-icons/react";
 import { AppDialog } from "./AppDialog";
+import { LoopSettings } from "./PlaybackSettings";
 import {
   PlaybackContext,
   effectiveLoopDelay,
@@ -139,7 +140,10 @@ export function PlaybackControls({
         </Dialog.Trigger>
       }
     >
-      <div className="flex flex-col gap-6 pb-4">{settings}</div>
+      <div className="flex flex-col gap-6 pb-4">
+        {settings}
+        <LoopSettings />
+      </div>
     </AppDialog>
   );
 
