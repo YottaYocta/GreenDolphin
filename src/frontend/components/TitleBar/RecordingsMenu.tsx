@@ -2,7 +2,6 @@ import { useContext, useRef, useState } from "react";
 import { Menu } from "@base-ui/react/menu";
 import {
   CaretRightIcon,
-  FileMagnifyingGlassIcon,
   MusicNotesPlusIcon,
   MusicNoteIcon,
   YoutubeLogoIcon,
@@ -15,7 +14,6 @@ import { capture } from "../../lib/posthog";
 import { isYouTubeFile, readYouTubeFile } from "../../lib/youtubeFile";
 import { useAddYouTubeVideo } from "../../lib/useAddYouTube";
 import { NewRecordingDialog } from "../NewRecordingDialog";
-import { FileInfoDialog } from "./FileInfoDialog";
 
 export function RecordingsMenu() {
   const decodeFile = useDecodeFile();
@@ -24,7 +22,6 @@ export function RecordingsMenu() {
   const filename = audio?.filename ?? video?.filename ?? "";
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [infoOpen, setInfoOpen] = useState(false);
   const handleAddYouTube = useAddYouTubeVideo();
   const otherFiles = cachedFiles.filter((file) => file.name !== filename);
 
@@ -73,19 +70,6 @@ export function RecordingsMenu() {
                   New Recording
                 </span>
               </Menu.Item>
-              <Menu.Item
-                className="shrink-0 flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-neutral-50 active:bg-neutral-100 border-b border-border"
-                onClick={() => setInfoOpen(true)}
-              >
-                <FileMagnifyingGlassIcon
-                  size={18}
-                  weight="fill"
-                  style={{ opacity: 0.5, flexShrink: 0 }}
-                />
-                <span className="font-inria text-black text-base/5">
-                  File Info
-                </span>
-              </Menu.Item>
               <div className="overflow-y-auto max-h-72 flex flex-col">
                 {otherFiles.length === 0 ? (
                   <div className="px-4 py-4 font-inria text-black/50 text-sm text-center">
@@ -124,8 +108,6 @@ export function RecordingsMenu() {
           </Menu.Positioner>
         </Menu.Portal>
       </Menu.Root>
-
-      <FileInfoDialog open={infoOpen} onOpenChange={setInfoOpen} />
 
       <NewRecordingDialog
         open={dialogOpen}

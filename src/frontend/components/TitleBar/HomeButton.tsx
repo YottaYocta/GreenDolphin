@@ -20,7 +20,7 @@ export function HomeButton() {
         color="var(--color-icon)"
         style={{ opacity: 0.5, flexShrink: 0 }}
       />
-      <span className="opacity-40 font-inria text-black text-base/5 whitespace-nowrap">
+      <span className="opacity-40 font-inria text-black text-base/5 whitespace-nowrap max-md:hidden">
         Home
       </span>
     </button>
