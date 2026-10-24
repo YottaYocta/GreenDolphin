@@ -37,7 +37,7 @@ export function RecordingsMenu() {
   };
 
   return (
-    <div className="flex flex-1 min-w-0">
+    <div className="flex min-w-0">
       <Menu.Root>
         <Menu.Trigger
           aria-label="Switch recording"

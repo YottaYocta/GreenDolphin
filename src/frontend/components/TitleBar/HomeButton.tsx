@@ -12,7 +12,7 @@ export function HomeButton() {
         clearSession();
         setAudio(null);
       }}
-      className="flex items-center justify-center gap-2 h-12 p-3.25 rounded-lg shrink-0 cursor-pointer hover:bg-black/5 active:bg-black/10 transition-colors"
+      className="flex items-center justify-center gap-2 h-12 p-3.25 max-md:size-12 max-md:p-0 rounded-lg shrink-0 cursor-pointer hover:bg-black/5 active:bg-black/10 transition-colors"
     >
       <HouseIcon
         size={16}
