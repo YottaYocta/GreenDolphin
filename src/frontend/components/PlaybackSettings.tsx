@@ -256,7 +256,6 @@ function ModeToggle({
   );
 }
 
-/** Loop mode (manual / automatic) and loop delay controls. */
 export function LoopSettings() {
   const playback = useContext(PlaybackContext);
   if (!playback)

@@ -34,7 +34,6 @@ function InfoDialog({
   );
 }
 
-/** Icon-only trigger that opens the file info dialog; renders nothing without a recording. */
 export function FileInfoButton() {
   const [open, setOpen] = useState(false);
   const { audio, video } = useContext(AudioStore);

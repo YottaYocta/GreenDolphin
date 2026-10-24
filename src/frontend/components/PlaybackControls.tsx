@@ -31,7 +31,7 @@ export function PlaybackControls({
 }: {
   showFreeze?: boolean;
   disabled?: boolean;
-  /** Settings sliders; when given, a Settings button opens them (plus loop settings) in a dialog. */
+  /** Settings sliders; when given, a Settings button opens them in a dialog. */
   settings?: ReactNode;
 }) {
   const playback = useContext(PlaybackContext);
