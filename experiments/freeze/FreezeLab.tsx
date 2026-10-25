@@ -29,6 +29,24 @@ interface Result {
   comparison: SpectrumComparison;
 }
 
+interface Request {
+  id: string;
+  at: number;
+  params: Params;
+}
+
+const renderAt = (buffer: AudioBuffer, ctx: AudioContext, { id, at, params }: Request): Result => {
+  const sr = buffer.sampleRate;
+  const half = Math.round((MOMENT_SECONDS / 2) * sr);
+  const a = ALGORITHMS.find((x) => x.id === id)!;
+  const t0 = performance.now();
+  const out = a.run(buffer, at, ctx, params);
+  const ms = performance.now() - t0;
+  const bands = bandSpectrum(getCachedChannels(out), 0, Math.min(out.length, 2 * sr), sr);
+  const source = bandSpectrum(getCachedChannels(buffer), at - half, at + half, sr);
+  return { algo: id, buffer: out, ms, bands, comparison: compareSpectra(source, bands) };
+};
+
 const db = (v: number) => `${v > 0 ? "+" : ""}${v.toFixed(1)} dB`;
 const pct = (v: number) => `${(v * 100).toFixed(0)}%`;
 
@@ -50,13 +68,47 @@ export const FreezeLab: FC<{ ctx: AudioContext; buffer: AudioBuffer; player: Pla
     [buffer, moment, sr],
   );
 
-  const render = (id: string): Result => {
-    const a = ALGORITHMS.find((x) => x.id === id)!;
-    const t0 = performance.now();
-    const out = a.run(buffer, cursor, ctx, params[id]);
-    const ms = performance.now() - t0;
-    const bands = bandSpectrum(getCachedChannels(out), 0, Math.min(out.length, 2 * sr), sr);
-    return { algo: id, buffer: out, ms, bands, comparison: compareSpectra(sourceBands, bands) };
+  const render = (id: string) => renderAt(buffer, ctx, { id, at: cursor, params: params[id] });
+
+  const [live, setLive] = useState(false);
+  // Renders the newest request only; anything queued while a render runs collapses into one.
+  const liveFreeze = useMemo(() => {
+    let next: Request | null = null;
+    let running = false;
+    let generation = 0;
+    const pump = () => {
+      const req = next;
+      next = null;
+      running = !!req;
+      if (!req) return;
+      const gen = generation;
+      setTimeout(() => {
+        const r = renderAt(buffer, ctx, req);
+        if (gen === generation) {
+          player.crossfade(r.buffer);
+          setResults([r]);
+        }
+        pump();
+      });
+    };
+    return {
+      request: (req: Request) => {
+        next = req;
+        if (!running) pump();
+      },
+      cancel: () => {
+        generation++;
+        next = null;
+      },
+    };
+  }, [buffer, ctx, player]);
+
+  const requestLive = (req: Partial<Request>) => {
+    if (live) liveFreeze.request({ id: algoId, at: cursor, params: params[algoId], ...req });
+  };
+  const stopLive = () => {
+    liveFreeze.cancel();
+    setLive(false);
   };
 
   // Defer heavy work a frame so the busy state paints first.
@@ -73,13 +125,15 @@ export const FreezeLab: FC<{ ctx: AudioContext; buffer: AudioBuffer; player: Pla
     );
   };
 
-  const renderOne = (andPlay: "freeze" | "lead" | null) =>
+  const renderOne = (andPlay: "freeze" | "lead" | null) => {
+    stopLive();
     withBusy(() => {
       const r = render(algoId);
       setResults((prev) => [r, ...prev.filter((p) => p.algo !== algoId)]);
       if (andPlay === "freeze") player.play(r.buffer, { loop: true });
       if (andPlay === "lead") player.leadIn(buffer, cursor / sr, LEAD_SECONDS, r.buffer);
     });
+  };
 
   const compareAll = () => withBusy(() => setResults(ALGORITHMS.map((a) => render(a.id))));
 
@@ -105,20 +159,48 @@ export const FreezeLab: FC<{ ctx: AudioContext; buffer: AudioBuffer; player: Pla
           onCursor={(c) => {
             setCursor(c);
             setResults([]);
+            requestLive({ at: c });
           }}
           highlight={moment}
         />
         <div className="flex flex-wrap gap-2">
           <ActionButton
             tone="play"
-            onClick={() => player.play(buffer, { offset: Math.max(0, cursor / sr - LEAD_SECONDS), duration: LEAD_SECONDS + 1 })}
+            onClick={() => {
+              stopLive();
+              player.play(buffer, { offset: Math.max(0, cursor / sr - LEAD_SECONDS), duration: LEAD_SECONDS + 1 });
+            }}
           >
             <PlayIcon weight="fill" /> Play around cursor
           </ActionButton>
-          <ActionButton onClick={() => player.play(buffer, { offset: moment.start / sr, duration: MOMENT_SECONDS, loop: false })}>
+          <ActionButton
+            onClick={() => {
+              stopLive();
+              player.play(buffer, { offset: moment.start / sr, duration: MOMENT_SECONDS });
+            }}
+          >
             Play moment ({MOMENT_SECONDS * 1000} ms)
           </ActionButton>
-          <ActionButton onClick={player.stop}>
+          <ActionButton
+            tone={live ? "freeze" : "neutral"}
+            onClick={() => {
+              if (live) {
+                stopLive();
+                player.stop();
+              } else {
+                setLive(true);
+                liveFreeze.request({ id: algoId, at: cursor, params: params[algoId] });
+              }
+            }}
+          >
+            <SnowflakeIcon weight="fill" /> {live ? "Live freeze on" : "Live freeze"}
+          </ActionButton>
+          <ActionButton
+            onClick={() => {
+              stopLive();
+              player.stop();
+            }}
+          >
             <StopIcon weight="fill" /> Stop
           </ActionButton>
         </div>
@@ -126,12 +208,20 @@ export const FreezeLab: FC<{ ctx: AudioContext; buffer: AudioBuffer; player: Pla
 
       <div className="grid gap-4 md:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
         <Panel title="Algorithm">
-          <Segmented options={ALGORITHMS.map((a) => ({ value: a.id, label: a.label }))} value={algoId} onChange={setAlgoId} />
+          <Segmented options={ALGORITHMS.map((a) => ({ value: a.id, label: a.label }))} value={algoId}
+            onChange={(id) => {
+              setAlgoId(id);
+              requestLive({ id, params: params[id] });
+            }}
+          />
           <p className="font-inria text-sm text-black/60">{algo.description}</p>
           <ParamControls
             specs={algo.params}
             values={params[algoId]}
-            onChange={(next) => setParams((prev) => ({ ...prev, [algoId]: next }))}
+            onChange={(next) => {
+              setParams((prev) => ({ ...prev, [algoId]: next }));
+              requestLive({ params: next });
+            }}
           />
           <div className="flex flex-wrap gap-2 pt-1">
             <ActionButton tone="freeze" disabled={busy} onClick={() => renderOne("lead")}>

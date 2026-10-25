@@ -2,10 +2,10 @@ const FADE = 0.02;
 
 /** One-voice player: starting anything stops what was playing. */
 export const createPlayer = (ctx: AudioContext) => {
-  let active: AudioScheduledSourceNode[] = [];
+  let active: { node: AudioScheduledSourceNode; gain: GainNode }[] = [];
 
   const stop = () => {
-    for (const node of active) {
+    for (const { node } of active) {
       try {
         node.stop();
       } catch {
@@ -22,8 +22,9 @@ export const createPlayer = (ctx: AudioContext) => {
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(gainFrom, at);
     node.connect(gain).connect(ctx.destination);
-    active.push(node);
-    return { node, gain };
+    const v = { node, gain };
+    active.push(v);
+    return v;
   };
 
   return {
@@ -34,6 +35,21 @@ export const createPlayer = (ctx: AudioContext) => {
       void ctx.resume();
       const { node } = voice(buffer, ctx.currentTime, 1, loop);
       node.start(ctx.currentTime, offset, loop ? undefined : duration);
+    },
+    /** Fade whatever is playing out and a new looping buffer in. */
+    crossfade: (buffer: AudioBuffer, seconds = 0.08) => {
+      void ctx.resume();
+      const now = ctx.currentTime;
+      for (const { node, gain } of active) {
+        gain.gain.cancelScheduledValues(now);
+        gain.gain.setValueAtTime(gain.gain.value, now);
+        gain.gain.linearRampToValueAtTime(0, now + seconds);
+        node.stop(now + seconds);
+      }
+      active = [];
+      const next = voice(buffer, now, 0, true);
+      next.gain.gain.linearRampToValueAtTime(1, now + seconds);
+      next.node.start(now);
     },
     /** Play the source up to `atSeconds`, then crossfade into the looping freeze, like pressing freeze mid-playback. */
     leadIn: (source: AudioBuffer, atSeconds: number, leadSeconds: number, freeze: AudioBuffer) => {
