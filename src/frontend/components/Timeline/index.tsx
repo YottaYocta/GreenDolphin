@@ -1,4 +1,4 @@
-import { useCallback, useRef, type FC, type ReactNode, type RefObject } from "react";
+import { useCallback, useRef, type FC, type PointerEvent, type ReactNode, type RefObject } from "react";
 import type { Section } from "../../lib/waveform";
 import { pointerToFraction } from "./dragUtils";
 import { useAnimateTimeline } from "./useAnimateTimeline";
@@ -6,7 +6,7 @@ import { useLoopHandleDrag } from "./useLoopHandleDrag";
 import { useLoopShiftDrag } from "./useLoopShiftDrag";
 import { usePlayheadGrip } from "./usePlayheadGrip";
 import { useViewportGestures } from "./useViewportGestures";
-import { fractionToSample, loopToSection, type TimelineState } from "./types";
+import { FULL_LOOP, fractionToSample, loopToSection, type TimelineState } from "./types";
 
 export interface TimelineProps {
   stateRef: RefObject<TimelineState>;
@@ -30,6 +30,7 @@ export interface TimelineProps {
 
 /** Horizontal inset so a triangle at 0% / 100% is fully inside the frame. */
 const FRAME_PAD = "px-4";
+const DOUBLE_TAP_MS = 300;
 const ROW = `relative h-7 shrink-0 bg-surface rounded-lg overflow-hidden ${FRAME_PAD}`;
 
 const Triangle: FC<{ points: string; fill: string }> = ({ points, fill }) => (
@@ -51,6 +52,7 @@ export const Timeline: FC<TimelineProps> = ({
 }) => {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const bandRef = useRef<HTMLDivElement | null>(null);
+  const lastBandTapRef = useRef(0);
   const refs = useAnimateTimeline(stateRef, positionMS, sampleRate);
   const { contentRef } = refs;
 
@@ -59,6 +61,16 @@ export const Timeline: FC<TimelineProps> = ({
     const { viewport, loop } = stateRef.current;
     onLoopChange(loopToSection(viewport, loop));
   }, [stateRef, onLoopChange]);
+
+  // Pointer events cover mouse and touch, and fire even when touchstart is prevented.
+  const handleBandPointerDown = (e: PointerEvent) => {
+    if (!e.isPrimary) return;
+    if (e.timeStamp - lastBandTapRef.current < DOUBLE_TAP_MS) {
+      stateRef.current.loop = FULL_LOOP;
+      commitLoop();
+    }
+    lastBandTapRef.current = e.timeStamp;
+  };
 
   const handleTap = useCallback(
     (clientX: number) => {
@@ -137,7 +149,7 @@ export const Timeline: FC<TimelineProps> = ({
       </div>
 
       <div id="timeline-loop" className={ROW}>
-        <div ref={bandRef} className="relative w-full h-full">
+        <div ref={bandRef} className="relative w-full h-full" onPointerDown={handleBandPointerDown}>
           <div
             ref={refs.bandShadeRef}
             data-timeline-control
