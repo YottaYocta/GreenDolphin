@@ -6,7 +6,6 @@ import {
   ActionButton,
   Panel,
   ParamControls,
-  Segmented,
   SpectrumChart,
   Stats,
   Table,
@@ -18,7 +17,7 @@ import { createFreezeWorker, type FreezeResult, type FreezeWorker } from "./clie
 import { MOMENT_SECONDS, type FreezeRequest } from "./protocol";
 
 const LEAD_SECONDS = 2.5;
-const COLORS = ["var(--color-freeze)", "#8b5cf6", "#f97316", "#ec4899"];
+const COLORS = ["var(--color-freeze)", "#8b5cf6", "#f97316", "#ec4899", "#eab308", "#06b6d4", "#ef4444"];
 
 const db = (v: number) => `${v > 0 ? "+" : ""}${v.toFixed(1)} dB`;
 const pct = (v: number) => `${(v * 100).toFixed(0)}%`;
@@ -54,7 +53,7 @@ const createLiveFreeze = (worker: FreezeWorker, onResult: (r: FreezeResult) => v
 export const FreezeLab: FC<{ buffer: AudioBuffer; player: Player }> = ({ buffer, player }) => {
   const sr = buffer.sampleRate;
   const [cursor, setCursor] = useState(() => Math.round(buffer.length * 0.3));
-  const [algoId, setAlgoId] = useState(ALGORITHMS[2].id);
+  const [algoId, setAlgoId] = useState("scan");
   const [params, setParams] = useState<Record<string, Params>>(() =>
     Object.fromEntries(ALGORITHMS.map((a) => [a.id, defaultParams(a)])),
   );
@@ -187,12 +186,22 @@ export const FreezeLab: FC<{ buffer: AudioBuffer; player: Player }> = ({ buffer,
 
       <div className="grid gap-4 md:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
         <Panel title="Algorithm">
-          <Segmented options={ALGORITHMS.map((a) => ({ value: a.id, label: a.label }))} value={algoId}
-            onChange={(id) => {
+          <select
+            aria-label="Algorithm"
+            value={algoId}
+            onChange={(e) => {
+              const id = e.currentTarget.value;
               setAlgoId(id);
               requestLive({ id, params: params[id] });
             }}
-          />
+            className="h-9 px-2 rounded-lg border border-border bg-surface-track font-inria text-sm cursor-pointer"
+          >
+            {ALGORITHMS.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.label}
+              </option>
+            ))}
+          </select>
           <p className="font-inria text-sm text-black/60">{algo.description}</p>
           <ParamControls
             specs={algo.params}

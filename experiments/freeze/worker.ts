@@ -1,24 +1,8 @@
 import { getCachedChannels } from "../../src/frontend/lib/channelCache";
 import { bandSpectrum, compareSpectra } from "../dsp/spectrum";
 import { ALGORITHMS } from "./algorithms";
+import { context, shim } from "./shim";
 import { MOMENT_SECONDS, type FreezeRequest, type WorkerMessage, type WorkerResult } from "./protocol";
-
-// Workers have no Web Audio. The algorithms only read samples and allocate
-// outputs, so a duck-typed AudioBuffer lets them run here unchanged.
-const shim = (channels: Float32Array[], sampleRate: number) =>
-  ({
-    sampleRate,
-    length: channels[0].length,
-    numberOfChannels: channels.length,
-    duration: channels[0].length / sampleRate,
-    getChannelData: (i: number) => channels[i],
-    copyFromChannel: (dest: Float32Array, i: number) => dest.set(channels[i]),
-  }) as unknown as AudioBuffer;
-
-const context = {
-  createBuffer: (n: number, length: number, sampleRate: number) =>
-    shim(Array.from({ length: n }, () => new Float32Array(length)), sampleRate),
-} as unknown as BaseAudioContext;
 
 let input: AudioBuffer | null = null;
 
