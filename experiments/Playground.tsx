@@ -74,7 +74,7 @@ export function Playground() {
 
         {source &&
           (tab === "freeze" ? (
-            <FreezeLab key={source.name} ctx={ctx} buffer={source.buffer} player={player} />
+            <FreezeLab key={source.name} buffer={source.buffer} player={player} />
           ) : tab === "pipeline" ? (
             <PipelineLab key={source.name} ctx={ctx} buffer={source.buffer} player={player} />
           ) : (

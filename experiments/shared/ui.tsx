@@ -156,7 +156,7 @@ export const WaveformPicker: FC<{
       canvas.width = canvas.clientWidth;
       canvas.height = canvas.clientHeight;
       renderWaveform(
-        { data: buffer, viewport: { start: 0, end: buffer.length }, selection: highlight },
+        { data: buffer, viewport: { start: 0, end: buffer.length } },
         { resolution: 10000 },
         canvas,
       );
@@ -164,7 +164,9 @@ export const WaveformPicker: FC<{
     const observer = new ResizeObserver(draw);
     observer.observe(canvas);
     return () => observer.disconnect();
-  }, [buffer, highlight]);
+  }, [buffer]);
+
+  const pct = (sample: number) => `${(sample / buffer.length) * 100}%`;
 
   const seek = (clientX: number, el: HTMLElement) => {
     const rect = el.getBoundingClientRect();
@@ -183,9 +185,16 @@ export const WaveformPicker: FC<{
       }}
     >
       <canvas ref={canvasRef} className="block w-full h-full pixelated" />
+      {/* Overlays, so moving the cursor never redraws the canvas. */}
+      {highlight && (
+        <div
+          className="absolute inset-y-0 bg-freeze/10 pointer-events-none"
+          style={{ left: pct(highlight.start), width: pct(highlight.end - highlight.start) }}
+        />
+      )}
       <div
         className="absolute inset-y-0 w-0.5 -translate-x-1/2 bg-freeze pointer-events-none"
-        style={{ left: `${(cursor / buffer.length) * 100}%` }}
+        style={{ left: pct(cursor) }}
       />
     </div>
   );

@@ -1,7 +1,5 @@
-import { useMemo, useState, type FC } from "react";
+import { useEffect, useMemo, useState, type FC } from "react";
 import { PlayIcon, SnowflakeIcon, StopIcon } from "@phosphor-icons/react";
-import { getCachedChannels } from "../../src/frontend/lib/channelCache";
-import { bandSpectrum, compareSpectra, type SpectrumComparison } from "../dsp/spectrum";
 import { formatMs, formatTime } from "../shared/format";
 import type { Player } from "../shared/player";
 import {
@@ -16,130 +14,111 @@ import {
   type Series,
 } from "../shared/ui";
 import { ALGORITHMS, defaultParams, type Params } from "./algorithms";
+import { createFreezeWorker, type FreezeResult, type FreezeWorker } from "./client";
+import { MOMENT_SECONDS, type FreezeRequest } from "./protocol";
 
-const MOMENT_SECONDS = 0.3;
 const LEAD_SECONDS = 2.5;
 const COLORS = ["var(--color-freeze)", "#8b5cf6", "#f97316", "#ec4899"];
-
-interface Result {
-  algo: string;
-  buffer: AudioBuffer;
-  ms: number;
-  bands: number[];
-  comparison: SpectrumComparison;
-}
-
-interface Request {
-  id: string;
-  at: number;
-  params: Params;
-}
-
-const renderAt = (buffer: AudioBuffer, ctx: AudioContext, { id, at, params }: Request): Result => {
-  const sr = buffer.sampleRate;
-  const half = Math.round((MOMENT_SECONDS / 2) * sr);
-  const a = ALGORITHMS.find((x) => x.id === id)!;
-  const t0 = performance.now();
-  const out = a.run(buffer, at, ctx, params);
-  const ms = performance.now() - t0;
-  const bands = bandSpectrum(getCachedChannels(out), 0, Math.min(out.length, 2 * sr), sr);
-  const source = bandSpectrum(getCachedChannels(buffer), at - half, at + half, sr);
-  return { algo: id, buffer: out, ms, bands, comparison: compareSpectra(source, bands) };
-};
 
 const db = (v: number) => `${v > 0 ? "+" : ""}${v.toFixed(1)} dB`;
 const pct = (v: number) => `${(v * 100).toFixed(0)}%`;
 
-export const FreezeLab: FC<{ ctx: AudioContext; buffer: AudioBuffer; player: Player }> = ({ ctx, buffer, player }) => {
+/** Keeps one render in flight; requests made meanwhile collapse into the newest. */
+const createLiveFreeze = (worker: FreezeWorker, onResult: (r: FreezeResult) => void) => {
+  let next: FreezeRequest | null = null;
+  let running = false;
+  let generation = 0;
+  const pump = async () => {
+    running = true;
+    while (next) {
+      const req = next;
+      next = null;
+      const gen = generation;
+      const r = await worker.render(req);
+      if (gen === generation) onResult(r);
+    }
+    running = false;
+  };
+  return {
+    request: (req: FreezeRequest) => {
+      next = req;
+      if (!running) void pump();
+    },
+    cancel: () => {
+      generation++;
+      next = null;
+    },
+  };
+};
+
+export const FreezeLab: FC<{ buffer: AudioBuffer; player: Player }> = ({ buffer, player }) => {
   const sr = buffer.sampleRate;
   const [cursor, setCursor] = useState(() => Math.round(buffer.length * 0.3));
   const [algoId, setAlgoId] = useState(ALGORITHMS[2].id);
   const [params, setParams] = useState<Record<string, Params>>(() =>
     Object.fromEntries(ALGORITHMS.map((a) => [a.id, defaultParams(a)])),
   );
-  const [results, setResults] = useState<Result[]>([]);
+  const [results, setResults] = useState<FreezeResult[]>([]);
   const [busy, setBusy] = useState(false);
+  const [live, setLive] = useState(false);
+  const [worker, setWorker] = useState<FreezeWorker | null>(null);
+
+  useEffect(() => {
+    const w = createFreezeWorker(buffer);
+    setWorker(w);
+    return () => w.terminate();
+  }, [buffer]);
+
+  const liveFreeze = useMemo(
+    () =>
+      worker &&
+      createLiveFreeze(worker, (r) => {
+        player.crossfade(r.buffer);
+        setResults([r]);
+      }),
+    [worker, player],
+  );
 
   const algo = ALGORITHMS.find((a) => a.id === algoId)!;
   const half = Math.round((MOMENT_SECONDS / 2) * sr);
   const moment = useMemo(() => ({ start: cursor - half, end: cursor + half }), [cursor, half]);
-  const sourceBands = useMemo(
-    () => bandSpectrum(getCachedChannels(buffer), moment.start, moment.end, sr),
-    [buffer, moment, sr],
-  );
 
-  const render = (id: string) => renderAt(buffer, ctx, { id, at: cursor, params: params[id] });
-
-  const [live, setLive] = useState(false);
-  // Renders the newest request only; anything queued while a render runs collapses into one.
-  const liveFreeze = useMemo(() => {
-    let next: Request | null = null;
-    let running = false;
-    let generation = 0;
-    const pump = () => {
-      const req = next;
-      next = null;
-      running = !!req;
-      if (!req) return;
-      const gen = generation;
-      setTimeout(() => {
-        const r = renderAt(buffer, ctx, req);
-        if (gen === generation) {
-          player.crossfade(r.buffer);
-          setResults([r]);
-        }
-        pump();
-      });
-    };
-    return {
-      request: (req: Request) => {
-        next = req;
-        if (!running) pump();
-      },
-      cancel: () => {
-        generation++;
-        next = null;
-      },
-    };
-  }, [buffer, ctx, player]);
-
-  const requestLive = (req: Partial<Request>) => {
-    if (live) liveFreeze.request({ id: algoId, at: cursor, params: params[algoId], ...req });
+  const requestLive = (req: Partial<FreezeRequest>) => {
+    if (live) liveFreeze?.request({ id: algoId, at: cursor, params: params[algoId], ...req });
   };
   const stopLive = () => {
-    liveFreeze.cancel();
+    liveFreeze?.cancel();
     setLive(false);
   };
 
-  // Defer heavy work a frame so the busy state paints first.
-  const withBusy = (work: () => void) => {
+  const withBusy = async (work: (w: FreezeWorker) => Promise<void>) => {
+    if (!worker) return;
     setBusy(true);
-    requestAnimationFrame(() =>
-      setTimeout(() => {
-        try {
-          work();
-        } finally {
-          setBusy(false);
-        }
-      }),
-    );
+    try {
+      await work(worker);
+    } finally {
+      setBusy(false);
+    }
   };
 
-  const renderOne = (andPlay: "freeze" | "lead" | null) => {
+  const renderOne = (andPlay: "freeze" | "lead") => {
     stopLive();
-    withBusy(() => {
-      const r = render(algoId);
+    void withBusy(async (w) => {
+      const r = await w.render({ id: algoId, at: cursor, params: params[algoId] });
       setResults((prev) => [r, ...prev.filter((p) => p.algo !== algoId)]);
       if (andPlay === "freeze") player.play(r.buffer, { loop: true });
-      if (andPlay === "lead") player.leadIn(buffer, cursor / sr, LEAD_SECONDS, r.buffer);
+      else player.leadIn(buffer, cursor / sr, LEAD_SECONDS, r.buffer);
     });
   };
 
-  const compareAll = () => withBusy(() => setResults(ALGORITHMS.map((a) => render(a.id))));
+  const compareAll = () =>
+    void withBusy(async (w) =>
+      setResults(await Promise.all(ALGORITHMS.map((a) => w.render({ id: a.id, at: cursor, params: params[a.id] })))),
+    );
 
   const current = results.find((r) => r.algo === algoId);
   const series: Series[] = [
-    { label: "Source moment", color: "var(--color-neutral-2)", bands: sourceBands },
+    ...(results[0] ? [{ label: "Source moment", color: "var(--color-neutral-2)", bands: results[0].source }] : []),
     ...results.map((r, i) => ({
       label: ALGORITHMS.find((a) => a.id === r.algo)!.label,
       color: COLORS[i % COLORS.length],
@@ -189,7 +168,7 @@ export const FreezeLab: FC<{ ctx: AudioContext; buffer: AudioBuffer; player: Pla
                 player.stop();
               } else {
                 setLive(true);
-                liveFreeze.request({ id: algoId, at: cursor, params: params[algoId] });
+                liveFreeze?.request({ id: algoId, at: cursor, params: params[algoId] });
               }
             }}
           >
