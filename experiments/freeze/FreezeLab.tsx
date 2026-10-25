@@ -12,15 +12,45 @@ import {
   WaveformPicker,
   type Series,
 } from "../shared/ui";
-import { ALGORITHMS, defaultParams, type Params } from "./algorithms";
+import { AudioSlider } from "../../src/frontend/components/PlaybackSettings";
+import { ALGORITHMS, defaultParams, type ParamSpec, type Params } from "./algorithms";
 import { createFreezeWorker, type FreezeResult, type FreezeWorker } from "./client";
 import { MOMENT_SECONDS, type FreezeRequest } from "./protocol";
+import { createRealtimeFreeze, type RealtimeFreeze } from "./realtime";
+import type { RealtimeConfig } from "./realtimeProtocol";
 
 const LEAD_SECONDS = 2.5;
 const COLORS = ["var(--color-freeze)", "#8b5cf6", "#f97316", "#ec4899", "#eab308", "#06b6d4", "#ef4444"];
 
 const db = (v: number) => `${v > 0 ? "+" : ""}${v.toFixed(1)} dB`;
 const pct = (v: number) => `${(v * 100).toFixed(0)}%`;
+
+const REALTIME_SPECS: ParamSpec[] = [
+  { key: "n", label: "Window", default: 8192, options: [2048, 4096, 8192, 16384].map((v) => ({ value: v, label: `${v / 1024}k` })) },
+  {
+    key: "phase",
+    label: "Phase",
+    default: 2,
+    options: [
+      { value: 0, label: "Random" },
+      { value: 1, label: "Advance" },
+      { value: 2, label: "Locked" },
+    ],
+  },
+  { key: "spreadMs", label: "Magnitude averaging", default: 120, min: 0, max: 300, step: 10, unit: "ms" },
+  {
+    key: "multires",
+    label: "Multi-res",
+    default: 0,
+    options: [
+      { value: 0, label: "Off" },
+      { value: 1, label: "On" },
+    ],
+  },
+  { key: "low", label: "Multi-res low window", default: 16384, options: [16384, 32768].map((v) => ({ value: v, label: `${v / 1024}k` })) },
+  { key: "fc", label: "Multi-res crossover", default: 300, min: 80, max: 1500, step: 10, unit: "Hz" },
+];
+const toConfig = (p: Params) => p as unknown as RealtimeConfig;
 
 /** Keeps one render in flight; requests made meanwhile collapse into the newest. */
 const createLiveFreeze = (worker: FreezeWorker, onResult: (r: FreezeResult) => void) => {
@@ -50,7 +80,7 @@ const createLiveFreeze = (worker: FreezeWorker, onResult: (r: FreezeResult) => v
   };
 };
 
-export const FreezeLab: FC<{ buffer: AudioBuffer; player: Player }> = ({ buffer, player }) => {
+export const FreezeLab: FC<{ ctx: AudioContext; buffer: AudioBuffer; player: Player }> = ({ ctx, buffer, player }) => {
   const sr = buffer.sampleRate;
   const [cursor, setCursor] = useState(() => Math.round(buffer.length * 0.3));
   const [algoId, setAlgoId] = useState("scan");
@@ -67,6 +97,26 @@ export const FreezeLab: FC<{ buffer: AudioBuffer; player: Player }> = ({ buffer,
     setWorker(w);
     return () => w.terminate();
   }, [buffer]);
+
+  const [rt, setRt] = useState<RealtimeFreeze | null>(null);
+  const [rtOn, setRtOn] = useState(false);
+  const [rtParams, setRtParams] = useState<Params>(() => Object.fromEntries(REALTIME_SPECS.map((p) => [p.key, p.default])));
+  const [rtSpeed, setRtSpeed] = useState(0);
+
+  useEffect(() => {
+    let engine: RealtimeFreeze | null = null;
+    let cancelled = false;
+    void createRealtimeFreeze(ctx, buffer).then((e) => {
+      if (cancelled) return e.dispose();
+      engine = e;
+      e.onPosition((p) => setCursor(Math.round(p)));
+      setRt(e);
+    });
+    return () => {
+      cancelled = true;
+      engine?.dispose();
+    };
+  }, [ctx, buffer]);
 
   const liveFreeze = useMemo(
     () =>
@@ -88,6 +138,26 @@ export const FreezeLab: FC<{ buffer: AudioBuffer; player: Player }> = ({ buffer,
   const stopLive = () => {
     liveFreeze?.cancel();
     setLive(false);
+    if (rtOn) {
+      rt?.stop();
+      setRtOn(false);
+    }
+  };
+
+  const startRealtime = () => {
+    if (!rt) return;
+    stopLive();
+    player.stop();
+    rt.configure(toConfig(rtParams));
+    rt.seek(cursor, true);
+    rt.setRate(rtSpeed);
+    rt.start();
+    setRtOn(true);
+  };
+
+  const setSpeed = (v: number) => {
+    setRtSpeed(v);
+    rt?.setRate(v);
   };
 
   const withBusy = async (work: (w: FreezeWorker) => Promise<void>) => {
@@ -138,6 +208,7 @@ export const FreezeLab: FC<{ buffer: AudioBuffer; player: Player }> = ({ buffer,
             setCursor(c);
             setResults([]);
             requestLive({ at: c });
+            if (rtOn) rt?.seek(c);
           }}
           highlight={moment}
         />
@@ -181,6 +252,57 @@ export const FreezeLab: FC<{ buffer: AudioBuffer; player: Player }> = ({ buffer,
           >
             <StopIcon weight="fill" /> Stop
           </ActionButton>
+        </div>
+      </Panel>
+
+      <Panel
+        title="Realtime freeze (AudioWorklet phase vocoder)"
+        aside={
+          <ActionButton
+            tone={rtOn ? "freeze" : "neutral"}
+            disabled={!rt}
+            onClick={() => {
+              if (rtOn) stopLive();
+              else startRealtime();
+            }}
+          >
+            <SnowflakeIcon weight="fill" /> {rtOn ? "Realtime on" : "Start realtime"}
+          </ActionButton>
+        }
+      >
+        <p className="font-inria text-sm text-black/60">
+          Synthesises one frame at a time from the read head; nothing is pre-rendered. Drag the freeze point to scrub;
+          at 0% speed it holds, at 100% it plays the recording.
+        </p>
+        <AudioSlider
+          label="Speed"
+          value={rtSpeed}
+          defaultValue={0}
+          min={0}
+          max={1.5}
+          step={0.01}
+          onChange={setSpeed}
+          formatValue={(v) => `${Math.round(v * 100)}`}
+          unit="%"
+          onCommit={(v) => setSpeed(Math.max(0, Math.min(150, v)) / 100)}
+        />
+        <div className="grid gap-x-6 md:grid-cols-2">
+          <ParamControls
+            specs={REALTIME_SPECS.slice(0, 3)}
+            values={rtParams}
+            onChange={(next) => {
+              setRtParams(next);
+              if (rtOn) rt?.configure(toConfig(next));
+            }}
+          />
+          <ParamControls
+            specs={REALTIME_SPECS.slice(3)}
+            values={rtParams}
+            onChange={(next) => {
+              setRtParams(next);
+              if (rtOn) rt?.configure(toConfig(next));
+            }}
+          />
         </div>
       </Panel>
 

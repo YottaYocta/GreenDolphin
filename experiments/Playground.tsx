@@ -21,7 +21,7 @@ const initialTab = (): Tab => {
 };
 
 export function Playground() {
-  const ctx = useMemo(() => new AudioContext(), []);
+  const ctx = useMemo(() => new AudioContext({ latencyHint: "playback" }), []);
   const player = useMemo(() => createPlayer(ctx), [ctx]);
   const { source, loading, loadFile, loadDemo } = useAudioSource(ctx);
   const [tab, setTab] = useState<Tab>(initialTab);
@@ -74,7 +74,7 @@ export function Playground() {
 
         {source &&
           (tab === "freeze" ? (
-            <FreezeLab key={source.name} buffer={source.buffer} player={player} />
+            <FreezeLab key={source.name} ctx={ctx} buffer={source.buffer} player={player} />
           ) : tab === "pipeline" ? (
             <PipelineLab key={source.name} ctx={ctx} buffer={source.buffer} player={player} />
           ) : (
