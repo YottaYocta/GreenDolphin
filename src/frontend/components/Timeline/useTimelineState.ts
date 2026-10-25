@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import type { Section } from "../../lib/waveform";
 import { clampSection } from "../../lib/util";
-import { FULL_LOOP, sectionToLoop, type TimelineState } from "./types";
+import { FULL_LOOP, rescaleLoop, sectionToLoop, type TimelineState } from "./types";
 
 const initialState = (
   totalSamples: number,
@@ -36,8 +36,15 @@ export const useTimelineState = (
     );
   }, [totalSamples, initialViewport, initialSelection]);
 
+  // Pan keeps the loop fixed on screen; zoom keeps it on the recording.
   const setViewport = useCallback((viewport: Section) => {
-    stateRef.current = { ...stateRef.current, viewport };
+    const prev = stateRef.current;
+    const zoomed =
+      Math.abs(viewport.end - viewport.start - (prev.viewport.end - prev.viewport.start)) >= 1;
+    stateRef.current = {
+      viewport,
+      loop: zoomed ? rescaleLoop(prev.viewport, viewport, prev.loop) : prev.loop,
+    };
   }, []);
 
   return { stateRef, setViewport };
