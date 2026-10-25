@@ -45,6 +45,7 @@ export const rescaleLoop = (
   to: Section,
   loop: LoopFraction,
 ): LoopFraction => {
+  if (loop.start === 0 && loop.end === 1) return loop;
   const scale = (from.end - from.start) / (to.end - to.start);
   const offset = (from.start - to.start) / (to.end - to.start);
   const start = Math.min(clamp(offset + loop.start * scale, 0, 1), 1 - MIN_LOOP_FRACTION);
