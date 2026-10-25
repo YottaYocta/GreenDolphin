@@ -26,18 +26,18 @@ const db = (v: number) => `${v > 0 ? "+" : ""}${v.toFixed(1)} dB`;
 const pct = (v: number) => `${(v * 100).toFixed(0)}%`;
 
 const REALTIME_SPECS: ParamSpec[] = [
-  { key: "n", label: "Window", default: 8192, options: [2048, 4096, 8192, 16384].map((v) => ({ value: v, label: `${v / 1024}k` })) },
+  { key: "n", label: "Window", default: 2048, options: [2048, 4096, 8192, 16384].map((v) => ({ value: v, label: `${v / 1024}k` })) },
   {
     key: "phase",
     label: "Phase",
-    default: 2,
+    default: 1,
     options: [
       { value: 0, label: "Random" },
       { value: 1, label: "Advance" },
       { value: 2, label: "Locked" },
     ],
   },
-  { key: "spreadMs", label: "Magnitude averaging", default: 120, min: 0, max: 300, step: 10, unit: "ms" },
+  { key: "spreadMs", label: "Magnitude averaging", default: 20, min: 0, max: 300, step: 10, unit: "ms" },
   {
     key: "multires",
     label: "Multi-res",
@@ -50,6 +50,8 @@ const REALTIME_SPECS: ParamSpec[] = [
   { key: "low", label: "Multi-res low window", default: 16384, options: [16384, 32768].map((v) => ({ value: v, label: `${v / 1024}k` })) },
   { key: "fc", label: "Multi-res crossover", default: 300, min: 80, max: 1500, step: 10, unit: "Hz" },
 ];
+/** Slow forward creep rather than a dead stop: closest to AudioStretch by ear. */
+const DEFAULT_SPEED = 0.1;
 const toConfig = (p: Params) => p as unknown as RealtimeConfig;
 
 /** Keeps one render in flight; requests made meanwhile collapse into the newest. */
@@ -101,7 +103,7 @@ export const FreezeLab: FC<{ ctx: AudioContext; buffer: AudioBuffer; player: Pla
   const [rt, setRt] = useState<RealtimeFreeze | null>(null);
   const [rtOn, setRtOn] = useState(false);
   const [rtParams, setRtParams] = useState<Params>(() => Object.fromEntries(REALTIME_SPECS.map((p) => [p.key, p.default])));
-  const [rtSpeed, setRtSpeed] = useState(0);
+  const [rtSpeed, setRtSpeed] = useState(DEFAULT_SPEED);
 
   useEffect(() => {
     let engine: RealtimeFreeze | null = null;
@@ -277,7 +279,7 @@ export const FreezeLab: FC<{ ctx: AudioContext; buffer: AudioBuffer; player: Pla
         <AudioSlider
           label="Speed"
           value={rtSpeed}
-          defaultValue={0}
+          defaultValue={DEFAULT_SPEED}
           min={0}
           max={1.5}
           step={0.01}
