@@ -1,8 +1,6 @@
 import type { RefObject } from "react";
 import { beginDrag, dragHandlers, pointerToFraction } from "./dragUtils";
-import type { TimelineState } from "./types";
-
-const MIN_LOOP_FRACTION = 0.01;
+import { MIN_LOOP_FRACTION, type TimelineState } from "./types";
 
 export const useLoopHandleDrag = (
   bandRef: RefObject<HTMLDivElement | null>,
