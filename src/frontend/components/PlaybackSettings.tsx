@@ -227,7 +227,7 @@ export const AudioSlider: FC<{
   );
 };
 
-function ModeToggle({
+export function ModeToggle({
   options,
   value,
   onChange,
