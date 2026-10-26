@@ -1,4 +1,4 @@
-import { buildFreezeBuffer } from "./legacyGranular";
+import { buildFreezeBuffer } from "../../src/frontend/lib/freeze";
 import { getCachedChannels } from "../../src/frontend/lib/channelCache";
 import { analyze, hann, lockPhases, olaGain, rms, synthesize, trueFrequency, type Frame } from "../dsp/fft";
 

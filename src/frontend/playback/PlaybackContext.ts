@@ -25,8 +25,7 @@ export type PlaybackAction =
   | "play"
   | "pause"
   | "freeze"
-  | { type: "move"; position: number }
-  | { type: "scrub"; position: number | null };
+  | { type: "move"; position: number };
 
 interface PlaybackContextType {
   playbackPosition: RefObject<number>;

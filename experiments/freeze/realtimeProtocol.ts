@@ -9,7 +9,6 @@ export interface RealtimeConfig {
   multires: number;
   low: number;
   fc: number;
-  spanMs: number;
 }
 
 export type ProcessorMessage =

@@ -66,15 +66,6 @@ export const Editor = () => {
     [data.sampleRate, triggerAction],
   );
 
-  const handleScrub = useCallback(
-    (sampleIndex: number | null) =>
-      triggerAction({
-        type: "scrub",
-        position: sampleIndex === null ? null : (sampleIndex / data.sampleRate) * 1000,
-      }),
-    [data.sampleRate, triggerAction],
-  );
-
   const handleRangeChange = useDebounce(
     useCallback((viewport: Section) => saveSession({ viewport }), []),
     250,
@@ -112,7 +103,6 @@ export const Editor = () => {
             <Waveform
               waveformData={data}
               onPosition={handlePosition}
-              onScrub={handleScrub}
               onRangeChange={handleRangeChange}
               onLoopChange={handleLoopChange}
               initialViewport={initialViewport}

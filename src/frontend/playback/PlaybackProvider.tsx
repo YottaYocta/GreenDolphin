@@ -10,7 +10,6 @@ import soundTouchProcessorUrl from "@soundtouchjs/audio-worklet/processor?url";
 import { buildSourceNode } from "./sourceNode";
 import { useAudioChain } from "./useAudioChain";
 import { usePlaybackClock } from "./usePlaybackClock";
-import { createFreeze, registerFreezeProcessor, type Freeze } from "./freeze/engine";
 
 export interface PlaybackProviderProps {
   context: AudioContext;
@@ -27,7 +26,6 @@ export const PlaybackProvider = ({
 }: PlaybackProviderProps) => {
   const [localData, setLocalData] = useState<AudioBuffer>(data);
   const [seekVersion, setSeekVersion] = useState(0);
-  const [scrubbing, setScrubbing] = useState(false);
   const [chainSettings, setChainSettings] = useState({
     pitchShift: initialSettings?.pitchShift ?? 0,
     gain: initialSettings?.gain ?? 1,
@@ -56,10 +54,9 @@ export const PlaybackProvider = ({
 
   useEffect(() => {
     setReadyContext(null);
-    Promise.all([
-      SoundTouchNode.register(context, soundTouchProcessorUrl),
-      registerFreezeProcessor(context),
-    ]).then(() => setReadyContext(context));
+    SoundTouchNode.register(context, soundTouchProcessorUrl).then(() =>
+      setReadyContext(context),
+    );
   }, [context]);
 
   useEffect(() => {
@@ -79,30 +76,6 @@ export const PlaybackProvider = ({
     playbackSpeed,
     playState,
   });
-
-  const [freeze, setFreeze] = useState<Freeze | null>(null);
-  useEffect(() => {
-    if (!entryNode) return;
-    const engine = createFreeze(context, localData, entryNode);
-    setFreeze(engine);
-    return () => {
-      engine.dispose();
-      setFreeze(null);
-    };
-  }, [context, entryNode, localData]);
-
-  const toSample = useCallback(
-    (ms: number) => Math.round((ms / 1000) * localData.sampleRate),
-    [localData.sampleRate],
-  );
-
-  const freezeActive = playState === "frozen" || (playState === "playing" && scrubbing);
-  useEffect(() => {
-    if (!freeze || !freezeActive) return;
-    freeze.seek(toSample(playbackPosition.current), true);
-    freeze.start();
-    return () => freeze.stop();
-  }, [freeze, freezeActive, playbackPosition, toSample]);
 
   const setAudioSettings = useCallback(
     (settings: Partial<PlaybackSettings>) => {
@@ -136,14 +109,9 @@ export const PlaybackProvider = ({
       } else if (action.type === "move") {
         dispatch({ type: "move", positionMS: Math.max(0, action.position) });
         setSeekVersion((v) => v + 1);
-        if (playState === "frozen") freeze?.seek(toSample(Math.max(0, action.position)));
-      } else if (action.type === "scrub") {
-        if (action.position === null) return setScrubbing(false);
-        setScrubbing(true);
-        freeze?.seek(toSample(Math.max(0, action.position)));
       }
     },
-    [dispatch, playState, freeze, toSample],
+    [dispatch],
   );
 
   const loopLength = loop
@@ -165,12 +133,13 @@ export const PlaybackProvider = ({
   }, [data, reset]);
 
   useEffect(() => {
-    if (!entryNode || playState !== "playing" || scrubbing) return;
+    if (!entryNode || playState === "paused" || playState === "waiting") return;
 
     const node = buildSourceNode({
       context,
       data: localData,
       positionMS: playbackPosition.current,
+      frozen: playState === "frozen",
       loop,
       loopOptions,
       playbackSpeed,
@@ -196,7 +165,6 @@ export const PlaybackProvider = ({
     playState,
     playbackPosition,
     seekVersion,
-    scrubbing,
   ]);
 
   const playbackSettings: PlaybackSettings = {

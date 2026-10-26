@@ -91,7 +91,7 @@ export const YouTubePlaybackProvider = ({
     (action: PlaybackAction) => {
       if (action === "play" || action === "pause") {
         dispatch({ type: "play-pause" });
-      } else if (typeof action !== "string" && action.type === "move") {
+      } else if (typeof action !== "string") {
         dispatch({ type: "move", positionMS: Math.max(0, action.position) });
       }
     },

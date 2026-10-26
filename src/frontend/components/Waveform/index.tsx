@@ -14,7 +14,6 @@ interface WaveformProps {
   onRangeChange?: (viewport: Section) => void;
   onLoopChange: (loop: Section | undefined) => void;
   onPosition: (sample: number) => void;
-  onScrub?: (sample: number | null) => void;
 }
 
 /** Audio content slot for the Timeline: waveform canvas + keyboard zoom/scroll. */
@@ -26,7 +25,6 @@ export const Waveform: FC<WaveformProps> = ({
   onRangeChange,
   onLoopChange,
   onPosition,
-  onScrub,
 }) => {
   const { stateRef, setViewport } = useTimelineState(
     waveformData.length,
@@ -63,7 +61,6 @@ export const Waveform: FC<WaveformProps> = ({
         positionMS={positionMS}
         onRangeChange={handleRange}
         onPosition={onPosition}
-        onScrub={onScrub}
         onLoopChange={onLoopChange}
       >
         <canvas

@@ -17,7 +17,6 @@ export interface TimelineProps {
   onRangeChange: (viewport: Section) => void;
   /** Tap or playhead-grip release. */
   onPosition: (sample: number) => void;
-  onScrub?: (sample: number | null) => void;
   /**
    * `undefined` when a loop gesture (pan, zoom, handle) starts so playback
    * runs free; the loop under the frame when it ends.
@@ -47,7 +46,6 @@ export const Timeline: FC<TimelineProps> = ({
   positionMS,
   onRangeChange,
   onPosition,
-  onScrub,
   onLoopChange,
   gridLines = false,
   children,
@@ -97,7 +95,7 @@ export const Timeline: FC<TimelineProps> = ({
   );
   const handleDragProps = useLoopHandleDrag(bandRef, stateRef, liftLoop, commitLoop);
   const shiftDragProps = useLoopShiftDrag(bandRef, stateRef, liftLoop, commitLoop);
-  const gripDragProps = usePlayheadGrip(contentRef, stateRef, refs.dragSampleRef, onPosition, onScrub);
+  const gripDragProps = usePlayheadGrip(contentRef, stateRef, refs.dragSampleRef, onPosition);
 
   const loopHandle = (ref: RefObject<HTMLDivElement | null>, side: "start" | "end") => (
     <div
