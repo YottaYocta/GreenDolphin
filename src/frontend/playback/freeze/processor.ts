@@ -1,5 +1,5 @@
-import { PhaseVocoder } from "../dsp/pv";
-import { PROCESSOR_NAME, type ProcessorMessage, type RealtimeConfig } from "./realtimeProtocol";
+import { PhaseVocoder } from "./pv";
+import { PROCESSOR_NAME, type ProcessorMessage, type RealtimeConfig } from "./protocol";
 
 // AudioWorkletGlobalScope isn't in the DOM lib.
 declare const sampleRate: number;
@@ -66,6 +66,7 @@ class FreezeProcessor extends AudioWorkletProcessor {
   private bands: Band[] = [];
   private position = 0;
   private target: number | null = null;
+  private anchor = 0;
   private rate = 0;
   private blocks = 0;
   private active = false;
@@ -83,6 +84,7 @@ class FreezeProcessor extends AudioWorkletProcessor {
       } else if (msg.type === "seek") {
         if (msg.jump) this.position = msg.position;
         this.target = msg.jump ? null : msg.position;
+        this.anchor = msg.position;
       }
       else if (msg.type === "rate") this.rate = msg.rate;
       else this.active = msg.active;
@@ -118,6 +120,18 @@ class FreezeProcessor extends AudioWorkletProcessor {
     if (this.target !== null) {
       this.position += (this.target - this.position) * (1 - Math.exp(-block / (GLIDE_SECONDS * sampleRate)));
       if (Math.abs(this.target - this.position) < 1) this.target = null;
+    }
+    const span = (c.spanMs / 1000) * sampleRate;
+    if (span > 0 && this.target === null) {
+      const lo = this.anchor - span / 2;
+      const hi = this.anchor + span / 2;
+      if (this.position > hi) {
+        this.position = 2 * hi - this.position;
+        this.rate = -Math.abs(this.rate);
+      } else if (this.position < lo) {
+        this.position = 2 * lo - this.position;
+        this.rate = Math.abs(this.rate);
+      }
     }
     this.position = Math.min(length, Math.max(0, this.position));
 

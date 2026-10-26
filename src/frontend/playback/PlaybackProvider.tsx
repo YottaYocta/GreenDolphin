@@ -10,6 +10,13 @@ import soundTouchProcessorUrl from "@soundtouchjs/audio-worklet/processor?url";
 import { buildSourceNode } from "./sourceNode";
 import { useAudioChain } from "./useAudioChain";
 import { usePlaybackClock } from "./usePlaybackClock";
+import {
+  FREEZE_CONFIG,
+  FREEZE_RATE,
+  createRealtimeFreeze,
+  registerFreezeProcessor,
+  type RealtimeFreeze,
+} from "./freeze/engine";
 
 export interface PlaybackProviderProps {
   context: AudioContext;
@@ -54,9 +61,10 @@ export const PlaybackProvider = ({
 
   useEffect(() => {
     setReadyContext(null);
-    SoundTouchNode.register(context, soundTouchProcessorUrl).then(() =>
-      setReadyContext(context),
-    );
+    Promise.all([
+      SoundTouchNode.register(context, soundTouchProcessorUrl),
+      registerFreezeProcessor(context),
+    ]).then(() => setReadyContext(context));
   }, [context]);
 
   useEffect(() => {
@@ -76,6 +84,32 @@ export const PlaybackProvider = ({
     playbackSpeed,
     playState,
   });
+
+  // Freeze streams from a phase-vocoder worklet into the same chain, so pitch shift still applies.
+  const [freeze, setFreeze] = useState<RealtimeFreeze | null>(null);
+  useEffect(() => {
+    if (!entryNode) return;
+    const engine = createRealtimeFreeze(context, localData, entryNode);
+    engine.configure(FREEZE_CONFIG);
+    setFreeze(engine);
+    return () => {
+      engine.dispose();
+      setFreeze(null);
+    };
+  }, [context, entryNode, localData]);
+
+  const toSample = useCallback(
+    (ms: number) => Math.round((ms / 1000) * localData.sampleRate),
+    [localData.sampleRate],
+  );
+
+  useEffect(() => {
+    if (!freeze || playState !== "frozen") return;
+    freeze.seek(toSample(playbackPosition.current), true);
+    freeze.setRate(FREEZE_RATE);
+    freeze.start();
+    return () => freeze.stop();
+  }, [freeze, playState, playbackPosition, toSample]);
 
   const setAudioSettings = useCallback(
     (settings: Partial<PlaybackSettings>) => {
@@ -109,9 +143,11 @@ export const PlaybackProvider = ({
       } else if (action.type === "move") {
         dispatch({ type: "move", positionMS: Math.max(0, action.position) });
         setSeekVersion((v) => v + 1);
+        // Frozen moves glide the read head instead of restarting the freeze.
+        if (playState === "frozen") freeze?.seek(toSample(Math.max(0, action.position)));
       }
     },
-    [dispatch],
+    [dispatch, playState, freeze, toSample],
   );
 
   const loopLength = loop
@@ -133,13 +169,12 @@ export const PlaybackProvider = ({
   }, [data, reset]);
 
   useEffect(() => {
-    if (!entryNode || playState === "paused" || playState === "waiting") return;
+    if (!entryNode || playState !== "playing") return;
 
     const node = buildSourceNode({
       context,
       data: localData,
       positionMS: playbackPosition.current,
-      frozen: playState === "frozen",
       loop,
       loopOptions,
       playbackSpeed,

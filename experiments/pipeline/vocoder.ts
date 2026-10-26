@@ -1,4 +1,4 @@
-import { analyze, hann, lockPhases, olaGain, synthesize, wrapPhase } from "../dsp/fft";
+import { analyze, hann, lockPhases, olaGain, synthesize, wrapPhase } from "../../src/frontend/lib/fft";
 
 /**
  * Offline phase-vocoder time stretch + pitch shift (identity phase locking).

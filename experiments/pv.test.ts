@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { PV_PHASE, PhaseVocoder } from "./dsp/pv";
+import { PV_PHASE, PhaseVocoder } from "../src/frontend/playback/freeze/pv";
 
 const sr = 44100;
 const x = Float32Array.from({ length: sr }, (_, i) => 0.5 * Math.sin((2 * Math.PI * 330 * i) / sr));

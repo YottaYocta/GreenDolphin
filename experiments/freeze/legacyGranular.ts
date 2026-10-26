@@ -1,4 +1,4 @@
-import { getCachedChannels } from "./channelCache";
+import { getCachedChannels } from "../../src/frontend/lib/channelCache";
 
 function reflect(idx: number, length: number): number {
   if (idx < 0) return -idx;

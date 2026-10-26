@@ -9,6 +9,8 @@ export interface RealtimeConfig {
   multires: number;
   low: number;
   fc: number;
+  /** While creeping, the read head bounces within this span around the seek point (0 = unbounded). */
+  spanMs: number;
 }
 
 export type ProcessorMessage =
