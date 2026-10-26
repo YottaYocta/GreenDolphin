@@ -16,7 +16,7 @@ import { AudioSlider } from "../../src/frontend/components/PlaybackSettings";
 import { ALGORITHMS, defaultParams, type ParamSpec, type Params } from "./algorithms";
 import { createFreezeWorker, type FreezeResult, type FreezeWorker } from "./client";
 import { MOMENT_SECONDS, type FreezeRequest } from "./protocol";
-import { createRealtimeFreeze, type RealtimeFreeze } from "./realtime";
+import { createRealtimeFreeze, registerFreezeProcessor, type RealtimeFreeze } from "./realtime";
 import type { RealtimeConfig } from "./realtimeProtocol";
 
 const LEAD_SECONDS = 2.5;
@@ -38,6 +38,7 @@ const REALTIME_SPECS: ParamSpec[] = [
     ],
   },
   { key: "spreadMs", label: "Magnitude averaging", default: 20, min: 0, max: 300, step: 10, unit: "ms" },
+  { key: "spanMs", label: "Creep span (0 = unbounded)", default: 250, min: 0, max: 2000, step: 10, unit: "ms" },
   {
     key: "multires",
     label: "Multi-res",
@@ -108,8 +109,9 @@ export const FreezeLab: FC<{ ctx: AudioContext; buffer: AudioBuffer; player: Pla
   useEffect(() => {
     let engine: RealtimeFreeze | null = null;
     let cancelled = false;
-    void createRealtimeFreeze(ctx, buffer).then((e) => {
-      if (cancelled) return e.dispose();
+    void registerFreezeProcessor(ctx).then(() => {
+      if (cancelled) return;
+      const e = createRealtimeFreeze(ctx, buffer, ctx.destination);
       engine = e;
       e.onPosition((p) => setCursor(Math.round(p)));
       setRt(e);
@@ -290,7 +292,7 @@ export const FreezeLab: FC<{ ctx: AudioContext; buffer: AudioBuffer; player: Pla
         />
         <div className="grid gap-x-6 md:grid-cols-2">
           <ParamControls
-            specs={REALTIME_SPECS.slice(0, 3)}
+            specs={REALTIME_SPECS.slice(0, 4)}
             values={rtParams}
             onChange={(next) => {
               setRtParams(next);
@@ -298,7 +300,7 @@ export const FreezeLab: FC<{ ctx: AudioContext; buffer: AudioBuffer; player: Pla
             }}
           />
           <ParamControls
-            specs={REALTIME_SPECS.slice(3)}
+            specs={REALTIME_SPECS.slice(4)}
             values={rtParams}
             onChange={(next) => {
               setRtParams(next);

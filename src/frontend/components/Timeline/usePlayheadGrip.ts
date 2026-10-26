@@ -12,6 +12,7 @@ export const usePlayheadGrip = (
   stateRef: RefObject<TimelineState>,
   dragSampleRef: RefObject<number | null>,
   onPosition: (sample: number) => void,
+  onScrub?: (sample: number | null) => void,
 ) =>
   dragHandlers((startClientX) => {
     const el = measureRef.current;
@@ -20,13 +21,16 @@ export const usePlayheadGrip = (
       fractionToSample(stateRef.current.viewport, pointerToFraction(clientX, el));
     let latest = toSample(startClientX);
     dragSampleRef.current = latest;
+    onScrub?.(latest);
     beginDrag(
       (clientX) => {
         latest = toSample(clientX);
         dragSampleRef.current = latest;
+        onScrub?.(latest);
       },
       () => {
         dragSampleRef.current = null;
+        onScrub?.(null);
         onPosition(latest);
       },
     );

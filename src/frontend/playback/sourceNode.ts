@@ -1,12 +1,10 @@
 import type { Section } from "../lib/waveform";
 import type { LoopOptions } from "./PlaybackContext";
-import { buildFreezeBuffer } from "../lib/freeze";
 
 export interface SourceNodeOptions {
   context: AudioContext;
   data: AudioBuffer;
   positionMS: number;
-  frozen: boolean;
   loop: Section | undefined;
   loopOptions: LoopOptions;
   playbackSpeed: number;
@@ -16,20 +14,11 @@ export function buildSourceNode({
   context,
   data,
   positionMS,
-  frozen,
   loop,
   loopOptions,
   playbackSpeed,
 }: SourceNodeOptions): AudioBufferSourceNode {
   const node = context.createBufferSource();
-
-  if (frozen) {
-    const centerSample = Math.floor((positionMS / 1000) * data.sampleRate);
-    node.buffer = buildFreezeBuffer(data, centerSample, context);
-    node.loop = true;
-    node.start();
-    return node;
-  }
 
   node.buffer = data;
   node.loop =
