@@ -1,4 +1,4 @@
-import { getFFT, hann, olaGain, wrapPhase } from "../../lib/fft";
+import { getFFT, hann, olaGain, wrapPhase } from "./fft";
 
 export const PV_PHASE = { random: 0, advance: 1, locked: 2 } as const;
 

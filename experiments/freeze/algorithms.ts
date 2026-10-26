@@ -1,6 +1,6 @@
 import { buildFreezeBuffer } from "./legacyGranular";
 import { getCachedChannels } from "../../src/frontend/lib/channelCache";
-import { analyze, hann, lockPhases, olaGain, rms, synthesize, trueFrequency, type Frame } from "../../src/frontend/lib/fft";
+import { analyze, hann, lockPhases, olaGain, rms, synthesize, trueFrequency, type Frame } from "../dsp/fft";
 
 export interface ParamSpec {
   key: string;

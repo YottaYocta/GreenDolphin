@@ -1,4 +1,4 @@
-import { analyze, hann } from "../../src/frontend/lib/fft";
+import { analyze, hann } from "./fft";
 
 /** 1/6-octave band centres from ~31 Hz to 16 kHz. */
 export const BANDS = Array.from({ length: 55 }, (_, i) => 31.25 * 2 ** (i / 6));

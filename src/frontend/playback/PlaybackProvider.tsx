@@ -10,13 +10,7 @@ import soundTouchProcessorUrl from "@soundtouchjs/audio-worklet/processor?url";
 import { buildSourceNode } from "./sourceNode";
 import { useAudioChain } from "./useAudioChain";
 import { usePlaybackClock } from "./usePlaybackClock";
-import {
-  FREEZE_CONFIG,
-  FREEZE_RATE,
-  createRealtimeFreeze,
-  registerFreezeProcessor,
-  type RealtimeFreeze,
-} from "./freeze/engine";
+import { createFreeze, registerFreezeProcessor, type Freeze } from "./freeze/engine";
 
 export interface PlaybackProviderProps {
   context: AudioContext;
@@ -86,11 +80,10 @@ export const PlaybackProvider = ({
   });
 
   // Freeze streams from a phase-vocoder worklet into the same chain, so pitch shift still applies.
-  const [freeze, setFreeze] = useState<RealtimeFreeze | null>(null);
+  const [freeze, setFreeze] = useState<Freeze | null>(null);
   useEffect(() => {
     if (!entryNode) return;
-    const engine = createRealtimeFreeze(context, localData, entryNode);
-    engine.configure(FREEZE_CONFIG);
+    const engine = createFreeze(context, localData, entryNode);
     setFreeze(engine);
     return () => {
       engine.dispose();
@@ -106,7 +99,6 @@ export const PlaybackProvider = ({
   useEffect(() => {
     if (!freeze || playState !== "frozen") return;
     freeze.seek(toSample(playbackPosition.current), true);
-    freeze.setRate(FREEZE_RATE);
     freeze.start();
     return () => freeze.stop();
   }, [freeze, playState, playbackPosition, toSample]);

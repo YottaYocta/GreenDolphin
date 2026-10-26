@@ -16,8 +16,8 @@ import { AudioSlider } from "../../src/frontend/components/PlaybackSettings";
 import { ALGORITHMS, defaultParams, type ParamSpec, type Params } from "./algorithms";
 import { createFreezeWorker, type FreezeResult, type FreezeWorker } from "./client";
 import { MOMENT_SECONDS, type FreezeRequest } from "./protocol";
-import { createRealtimeFreeze, registerFreezeProcessor, type RealtimeFreeze } from "../../src/frontend/playback/freeze/engine";
-import type { RealtimeConfig } from "../../src/frontend/playback/freeze/protocol";
+import { createRealtimeFreeze, registerFreezeProcessor, type RealtimeFreeze } from "./realtime";
+import type { RealtimeConfig } from "./realtimeProtocol";
 
 const LEAD_SECONDS = 2.5;
 const COLORS = ["var(--color-freeze)", "#8b5cf6", "#f97316", "#ec4899", "#eab308", "#06b6d4", "#ef4444"];

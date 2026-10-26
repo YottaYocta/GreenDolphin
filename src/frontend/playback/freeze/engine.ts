@@ -1,24 +1,8 @@
 import processorUrl from "./processor.ts?worker&url";
-import { PROCESSOR_NAME, type ProcessorMessage, type RealtimeConfig } from "./protocol";
+import { PROCESSOR_NAME, type FreezeMessage } from "./protocol";
 
-const FADE = 0.05;
+const FADE_SECONDS = 0.05;
 const registered = new WeakMap<BaseAudioContext, Promise<void>>();
-
-/**
- * Settings tuned by ear in the experiments playground: short window, natural
- * phase advance, light averaging, and a read head creeping at 10% within a
- * small span so the freeze stays alive without drifting off the moment.
- */
-export const FREEZE_CONFIG: RealtimeConfig = {
-  n: 2048,
-  phase: 1,
-  spreadMs: 20,
-  multires: 0,
-  low: 16384,
-  fc: 300,
-  spanMs: 250,
-};
-export const FREEZE_RATE = 0.1;
 
 export const registerFreezeProcessor = (ctx: BaseAudioContext) => {
   if (!registered.has(ctx)) registered.set(ctx, ctx.audioWorklet.addModule(processorUrl));
@@ -26,10 +10,10 @@ export const registerFreezeProcessor = (ctx: BaseAudioContext) => {
 };
 
 /**
- * Streaming phase-vocoder freeze running in an AudioWorklet; no offline
- * rendering. Requires `registerFreezeProcessor(ctx)` to have resolved.
+ * Realtime freeze: a phase-vocoder AudioWorklet that sustains the recording at
+ * a read position, with no offline rendering. Requires `registerFreezeProcessor`.
  */
-export const createRealtimeFreeze = (ctx: AudioContext, buffer: AudioBuffer, destination: AudioNode) => {
+export const createFreeze = (ctx: AudioContext, buffer: AudioBuffer, destination: AudioNode) => {
   const node = new AudioWorkletNode(ctx, PROCESSOR_NAME, {
     numberOfInputs: 0,
     outputChannelCount: [buffer.numberOfChannels],
@@ -38,7 +22,7 @@ export const createRealtimeFreeze = (ctx: AudioContext, buffer: AudioBuffer, des
   gain.gain.value = 0;
   node.connect(gain).connect(destination);
 
-  const post = (msg: ProcessorMessage, transfer: Transferable[] = []) => node.port.postMessage(msg, transfer);
+  const post = (msg: FreezeMessage, transfer: Transferable[] = []) => node.port.postMessage(msg, transfer);
   const channels = Array.from({ length: buffer.numberOfChannels }, (_, c) => buffer.getChannelData(c).slice());
   post({ type: "load", channels }, channels.map((c) => c.buffer));
 
@@ -47,26 +31,20 @@ export const createRealtimeFreeze = (ctx: AudioContext, buffer: AudioBuffer, des
     const now = ctx.currentTime;
     gain.gain.cancelScheduledValues(now);
     gain.gain.setValueAtTime(gain.gain.value, now);
-    gain.gain.linearRampToValueAtTime(to, now + FADE);
+    gain.gain.linearRampToValueAtTime(to, now + FADE_SECONDS);
   };
 
   return {
-    configure: (config: RealtimeConfig) => post({ type: "config", config }),
+    /** Move the read head (in samples); `jump` cuts straight there, otherwise it glides. */
     seek: (position: number, jump = false) => post({ type: "seek", position, jump }),
-    setRate: (rate: number) => post({ type: "rate", rate }),
-    /** Read-head position reports while it moves (~20 Hz). */
-    onPosition: (cb: (position: number) => void) => {
-      node.port.onmessage = (e: MessageEvent<number>) => cb(e.data);
-    },
     start: () => {
       clearTimeout(idleTimer);
-      void ctx.resume();
       post({ type: "active", active: true });
       fade(1);
     },
     stop: () => {
       fade(0);
-      idleTimer = setTimeout(() => post({ type: "active", active: false }), FADE * 1000 + 50);
+      idleTimer = setTimeout(() => post({ type: "active", active: false }), FADE_SECONDS * 1000 + 50);
     },
     dispose: () => {
       clearTimeout(idleTimer);
@@ -77,4 +55,4 @@ export const createRealtimeFreeze = (ctx: AudioContext, buffer: AudioBuffer, des
   };
 };
 
-export type RealtimeFreeze = ReturnType<typeof createRealtimeFreeze>;
+export type Freeze = ReturnType<typeof createFreeze>;

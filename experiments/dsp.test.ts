@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { analyze, getFFT, hann, synthesize } from "../src/frontend/lib/fft";
+import { analyze, getFFT, hann, synthesize } from "./dsp/fft";
 import { vocode } from "./pipeline/vocoder";
 
 const sine = (len: number, freq: number, sr = 44100) =>
