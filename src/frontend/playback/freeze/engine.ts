@@ -23,7 +23,12 @@ export const createFreeze = (ctx: AudioContext, buffer: AudioBuffer, destination
   node.connect(gain).connect(destination);
 
   const post = (msg: FreezeMessage, transfer: Transferable[] = []) => node.port.postMessage(msg, transfer);
-  const channels = Array.from({ length: buffer.numberOfChannels }, (_, c) => buffer.getChannelData(c).slice());
+  // copyFromChannel, not getChannelData: Brave's anti-fingerprinting farbles getChannelData reads.
+  const channels = Array.from({ length: buffer.numberOfChannels }, (_, c) => {
+    const copy = new Float32Array(buffer.length);
+    buffer.copyFromChannel(copy, c);
+    return copy;
+  });
   post({ type: "load", channels }, channels.map((c) => c.buffer));
 
   let idleTimer: ReturnType<typeof setTimeout> | undefined;
