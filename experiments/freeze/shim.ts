@@ -8,6 +8,7 @@ export const shim = (channels: Float32Array[], sampleRate: number) =>
     duration: channels[0].length / sampleRate,
     getChannelData: (i: number) => channels[i],
     copyFromChannel: (dest: Float32Array, i: number) => dest.set(channels[i]),
+    copyToChannel: (src: Float32Array, i: number) => channels[i].set(src),
   }) as unknown as AudioBuffer;
 
 export const context = {

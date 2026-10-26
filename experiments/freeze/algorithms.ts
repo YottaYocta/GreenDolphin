@@ -387,7 +387,7 @@ export const ALGORITHMS: FreezeAlgorithm[] = [
   {
     id: "current",
     label: "Current",
-    description: "Production granular freeze: random 150 ms grains from a 250 ms region, peak-normalised to 0.3.",
+    description: "Production freeze (src/frontend/lib/freeze.ts): offline phase vocoder, 2k window, phase advance, 20 ms magnitude averaging, rendered to a 6 s loop.",
     params: [],
     run: (input, center, ctx) => buildFreezeBuffer(input, center, ctx as AudioContext),
   },
