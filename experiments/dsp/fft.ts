@@ -1,6 +1,5 @@
 import { getFFT, wrapPhase } from "../../src/frontend/lib/fft";
 
-// Core FFT helpers live in the app; analysis tools only the experiments use live here.
 export { getFFT, hann, olaGain, wrapPhase } from "../../src/frontend/lib/fft";
 
 export interface Frame {

@@ -9,10 +9,6 @@ export const registerFreezeProcessor = (ctx: BaseAudioContext) => {
   return registered.get(ctx)!;
 };
 
-/**
- * Streaming phase-vocoder freeze running in an AudioWorklet; no offline
- * rendering. Requires `registerFreezeProcessor(ctx)` to have resolved.
- */
 export const createRealtimeFreeze = (ctx: AudioContext, buffer: AudioBuffer, destination: AudioNode) => {
   const node = new AudioWorkletNode(ctx, PROCESSOR_NAME, {
     numberOfInputs: 0,
