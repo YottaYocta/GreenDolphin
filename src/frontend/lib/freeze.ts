@@ -48,16 +48,39 @@ function freezeChannel(
       binOmega + wrapPhase(phase[k] - prevPhase[k] - binOmega * HOP) / HOP;
   }
 
+  const peaks: number[] = [];
+  for (let k = 2; k < bins - 2; k++) {
+    if (
+      mag[k] > mag[k - 1] &&
+      mag[k] > mag[k - 2] &&
+      mag[k] >= mag[k + 1] &&
+      mag[k] >= mag[k + 2]
+    )
+      peaks.push(k);
+  }
+  const cycle = (2 * Math.PI) / outputSamples;
+  const rate = new Float64Array(bins);
+  let p = 0;
+  for (let k = 0; k < bins; k++) {
+    while (
+      p + 1 < peaks.length &&
+      Math.abs(peaks[p + 1] - k) < Math.abs(peaks[p] - k)
+    )
+      p++;
+    const w = omega[peaks.length ? peaks[p] : k];
+    rate[k] = Math.round(w / cycle) * cycle;
+  }
+
   const output = new Float32Array(outputSamples);
   for (let t = 0; t < outputSamples; t += HOP) {
     for (let k = 0; k < bins; k++) {
-      re[k] = mag[k] * Math.cos(phase[k]);
-      im[k] = mag[k] * Math.sin(phase[k]);
+      const angle = phase[k] + rate[k] * t;
+      re[k] = mag[k] * Math.cos(angle);
+      im[k] = mag[k] * Math.sin(angle);
       if (k > 0 && k < WINDOW / 2) {
         re[WINDOW - k] = re[k];
         im[WINDOW - k] = -im[k];
       }
-      phase[k] = wrapPhase(phase[k] + omega[k] * HOP);
     }
     im[0] = 0;
     im[WINDOW / 2] = 0;
