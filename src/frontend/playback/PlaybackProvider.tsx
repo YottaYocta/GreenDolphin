@@ -142,12 +142,12 @@ export const PlaybackProvider = ({
         if (playState === "frozen") freeze?.seek(toSample(Math.max(0, action.position)));
       } else if (action.type === "scrub") {
         if (action.position === null) return setScrubbing(false);
-        // The first scrub event starts the freeze at the playhead; later ones glide it.
-        if (playState === "frozen" || scrubbing) freeze?.seek(toSample(Math.max(0, action.position)));
+        // Drag handlers keep this callback from mousedown, so it must not read `scrubbing`.
         setScrubbing(true);
+        freeze?.seek(toSample(Math.max(0, action.position)));
       }
     },
-    [dispatch, playState, freeze, toSample, scrubbing],
+    [dispatch, playState, freeze, toSample],
   );
 
   const loopLength = loop
