@@ -7,8 +7,7 @@ import { clampSection } from "../lib/util";
 import { useLoopPosition } from "./useLoopPosition";
 import { SoundTouchNode } from "@soundtouchjs/audio-worklet";
 import soundTouchProcessorUrl from "@soundtouchjs/audio-worklet/processor?url";
-import { buildSourceNode } from "./sourceNode";
-import { buildFreezeBuffer } from "../lib/freeze";
+import { buildFreezeNode, buildSourceNode } from "./sourceNode";
 import { useAudioChain } from "./useAudioChain";
 import { usePlaybackClock } from "./usePlaybackClock";
 
@@ -173,15 +172,10 @@ export const PlaybackProvider = ({
 
   useEffect(() => {
     if (!entryNode || playState !== "frozen") return;
-    const node = context.createBufferSource();
-    node.buffer = buildFreezeBuffer(
-      localData,
-      Math.floor((playbackPosition.current / 1000) * localData.sampleRate),
-      context,
+    return connectSource(
+      buildFreezeNode(context, localData, playbackPosition.current),
+      entryNode,
     );
-    node.loop = true;
-    node.start();
-    return connectSource(node, entryNode);
   }, [context, entryNode, localData, playState, playbackPosition, seekVersion]);
 
   const playbackSettings: PlaybackSettings = {
