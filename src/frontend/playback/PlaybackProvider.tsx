@@ -8,6 +8,7 @@ import { useLoopPosition } from "./useLoopPosition";
 import { SoundTouchNode } from "@soundtouchjs/audio-worklet";
 import soundTouchProcessorUrl from "@soundtouchjs/audio-worklet/processor?url";
 import { buildSourceNode } from "./sourceNode";
+import { buildFreezeBuffer } from "../lib/freeze";
 import { useAudioChain } from "./useAudioChain";
 import { usePlaybackClock } from "./usePlaybackClock";
 
@@ -17,6 +18,19 @@ export interface PlaybackProviderProps {
   initialSettings?: Partial<PlaybackSettings>;
   children?: ReactNode;
 }
+
+const connectSource = (node: AudioBufferSourceNode, destination: AudioNode) => {
+  node.connect(destination);
+  return () => {
+    node.onended = null;
+    try {
+      node.stop();
+    } catch (e) {
+      console.error(e);
+    }
+    node.disconnect();
+  };
+};
 
 export const PlaybackProvider = ({
   children,
@@ -133,28 +147,18 @@ export const PlaybackProvider = ({
   }, [data, reset]);
 
   useEffect(() => {
-    if (!entryNode || playState === "paused" || playState === "waiting") return;
-
-    const node = buildSourceNode({
-      context,
-      data: localData,
-      positionMS: playbackPosition.current,
-      frozen: playState === "frozen",
-      loop,
-      loopOptions,
-      playbackSpeed,
-    });
-    node.connect(entryNode);
-
-    return () => {
-      node.onended = null;
-      try {
-        node.stop();
-      } catch (e) {
-        console.error(e);
-      }
-      node.disconnect();
-    };
+    if (!entryNode || playState !== "playing") return;
+    return connectSource(
+      buildSourceNode({
+        context,
+        data: localData,
+        positionMS: playbackPosition.current,
+        loop,
+        loopOptions,
+        playbackSpeed,
+      }),
+      entryNode,
+    );
   }, [
     context,
     entryNode,
@@ -166,6 +170,19 @@ export const PlaybackProvider = ({
     playbackPosition,
     seekVersion,
   ]);
+
+  useEffect(() => {
+    if (!entryNode || playState !== "frozen") return;
+    const node = context.createBufferSource();
+    node.buffer = buildFreezeBuffer(
+      localData,
+      Math.floor((playbackPosition.current / 1000) * localData.sampleRate),
+      context,
+    );
+    node.loop = true;
+    node.start();
+    return connectSource(node, entryNode);
+  }, [context, entryNode, localData, playState, playbackPosition, seekVersion]);
 
   const playbackSettings: PlaybackSettings = {
     pitchShift: chainSettings.pitchShift,
