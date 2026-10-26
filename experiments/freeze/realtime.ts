@@ -4,7 +4,6 @@ import { PROCESSOR_NAME, type ProcessorMessage, type RealtimeConfig } from "./re
 const FADE = 0.05;
 const registered = new WeakMap<BaseAudioContext, Promise<void>>();
 
-/** Streaming phase-vocoder freeze running in an AudioWorklet; no offline rendering. */
 export const createRealtimeFreeze = async (ctx: AudioContext, buffer: AudioBuffer) => {
   if (!registered.has(ctx)) registered.set(ctx, ctx.audioWorklet.addModule(processorUrl));
   await registered.get(ctx);
