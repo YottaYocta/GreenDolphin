@@ -27,6 +27,7 @@ export const PlaybackProvider = ({
 }: PlaybackProviderProps) => {
   const [localData, setLocalData] = useState<AudioBuffer>(data);
   const [seekVersion, setSeekVersion] = useState(0);
+  const [scrubbing, setScrubbing] = useState(false);
   const [chainSettings, setChainSettings] = useState({
     pitchShift: initialSettings?.pitchShift ?? 0,
     gain: initialSettings?.gain ?? 1,
@@ -96,12 +97,14 @@ export const PlaybackProvider = ({
     [localData.sampleRate],
   );
 
+  // Scrubbing the playhead while playing streams the freeze at the drag position.
+  const freezeActive = playState === "frozen" || (playState === "playing" && scrubbing);
   useEffect(() => {
-    if (!freeze || playState !== "frozen") return;
+    if (!freeze || !freezeActive) return;
     freeze.seek(toSample(playbackPosition.current), true);
     freeze.start();
     return () => freeze.stop();
-  }, [freeze, playState, playbackPosition, toSample]);
+  }, [freeze, freezeActive, playbackPosition, toSample]);
 
   const setAudioSettings = useCallback(
     (settings: Partial<PlaybackSettings>) => {
@@ -137,9 +140,14 @@ export const PlaybackProvider = ({
         setSeekVersion((v) => v + 1);
         // Frozen moves glide the read head instead of restarting the freeze.
         if (playState === "frozen") freeze?.seek(toSample(Math.max(0, action.position)));
+      } else if (action.type === "scrub") {
+        if (action.position === null) return setScrubbing(false);
+        // The first scrub event starts the freeze at the playhead; later ones glide it.
+        if (playState === "frozen" || scrubbing) freeze?.seek(toSample(Math.max(0, action.position)));
+        setScrubbing(true);
       }
     },
-    [dispatch, playState, freeze, toSample],
+    [dispatch, playState, freeze, toSample, scrubbing],
   );
 
   const loopLength = loop
@@ -161,7 +169,7 @@ export const PlaybackProvider = ({
   }, [data, reset]);
 
   useEffect(() => {
-    if (!entryNode || playState !== "playing") return;
+    if (!entryNode || playState !== "playing" || scrubbing) return;
 
     const node = buildSourceNode({
       context,
@@ -192,6 +200,7 @@ export const PlaybackProvider = ({
     playState,
     playbackPosition,
     seekVersion,
+    scrubbing,
   ]);
 
   const playbackSettings: PlaybackSettings = {
