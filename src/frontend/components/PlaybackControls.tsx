@@ -67,21 +67,16 @@ export function PlaybackControls({
     return () => cancelAnimationFrame(countdownRafRef.current);
   }, [playState, loopPosition, loopLength, loopDelay]);
 
-  const rewindFiveSeconds = useCallback(() => {
-    if (disabled) return;
-    triggerAction({
-      type: "move",
-      position: Math.max(0, playbackPosition.current - 5000),
-    });
-  }, [disabled, playbackPosition, triggerAction]);
-
-  const fastForwardFiveSeconds = useCallback(() => {
-    if (disabled) return;
-    triggerAction({
-      type: "move",
-      position: Math.max(0, playbackPosition.current + 5000),
-    });
-  }, [disabled, playbackPosition, triggerAction]);
+  const nudge = useCallback(
+    (ms: number) => {
+      if (disabled) return;
+      triggerAction({
+        type: "move",
+        position: Math.max(0, playbackPosition.current + ms),
+      });
+    },
+    [disabled, playbackPosition, triggerAction],
+  );
 
   const togglePlay = useCallback(() => {
     if (disabled) return;
@@ -100,6 +95,11 @@ export function PlaybackControls({
   }, [disabled, triggerAction]);
 
   useEffect(() => {
+    const nudgeKey = (e: KeyboardEvent, ms: number) => {
+      if (e.target instanceof HTMLInputElement) return;
+      e.preventDefault();
+      nudge(ms);
+    };
     return tinykeys(window, {
       "0": () => {
         if (!disabled) triggerAction({ type: "move", position: 0 });
@@ -110,8 +110,10 @@ export function PlaybackControls({
       },
       p: () => togglePlay(),
       ...(showFreeze ? { f: () => toggleFreeze() } : {}),
-      h: () => rewindFiveSeconds(),
-      l: () => fastForwardFiveSeconds(),
+      h: () => nudge(-5000),
+      l: () => nudge(5000),
+      ArrowLeft: (e) => nudgeKey(e, -200),
+      ArrowRight: (e) => nudgeKey(e, 200),
     });
   }, [
     disabled,
@@ -119,8 +121,7 @@ export function PlaybackControls({
     triggerAction,
     togglePlay,
     toggleFreeze,
-    rewindFiveSeconds,
-    fastForwardFiveSeconds,
+    nudge,
   ]);
 
   const btn =
@@ -161,8 +162,8 @@ export function PlaybackControls({
   );
   const nav = (
     <>
-      {navButton(SkipBackIcon, rewindFiveSeconds)}
-      {navButton(SkipForwardIcon, fastForwardFiveSeconds)}
+      {navButton(SkipBackIcon, () => nudge(-5000))}
+      {navButton(SkipForwardIcon, () => nudge(5000))}
     </>
   );
 
