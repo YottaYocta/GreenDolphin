@@ -9,10 +9,6 @@ export const registerFreezeProcessor = (ctx: BaseAudioContext) => {
   return registered.get(ctx)!;
 };
 
-/**
- * Realtime freeze: a phase-vocoder AudioWorklet that sustains the recording at
- * a read position, with no offline rendering. Requires `registerFreezeProcessor`.
- */
 export const createFreeze = (ctx: AudioContext, buffer: AudioBuffer, destination: AudioNode) => {
   const node = new AudioWorkletNode(ctx, PROCESSOR_NAME, {
     numberOfInputs: 0,
@@ -23,7 +19,6 @@ export const createFreeze = (ctx: AudioContext, buffer: AudioBuffer, destination
   node.connect(gain).connect(destination);
 
   const post = (msg: FreezeMessage, transfer: Transferable[] = []) => node.port.postMessage(msg, transfer);
-  // copyFromChannel, not getChannelData: Brave's anti-fingerprinting farbles getChannelData reads.
   const channels = Array.from({ length: buffer.numberOfChannels }, (_, c) => {
     const copy = new Float32Array(buffer.length);
     buffer.copyFromChannel(copy, c);
@@ -40,7 +35,6 @@ export const createFreeze = (ctx: AudioContext, buffer: AudioBuffer, destination
   };
 
   return {
-    /** Move the read head (in samples); `jump` cuts straight there, otherwise it glides. */
     seek: (position: number, jump = false) => post({ type: "seek", position, jump }),
     start: () => {
       clearTimeout(idleTimer);

@@ -1,12 +1,5 @@
 import { getFFT, hann, olaGain, wrapPhase } from "../../lib/fft";
 
-/**
- * Streaming phase-vocoder freeze for one channel: each `frame(x, p)` call
- * resynthesises the spectrum at read position `p` and returns the next `hop`
- * output samples. Phases keep advancing at each partial's true frequency, so a
- * held position sustains seamlessly and a moving one scrubs smoothly.
- * Buffers are preallocated so it is safe to run on the audio thread.
- */
 export class FreezeVocoder {
   readonly hop: number;
   private readonly n: number;
@@ -27,7 +20,6 @@ export class FreezeVocoder {
   private analysedAt = NaN;
   private started = false;
 
-  /** `spread`: magnitudes are RMS-averaged over ±spread hops around the read position. */
   constructor(n: number, spread: number) {
     this.n = n;
     this.spread = spread;
@@ -47,7 +39,6 @@ export class FreezeVocoder {
     this.ready = new Float32Array(this.hop);
   }
 
-  /** Windowed FFT of x[start..start+n) into re/im (zero outside the signal). */
   private transform(x: Float32Array, start: number) {
     const { n, re, im, window } = this;
     for (let i = 0; i < n; i++) {

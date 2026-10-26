@@ -1,17 +1,14 @@
 import { FreezeVocoder } from "./vocoder";
 import { PROCESSOR_NAME, type FreezeMessage } from "./protocol";
 
-// AudioWorkletGlobalScope isn't in the DOM lib.
 declare const sampleRate: number;
 declare function registerProcessor(name: string, ctor: unknown): void;
 declare class AudioWorkletProcessor {
   readonly port: MessagePort;
 }
 
-/** Tuned by ear in the experiments playground. */
 const WINDOW = 2048;
 const SPREAD_SECONDS = 0.02;
-/** Seek glide time constant: smooths playhead steps into a continuous scrub. */
 const GLIDE_SECONDS = 0.04;
 
 class FreezeProcessor extends AudioWorkletProcessor {
@@ -39,7 +36,6 @@ class FreezeProcessor extends AudioWorkletProcessor {
     };
   }
 
-  /** Fresh vocoders so a new freeze carries no tail from the previous one. */
   private reset() {
     const hop = WINDOW / 4;
     const spread = Math.round((SPREAD_SECONDS * sampleRate) / hop);

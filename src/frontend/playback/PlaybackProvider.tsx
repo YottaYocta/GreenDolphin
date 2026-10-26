@@ -80,7 +80,6 @@ export const PlaybackProvider = ({
     playState,
   });
 
-  // Freeze streams from a phase-vocoder worklet into the same chain, so pitch shift still applies.
   const [freeze, setFreeze] = useState<Freeze | null>(null);
   useEffect(() => {
     if (!entryNode) return;
@@ -97,7 +96,6 @@ export const PlaybackProvider = ({
     [localData.sampleRate],
   );
 
-  // Scrubbing the playhead while playing streams the freeze at the drag position.
   const freezeActive = playState === "frozen" || (playState === "playing" && scrubbing);
   useEffect(() => {
     if (!freeze || !freezeActive) return;
@@ -138,11 +136,9 @@ export const PlaybackProvider = ({
       } else if (action.type === "move") {
         dispatch({ type: "move", positionMS: Math.max(0, action.position) });
         setSeekVersion((v) => v + 1);
-        // Frozen moves glide the read head instead of restarting the freeze.
         if (playState === "frozen") freeze?.seek(toSample(Math.max(0, action.position)));
       } else if (action.type === "scrub") {
         if (action.position === null) return setScrubbing(false);
-        // Drag handlers keep this callback from mousedown, so it must not read `scrubbing`.
         setScrubbing(true);
         freeze?.seek(toSample(Math.max(0, action.position)));
       }

@@ -17,7 +17,6 @@ export interface TimelineProps {
   onRangeChange: (viewport: Section) => void;
   /** Tap or playhead-grip release. */
   onPosition: (sample: number) => void;
-  /** Sample under the dragged playhead on every move; `null` on release (before `onPosition`). */
   onScrub?: (sample: number | null) => void;
   /**
    * `undefined` when a loop gesture (pan, zoom, handle) starts so playback

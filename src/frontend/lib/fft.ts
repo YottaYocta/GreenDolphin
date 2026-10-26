@@ -2,7 +2,6 @@ type FFT = (re: Float64Array, im: Float64Array, inverse?: boolean) => void;
 
 const cache = new Map<number, FFT>();
 
-/** In-place radix-2 complex FFT of size `n` (power of two). Inverse is scaled by 1/n. */
 export const getFFT = (n: number): FFT => {
   const existing = cache.get(n);
   if (existing) return existing;
@@ -56,7 +55,6 @@ export const getFFT = (n: number): FFT => {
   return fft;
 };
 
-/** Periodic Hann window: overlap-adds to a constant at hops of n/2, n/4, ... */
 export const hann = (n: number) => {
   const w = new Float64Array(n);
   for (let i = 0; i < n; i++) w[i] = 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / n);
@@ -65,7 +63,6 @@ export const hann = (n: number) => {
 
 export const wrapPhase = (p: number) => p - 2 * Math.PI * Math.round(p / (2 * Math.PI));
 
-/** Steady-state sum of window² across a hop-`hop` overlap-add (constant for Hann). */
 export const olaGain = (window: Float64Array, hop: number) => {
   let total = 0;
   for (let i = 0; i < window.length; i++) total += window[i] * window[i];

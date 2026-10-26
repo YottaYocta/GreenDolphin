@@ -26,7 +26,6 @@ export type PlaybackAction =
   | "pause"
   | "freeze"
   | { type: "move"; position: number }
-  /** Live scrub while dragging the playhead (ms); `null` when the drag ends. */
   | { type: "scrub"; position: number | null };
 
 interface PlaybackContextType {

@@ -4,8 +4,8 @@ import { fractionToSample, type TimelineState } from "./types";
 
 /**
  * Drag on the playhead triangle. While dragging, `dragSampleRef` holds the
- * previewed sample so the playhead renders there and `onScrub` follows it;
- * the position is only committed on release.
+ * previewed sample so the playhead renders there; the position is only
+ * committed on release.
  */
 export const usePlayheadGrip = (
   measureRef: RefObject<HTMLDivElement | null>,
