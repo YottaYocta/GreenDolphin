@@ -155,3 +155,16 @@ test("a YouTube link opens the video editor and playback drives the embed", asyn
   await page.getByRole("button", { name: "Pause" }).click();
   expect((await snapshot(page)).playState).toBe("paused");
 });
+
+test("a long title truncates without colliding with the title bar buttons", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("gd2:flag:tutorial", JSON.stringify({ on: true })));
+  await page.goto("/");
+  await upload(page, `${"A very long recording title that keeps going ".repeat(4)}.wav`);
+  await waitForEditor(page);
+  const boxes = await Promise.all(["Switch recording", "File info", "Home", "Keep awake status"].map(async (name) => (await page.getByRole("button", { name }).boundingBox())!));
+  for (let i = 0; i < boxes.length; i++)
+    for (const other of boxes.slice(i + 1))
+      expect(boxes[i].x + boxes[i].width <= other.x || other.x + other.width <= boxes[i].x || boxes[i].y + boxes[i].height <= other.y || other.y + other.height <= boxes[i].y).toBe(true);
+  const title = page.getByRole("button", { name: "Switch recording" }).locator("span");
+  expect(await title.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(true);
+});
