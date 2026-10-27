@@ -11,8 +11,8 @@ import { restore, usePersistence, useSound, type SoundOutput } from "./session";
 import { LoopSettings, SoundSettings } from "./Controls/Settings";
 import { Timeline, type TimelineProps } from "./Timeline";
 import { TitleBar } from "./TitleBar";
-import { audio, type AudioEngine } from "../../audio";
-import { youtube, type YTPlayer, type YouTubeBackend, type YouTubeSource } from "../../youtube";
+import { audio, type AudioEngine, type Recording } from "../../audio";
+import { youtube } from "../../youtube";
 
 const CARD = "flex flex-col rounded-xl overflow-hidden [box-shadow:var(--shadow-panel)] bg-white border border-border";
 
@@ -80,35 +80,35 @@ function Layout(props: { name: string; info: [string, string][]; session: Sessio
   );
 }
 
-export function AudioEditor({ name, size, buffer, ctx }: { name: string; size: number; buffer: AudioBuffer; ctx: AudioContext }) {
+export function AudioEditor({ name, size, recording }: { name: string; size: number; recording: Recording }) {
   const [session, setSession] = useState<(Session & { engine: AudioEngine }) | null>(null);
   const [peaks, setPeaks] = useState<Peaks | null>(null);
 
   useEffect(() => {
     let live = true;
     let made: { engine: AudioEngine; player: Player } | null = null;
-    void audio.createEngine(ctx, buffer).then((engine) => {
+    void audio.createEngine(recording).then((engine) => {
       if (!live) return engine.dispose();
-      const restored = restore(name, buffer.duration);
+      const restored = restore(name, recording.duration);
       made = { engine, player: core.createPlayer(engine, restored.options) };
       if (import.meta.env.DEV) Object.assign(window, { __gd: made });
       setSession({ ...made, restored, output: engine });
     });
-    void buildPeaks(buffer).then((p) => live && setPeaks(p));
+    void buildPeaks(recording).then((p) => live && setPeaks(p));
     return () => {
       live = false;
       made?.player.dispose();
       made?.engine.dispose();
     };
-  }, [ctx, buffer, name]);
+  }, [recording, name]);
 
-  const draw = useCallback((canvas: HTMLCanvasElement, view: Section, loop: Section) => peaks && drawWaveform(canvas, peaks, buffer, view, loop), [peaks, buffer]);
+  const draw = useCallback((canvas: HTMLCanvasElement, view: Section, loop: Section) => peaks && drawWaveform(canvas, peaks, recording, view, loop), [peaks, recording]);
   if (!session) return null;
   const info: [string, string][] = [
     ["Size", formatSize(size)],
-    ["Duration", formatTime(buffer.duration)],
-    ["Sample rate", `${buffer.sampleRate.toLocaleString()} Hz`],
-    ["Channels", String(buffer.numberOfChannels)],
+    ["Duration", formatTime(recording.duration)],
+    ["Sample rate", `${recording.sampleRate.toLocaleString()} Hz`],
+    ["Channels", String(recording.channelCount)],
   ];
   return (
     <Layout
@@ -125,74 +125,46 @@ export function AudioEditor({ name, size, buffer, ctx }: { name: string; size: n
   );
 }
 
-export function YouTubeEditor({ name, source }: { name: string; source: YouTubeSource }) {
+export function YouTubeEditor({ name, videoId }: { name: string; videoId: string }) {
   const host = useRef<HTMLDivElement>(null);
-  const [session, setSession] = useState<(Session & { backend: YouTubeBackend }) | null>(null);
-  const [error, setError] = useState<number | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let live = true;
-    let yt: YTPlayer | null = null;
-    let made: { backend: YouTubeBackend; player: Player } | null = null;
-    const el = host.current!.appendChild(document.createElement("div"));
-    const start = (target: YTPlayer) => {
-      const duration = target.getDuration();
-      if (!live || made || duration <= 0) return;
-      const restored = restore(name, duration);
+    let player: Player | null = null;
+    let stopFollowing = () => {};
+    const embed = youtube.embed(host.current!, videoId, setError);
+    void embed.ready.then((output) => {
+      if (!live) return;
+      const restored = restore(name, output.duration);
       restored.options.speed = Math.min(2, Math.max(0.25, Math.round(restored.options.speed * 4) / 4));
       restored.sound.gain = Math.min(1, restored.sound.gain);
-      const backend = youtube.createBackend(target);
-      made = { backend, player: core.createPlayer(backend, restored.options) };
-      if (import.meta.env.DEV) Object.assign(window, { __gd: made });
-      setSession({ ...made, restored, output: backend });
-    };
-    void youtube.loadApi().then((YT) => {
-      if (!live) return;
-      yt = new YT.Player(el, {
-        videoId: source.videoId,
-        playerVars: { controls: 0, disablekb: 1, rel: 0, playsinline: 1 },
-        events: {
-          onReady: ({ target }) => start(target),
-          onStateChange: ({ data }) => (made ? made.backend.onStateChange(data, made.player) : yt && start(yt)),
-          onError: ({ data }) => live && setError(data),
-        },
-      });
+      player = core.createPlayer(output, restored.options);
+      stopFollowing = output.follow(player);
+      if (import.meta.env.DEV) Object.assign(window, { __gd: { player } });
+      setSession({ player, restored, output });
     });
     return () => {
       live = false;
-      made?.player.dispose();
-      el.remove();
-      try {
-        yt?.destroy();
-      } catch {
-        yt = null;
-      }
+      stopFollowing();
+      player?.dispose();
+      embed.dispose();
     };
-  }, [name, source.videoId]);
-
-  useEffect(() => {
-    if (!session) return;
-    let raf = 0;
-    const follow = () => {
-      session.backend.follow(session.player);
-      raf = requestAnimationFrame(follow);
-    };
-    follow();
-    return () => cancelAnimationFrame(raf);
-  }, [session]);
+  }, [name, videoId]);
 
   const video = (
     <div className={`${CARD} items-center p-4 md:pt-6 shrink min-h-0`}>
       <div className="relative aspect-video h-[min(9rem,18dvh)] md:h-45 max-w-full bg-black rounded-lg overflow-hidden opacity-90">
         <div ref={host} className="absolute inset-0 [&_iframe]:w-full [&_iframe]:h-full" />
       </div>
-      {error !== null && <p className="pt-3 text-sm text-red-600/80 font-inria">{youtube.describeError(error)}</p>}
+      {error !== null && <p className="pt-3 text-sm text-red-600/80 font-inria">{error}</p>}
       {!session && error === null && <p className="pt-3 text-sm text-black/40 font-inria">Loading video…</p>}
     </div>
   );
   const info: [string, string][] = [
     ["Source", "YouTube"],
-    ["Video ID", source.videoId],
+    ["Video ID", videoId],
   ];
   return <Layout name={name} info={info} session={session} top={video} youtube />;
 }

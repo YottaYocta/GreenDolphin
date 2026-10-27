@@ -20,8 +20,7 @@ function barHeight(db: number, key: number) {
   return Math.min(Math.sqrt(base ** 3) ** (base / 130) / 5, BARS_H);
 }
 
-function semitoneLevels(data: Float32Array, sampleRate: number) {
-  const binHz = sampleRate / 2 / data.length;
+function semitoneLevels(data: Float32Array, binHz: number) {
   return Array.from({ length: KEYS }, (_, i) => {
     const f = frequency(FIRST + i);
     const lo = Math.floor(f / 2 ** (1 / 24) / binHz);
@@ -45,14 +44,12 @@ export function PianoRoll({ engine }: { engine: AudioEngine }) {
     const dpr = window.devicePixelRatio || 1;
     [c.width, c.height] = [WIDTH * dpr, BARS_H * dpr];
     const ctx = c.getContext("2d")!;
-    const data = new Float32Array(engine.analyser.frequencyBinCount);
     let raf = 0;
     const frame = () => {
       raf = requestAnimationFrame(frame);
-      engine.analyser.getFloatFrequencyData(data);
       ctx.clearRect(0, 0, c.width, c.height);
       ctx.fillStyle = "#1CCA93";
-      semitoneLevels(data, engine.analyser.context.sampleRate).forEach((db, i) => {
+      semitoneLevels(engine.readSpectrum(), engine.spectrumBinHz).forEach((db, i) => {
         const h = Math.round(barHeight(db, FIRST + i) * dpr);
         const x = Math.round((i * c.width) / KEYS);
         if (h >= 1) ctx.fillRect(x, c.height - h, Math.round(((i + 1) * c.width) / KEYS) - x, h);

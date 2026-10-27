@@ -1,4 +1,4 @@
-import type { Output, RecordingSeconds } from "../core";
+import type { DurationSeconds, Output, RecordingSeconds } from "../core";
 
 export type Semitones = number;
 export type LinearGain = number;
@@ -18,8 +18,17 @@ export type FreezeMessage =
   | { type: "seek"; position: RecordingSeconds; jump: boolean }
   | { type: "active"; active: boolean };
 
+export interface Recording {
+  readonly duration: DurationSeconds;
+  readonly sampleRate: Hertz;
+  readonly channelCount: number;
+  readonly length: number;
+  readChannel(into: Float32Array, channel: number, fromSample?: number): void;
+}
+
 export interface AudioEngine extends Output {
-  readonly analyser: AnalyserNode;
+  readonly spectrumBinHz: Hertz;
+  readSpectrum(): Float32Array;
   setPitch(semitones: Semitones): void;
   setVolume(gain: LinearGain): void;
   playTone(frequency: Hertz | null): void;
@@ -27,5 +36,6 @@ export interface AudioEngine extends Output {
 }
 
 export interface Audio {
-  createEngine(ctx: AudioContext, buffer: AudioBuffer): Promise<AudioEngine>;
+  decode(data: ArrayBuffer): Promise<Recording>;
+  createEngine(recording: Recording): Promise<AudioEngine>;
 }

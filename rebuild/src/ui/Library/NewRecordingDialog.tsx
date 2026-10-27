@@ -3,10 +3,10 @@ import { MusicNoteIcon, MusicNotesPlusIcon, SpinnerIcon, YoutubeLogoIcon } from 
 import { noteColor } from "../shared/format";
 import { useLibrary } from "../context";
 import { Dialog } from "../shared/primitives";
-import { youtube } from "../../youtube";
+import type { StoredRecording } from "../../persistence";
 
-export const RecordingIcon = ({ file, size = 32 }: { file: File; size?: number }) =>
-  youtube.isYouTube(file) ? <YoutubeLogoIcon size={size} weight="fill" color="#FF0000" className="opacity-80 shrink-0" /> : <MusicNoteIcon size={size} weight="fill" color={noteColor(file.name)} className="shrink-0" />;
+export const RecordingIcon = ({ recording, size = 32 }: { recording: StoredRecording; size?: number }) =>
+  recording.source.kind === "youtube" ? <YoutubeLogoIcon size={size} weight="fill" color="#FF0000" className="opacity-80 shrink-0" /> : <MusicNoteIcon size={size} weight="fill" color={noteColor(recording.name)} className="shrink-0" />;
 
 export function NewRecordingDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const { add, addYouTube } = useLibrary();

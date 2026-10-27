@@ -3,20 +3,22 @@ import soundTouchUrl from "@soundtouchjs/audio-worklet/processor?url";
 import freezeUrl from "./freezeProcessor.ts?worker&url";
 import { core, type Playback, type RecordingSeconds } from "../core";
 import type { Audio, AudioEngine, FreezeMessage, Hertz, LinearGain, Semitones } from "./interfaces";
+import { audioContext, bufferOf } from "./recording";
 
 const FADE = 0.03;
 const ANALYSER_SIZE = 16384;
-const registered = new WeakMap<BaseAudioContext, Promise<unknown>>();
+let registered: Promise<unknown> | null = null;
 
-export const createEngine: Audio["createEngine"] = async (ctx, buffer) => {
-  if (!registered.has(ctx))
-    registered.set(ctx, Promise.all([SoundTouchNode.register(ctx, soundTouchUrl), ctx.audioWorklet.addModule(freezeUrl)]));
-  await registered.get(ctx);
-  return new WebAudioEngine(ctx, buffer);
+export const createEngine: Audio["createEngine"] = async (recording) => {
+  const ctx = audioContext();
+  await (registered ??= Promise.all([SoundTouchNode.register(ctx, soundTouchUrl), ctx.audioWorklet.addModule(freezeUrl)]));
+  return new WebAudioEngine(ctx, bufferOf(recording));
 };
 
 class WebAudioEngine implements AudioEngine {
-  readonly analyser: AnalyserNode;
+  readonly spectrumBinHz: Hertz;
+  private readonly analyser: AnalyserNode;
+  private readonly spectrum: Float32Array<ArrayBuffer>;
   private readonly ctx: AudioContext;
   private readonly buffer: AudioBuffer;
   private readonly stretch: SoundTouchNode;
@@ -35,6 +37,8 @@ class WebAudioEngine implements AudioEngine {
     this.stretch.setStretchParameters({ overlapMs: 4 });
     this.gain = ctx.createGain();
     this.analyser = Object.assign(ctx.createAnalyser(), { fftSize: ANALYSER_SIZE, minDecibels: -140, maxDecibels: 0, smoothingTimeConstant: 0.1 });
+    this.spectrum = new Float32Array(this.analyser.frequencyBinCount);
+    this.spectrumBinHz = ctx.sampleRate / ANALYSER_SIZE;
     this.stretch.connect(this.gain).connect(this.analyser).connect(ctx.destination);
     this.freeze = new AudioWorkletNode(ctx, "gd-freeze", { numberOfInputs: 0, outputChannelCount: [buffer.numberOfChannels] });
     this.freezeGain = ctx.createGain();
@@ -72,6 +76,11 @@ class WebAudioEngine implements AudioEngine {
     } else if (p.mode === "scrubbing") this.post({ type: "seek", position: p.anchorPosition, jump: false });
 
     this.stretch.playbackRate.value = p.mode === "playing" ? p.rate : 1;
+  }
+
+  readSpectrum() {
+    this.analyser.getFloatFrequencyData(this.spectrum);
+    return this.spectrum;
   }
 
   setPitch(semitones: Semitones) {

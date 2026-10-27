@@ -109,12 +109,13 @@ src/core/          standalone playback state manager — imports nothing outside
   transport.ts     transition() — the table above (pure)
   playback.ts      positionAt() / continues() (shared with outputs)
   player.ts        createPlayer(): clock, loop-end/delay timers, scrub; the class stays private
-src/audio/         interfaces.ts (AudioEngine, FreezeVocoder, worklet messages, Audio)
-                   index.ts → `audio`; engine (Web Audio Output), vocoder + worklet, FFT
-src/youtube/       interfaces.ts (embed API, YouTubeBackend, YouTubeSource, YouTube)
-                   index.ts → `youtube`; backend (embed Output), link/oEmbed/file helpers
+src/audio/         interfaces.ts (Recording, AudioEngine, FreezeVocoder, worklet messages, Audio)
+                   index.ts → `audio`: decode(bytes) → Recording, createEngine(recording);
+                   owns the AudioContext; engine (Web Audio Output), vocoder + worklet, FFT
+src/youtube/       interfaces.ts (YouTubeOutput, YouTubeEmbed, YouTube; SDK types stay internal)
+                   index.ts → `youtube`: parseVideoId, lookupVideo, embed(host, id, onError)
 src/persistence/   interfaces.ts (RecordingPrefs, LoopPrefs, StoredRecording, Persistence)
-                   index.ts → `persistence`; localStorage prefs and IndexedDB files
+                   index.ts → `persistence`; localStorage prefs, IndexedDB recordings + audio bytes
 src/ui/            React, laid out like the screen
   App.tsx          library state and routing
   Library/         recordings list, NewRecordingDialog
@@ -127,7 +128,8 @@ Every non-UI folder follows the same shape: `interfaces.ts` holds all its types
 (including internal contracts between its own files, e.g. engine ↔ worklet) and
 one interface listing its public operations; implementations take their types
 from it; `index.ts` exports only what other folders use — the public types plus
-one object implementing that interface. Tests may reach internals directly; the
+one object implementing that interface. No native API (Web Audio, YouTube SDK,
+File) crosses a folder boundary: the folder owns it and exposes plain data. Tests may reach internals directly; the
 public surface never grows just for them.
 
 tests/             mirrors src/; tests/e2e is Playwright (desktop + Pixel 7 touch)

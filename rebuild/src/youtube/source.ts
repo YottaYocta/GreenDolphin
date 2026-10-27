@@ -1,10 +1,6 @@
-import type { YouTube, YouTubeSource } from "./interfaces";
+import type { YouTube } from "./interfaces";
 
-const YOUTUBE_EXT = ".yt";
-const MIME = "application/x-greendolphin-youtube";
 const ID = /^[\w-]{11}$/;
-
-export const isYouTube: YouTube["isYouTube"] = (file) => file.type === MIME || file.name.endsWith(YOUTUBE_EXT);
 
 export const parseVideoId: YouTube["parseVideoId"] = (input) => {
   const text = input.trim();
@@ -23,11 +19,6 @@ export const parseVideoId: YouTube["parseVideoId"] = (input) => {
     return null;
   }
 };
-
-export const toFile: YouTube["toFile"] = (source) =>
-  new File([JSON.stringify(source)], `${source.title}${YOUTUBE_EXT}`, { type: MIME });
-
-export const fromFile: YouTube["fromFile"] = async (file) => JSON.parse(await file.text()) as YouTubeSource;
 
 export const lookupVideo: YouTube["lookupVideo"] = async (videoId) => {
   try {

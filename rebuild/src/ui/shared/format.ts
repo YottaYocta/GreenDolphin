@@ -6,7 +6,7 @@ export function noteColor(name: string) {
   return NOTE_COLORS[h % NOTE_COLORS.length];
 }
 
-export const stripExt = (name: string) => name.replace(/\.[^./\\]+$/, "");
+export const stripExt = (name: string) => name.replace(/\.\w{1,5}$/, "");
 
 export function relativeDate(ts: number, now = Date.now()) {
   const days = Math.floor((now - ts) / 86_400_000);

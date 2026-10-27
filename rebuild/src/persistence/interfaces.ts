@@ -20,9 +20,12 @@ export interface LoopPrefs {
 
 export type Flag = "demo" | "tutorial";
 
+export type RecordingSource = { kind: "file"; size: number } | { kind: "youtube"; videoId: string };
+
 export interface StoredRecording {
-  file: File;
+  name: string;
   addedAt: EpochMilliseconds;
+  source: RecordingSource;
 }
 
 export interface Persistence {
@@ -37,6 +40,8 @@ export interface Persistence {
   lastOpened(): string | null;
   setLastOpened(name: string | null): void;
   listRecordings(): Promise<StoredRecording[]>;
-  putRecording(file: File): Promise<void>;
+  addAudio(name: string, data: ArrayBuffer): Promise<void>;
+  addYouTube(name: string, videoId: string): Promise<void>;
+  readAudio(name: string): Promise<ArrayBuffer>;
   deleteRecording(name: string): Promise<void>;
 }

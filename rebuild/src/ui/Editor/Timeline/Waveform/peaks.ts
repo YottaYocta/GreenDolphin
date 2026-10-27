@@ -1,3 +1,4 @@
+import type { Recording } from "../../../../audio";
 import type { Section } from "../../../../core";
 
 const BASE = 64;
@@ -9,16 +10,16 @@ export interface Peaks {
 
 const yieldToUI = () => new Promise((resolve) => setTimeout(resolve));
 
-export async function buildPeaks(buffer: AudioBuffer): Promise<Peaks> {
+export async function buildPeaks(recording: Recording): Promise<Peaks> {
   const scratch = new Float32Array(CHUNK);
-  const base = Array.from({ length: buffer.numberOfChannels }, (_, c) => {
-    const bins = new Float32Array(Math.ceil(buffer.length / BASE));
+  const base = Array.from({ length: recording.channelCount }, (_, c) => {
+    const bins = new Float32Array(Math.ceil(recording.length / BASE));
     return { c, bins };
   });
-  for (let start = 0; start < buffer.length; start += CHUNK) {
-    const n = Math.min(CHUNK, buffer.length - start);
+  for (let start = 0; start < recording.length; start += CHUNK) {
+    const n = Math.min(CHUNK, recording.length - start);
     for (const { c, bins } of base) {
-      buffer.copyFromChannel(scratch, c, start);
+      recording.readChannel(scratch, c, start);
       for (let i = 0; i < n; i += BASE) {
         let sum = 0;
         const end = Math.min(n, i + BASE);
@@ -35,15 +36,15 @@ export async function buildPeaks(buffer: AudioBuffer): Promise<Peaks> {
   return { levels };
 }
 
-function columns(peaks: Peaks, buffer: AudioBuffer, channel: number, view: Section, width: number) {
+function columns(peaks: Peaks, recording: Recording, channel: number, view: Section, width: number) {
   const out = new Float32Array(width);
-  const first = view.start * buffer.sampleRate;
-  const perPx = ((view.end - view.start) * buffer.sampleRate) / width;
+  const first = view.start * recording.sampleRate;
+  const perPx = ((view.end - view.start) * recording.sampleRate) / width;
   let level = 0;
   while (level + 1 < peaks.levels.length && BASE * 2 ** (level + 1) <= perPx) level++;
   const size = BASE * 2 ** level;
   const raw = perPx < BASE ? new Float32Array(Math.ceil(perPx * width) + 1) : null;
-  if (raw) buffer.copyFromChannel(raw, channel, Math.floor(first));
+  if (raw) recording.readChannel(raw, channel, Math.floor(first));
   const data = raw ?? peaks.levels[level][channel];
   const unit = raw ? 1 : size;
   const offset = raw ? Math.floor(first) : 0;
@@ -57,7 +58,7 @@ function columns(peaks: Peaks, buffer: AudioBuffer, channel: number, view: Secti
   return out;
 }
 
-export function drawWaveform(canvas: HTMLCanvasElement, peaks: Peaks, buffer: AudioBuffer, view: Section, loop: Section) {
+export function drawWaveform(canvas: HTMLCanvasElement, peaks: Peaks, recording: Recording, view: Section, loop: Section) {
   const dpr = window.devicePixelRatio || 1;
   const width = canvas.clientWidth;
   const height = canvas.clientHeight;
@@ -66,11 +67,11 @@ export function drawWaveform(canvas: HTMLCanvasElement, peaks: Peaks, buffer: Au
   const ctx = canvas.getContext("2d")!;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, width, height);
-  const lane = height / buffer.numberOfChannels;
+  const lane = height / recording.channelCount;
   const toPx = (t: number) => ((t - view.start) / (view.end - view.start)) * width;
   const [loopFrom, loopTo] = [toPx(loop.start), toPx(loop.end)];
-  for (let c = 0; c < buffer.numberOfChannels; c++) {
-    const values = columns(peaks, buffer, c, view, Math.max(1, Math.floor(width)));
+  for (let c = 0; c < recording.channelCount; c++) {
+    const values = columns(peaks, recording, c, view, Math.max(1, Math.floor(width)));
     values.forEach((v, x) => {
       const h = Math.max(1, Math.round(v * lane));
       ctx.fillStyle = x >= loopFrom && x < loopTo ? "rgb(25 202 147)" : "rgb(25 202 147 / 30%)";

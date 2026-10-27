@@ -13,8 +13,8 @@ export function TitleBar({ name, info }: { name: string; info: [string, string][
   const { recordings, open, home } = useLibrary();
   const [adding, setAdding] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
-  const others = recordings.filter((r) => r.file.name !== name);
-  const addedAt = recordings.find((r) => r.file.name === name)?.addedAt;
+  const others = recordings.filter((r) => r.name !== name);
+  const addedAt = recordings.find((r) => r.name === name)?.addedAt;
   const details = addedAt ? [...info, ["Added", new Date(addedAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })]] : info;
 
   return (
@@ -30,10 +30,10 @@ export function TitleBar({ name, info }: { name: string; info: [string, string][
               <Menu.Popup className="z-50 w-80 max-w-[calc(100vw-2rem)] rounded-xl bg-white border border-border [box-shadow:var(--shadow-menu)] overflow-hidden flex flex-col outline-none">
                 <div className="overflow-y-auto max-h-72 flex flex-col">
                   {others.length === 0 && <div className="p-4 font-inria text-black/50 text-sm text-center">No other recordings</div>}
-                  {others.map(({ file }) => (
-                    <Menu.Item key={file.name} className={ITEM} onClick={() => open(file.name)}>
-                      <RecordingIcon file={file} size={18} />
-                      <span className="flex-1 min-w-0 font-inria truncate">{stripExt(file.name)}</span>
+                  {others.map((recording) => (
+                    <Menu.Item key={recording.name} className={ITEM} onClick={() => open(recording.name)}>
+                      <RecordingIcon recording={recording} size={18} />
+                      <span className="flex-1 min-w-0 font-inria truncate">{stripExt(recording.name)}</span>
                     </Menu.Item>
                   ))}
                 </div>

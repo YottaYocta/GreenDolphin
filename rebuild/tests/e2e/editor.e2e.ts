@@ -240,11 +240,10 @@ test("piano keys play a tone at the key's pitch", async ({ page }) => {
   await page.waitForTimeout(300);
   const peakHz = await page.evaluate(() => {
     const engine = window.__gd!.engine!;
-    const data = new Float32Array(engine.analyser.frequencyBinCount);
-    engine.analyser.getFloatFrequencyData(data);
+    const data = engine.readSpectrum();
     let best = 0;
     for (let i = 1; i < data.length; i++) if (data[i] > data[best]) best = i;
-    return (best * engine.analyser.context.sampleRate) / 2 / data.length;
+    return best * engine.spectrumBinHz;
   });
   await page.mouse.up();
   expectNear(peakHz, 440, 10);

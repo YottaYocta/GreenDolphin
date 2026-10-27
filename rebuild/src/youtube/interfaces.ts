@@ -36,26 +36,21 @@ declare global {
   }
 }
 
-export interface YouTubeSource {
-  videoId: string;
-  title: string;
-}
-
 export type VideoLookup = { title: string | null } | { error: string };
 
-export interface YouTubeBackend extends Output {
+export interface YouTubeOutput extends Output {
+  readonly duration: DurationSeconds;
   setVolume(gain: LinearGain): void;
-  follow(player: Player): void;
-  onStateChange(state: YTPlayerState, player: Player): void;
+  follow(player: Player): () => void;
+}
+
+export interface YouTubeEmbed {
+  ready: Promise<YouTubeOutput>;
+  dispose(): void;
 }
 
 export interface YouTube {
-  loadApi(): Promise<YTNamespace>;
-  createBackend(yt: YTPlayer): YouTubeBackend;
-  describeError(code: YTErrorCode): string;
-  isYouTube(file: File): boolean;
   parseVideoId(input: string): string | null;
-  toFile(source: YouTubeSource): File;
-  fromFile(file: File): Promise<YouTubeSource>;
   lookupVideo(videoId: string): Promise<VideoLookup>;
+  embed(host: HTMLElement, videoId: string, onError: (message: string) => void): YouTubeEmbed;
 }

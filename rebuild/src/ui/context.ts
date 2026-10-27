@@ -1,8 +1,8 @@
 import { createContext, useContext } from "react";
+import type { Recording } from "../audio";
 import type { StoredRecording } from "../persistence";
-import type { YouTubeSource } from "../youtube";
 
-export type Opened = { name: string; size: number } & ({ kind: "audio"; buffer: AudioBuffer } | { kind: "youtube"; source: YouTubeSource });
+export type Opened = { name: string } & ({ kind: "audio"; size: number; recording: Recording } | { kind: "youtube"; videoId: string });
 
 export interface LibraryApi {
   recordings: StoredRecording[];

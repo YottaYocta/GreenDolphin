@@ -1,7 +1,7 @@
-import { createBackend, describeError, loadApi } from "./backend";
+import { embed } from "./backend";
 import type { YouTube } from "./interfaces";
-import { fromFile, isYouTube, lookupVideo, parseVideoId, toFile } from "./source";
+import { lookupVideo, parseVideoId } from "./source";
 
-export type * from "./interfaces";
+export type { VideoLookup, YouTube, YouTubeEmbed, YouTubeOutput } from "./interfaces";
 
-export const youtube: YouTube = { loadApi, createBackend, describeError, isYouTube, parseVideoId, toFile, fromFile, lookupVideo };
+export const youtube: YouTube = { parseVideoId, lookupVideo, embed };
