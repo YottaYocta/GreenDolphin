@@ -1,16 +1,4 @@
-import type { Section } from "./transport";
-import type { ClockSeconds, RecordingSeconds, SpeedRatio } from "./units";
-
-export type PlaybackMode = "silent" | "playing" | "frozen" | "scrubbing";
-
-export interface Playback {
-  mode: PlaybackMode;
-  anchorPosition: RecordingSeconds;
-  anchorTime: ClockSeconds;
-  rate: SpeedRatio;
-  loop: Section;
-  loopWraps: boolean;
-}
+import type { ClockSeconds, Playback, RecordingSeconds } from "./interfaces";
 
 export function positionAt(playback: Playback, time: ClockSeconds): RecordingSeconds {
   const { mode, anchorPosition, anchorTime, rate, loop, loopWraps } = playback;

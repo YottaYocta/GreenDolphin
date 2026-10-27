@@ -1,44 +1,6 @@
-import { positionAt, type Playback, type PlaybackMode } from "./playback";
-import { loopDelay, transition, type LoopMode, type PlayState, type Section, type TransportEvent } from "./transport";
-import type { ClockSeconds, DurationSeconds, RecordingSeconds, SpeedRatio } from "./units";
-
-export interface Output {
-  now(): ClockSeconds;
-  render(playback: Playback): void;
-}
-
-export interface TransportState {
-  playState: PlayState;
-  loop: Section;
-  loopMode: LoopMode;
-  speed: SpeedRatio;
-  waitingUntil: ClockSeconds | null;
-}
-
-export interface PlayerOptions {
-  duration: DurationSeconds;
-  position: RecordingSeconds;
-  loop: Section | null;
-  loopMode: LoopMode;
-  speed: SpeedRatio;
-}
-
-export interface Player {
-  readonly duration: DurationSeconds;
-  subscribe(listener: () => void): () => void;
-  getState(): TransportState;
-  position(): RecordingSeconds;
-  delayRemaining(): DurationSeconds;
-  dispatch(event: TransportEvent): void;
-  startScrub(at: RecordingSeconds): void;
-  scrubTo(at: RecordingSeconds): void;
-  endScrub(): void;
-  setSpeed(speed: SpeedRatio): void;
-  setLoop(loop: Section | null): void;
-  setLoopMode(loopMode: LoopMode): void;
-  correctPosition(observed: RecordingSeconds): void;
-  dispose(): void;
-}
+import type { ClockSeconds, DurationSeconds, LoopMode, Output, Playback, PlaybackMode, Player, PlayerOptions, RecordingSeconds, Section, SpeedRatio, TransportEvent, TransportState } from "./interfaces";
+import { positionAt } from "./playback";
+import { loopDelay, transition } from "./transport";
 
 export const createPlayer = (output: Output, options: PlayerOptions): Player => new TransportPlayer(output, options);
 

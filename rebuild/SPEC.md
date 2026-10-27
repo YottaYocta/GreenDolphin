@@ -104,9 +104,11 @@ Loop navigation, spelled out:
 
 ```
 src/core/          standalone playback state manager — imports nothing outside core/
-  transport.ts     the transition table above (pure)
-  playback.ts      Playback snapshot + positionAt / continues (shared with outputs)
-  player.ts        Player interface + createPlayer: clock, loop-end/delay timers, scrub; renders to an Output
+  interfaces.ts    every type the core exposes: units, transport, Playback, Output, Player
+  index.ts         the public surface: those types + functions and factories only
+  transport.ts     transition() — the table above (pure)
+  playback.ts      positionAt() / continues() (shared with outputs)
+  player.ts        createPlayer(): clock, loop-end/delay timers, scrub; the class stays private
 src/audio/         AudioEngine (Web Audio Output), freeze vocoder + worklet, FFT
 src/youtube/       YouTubeBackend (embed Output) and link/oEmbed/file helpers
 src/persistence/   localStorage prefs (per recording + global loop) and IndexedDB files
