@@ -1,7 +1,9 @@
-import type { Settings } from "../core/player";
-import type { LoopMode, Section } from "../core/transport";
+import type { LoopMode, Section } from "../core";
 
-export interface RecordingPrefs extends Settings {
+export interface RecordingPrefs {
+  speed: number;
+  pitch: number;
+  gain: number;
   loop: Section | null;
   view: Section | null;
   position: number;
@@ -14,7 +16,6 @@ export interface LoopPrefs {
   delayValue: number;
 }
 
-export const DEFAULT_SETTINGS: Settings = { speed: 1, pitch: 0, gain: 1 };
 const DEFAULT_LOOP: LoopPrefs = { mode: "automatic", delayMode: "fixed", delayValue: 0 };
 
 const read = <T>(key: string, fallback: T): T => {
@@ -36,7 +37,9 @@ const write = (key: string, value: unknown) => {
 type RecordingMap = Record<string, Partial<RecordingPrefs>>;
 
 export const recordingPrefs = (name: string): RecordingPrefs => ({
-  ...DEFAULT_SETTINGS,
+  speed: 1,
+  pitch: 0,
+  gain: 1,
   loop: null,
   view: null,
   position: 0,

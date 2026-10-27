@@ -1,4 +1,4 @@
-import type { Section } from "../../../../core/transport";
+import type { Section } from "../../../../core";
 
 const BASE = 64;
 const CHUNK = 1 << 16;

@@ -2,15 +2,15 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { AudioEngine } from "../../audio/engine";
 import { buildPeaks, drawWaveform, type Peaks } from "./Timeline/Waveform/peaks";
 import { formatSize, formatTime } from "../shared/format";
-import { Player } from "../../core/player";
-import type { Section } from "../../core/transport";
+import { Player } from "../../core";
+import type { Section } from "../../core";
 import { YouTubeBackend, describeYouTubeError, loadYouTubeApi, type YTPlayer } from "../../youtube/backend";
 import type { YouTubeSource } from "../../youtube/source";
 import { Controls } from "./Controls";
 import { KeepAwake } from "./KeepAwake";
 import { Tutorial, type TutorialStep } from "./Tutorial";
 import { PianoRoll } from "./PianoRoll";
-import { restore, usePersistence } from "./session";
+import { restore, usePersistence, useSound, type SoundOutput } from "./session";
 import { LoopSettings, SoundSettings } from "./Controls/Settings";
 import { Timeline, type TimelineProps } from "./Timeline";
 import { TitleBar } from "./TitleBar";
@@ -30,6 +30,11 @@ const VIDEO_STEPS: TutorialStep[] = [
 ];
 
 type Restored = ReturnType<typeof restore>;
+interface Session {
+  player: Player;
+  restored: Restored;
+  output: SoundOutput;
+}
 
 function TimelineCard({ name, player, restored, draw }: { name: string; player: Player; restored: Restored; draw?: TimelineProps["draw"] }) {
   const { onView, onLoopCommit } = usePersistence(name, player);
@@ -41,7 +46,23 @@ function TimelineCard({ name, player, restored, draw }: { name: string; player: 
 }
 
 /** Editor page; `top` keeps its place while the player loads so an embedded video is never remounted. */
-function Layout(props: { name: string; info: [string, string][]; session: { player: Player; restored: Restored } | null; top: ReactNode; draw?: TimelineProps["draw"]; youtube?: boolean }) {
+function EditorControls({ name, session, youtube }: { name: string; session: Session; youtube: boolean }) {
+  const [sound, setSound] = useSound(name, session.restored.sound, session.output);
+  return (
+    <Controls
+      player={session.player}
+      freeze={!youtube}
+      settings={
+        <>
+          <SoundSettings player={session.player} sound={sound} onSound={setSound} youtube={youtube} />
+          <LoopSettings player={session.player} />
+        </>
+      }
+    />
+  );
+}
+
+function Layout(props: { name: string; info: [string, string][]; session: Session | null; top: ReactNode; draw?: TimelineProps["draw"]; youtube?: boolean }) {
   const { name, info, session, top, draw, youtube = false } = props;
   return (
     <>
@@ -53,18 +74,7 @@ function Layout(props: { name: string; info: [string, string][]; session: { play
             {top}
             {session ? <TimelineCard name={name} player={session.player} restored={session.restored} draw={draw} /> : <div className={`${CARD} ${youtube ? "h-28" : "flex-1 min-h-0 md:min-h-72"}`} />}
           </div>
-          {session && (
-            <Controls
-              player={session.player}
-              freeze={!youtube}
-              settings={
-                <>
-                  <SoundSettings player={session.player} youtube={youtube} />
-                  <LoopSettings player={session.player} />
-                </>
-              }
-            />
-          )}
+          {session && <EditorControls name={name} session={session} youtube={youtube} />}
         </div>
       </div>
       {session && <Tutorial steps={youtube ? VIDEO_STEPS : AUDIO_STEPS} />}
@@ -73,7 +83,7 @@ function Layout(props: { name: string; info: [string, string][]; session: { play
 }
 
 export function AudioEditor({ name, size, buffer, ctx }: { name: string; size: number; buffer: AudioBuffer; ctx: AudioContext }) {
-  const [session, setSession] = useState<{ engine: AudioEngine; player: Player; restored: Restored } | null>(null);
+  const [session, setSession] = useState<(Session & { engine: AudioEngine }) | null>(null);
   const [peaks, setPeaks] = useState<Peaks | null>(null);
 
   useEffect(() => {
@@ -82,9 +92,9 @@ export function AudioEditor({ name, size, buffer, ctx }: { name: string; size: n
     void AudioEngine.create(ctx, buffer).then((engine) => {
       if (!live) return engine.dispose();
       const restored = restore(name, buffer.duration);
-      made = { engine, player: new Player(engine, buffer.duration, restored.init) };
+      made = { engine, player: new Player(engine, restored.options) };
       if (import.meta.env.DEV) Object.assign(window, { __gd: made });
-      setSession({ ...made, restored });
+      setSession({ ...made, restored, output: engine });
     });
     void buildPeaks(buffer).then((p) => live && setPeaks(p));
     return () => {
@@ -119,7 +129,7 @@ export function AudioEditor({ name, size, buffer, ctx }: { name: string; size: n
 
 export function YouTubeEditor({ name, source }: { name: string; source: YouTubeSource }) {
   const host = useRef<HTMLDivElement>(null);
-  const [session, setSession] = useState<{ backend: YouTubeBackend; player: Player; restored: Restored } | null>(null);
+  const [session, setSession] = useState<(Session & { backend: YouTubeBackend }) | null>(null);
   const [error, setError] = useState<number | null>(null);
 
   useEffect(() => {
@@ -131,12 +141,12 @@ export function YouTubeEditor({ name, source }: { name: string; source: YouTubeS
       const duration = target.getDuration();
       if (!live || made || duration <= 0) return;
       const restored = restore(name, duration);
-      restored.init.speed = Math.min(2, Math.max(0.25, Math.round(restored.init.speed * 4) / 4));
-      restored.init.gain = Math.min(1, restored.init.gain);
+      restored.options.speed = Math.min(2, Math.max(0.25, Math.round(restored.options.speed * 4) / 4));
+      restored.sound.gain = Math.min(1, restored.sound.gain);
       const backend = new YouTubeBackend(target);
-      made = { backend, player: new Player(backend, duration, restored.init) };
+      made = { backend, player: new Player(backend, restored.options) };
       if (import.meta.env.DEV) Object.assign(window, { __gd: made });
-      setSession({ ...made, restored });
+      setSession({ ...made, restored, output: backend });
     };
     void loadYouTubeApi().then((YT) => {
       if (!live) return;

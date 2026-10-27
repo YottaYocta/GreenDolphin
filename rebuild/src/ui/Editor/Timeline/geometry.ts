@@ -1,4 +1,4 @@
-import type { Section } from "../../../core/transport";
+import type { Section } from "../../../core";
 
 /** Loop as fractions (0..1) of the visible range. */
 export interface LoopFraction {

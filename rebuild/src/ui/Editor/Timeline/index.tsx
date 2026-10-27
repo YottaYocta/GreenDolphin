@@ -1,8 +1,8 @@
 import { createRef, useCallback, useEffect, useMemo, useRef, type FC, type PointerEvent as ReactPointerEvent, type RefObject } from "react";
 import { FULL, at, clamp, isFull, length, pan, rescale, resizeLoop, shiftLoop, toSection, zoom, type LoopFraction } from "./geometry";
 import { formatTick, tickStep } from "./ticks";
-import type { Player } from "../../../core/player";
-import type { Section } from "../../../core/transport";
+import type { Player } from "../../../core";
+import type { Section } from "../../../core";
 import { drag } from "../../shared/drag";
 import { useKeys } from "../../shared/keys";
 

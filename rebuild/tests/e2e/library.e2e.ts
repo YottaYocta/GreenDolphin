@@ -69,7 +69,12 @@ test("reopens the last recording with its view, position and settings", async ({
   await page.reload();
   await waitForEditor(page);
   const after = await snapshot(page);
-  expect(after.pitch).toBe(3);
+  expect((await recordingPrefs(page, `${DEMO}.mp3`)).pitch).toBe(3);
+  await page.getByRole("button", { name: "Settings" }).click();
+  await expect(page.getByRole("slider", { name: "Pitch" })).toHaveAttribute("aria-valuenow", "3");
+  const enginePitch = await page.evaluate(() => (window.__gd!.engine as unknown as { stretch: { pitchSemitones: AudioParam } }).stretch.pitchSemitones.value);
+  expect(enginePitch).toBe(3);
+  await page.keyboard.press("Escape");
   expectNear(after.position, before.position, 0.01);
   expect((await recordingPrefs(page, `${DEMO}.mp3`)).view).toEqual(view);
 });
@@ -83,14 +88,16 @@ test("pitch, speed and volume belong to each recording; loop settings are global
 
   await upload(page, "tone.wav");
   let s = await snapshot(page);
-  expect(s.pitch).toBe(0);
+  expect((await recordingPrefs(page, "tone.wav")).pitch ?? 0).toBe(0);
   expect(s.loopMode.type).toBe("manual");
 
   await page.getByRole("button", { name: "Switch recording" }).click();
   await page.getByRole("menuitem", { name: DEMO }).click();
   await page.waitForFunction(() => (window.__gd?.player.duration ?? 0) > 9);
   s = await snapshot(page);
-  expect(s.pitch).toBe(-2);
+  expect((await recordingPrefs(page, `${DEMO}.mp3`)).pitch).toBe(-2);
+  await page.getByRole("button", { name: "Settings" }).click();
+  await expect(page.getByRole("slider", { name: "Pitch" })).toHaveAttribute("aria-valuenow", "-2");
   expect(s.loopMode.type).toBe("manual");
 });
 

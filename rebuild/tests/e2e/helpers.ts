@@ -1,6 +1,6 @@
 import { expect, type CDPSession, type Page } from "@playwright/test";
 import type { AudioEngine } from "../../src/audio/engine";
-import type { Player } from "../../src/core/player";
+import type { Player } from "../../src/core";
 
 declare global {
   interface Window {
@@ -16,7 +16,6 @@ export interface Snapshot {
   duration: number;
   loop: { start: number; end: number };
   mode: string;
-  pitch: number;
   speed: number;
   loopMode: { type: string; delay?: number };
 }

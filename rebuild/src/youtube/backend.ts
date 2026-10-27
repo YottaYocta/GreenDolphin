@@ -1,4 +1,4 @@
-import type { Backend, Output, Player } from "../core/player";
+import { continues, positionAt, type Output, type Playback, type Player } from "../core";
 
 export interface YTPlayer {
   playVideo(): void;
@@ -53,10 +53,9 @@ export const YT_PAUSED = 2;
 const DRIFT = 0.4;
 const SEEK_TIMEOUT = 3;
 
-/** Drives an embedded YouTube player; the video is the clock, corrected through `follow`. */
-export class YouTubeBackend implements Backend {
-  readonly nativeLoop = false;
-  private last: Output | null = null;
+/** Plays a trajectory on an embedded YouTube player; the video is the clock, corrected through `follow`. */
+export class YouTubeBackend implements Output {
+  private last: Playback | null = null;
   private seek: { position: number; at: number } | null = null;
   private pausedAt = -Infinity;
   private readonly yt: YTPlayer;
@@ -67,33 +66,34 @@ export class YouTubeBackend implements Backend {
 
   now = () => performance.now() / 1000;
 
-  apply(o: Output) {
+  render(p: Playback) {
     const prev = this.last;
-    this.last = o;
-    if (!prev || prev.mode !== o.mode || prev.generation !== o.generation) {
-      this.seek = { position: o.position, at: this.now() };
-      this.yt.seekTo(o.position, true);
-      if (o.mode === "play") this.yt.playVideo();
-      else {
+    this.last = p;
+    const modeChanged = !prev || prev.mode !== p.mode;
+    if (modeChanged || !continues(prev!, p)) {
+      const target = positionAt(p, this.now());
+      if (modeChanged || Math.abs(this.yt.getCurrentTime() - target) > DRIFT) this.seekTo(target);
+      if (modeChanged && p.mode === "playing") this.yt.playVideo();
+      else if (modeChanged) {
         this.pausedAt = this.now();
         this.yt.pauseVideo();
       }
     }
-    this.yt.setPlaybackRate(o.speed);
-    this.yt.setVolume(Math.round(Math.min(1, o.gain) * 100));
+    this.yt.setPlaybackRate(p.rate);
   }
 
-  private seeking(time: number) {
-    if (this.seek && Math.abs(time - this.seek.position) > DRIFT && this.now() - this.seek.at < SEEK_TIMEOUT) return true;
-    this.seek = null;
-    return false;
+  setVolume(gain: number) {
+    this.yt.setVolume(Math.round(Math.min(1, gain) * 100));
   }
 
-  /** Call every frame: pulls the player's clock back to the video when they drift apart. */
+  /** Call every frame: wraps loops (the embed can't) and pulls the player back to the video when they drift. */
   follow(player: Player) {
-    if (player.getState().playState !== "playing") return;
+    const p = this.last;
+    if (p?.mode !== "playing") return;
     const time = this.yt.getCurrentTime();
-    if (!this.seeking(time) && Math.abs(time - player.position()) > DRIFT) player.resync(time);
+    if (this.seeking(time)) return;
+    if (p.loopWraps && time >= p.loop.end) this.seekTo(p.loop.start);
+    else if (Math.abs(time - player.position()) > DRIFT) player.resync(time);
   }
 
   /** Mirrors play/pause made inside the embed; ignores transient states caused by our own commands. */
@@ -107,5 +107,16 @@ export class YouTubeBackend implements Backend {
       if (this.seeking(this.yt.getCurrentTime())) return this.yt.playVideo();
       player.dispatch({ type: "toggle-play" });
     }
+  }
+
+  private seekTo(position: number) {
+    this.seek = { position, at: this.now() };
+    this.yt.seekTo(position, true);
+  }
+
+  private seeking(time: number) {
+    if (this.seek && Math.abs(time - this.seek.position) > DRIFT && this.now() - this.seek.at < SEEK_TIMEOUT) return true;
+    this.seek = null;
+    return false;
   }
 }

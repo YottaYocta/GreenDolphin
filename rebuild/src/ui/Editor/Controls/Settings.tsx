@@ -2,22 +2,23 @@ import { useState } from "react";
 import { PlayIcon } from "@phosphor-icons/react";
 import { capture } from "../../../analytics";
 import { length } from "../Timeline/geometry";
-import type { Player } from "../../../core/player";
+import type { Player } from "../../../core";
 import { loopPrefs, saveLoopPrefs, toLoopMode, type LoopPrefs } from "../../../persistence/prefs";
 import { ModeToggle, NumericInput, Slider } from "../../shared/primitives";
-import { usePlayer } from "../session";
+import { usePlayer, type Sound } from "../session";
 
 const percent = (v: number) => String(Math.round(v * 100));
 
-export function SoundSettings({ player, youtube = false }: { player: Player; youtube?: boolean }) {
-  const { pitch, speed, gain } = usePlayer(player);
-  const volume = youtube ? gain : Math.sqrt(gain);
+export function SoundSettings(props: { player: Player; sound: Sound; onSound: (sound: Sound) => void; youtube?: boolean }) {
+  const { player, sound, onSound, youtube = false } = props;
+  const { speed } = usePlayer(player);
+  const volume = youtube ? sound.gain : Math.sqrt(sound.gain);
   return (
     <>
       {!youtube && (
         <Slider
           label="Pitch"
-          value={pitch}
+          value={sound.pitch}
           min={-12}
           max={12}
           step={0.1}
@@ -26,7 +27,7 @@ export function SoundSettings({ player, youtube = false }: { player: Player; you
           parse={(v) => v}
           unit="#"
           onChange={(v) => {
-            player.setSettings({ pitch: v });
+            onSound({ ...sound, pitch: v });
             capture("pitch_adjusted", { pitch_shift: v });
           }}
         />
@@ -42,7 +43,7 @@ export function SoundSettings({ player, youtube = false }: { player: Player; you
         parse={(v) => v / 100}
         unit="%"
         onChange={(v) => {
-          player.setSettings({ speed: v });
+          player.setSpeed(v);
           capture("speed_adjusted", { playback_speed: v, source: youtube ? "youtube" : "file" });
         }}
       />
@@ -56,7 +57,7 @@ export function SoundSettings({ player, youtube = false }: { player: Player; you
         display={percent}
         parse={(v) => v / 100}
         unit="%"
-        onChange={(v) => player.setSettings({ gain: youtube ? v : v * v })}
+        onChange={(v) => onSound({ ...sound, gain: youtube ? v : v * v })}
       />
     </>
   );

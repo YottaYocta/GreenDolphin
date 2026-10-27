@@ -1,7 +1,7 @@
 import { SoundTouchNode } from "@soundtouchjs/audio-worklet";
 import soundTouchUrl from "@soundtouchjs/audio-worklet/processor?url";
 import freezeUrl from "./freezeProcessor.ts?worker&url";
-import type { Backend, Output } from "../core/player";
+import { continues, positionAt, type Output, type Playback } from "../core";
 import type { FreezeMessage } from "./freezeProcessor";
 
 const FADE = 0.03;
@@ -9,8 +9,7 @@ const ANALYSER_SIZE = 16384;
 const registered = new WeakMap<BaseAudioContext, Promise<unknown>>();
 
 /** Web Audio backend: buffer source or freeze worklet → SoundTouch (pitch/tempo) → gain → analyser. */
-export class AudioEngine implements Backend {
-  readonly nativeLoop = true;
+export class AudioEngine implements Output {
   readonly analyser: AnalyserNode;
   readonly ctx: AudioContext;
   private readonly buffer: AudioBuffer;
@@ -20,7 +19,7 @@ export class AudioEngine implements Backend {
   private readonly freezeGain: GainNode;
   private source: AudioBufferSourceNode | null = null;
   private tone: OscillatorNode | null = null;
-  private last: Output | null = null;
+  private last: Playback | null = null;
   private idle: ReturnType<typeof setTimeout> | undefined;
 
   static async create(ctx: AudioContext, buffer: AudioBuffer) {
@@ -56,27 +55,36 @@ export class AudioEngine implements Backend {
     return this.last?.mode ?? "silent";
   }
 
-  apply(o: Output) {
+  render(p: Playback) {
     const prev = this.last;
-    this.last = o;
-    if (o.mode !== "silent") void this.ctx.resume();
-    const restart = !prev || prev.mode !== o.mode || prev.generation !== o.generation || (prev.stopAt !== null && o.stopAt === null);
-    const frozen = o.mode === "freeze" || o.mode === "scrub";
+    this.last = p;
+    if (p.mode !== "silent") void this.ctx.resume();
+    const modeChanged = !prev || prev.mode !== p.mode;
+    const jumped = !modeChanged && !continues(prev!, p);
+    const stopCancelled = !!prev && !prev.loopWraps && p.loopWraps;
+    const freezing = p.mode === "frozen" || p.mode === "scrubbing";
 
-    if (restart) {
+    if (modeChanged || (jumped && p.mode !== "scrubbing") || (stopCancelled && p.mode === "playing")) {
+      const position = positionAt(p, this.ctx.currentTime);
       this.stopSource();
-      if (o.mode === "play") this.startSource(o);
-      if (frozen) this.post({ type: "seek", position: o.position, jump: true });
-      this.fadeFreeze(frozen);
-    } else if (o.mode === "play" && this.source) {
-      Object.assign(this.source, { loopStart: o.loop.start, loopEnd: o.loop.end });
-      this.source.playbackRate.value = o.speed;
-      if (o.stopAt !== null) this.source.stop(o.stopAt);
-    } else if (o.mode === "scrub") this.post({ type: "seek", position: o.position, jump: false });
+      if (p.mode === "playing") this.startSource(p, position);
+      if (freezing) this.post({ type: "seek", position, jump: true });
+      this.fadeFreeze(freezing);
+    } else if (p.mode === "playing" && this.source) {
+      Object.assign(this.source, { loopStart: p.loop.start, loopEnd: p.loop.end });
+      this.source.playbackRate.value = p.rate;
+      this.scheduleStop(this.source, p);
+    } else if (p.mode === "scrubbing") this.post({ type: "seek", position: p.anchorPosition, jump: false });
 
-    this.stretch.playbackRate.value = o.mode === "play" ? o.speed : 1;
-    this.stretch.pitchSemitones.value = o.pitch;
-    this.gain.gain.value = o.gain;
+    this.stretch.playbackRate.value = p.mode === "playing" ? p.rate : 1;
+  }
+
+  setPitch(semitones: number) {
+    this.stretch.pitchSemitones.value = semitones;
+  }
+
+  setVolume(gain: number) {
+    this.gain.gain.value = gain;
   }
 
   playTone(frequency: number | null) {
@@ -100,13 +108,18 @@ export class AudioEngine implements Backend {
     for (const node of [this.freeze, this.freezeGain, this.stretch, this.gain, this.analyser]) node.disconnect();
   }
 
-  private startSource(o: Output) {
-    const source = Object.assign(this.ctx.createBufferSource(), { buffer: this.buffer, loop: true, loopStart: o.loop.start, loopEnd: o.loop.end });
-    source.playbackRate.value = o.speed;
+  private startSource(p: Playback, position: number) {
+    const source = Object.assign(this.ctx.createBufferSource(), { buffer: this.buffer, loop: true, loopStart: p.loop.start, loopEnd: p.loop.end });
+    source.playbackRate.value = p.rate;
     source.connect(this.stretch);
-    source.start(0, o.position);
-    if (o.stopAt !== null) source.stop(o.stopAt);
+    source.start(0, position);
+    this.scheduleStop(source, p);
     this.source = source;
+  }
+
+  /** Manual and delayed loops stop exactly at the loop end; wrapping loops never stop. */
+  private scheduleStop(source: AudioBufferSourceNode, p: Playback) {
+    if (!p.loopWraps && p.anchorPosition < p.loop.end) source.stop(p.anchorTime + (p.loop.end - p.anchorPosition) / p.rate);
   }
 
   private stopSource() {

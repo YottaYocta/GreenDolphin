@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { PauseIcon, PlayIcon, SkipBackIcon, SkipForwardIcon, SlidersIcon, SnowflakeIcon } from "@phosphor-icons/react";
 import { capture } from "../../../analytics";
 import { clamp } from "../Timeline/geometry";
-import type { Player } from "../../../core/player";
+import type { Player } from "../../../core";
 import { useKeys } from "../../shared/keys";
 import { Dialog } from "../../shared/primitives";
 import { usePlayer } from "../session";

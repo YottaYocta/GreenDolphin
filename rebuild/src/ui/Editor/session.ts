@@ -1,27 +1,48 @@
-import { useEffect, useMemo, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import type { Player, PlayerOptions, Section } from "../../core";
 import { FULL, clamp, fit, length, toFraction, toSection } from "./Timeline/geometry";
-import type { Player, PlayerInit } from "../../core/player";
-import type { Section } from "../../core/transport";
 import { loopPrefs, recordingPrefs, saveRecordingPrefs, toLoopMode } from "../../persistence/prefs";
 
 export const usePlayer = (player: Player) => useSyncExternalStore(player.subscribe, player.getState);
 
-/** Everything a recording reopens with: player settings, view, and the loop under it. */
+/** Pitch and volume: applied straight to the output, never part of playback timing. */
+export interface Sound {
+  pitch: number;
+  gain: number;
+}
+
+export interface SoundOutput {
+  setVolume(gain: number): void;
+  setPitch?(semitones: number): void;
+}
+
+/** Everything a recording reopens with: player options, sound, view, and the loop under it. */
 export function restore(name: string, duration: number) {
   const p = recordingPrefs(name);
   const full = { start: 0, end: duration };
   const view = p.view ? fit(p.view, full) : full;
   const loopFraction = p.loop ? toFraction(view, p.loop) : FULL;
   const loop = toSection(view, loopFraction);
-  const init: PlayerInit = {
+  const options: PlayerOptions = {
+    duration,
     position: clamp(p.position, 0, duration),
     loop,
     loopMode: toLoopMode(loopPrefs(), length(loop)),
     speed: p.speed,
-    pitch: p.pitch,
-    gain: p.gain,
   };
-  return { view, loopFraction, init };
+  const sound: Sound = { pitch: p.pitch, gain: p.gain };
+  return { view, loopFraction, options, sound };
+}
+
+/** A recording's pitch and volume: kept in React state, pushed to the output, and saved. */
+export function useSound(name: string, initial: Sound, output: SoundOutput) {
+  const [sound, setSound] = useState(initial);
+  useEffect(() => {
+    output.setPitch?.(sound.pitch);
+    output.setVolume(sound.gain);
+    saveRecordingPrefs(name, sound);
+  }, [name, output, sound]);
+  return [sound, setSound] as const;
 }
 
 const POSITION_SAVE_MS = 1000;
@@ -30,9 +51,9 @@ const VIEW_SAVE_MS = 250;
 /** Saves a recording's settings and position as they change; returns timeline persistence callbacks. */
 export function usePersistence(name: string, player: Player) {
   const state = usePlayer(player);
-  const { speed, pitch, gain, loop, playState } = state;
+  const { speed, loop, playState } = state;
 
-  useEffect(() => saveRecordingPrefs(name, { speed, pitch, gain }), [name, speed, pitch, gain]);
+  useEffect(() => saveRecordingPrefs(name, { speed }), [name, speed]);
   useEffect(() => player.setLoopMode(toLoopMode(loopPrefs(), length(loop))), [player, loop]);
   useEffect(() => {
     const save = () => saveRecordingPrefs(name, { position: player.position() });

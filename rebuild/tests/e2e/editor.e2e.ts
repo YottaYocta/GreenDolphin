@@ -10,14 +10,14 @@ test("play, pause and freeze follow the transition table", async ({ page }) => {
   const play = page.getByRole("button", { name: /^(Play|Pause)$/ });
   const freeze = page.getByRole("button", { name: "Freeze" });
   await play.click();
-  await expect.poll(async () => (await snapshot(page)).mode).toBe("play");
+  await expect.poll(async () => (await snapshot(page)).mode).toBe("playing");
   await freeze.click();
-  expect(await snapshot(page)).toMatchObject({ playState: "frozen", mode: "freeze" });
+  expect(await snapshot(page)).toMatchObject({ playState: "frozen", mode: "frozen" });
   await freeze.click();
   expect(await snapshot(page)).toMatchObject({ playState: "paused", mode: "silent" });
   await freeze.click();
   await play.click();
-  expect(await snapshot(page)).toMatchObject({ playState: "playing", mode: "play" });
+  expect(await snapshot(page)).toMatchObject({ playState: "playing", mode: "playing" });
   await play.click();
   expect((await snapshot(page)).playState).toBe("paused");
 });
@@ -105,18 +105,18 @@ test("dragging the playhead live-scrubs while playing, then resumes at the drop"
       ["touchStart", [{ ...grip, id: 1 }]],
       ["touchMove", [{ x: grip.x + 30, y: grip.y, id: 1 }]],
     ]);
-    expect((await snapshot(page)).mode).toBe("scrub");
+    expect((await snapshot(page)).mode).toBe("scrubbing");
     await touch(page, [["touchMove", [{ ...drop, id: 1 }]], ["touchEnd"]]);
   } else {
     await page.mouse.move(grip.x, grip.y);
     await page.mouse.down();
     await page.mouse.move(grip.x + 30, grip.y, { steps: 3 });
-    expect((await snapshot(page)).mode).toBe("scrub");
+    expect((await snapshot(page)).mode).toBe("scrubbing");
     await page.mouse.move(drop.x, drop.y, { steps: 5 });
     await page.mouse.up();
   }
   const s = await snapshot(page);
-  expect(s).toMatchObject({ playState: "playing", mode: "play" });
+  expect(s).toMatchObject({ playState: "playing", mode: "playing" });
   expectNear(s.position, s.duration * 0.6, s.duration * 0.03);
 });
 
@@ -126,11 +126,11 @@ test("a press on the playhead without moving does nothing", async ({ page }) => 
   const grip = await center(page, '[aria-label="Playhead"]');
   await page.mouse.move(grip.x, grip.y);
   await page.mouse.down();
-  expect((await snapshot(page)).mode).toBe("play");
+  expect((await snapshot(page)).mode).toBe("playing");
   await page.waitForTimeout(300);
   await page.mouse.up();
   const s = await snapshot(page);
-  expect(s.mode).toBe("play");
+  expect(s.mode).toBe("playing");
   expect(s.position).toBeGreaterThan(0.25);
 });
 
@@ -140,7 +140,7 @@ test("scrubbing while frozen moves the freeze; paused drags are silent", async (
   const grip = await center(page, '[aria-label="Playhead"]');
   await mouseDrag(page, grip, await rowPoint(page, "timeline-ruler", 0.3));
   let s = await snapshot(page);
-  expect(s).toMatchObject({ playState: "frozen", mode: "freeze" });
+  expect(s).toMatchObject({ playState: "frozen", mode: "frozen" });
   expectNear(s.position, s.duration * 0.3, s.duration * 0.03);
   await page.getByRole("button", { name: "Freeze" }).click();
   await page.mouse.move(...(Object.values(await center(page, '[aria-label="Playhead"]')) as [number, number]));

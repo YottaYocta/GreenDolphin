@@ -103,21 +103,42 @@ Loop navigation, spelled out:
 ## Code map
 
 ```
-src/domain/       pure logic, no DOM — unit tested
-  transport.ts    the transition table above
-  player.ts       Player store: clock, loop/delay timers, scrub; emits one Output
-  geometry.ts     view/loop maths (zoom, pan, rescale, fractions)
-  format.ts       names, dates, times, ruler ticks
-src/audio/        Web Audio backend
-  engine.ts       buffer source | freeze worklet → SoundTouch → gain → analyser
-  vocoder.ts      phase-locked streaming freeze (runs in freezeProcessor.ts)
-  peaks.ts        waveform summary built with copyFromChannel (Brave-safe)
-src/youtube/      embed backend (backend.ts) and link/oEmbed/file helpers (source.ts)
-src/persistence/  localStorage prefs (per recording + global loop) and IndexedDB files
-src/ui/           React: App (library state) → Library | Editor (Timeline, PianoRoll,
-                  Controls, Settings, TitleBar); drag.ts / keys.ts input helpers
-tests/            vitest unit tests; tests/e2e Playwright (desktop + Pixel 7 touch)
+src/core/          standalone playback state manager — imports nothing outside core/
+  transport.ts     the transition table above (pure)
+  playback.ts      Playback snapshot + positionAt / continues (shared with outputs)
+  player.ts        Player: clock, loop-end/delay timers, scrub; renders to an Output
+src/audio/         AudioEngine (Web Audio Output), freeze vocoder + worklet, FFT
+src/youtube/       YouTubeBackend (embed Output) and link/oEmbed/file helpers
+src/persistence/   localStorage prefs (per recording + global loop) and IndexedDB files
+src/ui/            React, laid out like the screen
+  App.tsx          library state and routing
+  Library/         recordings list, NewRecordingDialog
+  Editor/          layout, local + YouTube editors, session (restore/persist, sound)
+    TitleBar/  PianoRoll/  Controls/ (+ Settings)  Tutorial  KeepAwake
+    Timeline/      ruler, lane, loop band, gestures, view/loop geometry, ticks
+      Waveform/    peak summary and drawing
+  shared/          primitives, drag and key helpers, text formatting
+tests/             mirrors src/; tests/e2e is Playwright (desktop + Pixel 7 touch)
 ```
+
+### Core boundary
+
+The Player renders a `Playback` snapshot to its `Output` after every change:
+
+| field            | meaning                                                         |
+|------------------|-----------------------------------------------------------------|
+| `mode`           | `silent`, `playing`, `frozen` or `scrubbing`                     |
+| `anchorPosition` | where the playhead was (seconds into the recording)…            |
+| `anchorTime`     | …when the output clock read this                                |
+| `rate`           | seconds of recording per clock second while playing             |
+| `loop`           | the loop in effect                                              |
+| `loopWraps`      | wrap seamlessly at the loop end, or stop there (manual / delay) |
+
+`positionAt(playback, time)` gives the playhead on that trajectory.
+`continues(prev, next)` is true when `next` carries on from `prev` without a
+jump; outputs restart only on a mode change or a jump, and adjust in place
+otherwise. Pitch and volume never enter the core — the editor sends them
+straight to the output.
 
 Commands (from the repo root): `pnpm rebuild:dev`, `pnpm rebuild:test`,
 `pnpm rebuild:e2e`, `pnpm rebuild:build`.
