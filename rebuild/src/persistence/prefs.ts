@@ -12,7 +12,6 @@ export interface RecordingPrefs {
 export interface LoopPrefs {
   mode: "manual" | "automatic";
   delayMode: "fixed" | "relative";
-  /** Seconds when fixed, percent of the loop length when relative. */
   delayValue: number;
 }
 

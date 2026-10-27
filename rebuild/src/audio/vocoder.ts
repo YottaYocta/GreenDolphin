@@ -1,11 +1,5 @@
 import { createFFT, wrapPhase } from "./fft";
 
-/**
- * Streaming phase-vocoder freeze for one channel. `frame(x, p)` returns the
- * next `hop` samples resynthesised from the spectrum at read position `p`.
- * Every bin follows its nearest spectral peak (identity phase locking), so a
- * held position is a static snapshot and a moving one scrubs smoothly.
- */
 export class FreezeVocoder {
   readonly hop: number;
   private readonly n: number;
@@ -25,7 +19,6 @@ export class FreezeVocoder {
   private analysedAt = NaN;
   private started = false;
 
-  /** `spread`: magnitudes are RMS-averaged over ±spread hops around the read position. */
   constructor(n: number, spread: number) {
     this.n = n;
     this.spread = spread;

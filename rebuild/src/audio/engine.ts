@@ -8,7 +8,6 @@ const FADE = 0.03;
 const ANALYSER_SIZE = 16384;
 const registered = new WeakMap<BaseAudioContext, Promise<unknown>>();
 
-/** Web Audio backend: buffer source or freeze worklet → SoundTouch (pitch/tempo) → gain → analyser. */
 export class AudioEngine implements Output {
   readonly analyser: AnalyserNode;
   readonly ctx: AudioContext;
@@ -117,7 +116,6 @@ export class AudioEngine implements Output {
     this.source = source;
   }
 
-  /** Manual and delayed loops stop exactly at the loop end; wrapping loops never stop. */
   private scheduleStop(source: AudioBufferSourceNode, p: Playback) {
     if (!p.loopWraps && p.anchorPosition < p.loop.end) source.stop(p.anchorTime + (p.loop.end - p.anchorPosition) / p.rate);
   }

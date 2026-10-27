@@ -3,7 +3,6 @@ import { useEffect } from "react";
 const typing = (t: EventTarget | null) =>
   t instanceof HTMLElement && (t.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName));
 
-/** Global single-key shortcuts keyed by `KeyboardEvent.key`; ignored while typing or with modifiers. */
 export function useKeys(map: Record<string, () => void>) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

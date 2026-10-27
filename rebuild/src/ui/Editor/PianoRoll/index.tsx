@@ -13,7 +13,6 @@ const SCROLL_PX = 5;
 
 const frequency = (key: number) => 440 * 2 ** ((key - 57) / 12);
 
-/** dB → bar height, emphasising loud partials (tuned by ear in the original app). */
 function barHeight(db: number, key: number) {
   const intensity = Math.min(140, db + 140);
   if (intensity <= 10) return 0;
@@ -21,7 +20,6 @@ function barHeight(db: number, key: number) {
   return Math.min(Math.sqrt(base ** 3) ** (base / 130) / 5, BARS_H);
 }
 
-/** Average analyser level across each semitone (quarter-tone either side). */
 function semitoneLevels(data: Float32Array, sampleRate: number) {
   const binHz = sampleRate / 2 / data.length;
   return Array.from({ length: KEYS }, (_, i) => {

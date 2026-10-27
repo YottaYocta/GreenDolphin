@@ -1,28 +1,22 @@
 import { positionAt, type Playback, type PlaybackMode } from "./playback";
 import { loopDelay, transition, type LoopMode, type PlayState, type Section, type TransportEvent } from "./transport";
 
-/** Where playback is heard (Web Audio, a video embed, a test double). */
 export interface Output {
-  /** The output's clock in seconds; trajectories are timed against it. */
   now(): number;
-  /** Receives the full description of what to play after every change. */
   render(playback: Playback): void;
 }
 
-/** What UIs observe. The moving playhead is read with `player.position()`. */
 export interface TransportState {
   playState: PlayState;
   loop: Section;
   loopMode: LoopMode;
   speed: number;
-  /** Output clock time the loop delay ends, while waiting. */
   waitingUntil: number | null;
 }
 
 export interface PlayerOptions {
   duration: number;
   position: number;
-  /** `null` loops the whole recording. */
   loop: Section | null;
   loopMode: LoopMode;
   speed: number;
@@ -31,7 +25,6 @@ export interface PlayerOptions {
 const DUE_SLACK = 0.002;
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
-/** Playback state manager: transport rules, a clock, loop and delay timers, and scrubbing. */
 export class Player {
   readonly duration: number;
   private readonly output: Output;
@@ -94,7 +87,6 @@ export class Player {
     this.render();
   }
 
-  /** `null` lifts the loop to the whole recording (free playback during gestures). */
   setLoop(loop: Section | null) {
     const next = loop ?? { start: 0, end: this.duration };
     if (next.start === this.state.loop.start && next.end === this.state.loop.end) return;
@@ -108,7 +100,6 @@ export class Player {
     this.render();
   }
 
-  /** Re-anchors to a position observed on the output (e.g. a video drifting). */
   resync(position: number) {
     this.reanchor(position);
     this.render();
@@ -120,7 +111,6 @@ export class Player {
     this.output.render({ ...this.playback, mode: "silent" });
   }
 
-  /** Unclamped playhead, computed exactly as outputs compute it. */
   private here() {
     return this.scrub ?? positionAt(this.playback, this.output.now());
   }
@@ -147,7 +137,6 @@ export class Player {
     this.listeners.forEach((listener) => listener());
   }
 
-  /** Loop ends only need an event when they change state (manual or delayed loops); wraps are in `positionAt`. */
   private schedule() {
     clearTimeout(this.timer);
     const { mode, anchorPosition, anchorTime, rate, loop, loopWraps } = this.playback;

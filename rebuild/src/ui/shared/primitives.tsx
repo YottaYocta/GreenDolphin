@@ -75,7 +75,6 @@ export interface SliderProps {
   max: number;
   step: number;
   defaultValue: number;
-  /** Shown/entered value for a slider value, and back. */
   display: (v: number) => string;
   parse: (entered: number) => number;
   unit: string;

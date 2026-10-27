@@ -1,9 +1,5 @@
 import type { PointerEvent as ReactPointerEvent } from "react";
 
-/**
- * Follows one pointer from pointerdown until release, via pointer capture so it
- * keeps tracking outside the element. Nothing fires until it moves `threshold` px.
- */
 export function drag(
   e: ReactPointerEvent<HTMLElement>,
   onMove: (clientX: number, dx: number) => void,

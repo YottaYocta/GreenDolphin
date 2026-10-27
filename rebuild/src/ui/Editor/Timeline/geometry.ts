@@ -1,6 +1,5 @@
 import type { Section } from "../../../core";
 
-/** Loop as fractions (0..1) of the visible range. */
 export interface LoopFraction {
   start: number;
   end: number;
@@ -13,7 +12,6 @@ export const MIN_VIEW = 0.005;
 export const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 export const length = (s: Section) => s.end - s.start;
 
-/** Shift `s` (keeping its length) to lie inside `bounds`; shrink to bounds if longer. */
 export function fit(s: Section, bounds: Section): Section {
   const len = Math.min(length(s), length(bounds));
   const start = clamp(s.start, bounds.start, bounds.end - len);
@@ -34,7 +32,6 @@ export function toFraction(view: Section, s: Section): LoopFraction {
 
 export const isFull = (loop: LoopFraction) => loop.start <= 0 && loop.end >= 1;
 
-/** The loop after the view changes: pan keeps it on screen, zoom keeps it on the recording. */
 export function rescale(from: Section, to: Section, loop: LoopFraction): LoopFraction {
   if (isFull(loop) || Math.abs(length(from) - length(to)) < 1e-9) return loop;
   const f = (x: number) => clamp((at(from, x) - to.start) / length(to), 0, 1);

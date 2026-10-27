@@ -1,6 +1,5 @@
 type FFT = (re: Float64Array, im: Float64Array, inverse?: boolean) => void;
 
-/** In-place radix-2 complex FFT; the inverse is scaled by 1/n. */
 export function createFFT(n: number): FFT {
   const levels = Math.log2(n);
   const cos = Float64Array.from({ length: n / 2 }, (_, i) => Math.cos((2 * Math.PI * i) / n));

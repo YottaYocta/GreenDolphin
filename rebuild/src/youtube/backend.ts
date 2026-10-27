@@ -53,7 +53,6 @@ export const YT_PAUSED = 2;
 const DRIFT = 0.4;
 const SEEK_TIMEOUT = 3;
 
-/** Plays a trajectory on an embedded YouTube player; the video is the clock, corrected through `follow`. */
 export class YouTubeBackend implements Output {
   private last: Playback | null = null;
   private seek: { position: number; at: number } | null = null;
@@ -86,7 +85,6 @@ export class YouTubeBackend implements Output {
     this.yt.setVolume(Math.round(Math.min(1, gain) * 100));
   }
 
-  /** Call every frame: wraps loops (the embed can't) and pulls the player back to the video when they drift. */
   follow(player: Player) {
     const p = this.last;
     if (p?.mode !== "playing") return;
@@ -96,7 +94,6 @@ export class YouTubeBackend implements Output {
     else if (Math.abs(time - player.position()) > DRIFT) player.resync(time);
   }
 
-  /** Mirrors play/pause made inside the embed; ignores transient states caused by our own commands. */
   onStateChange(state: number, player: Player) {
     const playing = player.getState().playState === "playing";
     if (state === YT_PLAYING && !playing) {

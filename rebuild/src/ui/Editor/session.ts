@@ -5,7 +5,6 @@ import { loopPrefs, recordingPrefs, saveRecordingPrefs, toLoopMode } from "../..
 
 export const usePlayer = (player: Player) => useSyncExternalStore(player.subscribe, player.getState);
 
-/** Pitch and volume: applied straight to the output, never part of playback timing. */
 export interface Sound {
   pitch: number;
   gain: number;
@@ -16,7 +15,6 @@ export interface SoundOutput {
   setPitch?(semitones: number): void;
 }
 
-/** Everything a recording reopens with: player options, sound, view, and the loop under it. */
 export function restore(name: string, duration: number) {
   const p = recordingPrefs(name);
   const full = { start: 0, end: duration };
@@ -34,7 +32,6 @@ export function restore(name: string, duration: number) {
   return { view, loopFraction, options, sound };
 }
 
-/** A recording's pitch and volume: kept in React state, pushed to the output, and saved. */
 export function useSound(name: string, initial: Sound, output: SoundOutput) {
   const [sound, setSound] = useState(initial);
   useEffect(() => {
@@ -48,7 +45,6 @@ export function useSound(name: string, initial: Sound, output: SoundOutput) {
 const POSITION_SAVE_MS = 1000;
 const VIEW_SAVE_MS = 250;
 
-/** Saves a recording's settings and position as they change; returns timeline persistence callbacks. */
 export function usePersistence(name: string, player: Player) {
   const state = usePlayer(player);
   const { speed, loop, playState } = state;

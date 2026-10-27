@@ -12,7 +12,6 @@ export interface TimelineProps {
   initialLoop: LoopFraction;
   onView: (view: Section) => void;
   onLoopCommit: (loop: Section) => void;
-  /** Draws the content lane; without it the lane shows grid lines. */
   draw?: (canvas: HTMLCanvasElement, view: Section, loop: Section) => void;
 }
 
@@ -70,9 +69,11 @@ export function Timeline(props: TimelineProps) {
   const els = useMemo(() => Object.fromEntries(ELEMENTS.map((k) => [k, createRef<HTMLDivElement>()])) as Els, []);
   const lastTap = useRef({ time: -Infinity, x: 0 });
   const duration = player.duration;
-  // One model per player; callbacks and initial values are read once when it opens.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const model = useMemo(() => createModel(props, content), [player]);
+  const { initialView, initialLoop, onView, onLoopCommit } = props;
+  const model = useMemo(
+    () => createModel({ player, initialView, initialLoop, onView, onLoopCommit }, content),
+    [player, initialView, initialLoop, onView, onLoopCommit],
+  );
   const onTap = useCallback((time: number) => player.dispatch({ type: "move", position: time }), [player]);
 
   useKeys({
@@ -151,7 +152,6 @@ export function Timeline(props: TimelineProps) {
   );
 }
 
-/** Tap sets the playhead; drag pans; two pointers or the wheel zoom. */
 function useViewportGestures(root: RefObject<HTMLDivElement | null>, model: Model, duration: number, onTap: (time: number) => void) {
   useEffect(() => {
     const el = root.current!;

@@ -3,7 +3,6 @@ import type { Section } from "../../../../core";
 const BASE = 64;
 const CHUNK = 1 << 16;
 
-/** Mipmapped mean-|x| summary per channel: level 0 covers BASE samples per bin, each level halves it. */
 export interface Peaks {
   levels: Float32Array[][];
 }
@@ -36,7 +35,6 @@ export async function buildPeaks(buffer: AudioBuffer): Promise<Peaks> {
   return { levels };
 }
 
-/** Mean |x| per CSS pixel column over `view` (seconds), from the coarsest level that still resolves it. */
 function columns(peaks: Peaks, buffer: AudioBuffer, channel: number, view: Section, width: number) {
   const out = new Float32Array(width);
   const first = view.start * buffer.sampleRate;

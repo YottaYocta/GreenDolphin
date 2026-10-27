@@ -5,7 +5,6 @@ import { ArrowCounterClockwiseIcon, CoffeeIcon } from "@phosphor-icons/react";
 type Awake = { method: "wake-lock" | "video" | null; error: string | null };
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
-/** A silent looping video keeps some browsers awake where the Wake Lock API is missing or refused. */
 async function blankVideo() {
   const canvas = Object.assign(document.createElement("canvas"), { width: 1, height: 1 });
   canvas.getContext("2d")!.fillRect(0, 0, 1, 1);

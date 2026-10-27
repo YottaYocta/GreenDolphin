@@ -45,7 +45,6 @@ function TimelineCard({ name, player, restored, draw }: { name: string; player: 
   );
 }
 
-/** Editor page; `top` keeps its place while the player loads so an embedded video is never remounted. */
 function EditorControls({ name, session, youtube }: { name: string; session: Session; youtube: boolean }) {
   const [sound, setSound] = useSound(name, session.restored.sound, session.output);
   return (
@@ -163,12 +162,12 @@ export function YouTubeEditor({ name, source }: { name: string; source: YouTubeS
     return () => {
       live = false;
       made?.player.dispose();
+      el.remove();
       try {
         yt?.destroy();
       } catch {
-        /* player already gone */
+        yt = null;
       }
-      el.remove();
     };
   }, [name, source.videoId]);
 

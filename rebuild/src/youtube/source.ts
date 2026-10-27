@@ -33,7 +33,6 @@ export const toFile = (source: YouTubeSource) =>
 
 export const fromFile = async (file: File) => JSON.parse(await file.text()) as YouTubeSource;
 
-/** Title from oEmbed, or a reason the video can't be embedded. Network failures don't block adding. */
 export async function lookupVideo(videoId: string): Promise<{ title: string | null } | { error: string }> {
   try {
     const watch = `https://www.youtube.com/watch?v=${videoId}`;
@@ -46,7 +45,7 @@ export async function lookupVideo(videoId: string): Promise<{ title: string | nu
     if (res.status === 403) return { error: "This video is private." };
     if (res.status === 400 || res.status === 404) return { error: "Couldn't find a video at that link." };
   } catch {
-    /* lookup unavailable; the player reports problems later */
+    return { title: null };
   }
   return { title: null };
 }
