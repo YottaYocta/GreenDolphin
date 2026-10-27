@@ -1,8 +1,8 @@
-import type { ClockSeconds, DurationSeconds, LoopMode, Output, Playback, PlaybackMode, Player, PlayerOptions, RecordingSeconds, Section, SpeedRatio, TransportEvent, TransportState } from "./interfaces";
+import type { ClockSeconds, Core, DurationSeconds, LoopMode, Output, Playback, PlaybackMode, Player, PlayerOptions, RecordingSeconds, Section, SpeedRatio, TransportEvent, TransportState } from "./interfaces";
 import { positionAt } from "./playback";
 import { loopDelay, transition } from "./transport";
 
-export const createPlayer = (output: Output, options: PlayerOptions): Player => new TransportPlayer(output, options);
+export const createPlayer: Core["createPlayer"] = (output, options) => new TransportPlayer(output, options);
 
 const DUE_SLACK = 0.002;
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));

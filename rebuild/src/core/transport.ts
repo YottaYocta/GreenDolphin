@@ -1,12 +1,12 @@
-import type { LoopMode, PlayState, RecordingSeconds, Section, Transition, TransportContext, TransportEvent } from "./interfaces";
+import type { Core } from "./interfaces";
 
-export const inLoop = (position: RecordingSeconds, loop: Section) =>
+export const inLoop: Core["inLoop"] = (position, loop) =>
   position >= loop.start && position < loop.end;
 
-export const loopDelay = (mode: LoopMode) => (mode.type === "automatic" ? mode.delay : 0);
+export const loopDelay: Core["loopDelay"] = (mode) => (mode.type === "automatic" ? mode.delay : 0);
 
-export function transition(state: PlayState, event: TransportEvent, ctx: TransportContext): Transition {
-  const { position, loop, loopMode } = ctx;
+export const transition: Core["transition"] = (state, event, context) => {
+  const { position, loop, loopMode } = context;
   const fromHere = inLoop(position, loop) ? {} : { position: loop.start };
   switch (event.type) {
     case "toggle-play":
@@ -32,4 +32,4 @@ export function transition(state: PlayState, event: TransportEvent, ctx: Transpo
       if (state === "playing") return { state, ...fromHere };
       return { state };
   }
-}
+};

@@ -79,3 +79,12 @@ export interface Player {
   correctPosition(observed: RecordingSeconds): void;
   dispose(): void;
 }
+
+export interface Core {
+  transition(state: PlayState, event: TransportEvent, context: TransportContext): Transition;
+  inLoop(position: RecordingSeconds, loop: Section): boolean;
+  loopDelay(mode: LoopMode): DurationSeconds;
+  positionAt(playback: Playback, time: ClockSeconds): RecordingSeconds;
+  continues(previous: Playback, next: Playback): boolean;
+  createPlayer(output: Output, options: PlayerOptions): Player;
+}
