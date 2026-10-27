@@ -1,4 +1,4 @@
-import type { LoopPrefs, Persistence, RecordingPrefs } from "./interfaces";
+import type { LoopPrefs, Persistence, RecordingId, RecordingPrefs } from "./interfaces";
 
 const DEFAULT_LOOP: LoopPrefs = { mode: "automatic", delayMode: "fixed", delayValue: 0 };
 
@@ -20,24 +20,24 @@ const write = (key: string, value: unknown) => {
 
 type RecordingMap = Record<string, Partial<RecordingPrefs>>;
 
-export const recordingPrefs: Persistence["recordingPrefs"] = (name) => ({
+export const recordingPrefs: Persistence["recordingPrefs"] = (id) => ({
   speed: 1,
   pitch: 0,
   gain: 1,
   loop: null,
   view: null,
   position: 0,
-  ...read<RecordingMap>("recordings", {})[name],
+  ...read<RecordingMap>("recordings", {})[id],
 });
 
-export const saveRecordingPrefs: Persistence["saveRecordingPrefs"] = (name, patch) => {
+export const saveRecordingPrefs: Persistence["saveRecordingPrefs"] = (id, patch) => {
   const all = read<RecordingMap>("recordings", {});
-  write("recordings", { ...all, [name]: { ...all[name], ...patch } });
+  write("recordings", { ...all, [id]: { ...all[id], ...patch } });
 };
 
-export const removeRecordingPrefs: Persistence["removeRecordingPrefs"] = (name) => {
+export const removeRecordingPrefs = (id: RecordingId) => {
   const all = read<RecordingMap>("recordings", {});
-  delete all[name];
+  delete all[id];
   write("recordings", all);
 };
 
@@ -52,5 +52,5 @@ export const toLoopMode: Persistence["toLoopMode"] = (p, loopLength) =>
 export const flag: Persistence["flag"] = (key) => read(`flag:${key}`, { on: false }).on;
 export const setFlag: Persistence["setFlag"] = (key, on) => write(`flag:${key}`, { on });
 
-export const lastOpened: Persistence["lastOpened"] = () => read<{ name: string | null }>("last", { name: null }).name;
-export const setLastOpened: Persistence["setLastOpened"] = (name) => write("last", { name });
+export const lastOpened: Persistence["lastOpened"] = () => read<{ id: string | null }>("last", { id: null }).id;
+export const setLastOpened: Persistence["setLastOpened"] = (id) => write("last", { id });

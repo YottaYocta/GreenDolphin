@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { callPlayer, center, expectNear, lanePoint, mouseDrag, openDemo, recordingPrefs, rowPoint, snapshot, swipe, touch, DEMO } from "./helpers";
+import { callPlayer, center, expectNear, lanePoint, mouseDrag, openDemo, openedPrefs, rowPoint, snapshot, swipe, touch } from "./helpers";
 
 const desktop = () => test.skip(test.info().project.name !== "desktop", "mouse, wheel and keyboard");
 const mobile = () => test.skip(test.info().project.name !== "mobile", "touch");
@@ -160,14 +160,14 @@ test("wheel zoom keeps a full loop full and pans with the view", async ({ page }
   await page.mouse.move(p.x, p.y);
   await page.mouse.wheel(0, 400);
   await page.waitForTimeout(400);
-  const zoomed = await recordingPrefs(page, `${DEMO}.mp3`);
+  const zoomed = await openedPrefs(page);
   const s = await snapshot(page);
   expect(zoomed.view.end - zoomed.view.start).toBeLessThan(s.duration * 0.9);
   expect(s.loop.start).toBeCloseTo(zoomed.view.start, 3);
   expect(s.loop.end).toBeCloseTo(zoomed.view.end, 3);
   await mouseDrag(page, await lanePoint(page, 0.5), await lanePoint(page, 0.3));
   await page.waitForTimeout(400);
-  const panned = await recordingPrefs(page, `${DEMO}.mp3`);
+  const panned = await openedPrefs(page);
   expect(panned.view.start).toBeGreaterThan(zoomed.view.start);
   expect(panned.loop.start).toBeCloseTo(panned.view.start, 3);
 });
@@ -187,7 +187,7 @@ test("zoom scales a partial loop with the recording; double-click resets it", as
 
   const band = await rowPoint(page, "timeline-loop", 0.1);
   await page.mouse.dblclick(band.x, band.y);
-  const view = (await recordingPrefs(page, `${DEMO}.mp3`)).view;
+  const view = (await openedPrefs(page)).view;
   const reset = (await snapshot(page)).loop;
   expect(reset.start).toBeCloseTo(view.start, 3);
   expect(reset.end).toBeCloseTo(view.end, 3);
@@ -205,7 +205,6 @@ test("dragging the loop body shifts it within the frame", async ({ page }) => {
 
 test("touch: one finger pans, two fingers pinch-zoom, tap sets the playhead", async ({ page }) => {
   mobile();
-  const name = `${DEMO}.mp3`;
   const a = await lanePoint(page, 0.3);
   const b = await lanePoint(page, 0.7);
   await touch(page, [
@@ -215,14 +214,14 @@ test("touch: one finger pans, two fingers pinch-zoom, tap sets the playhead", as
     ["touchEnd"],
   ]);
   await page.waitForTimeout(400);
-  const zoomed = (await recordingPrefs(page, name)).view;
+  const zoomed = (await openedPrefs(page)).view;
   const { duration } = await snapshot(page);
   expect(zoomed.end - zoomed.start).toBeLessThan(duration * 0.8);
 
   const m = await lanePoint(page, 0.5);
   await touch(page, swipe(m, { x: m.x - 120, y: m.y }, 3));
   await page.waitForTimeout(400);
-  const panned = (await recordingPrefs(page, name)).view;
+  const panned = (await openedPrefs(page)).view;
   expect(panned.start).toBeGreaterThan(zoomed.start);
   expectNear(panned.end - panned.start, zoomed.end - zoomed.start, 0.01);
 

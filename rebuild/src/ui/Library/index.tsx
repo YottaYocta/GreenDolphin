@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { StoredRecording } from "../../persistence";
 import { MusicNotesPlusIcon, PlayIcon, TrashIcon } from "@phosphor-icons/react";
 import { relativeDate, stripExt } from "../shared/format";
 import { useLibrary } from "../context";
@@ -8,7 +9,7 @@ import { NewRecordingDialog, RecordingIcon } from "./NewRecordingDialog";
 export function Library() {
   const { recordings, error, open, remove } = useLibrary();
   const [adding, setAdding] = useState(false);
-  const [deleting, setDeleting] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<StoredRecording | null>(null);
   const newButton = (className: string) => (
     <button onClick={() => setAdding(true)} className={`flex items-center justify-center gap-2 self-stretch bg-surface border-border ${className}`}>
       <MusicNotesPlusIcon size={20} weight="fill" className="opacity-50" />
@@ -32,21 +33,21 @@ export function Library() {
           <ul className="flex-1 min-h-0 overflow-y-auto divide-y divide-border max-md:border-t border-border">
             {recordings.length === 0 && <li className="px-6 py-8 text-center text-black/50 text-sm">No recordings yet. Upload a file to get started.</li>}
             {recordings.map((recording) => (
-              <li key={recording.name} className="flex max-md:flex-col md:items-center gap-4 p-4 md:p-6">
+              <li key={recording.id} className="flex max-md:flex-col md:items-center gap-4 p-4 md:p-6">
                 <div className="flex items-center gap-4 flex-1 min-w-0">
                   <div className="flex items-center justify-center shrink-0 rounded-full size-14 bg-white shadow-(--shadow-drop) border border-border">
                     <RecordingIcon recording={recording} />
                   </div>
                   <div className="flex flex-col gap-1 min-w-0">
-                    <p className="truncate">{stripExt(recording.name)}</p>
+                    <p className="truncate">{stripExt(recording.title)}</p>
                     <p className="opacity-40 md:text-sm">{relativeDate(recording.addedAt)}</p>
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <button aria-label={`Play ${recording.name}`} onClick={() => open(recording.name)} className="btn-surface max-md:flex-1 h-10 md:size-10">
+                  <button aria-label={`Play ${recording.title}`} onClick={() => open(recording.id)} className="btn-surface max-md:flex-1 h-10 md:size-10">
                     <PlayIcon size={20} weight="fill" color="var(--color-play)" />
                   </button>
-                  <button aria-label={`Delete ${recording.name}`} onClick={() => setDeleting(recording.name)} className="btn-surface max-md:flex-1 h-10 md:size-10">
+                  <button aria-label={`Delete ${recording.title}`} onClick={() => setDeleting(recording)} className="btn-surface max-md:flex-1 h-10 md:size-10">
                     <TrashIcon size={20} weight="fill" className="opacity-40" />
                   </button>
                 </div>
@@ -58,14 +59,14 @@ export function Library() {
       </div>
       <NewRecordingDialog open={adding} onOpenChange={setAdding} />
       <Dialog title="Delete Recording" open={deleting !== null} onOpenChange={(o) => !o && setDeleting(null)}>
-        <p className="font-inria text-black/70 pb-6">Delete “{stripExt(deleting ?? "")}”? Its loop and settings go with it.</p>
+        <p className="font-inria text-black/70 pb-6">Delete “{stripExt(deleting?.title ?? "")}”? Its loop and settings go with it.</p>
         <div className="flex gap-3">
           <button onClick={() => setDeleting(null)} className="btn-surface flex-1 h-10 rounded-lg">
             Cancel
           </button>
           <button
             onClick={() => {
-              void remove(deleting!);
+              void remove(deleting!.id);
               setDeleting(null);
             }}
             className="flex-1 h-10 rounded-lg bg-red-500 text-white hover:bg-red-600 cursor-pointer"

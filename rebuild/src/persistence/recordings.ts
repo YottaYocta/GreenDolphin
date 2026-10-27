@@ -1,4 +1,5 @@
-import type { Persistence, StoredRecording } from "./interfaces";
+import type { Persistence, RecordingSource, StoredRecording } from "./interfaces";
+import { removeRecordingPrefs } from "./prefs";
 
 const RECORDINGS = "recordings";
 const AUDIO = "audio";
@@ -6,10 +7,10 @@ let db: Promise<IDBDatabase> | null = null;
 
 const open = () =>
   (db ??= new Promise((resolve, reject) => {
-    const req = indexedDB.open("greendolphin-rebuild", 2);
+    const req = indexedDB.open("greendolphin-rebuild", 3);
     req.onupgradeneeded = () => {
       for (const name of [...req.result.objectStoreNames]) req.result.deleteObjectStore(name);
-      req.result.createObjectStore(RECORDINGS, { keyPath: "name" });
+      req.result.createObjectStore(RECORDINGS, { keyPath: "id" });
       req.result.createObjectStore(AUDIO);
     };
     req.onsuccess = () => resolve(req.result);
@@ -25,32 +26,34 @@ async function transact<T>(stores: string[], mode: IDBTransactionMode, work: (tx
   });
 }
 
-const add = (recording: StoredRecording, audio?: Blob) =>
-  transact<void>([RECORDINGS, AUDIO], "readwrite", (tx) => {
-    tx.objectStore(RECORDINGS).put(recording);
-    if (audio) tx.objectStore(AUDIO).put(audio, recording.name);
-    else tx.objectStore(AUDIO).delete(recording.name);
+async function add(title: string, source: RecordingSource, audio?: Blob) {
+  const recording: StoredRecording = { id: crypto.randomUUID(), title, addedAt: Date.now(), source };
+  await transact<void>([RECORDINGS, AUDIO], "readwrite", (tx) => {
+    tx.objectStore(RECORDINGS).add(recording);
+    if (audio) tx.objectStore(AUDIO).add(audio, recording.id);
   });
+  return recording;
+}
 
 export const listRecordings: Persistence["listRecordings"] = async () =>
   (await transact<StoredRecording[]>([RECORDINGS], "readonly", (tx) => tx.objectStore(RECORDINGS).getAll())).sort(
     (a, b) => b.addedAt - a.addedAt,
   );
 
-export const addAudio: Persistence["addAudio"] = (name, data) =>
-  add({ name, addedAt: Date.now(), source: { kind: "file", size: data.byteLength } }, new Blob([data]));
+export const addAudio: Persistence["addAudio"] = (title, data) => add(title, { kind: "file", size: data.byteLength }, new Blob([data]));
 
-export const addYouTube: Persistence["addYouTube"] = (name, videoId) =>
-  add({ name, addedAt: Date.now(), source: { kind: "youtube", videoId } });
+export const addYouTube: Persistence["addYouTube"] = (title, videoId) => add(title, { kind: "youtube", videoId });
 
-export const readAudio: Persistence["readAudio"] = async (name) => {
-  const blob = await transact<Blob | undefined>([AUDIO], "readonly", (tx) => tx.objectStore(AUDIO).get(name));
-  if (!blob) throw new Error(`No audio stored for "${name}"`);
+export const readAudio: Persistence["readAudio"] = async (id) => {
+  const blob = await transact<Blob | undefined>([AUDIO], "readonly", (tx) => tx.objectStore(AUDIO).get(id));
+  if (!blob) throw new Error(`No audio stored for "${id}"`);
   return blob.arrayBuffer();
 };
 
-export const deleteRecording: Persistence["deleteRecording"] = (name) =>
-  transact<void>([RECORDINGS, AUDIO], "readwrite", (tx) => {
-    tx.objectStore(RECORDINGS).delete(name);
-    tx.objectStore(AUDIO).delete(name);
+export const deleteRecording: Persistence["deleteRecording"] = async (id) => {
+  await transact<void>([RECORDINGS, AUDIO], "readwrite", (tx) => {
+    tx.objectStore(RECORDINGS).delete(id);
+    tx.objectStore(AUDIO).delete(id);
   });
+  removeRecordingPrefs(id);
+};

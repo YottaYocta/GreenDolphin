@@ -1,17 +1,17 @@
 import { createContext, useContext } from "react";
 import type { Recording } from "../audio";
-import type { StoredRecording } from "../persistence";
+import type { RecordingId, StoredRecording } from "../persistence";
 
-export type Opened = { name: string } & ({ kind: "audio"; size: number; recording: Recording } | { kind: "youtube"; videoId: string });
+export type Opened = { recording: StoredRecording } & ({ kind: "audio"; size: number; decoded: Recording } | { kind: "youtube"; videoId: string });
 
 export interface LibraryApi {
   recordings: StoredRecording[];
   opened: Opened | null;
   error: string | null;
-  open: (name: string) => void;
+  open: (id: RecordingId) => void;
   add: (file: File) => Promise<void>;
   addYouTube: (link: string) => Promise<void>;
-  remove: (name: string) => Promise<void>;
+  remove: (id: RecordingId) => Promise<void>;
   home: () => void;
 }
 

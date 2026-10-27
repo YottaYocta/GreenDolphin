@@ -6,7 +6,7 @@ import { Dialog } from "../shared/primitives";
 import type { StoredRecording } from "../../persistence";
 
 export const RecordingIcon = ({ recording, size = 32 }: { recording: StoredRecording; size?: number }) =>
-  recording.source.kind === "youtube" ? <YoutubeLogoIcon size={size} weight="fill" color="#FF0000" className="opacity-80 shrink-0" /> : <MusicNoteIcon size={size} weight="fill" color={noteColor(recording.name)} className="shrink-0" />;
+  recording.source.kind === "youtube" ? <YoutubeLogoIcon size={size} weight="fill" color="#FF0000" className="opacity-80 shrink-0" /> : <MusicNoteIcon size={size} weight="fill" color={noteColor(recording.title)} className="shrink-0" />;
 
 export function NewRecordingDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const { add, addYouTube } = useLibrary();

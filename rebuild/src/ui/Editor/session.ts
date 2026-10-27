@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import type { DurationSeconds, Player, PlayerOptions, Section } from "../../core";
 import { FULL, clamp, fit, length, toFraction, toSection } from "./Timeline/geometry";
-import { persistence } from "../../persistence";
+import { persistence, type RecordingId } from "../../persistence";
 
 export const usePlayer = (player: Player) => useSyncExternalStore(player.subscribe, player.getState);
 
@@ -15,8 +15,8 @@ export interface SoundOutput {
   setPitch?(semitones: number): void;
 }
 
-export function restore(name: string, duration: DurationSeconds) {
-  const p = persistence.recordingPrefs(name);
+export function restore(id: RecordingId, duration: DurationSeconds) {
+  const p = persistence.recordingPrefs(id);
   const full = { start: 0, end: duration };
   const view = p.view ? fit(p.view, full) : full;
   const loopFraction = p.loop ? toFraction(view, p.loop) : FULL;
@@ -32,47 +32,47 @@ export function restore(name: string, duration: DurationSeconds) {
   return { view, loopFraction, options, sound };
 }
 
-export function useSound(name: string, initial: Sound, output: SoundOutput) {
+export function useSound(id: RecordingId, initial: Sound, output: SoundOutput) {
   const [sound, setSound] = useState(initial);
   useEffect(() => {
     output.setPitch?.(sound.pitch);
     output.setVolume(sound.gain);
-    persistence.saveRecordingPrefs(name, sound);
-  }, [name, output, sound]);
+    persistence.saveRecordingPrefs(id, sound);
+  }, [id, output, sound]);
   return [sound, setSound] as const;
 }
 
 const POSITION_SAVE_MS = 1000;
 const VIEW_SAVE_MS = 250;
 
-export function usePersistence(name: string, player: Player) {
+export function usePersistence(id: RecordingId, player: Player) {
   const state = usePlayer(player);
   const { speed, loop, playState } = state;
 
-  useEffect(() => persistence.saveRecordingPrefs(name, { speed }), [name, speed]);
+  useEffect(() => persistence.saveRecordingPrefs(id, { speed }), [id, speed]);
   useEffect(() => player.setLoopMode(persistence.toLoopMode(persistence.loopPrefs(), length(loop))), [player, loop]);
   useEffect(() => {
-    const save = () => persistence.saveRecordingPrefs(name, { position: player.position() });
+    const save = () => persistence.saveRecordingPrefs(id, { position: player.position() });
     save();
-    const id = playState === "playing" ? setInterval(save, POSITION_SAVE_MS) : undefined;
+    const interval = playState === "playing" ? setInterval(save, POSITION_SAVE_MS) : undefined;
     window.addEventListener("pagehide", save);
     document.addEventListener("visibilitychange", save);
     return () => {
       save();
-      clearInterval(id);
+      clearInterval(interval);
       window.removeEventListener("pagehide", save);
       document.removeEventListener("visibilitychange", save);
     };
-  }, [name, player, playState]);
+  }, [id, player, playState]);
 
   return useMemo(() => {
     let timer: ReturnType<typeof setTimeout> | undefined;
     return {
       onView: (view: Section) => {
         clearTimeout(timer);
-        timer = setTimeout(() => persistence.saveRecordingPrefs(name, { view }), VIEW_SAVE_MS);
+        timer = setTimeout(() => persistence.saveRecordingPrefs(id, { view }), VIEW_SAVE_MS);
       },
-      onLoopCommit: (loop: Section) => persistence.saveRecordingPrefs(name, { loop }),
+      onLoopCommit: (loop: Section) => persistence.saveRecordingPrefs(id, { loop }),
     };
-  }, [name]);
+  }, [id]);
 }

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { StoredRecording } from "../../../persistence";
 import { Menu } from "@base-ui/react/menu";
 import { CaretRightIcon, FileMagnifyingGlassIcon, HouseIcon, MusicNotesPlusIcon } from "@phosphor-icons/react";
 import { stripExt } from "../../shared/format";
@@ -9,13 +10,12 @@ import { Dialog } from "../../shared/primitives";
 const GHOST = "flex items-center justify-center gap-2 h-12 shrink-0 rounded-lg cursor-pointer hover:bg-black/5 active:bg-black/10";
 const ITEM = "flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-neutral-50 active:bg-neutral-100";
 
-export function TitleBar({ name, info }: { name: string; info: [string, string][] }) {
+export function TitleBar({ recording, info }: { recording: StoredRecording; info: [string, string][] }) {
   const { recordings, open, home } = useLibrary();
   const [adding, setAdding] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
-  const others = recordings.filter((r) => r.name !== name);
-  const addedAt = recordings.find((r) => r.name === name)?.addedAt;
-  const details = addedAt ? [...info, ["Added", new Date(addedAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })]] : info;
+  const others = recordings.filter((r) => r.id !== recording.id);
+  const details = [...info, ["Added", new Date(recording.addedAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })]];
 
   return (
     <div className="flex items-center justify-between gap-4 h-12 shrink-0">
@@ -23,17 +23,17 @@ export function TitleBar({ name, info }: { name: string; info: [string, string][
         <Menu.Root>
           <Menu.Trigger aria-label="Switch recording" className={`group ${GHOST} justify-start min-w-0 px-2`}>
             <CaretRightIcon size={14} weight="bold" className="opacity-50 shrink-0 transition-transform group-data-popup-open:rotate-90" />
-            <span className="font-inria truncate">{stripExt(name)}</span>
+            <span className="font-inria truncate">{stripExt(recording.title)}</span>
           </Menu.Trigger>
           <Menu.Portal>
             <Menu.Positioner side="bottom" align="start" sideOffset={8}>
               <Menu.Popup className="z-50 w-80 max-w-[calc(100vw-2rem)] rounded-xl bg-white border border-border [box-shadow:var(--shadow-menu)] overflow-hidden flex flex-col outline-none">
                 <div className="overflow-y-auto max-h-72 flex flex-col">
                   {others.length === 0 && <div className="p-4 font-inria text-black/50 text-sm text-center">No other recordings</div>}
-                  {others.map((recording) => (
-                    <Menu.Item key={recording.name} className={ITEM} onClick={() => open(recording.name)}>
-                      <RecordingIcon recording={recording} size={18} />
-                      <span className="flex-1 min-w-0 font-inria truncate">{stripExt(recording.name)}</span>
+                  {others.map((other) => (
+                    <Menu.Item key={other.id} className={ITEM} onClick={() => open(other.id)}>
+                      <RecordingIcon recording={other} size={18} />
+                      <span className="flex-1 min-w-0 font-inria truncate">{stripExt(other.title)}</span>
                     </Menu.Item>
                   ))}
                 </div>
@@ -55,7 +55,7 @@ export function TitleBar({ name, info }: { name: string; info: [string, string][
       </button>
       <NewRecordingDialog open={adding} onOpenChange={setAdding} />
       <Dialog title="File Info" open={showInfo} onOpenChange={setShowInfo}>
-        <p className="font-inria text-lg pb-6 break-words">{stripExt(name)}</p>
+        <p className="font-inria text-lg pb-6 break-words">{stripExt(recording.title)}</p>
         <dl className="grid grid-cols-2 gap-6">
           {details.map(([label, value]) => (
             <div key={label} className="flex flex-col gap-1">

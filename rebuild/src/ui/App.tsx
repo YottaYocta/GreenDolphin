@@ -10,13 +10,15 @@ import { youtube } from "../youtube";
 
 const DEMO = "Wynton Kelly - On Green Dolphin Street.mp3";
 
-async function seedDemo() {
-  if (persistence.flag("demo")) return;
-  const res = await fetch(`/${encodeURIComponent(DEMO)}`).catch(() => null);
-  if (!res?.ok) return;
-  await persistence.addAudio(DEMO, await res.arrayBuffer());
-  persistence.setFlag("demo", true);
-}
+let seeding: Promise<void> | null = null;
+const seedDemo = () =>
+  (seeding ??= (async () => {
+    if (persistence.flag("demo")) return;
+    const res = await fetch(`/${encodeURIComponent(DEMO)}`).catch(() => null);
+    if (!res?.ok) return;
+    await persistence.addAudio(DEMO, await res.arrayBuffer());
+    persistence.setFlag("demo", true);
+  })());
 
 export function App() {
   const [recordings, setRecordings] = useState<StoredRecording[]>([]);
@@ -25,22 +27,23 @@ export function App() {
   const [error, setError] = useState<string | null>(null);
   const request = useRef(0);
 
-  const openRecording = useCallback(async ({ name, source }: StoredRecording) => {
-    const id = ++request.current;
+  const openRecording = useCallback(async (recording: StoredRecording) => {
+    const { id, title, source } = recording;
+    const ticket = ++request.current;
     setLoading(true);
     setError(null);
     try {
       const next: Opened =
         source.kind === "youtube"
-          ? { name, kind: "youtube", videoId: source.videoId }
-          : { name, kind: "audio", size: source.size, recording: await audio.decode(await persistence.readAudio(name)) };
-      if (id !== request.current) return;
+          ? { recording, kind: "youtube", videoId: source.videoId }
+          : { recording, kind: "audio", size: source.size, decoded: await audio.decode(await persistence.readAudio(id)) };
+      if (ticket !== request.current) return;
       setOpened(next);
-      persistence.setLastOpened(name);
+      persistence.setLastOpened(id);
     } catch {
-      if (id === request.current) setError(`Couldn't open “${name}”. Is it an audio file?`);
+      if (ticket === request.current) setError(`Couldn't open “${title}”. Is it an audio file?`);
     } finally {
-      if (id === request.current) setLoading(false);
+      if (ticket === request.current) setLoading(false);
     }
   }, []);
 
@@ -49,51 +52,44 @@ export function App() {
       await seedDemo();
       const list = await persistence.listRecordings();
       setRecordings(list);
-      const last = list.find((r) => r.name === persistence.lastOpened());
+      const last = list.find((r) => r.id === persistence.lastOpened());
       if (last) await openRecording(last);
       else setLoading(false);
     })().catch(() => setLoading(false));
   }, [openRecording]);
 
   const api = useMemo<LibraryApi>(() => {
-    const refresh = async (name: string) => {
-      const list = await persistence.listRecordings();
-      setRecordings(list);
-      return list.find((r) => r.name === name);
-    };
+    const refresh = async () => setRecordings(await persistence.listRecordings());
     return {
       recordings,
       opened,
       error,
-      open: (name) => {
-        const rec = recordings.find((r) => r.name === name);
+      open: (id) => {
+        const rec = recordings.find((r) => r.id === id);
         if (!rec) return;
-        capture(opened ? "recording_switched" : "recording_played", { filename: name });
+        capture(opened ? "recording_switched" : "recording_played", { filename: rec.title });
         void openRecording(rec);
       },
       add: async (file) => {
-        await persistence.addAudio(file.name, await file.arrayBuffer());
-        persistence.removeRecordingPrefs(file.name);
-        const added = await refresh(file.name);
+        const added = await persistence.addAudio(file.name, await file.arrayBuffer());
+        await refresh();
         capture("file_uploaded", { filename: file.name, file_size: file.size, file_type: file.type });
-        if (added) await openRecording(added);
+        await openRecording(added);
       },
       addYouTube: async (link) => {
         const videoId = youtube.parseVideoId(link);
         if (!videoId) throw new Error("Couldn't find a video in that link.");
         const found = await youtube.lookupVideo(videoId);
         if ("error" in found) throw new Error(found.error);
-        const name = found.title ?? `YouTube ${videoId}`;
-        await persistence.addYouTube(name, videoId);
-        const added = await refresh(name);
+        const added = await persistence.addYouTube(found.title ?? `YouTube ${videoId}`, videoId);
+        await refresh();
         capture("youtube_video_added", { video_id: videoId });
-        if (added) await openRecording(added);
+        await openRecording(added);
       },
-      remove: async (name) => {
-        await persistence.deleteRecording(name);
-        persistence.removeRecordingPrefs(name);
-        await refresh(name);
-        capture("recording_deleted", { filename: name });
+      remove: async (id) => {
+        await persistence.deleteRecording(id);
+        await refresh();
+        capture("recording_deleted", { filename: recordings.find((r) => r.id === id)?.title });
       },
       home: () => {
         request.current++;
@@ -111,9 +107,9 @@ export function App() {
           <SpinnerIcon size={32} className="animate-spin opacity-40" />
         </div>
       ) : opened?.kind === "audio" ? (
-        <AudioEditor key={opened.name} name={opened.name} size={opened.size} recording={opened.recording} />
+        <AudioEditor key={opened.recording.id} recording={opened.recording} size={opened.size} decoded={opened.decoded} />
       ) : opened?.kind === "youtube" ? (
-        <YouTubeEditor key={opened.name} name={opened.name} videoId={opened.videoId} />
+        <YouTubeEditor key={opened.recording.id} recording={opened.recording} videoId={opened.videoId} />
       ) : (
         <Library />
       )}

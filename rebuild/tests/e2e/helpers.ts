@@ -42,8 +42,11 @@ export const snapshot = (page: Page) =>
 export const callPlayer = (page: Page, method: string, ...args: unknown[]) =>
   page.evaluate(({ method, args }) => (window.__gd!.player as unknown as Record<string, (...a: unknown[]) => unknown>)[method](...args), { method, args });
 
-export const recordingPrefs = (page: Page, name: string) =>
-  page.evaluate((n) => JSON.parse(localStorage.getItem("gd2:recordings") ?? "{}")[n] ?? {}, name);
+export const openedPrefs = (page: Page) =>
+  page.evaluate(() => {
+    const { id } = JSON.parse(localStorage.getItem("gd2:last") ?? "{}");
+    return JSON.parse(localStorage.getItem("gd2:recordings") ?? "{}")[id] ?? {};
+  });
 
 /** Screen point at `fraction` across the timeline content lane, `y` (0..1) down it. */
 export async function lanePoint(page: Page, fraction: number, y = 0.5) {
