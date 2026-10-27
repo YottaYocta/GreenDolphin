@@ -126,7 +126,7 @@ export function Timeline(props: TimelineProps) {
           </div>
         </div>
       </div>
-      <div className="relative flex-1 min-h-0 flex flex-col overflow-hidden bg-white px-4">
+      <div className={`relative ${draw ? "flex-1 min-h-0" : "h-12"} flex flex-col overflow-hidden bg-white px-4`}>
         <div ref={content} className="relative w-full flex-1 min-h-0">
           {draw ? <canvas id="waveform-canvas" ref={canvas} className="absolute inset-0 w-full h-full" /> : <div ref={els.grid} className="absolute inset-0 pointer-events-none" />}
           <div ref={els.startLine} className="absolute inset-y-0 w-px bg-black/12 pointer-events-none" />

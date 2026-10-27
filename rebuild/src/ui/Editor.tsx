@@ -33,7 +33,7 @@ type Restored = ReturnType<typeof restore>;
 function TimelineCard({ name, player, restored, draw }: { name: string; player: Player; restored: Restored; draw?: TimelineProps["draw"] }) {
   const { onView, onLoopCommit } = usePersistence(name, player);
   return (
-    <div className={`${CARD} flex-1 min-h-0 md:min-h-72 p-4`}>
+    <div className={`${CARD} ${draw ? "flex-1 min-h-0 md:min-h-72" : "shrink-0"} p-4`}>
       <Timeline player={player} initialView={restored.view} initialLoop={restored.loopFraction} onView={onView} onLoopCommit={onLoopCommit} draw={draw} />
     </div>
   );
@@ -50,7 +50,7 @@ function Layout(props: { name: string; info: [string, string][]; session: { play
           <div className="flex flex-col gap-4 max-md:gap-2 h-full min-h-0">
             <TitleBar name={name} info={info} />
             {top}
-            {session ? <TimelineCard name={name} player={session.player} restored={session.restored} draw={draw} /> : <div className={`${CARD} flex-1 min-h-0 md:min-h-72`} />}
+            {session ? <TimelineCard name={name} player={session.player} restored={session.restored} draw={draw} /> : <div className={`${CARD} ${youtube ? "h-28" : "flex-1 min-h-0 md:min-h-72"}`} />}
           </div>
           {session && (
             <Controls
