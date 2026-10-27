@@ -45,24 +45,26 @@ function Layout(props: { name: string; info: [string, string][]; session: { play
   return (
     <>
       <KeepAwake />
-      <div className="w-full max-w-240 h-dvh md:h-min min-h-0 mx-auto p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:py-10">
-        <div className="flex flex-col gap-4 max-md:gap-2 h-full min-h-0">
-          <TitleBar name={name} info={info} />
-          {top}
-          {session ? <TimelineCard name={name} player={session.player} restored={session.restored} draw={draw} /> : <div className={`${CARD} flex-1 min-h-0 md:min-h-72`} />}
+      <div className="w-full h-dvh flex items-center justify-center">
+        <div className="w-full max-w-240 h-full md:h-min min-h-0 p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:py-10">
+          <div className="flex flex-col gap-4 max-md:gap-2 h-full min-h-0">
+            <TitleBar name={name} info={info} />
+            {top}
+            {session ? <TimelineCard name={name} player={session.player} restored={session.restored} draw={draw} /> : <div className={`${CARD} flex-1 min-h-0 md:min-h-72`} />}
+          </div>
+          {session && (
+            <Controls
+              player={session.player}
+              freeze={!youtube}
+              settings={
+                <>
+                  <SoundSettings player={session.player} youtube={youtube} />
+                  <LoopSettings player={session.player} />
+                </>
+              }
+            />
+          )}
         </div>
-        {session && (
-          <Controls
-            player={session.player}
-            freeze={!youtube}
-            settings={
-              <>
-                <SoundSettings player={session.player} youtube={youtube} />
-                <LoopSettings player={session.player} />
-              </>
-            }
-          />
-        )}
       </div>
       {session && <Tutorial steps={youtube ? VIDEO_STEPS : AUDIO_STEPS} />}
     </>
