@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import type { DurationSeconds, Player, PlayerOptions, Section } from "../../core";
 import { FULL, clamp, fit, length, toFraction, toSection } from "./Timeline/geometry";
-import { loopPrefs, recordingPrefs, saveRecordingPrefs, toLoopMode } from "../../persistence/prefs";
+import { persistence } from "../../persistence";
 
 export const usePlayer = (player: Player) => useSyncExternalStore(player.subscribe, player.getState);
 
@@ -16,7 +16,7 @@ export interface SoundOutput {
 }
 
 export function restore(name: string, duration: DurationSeconds) {
-  const p = recordingPrefs(name);
+  const p = persistence.recordingPrefs(name);
   const full = { start: 0, end: duration };
   const view = p.view ? fit(p.view, full) : full;
   const loopFraction = p.loop ? toFraction(view, p.loop) : FULL;
@@ -25,7 +25,7 @@ export function restore(name: string, duration: DurationSeconds) {
     duration,
     position: clamp(p.position, 0, duration),
     loop,
-    loopMode: toLoopMode(loopPrefs(), length(loop)),
+    loopMode: persistence.toLoopMode(persistence.loopPrefs(), length(loop)),
     speed: p.speed,
   };
   const sound: Sound = { pitch: p.pitch, gain: p.gain };
@@ -37,7 +37,7 @@ export function useSound(name: string, initial: Sound, output: SoundOutput) {
   useEffect(() => {
     output.setPitch?.(sound.pitch);
     output.setVolume(sound.gain);
-    saveRecordingPrefs(name, sound);
+    persistence.saveRecordingPrefs(name, sound);
   }, [name, output, sound]);
   return [sound, setSound] as const;
 }
@@ -49,10 +49,10 @@ export function usePersistence(name: string, player: Player) {
   const state = usePlayer(player);
   const { speed, loop, playState } = state;
 
-  useEffect(() => saveRecordingPrefs(name, { speed }), [name, speed]);
-  useEffect(() => player.setLoopMode(toLoopMode(loopPrefs(), length(loop))), [player, loop]);
+  useEffect(() => persistence.saveRecordingPrefs(name, { speed }), [name, speed]);
+  useEffect(() => player.setLoopMode(persistence.toLoopMode(persistence.loopPrefs(), length(loop))), [player, loop]);
   useEffect(() => {
-    const save = () => saveRecordingPrefs(name, { position: player.position() });
+    const save = () => persistence.saveRecordingPrefs(name, { position: player.position() });
     save();
     const id = playState === "playing" ? setInterval(save, POSITION_SAVE_MS) : undefined;
     window.addEventListener("pagehide", save);
@@ -70,9 +70,9 @@ export function usePersistence(name: string, player: Player) {
     return {
       onView: (view: Section) => {
         clearTimeout(timer);
-        timer = setTimeout(() => saveRecordingPrefs(name, { view }), VIEW_SAVE_MS);
+        timer = setTimeout(() => persistence.saveRecordingPrefs(name, { view }), VIEW_SAVE_MS);
       },
-      onLoopCommit: (loop: Section) => saveRecordingPrefs(name, { loop }),
+      onLoopCommit: (loop: Section) => persistence.saveRecordingPrefs(name, { loop }),
     };
   }, [name]);
 }

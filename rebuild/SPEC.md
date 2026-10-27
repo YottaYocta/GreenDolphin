@@ -109,9 +109,12 @@ src/core/          standalone playback state manager — imports nothing outside
   transport.ts     transition() — the table above (pure)
   playback.ts      positionAt() / continues() (shared with outputs)
   player.ts        createPlayer(): clock, loop-end/delay timers, scrub; the class stays private
-src/audio/         AudioEngine (Web Audio Output), freeze vocoder + worklet, FFT
-src/youtube/       YouTubeBackend (embed Output) and link/oEmbed/file helpers
-src/persistence/   localStorage prefs (per recording + global loop) and IndexedDB files
+src/audio/         interfaces.ts (AudioEngine, FreezeVocoder, worklet messages, Audio)
+                   index.ts → `audio`; engine (Web Audio Output), vocoder + worklet, FFT
+src/youtube/       interfaces.ts (embed API, YouTubeBackend, YouTubeSource, YouTube)
+                   index.ts → `youtube`; backend (embed Output), link/oEmbed/file helpers
+src/persistence/   interfaces.ts (RecordingPrefs, LoopPrefs, StoredRecording, Persistence)
+                   index.ts → `persistence`; localStorage prefs and IndexedDB files
 src/ui/            React, laid out like the screen
   App.tsx          library state and routing
   Library/         recordings list, NewRecordingDialog
@@ -120,6 +123,10 @@ src/ui/            React, laid out like the screen
     Timeline/      ruler, lane, loop band, gestures, view/loop geometry, ticks
       Waveform/    peak summary and drawing
   shared/          primitives, drag and key helpers, text formatting
+Every non-UI folder follows the same shape: `interfaces.ts` holds all its types
+and ends with one interface listing its operations; implementations take their
+types from it; `index.ts` exports the types plus one object implementing it.
+
 tests/             mirrors src/; tests/e2e is Playwright (desktop + Pixel 7 touch)
 ```
 

@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react";
-import type { StoredRecording } from "../persistence/recordings";
-import type { YouTubeSource } from "../youtube/source";
+import type { StoredRecording } from "../persistence";
+import type { YouTubeSource } from "../youtube";
 
 export type Opened = { name: string; size: number } & ({ kind: "audio"; buffer: AudioBuffer } | { kind: "youtube"; source: YouTubeSource });
 

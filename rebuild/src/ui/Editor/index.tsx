@@ -1,11 +1,8 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { AudioEngine } from "../../audio/engine";
 import { buildPeaks, drawWaveform, type Peaks } from "./Timeline/Waveform/peaks";
 import { formatSize, formatTime } from "../shared/format";
 import { core, type Player } from "../../core";
 import type { Section } from "../../core";
-import { YouTubeBackend, describeYouTubeError, loadYouTubeApi, type YTPlayer } from "../../youtube/backend";
-import type { YouTubeSource } from "../../youtube/source";
 import { Controls } from "./Controls";
 import { KeepAwake } from "./KeepAwake";
 import { Tutorial, type TutorialStep } from "./Tutorial";
@@ -14,6 +11,8 @@ import { restore, usePersistence, useSound, type SoundOutput } from "./session";
 import { LoopSettings, SoundSettings } from "./Controls/Settings";
 import { Timeline, type TimelineProps } from "./Timeline";
 import { TitleBar } from "./TitleBar";
+import { audio, type AudioEngine } from "../../audio";
+import { youtube, type YTPlayer, type YouTubeBackend, type YouTubeSource } from "../../youtube";
 
 const CARD = "flex flex-col rounded-xl overflow-hidden [box-shadow:var(--shadow-panel)] bg-white border border-border";
 
@@ -88,7 +87,7 @@ export function AudioEditor({ name, size, buffer, ctx }: { name: string; size: n
   useEffect(() => {
     let live = true;
     let made: { engine: AudioEngine; player: Player } | null = null;
-    void AudioEngine.create(ctx, buffer).then((engine) => {
+    void audio.createEngine(ctx, buffer).then((engine) => {
       if (!live) return engine.dispose();
       const restored = restore(name, buffer.duration);
       made = { engine, player: core.createPlayer(engine, restored.options) };
@@ -142,12 +141,12 @@ export function YouTubeEditor({ name, source }: { name: string; source: YouTubeS
       const restored = restore(name, duration);
       restored.options.speed = Math.min(2, Math.max(0.25, Math.round(restored.options.speed * 4) / 4));
       restored.sound.gain = Math.min(1, restored.sound.gain);
-      const backend = new YouTubeBackend(target);
+      const backend = youtube.createBackend(target);
       made = { backend, player: core.createPlayer(backend, restored.options) };
       if (import.meta.env.DEV) Object.assign(window, { __gd: made });
       setSession({ ...made, restored, output: backend });
     };
-    void loadYouTubeApi().then((YT) => {
+    void youtube.loadApi().then((YT) => {
       if (!live) return;
       yt = new YT.Player(el, {
         videoId: source.videoId,
@@ -187,7 +186,7 @@ export function YouTubeEditor({ name, source }: { name: string; source: YouTubeS
       <div className="relative aspect-video h-[min(9rem,18dvh)] md:h-45 max-w-full bg-black rounded-lg overflow-hidden opacity-90">
         <div ref={host} className="absolute inset-0 [&_iframe]:w-full [&_iframe]:h-full" />
       </div>
-      {error !== null && <p className="pt-3 text-sm text-red-600/80 font-inria">{describeYouTubeError(error)}</p>}
+      {error !== null && <p className="pt-3 text-sm text-red-600/80 font-inria">{youtube.describeError(error)}</p>}
       {!session && error === null && <p className="pt-3 text-sm text-black/40 font-inria">Loading video…</p>}
     </div>
   );

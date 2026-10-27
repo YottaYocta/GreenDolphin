@@ -1,16 +1,12 @@
-export const YOUTUBE_EXT = ".yt";
+import type { YouTube, YouTubeSource } from "./interfaces";
+
+const YOUTUBE_EXT = ".yt";
 const MIME = "application/x-greendolphin-youtube";
 const ID = /^[\w-]{11}$/;
 
-export interface YouTubeSource {
-  videoId: string;
-  url: string;
-  title: string;
-}
+export const isYouTube: YouTube["isYouTube"] = (file) => file.type === MIME || file.name.endsWith(YOUTUBE_EXT);
 
-export const isYouTube = (file: File) => file.type === MIME || file.name.endsWith(YOUTUBE_EXT);
-
-export function parseVideoId(input: string): string | null {
+export const parseVideoId: YouTube["parseVideoId"] = (input) => {
   const text = input.trim();
   if (ID.test(text)) return text;
   try {
@@ -26,14 +22,14 @@ export function parseVideoId(input: string): string | null {
   } catch {
     return null;
   }
-}
+};
 
-export const toFile = (source: YouTubeSource) =>
+export const toFile: YouTube["toFile"] = (source) =>
   new File([JSON.stringify(source)], `${source.title}${YOUTUBE_EXT}`, { type: MIME });
 
-export const fromFile = async (file: File) => JSON.parse(await file.text()) as YouTubeSource;
+export const fromFile: YouTube["fromFile"] = async (file) => JSON.parse(await file.text()) as YouTubeSource;
 
-export async function lookupVideo(videoId: string): Promise<{ title: string | null } | { error: string }> {
+export const lookupVideo: YouTube["lookupVideo"] = async (videoId) => {
   try {
     const watch = `https://www.youtube.com/watch?v=${videoId}`;
     const res = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(watch)}&format=json`);
@@ -48,4 +44,4 @@ export async function lookupVideo(videoId: string): Promise<{ title: string | nu
     return { title: null };
   }
   return { title: null };
-}
+};

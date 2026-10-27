@@ -2,7 +2,7 @@ import { useLayoutEffect, useState } from "react";
 import { Dialog as BaseDialog } from "@base-ui/react/dialog";
 import { ArrowRightIcon, InfoIcon } from "@phosphor-icons/react";
 import { capture } from "../../analytics";
-import { flag, setFlag } from "../../persistence/prefs";
+import { persistence } from "../../persistence";
 
 export interface TutorialStep {
   selector: string;
@@ -13,10 +13,10 @@ const BTN = "btn-surface px-3 py-1 rounded-md text-sm";
 const PRIMARY = `${BTN} bg-play hover:bg-play-hover active:bg-play-active [box-shadow:var(--shadow-btn-colored)] text-white`;
 
 export function Tutorial({ steps }: { steps: TutorialStep[] }) {
-  const [seen, setSeen] = useState(() => flag("tutorial"));
+  const [seen, setSeen] = useState(() => persistence.flag("tutorial"));
   const [step, setStep] = useState<number | null>(null);
   const finish = () => {
-    setFlag("tutorial", true);
+    persistence.setFlag("tutorial", true);
     setSeen(true);
     setStep(null);
   };

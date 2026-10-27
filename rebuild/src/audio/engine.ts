@@ -1,14 +1,21 @@
 import { SoundTouchNode } from "@soundtouchjs/audio-worklet";
 import soundTouchUrl from "@soundtouchjs/audio-worklet/processor?url";
 import freezeUrl from "./freezeProcessor.ts?worker&url";
-import { core, type Output, type Playback, type RecordingSeconds } from "../core";
-import type { FreezeMessage } from "./freezeProcessor";
+import { core, type Playback, type RecordingSeconds } from "../core";
+import type { Audio, AudioEngine, FreezeMessage, Hertz, LinearGain, Semitones } from "./interfaces";
 
 const FADE = 0.03;
 const ANALYSER_SIZE = 16384;
 const registered = new WeakMap<BaseAudioContext, Promise<unknown>>();
 
-export class AudioEngine implements Output {
+export const createEngine: Audio["createEngine"] = async (ctx, buffer) => {
+  if (!registered.has(ctx))
+    registered.set(ctx, Promise.all([SoundTouchNode.register(ctx, soundTouchUrl), ctx.audioWorklet.addModule(freezeUrl)]));
+  await registered.get(ctx);
+  return new WebAudioEngine(ctx, buffer);
+};
+
+class WebAudioEngine implements AudioEngine {
   readonly analyser: AnalyserNode;
   readonly ctx: AudioContext;
   private readonly buffer: AudioBuffer;
@@ -21,14 +28,7 @@ export class AudioEngine implements Output {
   private last: Playback | null = null;
   private idle: ReturnType<typeof setTimeout> | undefined;
 
-  static async create(ctx: AudioContext, buffer: AudioBuffer) {
-    if (!registered.has(ctx))
-      registered.set(ctx, Promise.all([SoundTouchNode.register(ctx, soundTouchUrl), ctx.audioWorklet.addModule(freezeUrl)]));
-    await registered.get(ctx);
-    return new AudioEngine(ctx, buffer);
-  }
-
-  private constructor(ctx: AudioContext, buffer: AudioBuffer) {
+  constructor(ctx: AudioContext, buffer: AudioBuffer) {
     this.ctx = ctx;
     this.buffer = buffer;
     this.stretch = new SoundTouchNode({ context: ctx });
@@ -78,15 +78,15 @@ export class AudioEngine implements Output {
     this.stretch.playbackRate.value = p.mode === "playing" ? p.rate : 1;
   }
 
-  setPitch(semitones: number) {
+  setPitch(semitones: Semitones) {
     this.stretch.pitchSemitones.value = semitones;
   }
 
-  setVolume(gain: number) {
+  setVolume(gain: LinearGain) {
     this.gain.gain.value = gain;
   }
 
-  playTone(frequency: number | null) {
+  playTone(frequency: Hertz | null) {
     this.tone?.stop();
     this.tone = null;
     if (frequency === null) return;

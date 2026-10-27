@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { FreezeVocoder } from "../../src/audio/vocoder";
+import { createFreezeVocoder } from "../../src/audio/vocoder";
 
 const sr = 44100;
 const chord = Float32Array.from(
@@ -9,7 +9,7 @@ const chord = Float32Array.from(
 const rms = (x: Float32Array) => Math.sqrt(x.reduce((a, v) => a + v * v, 0) / x.length);
 
 test("holding the read position is a static, steady snapshot", () => {
-  const v = new FreezeVocoder(2048, 2);
+  const v = createFreezeVocoder(2048, 2);
   const levels: number[] = [];
   for (let k = 0; k < 400; k++) {
     const out = v.frame(chord, 20000);
@@ -21,7 +21,7 @@ test("holding the read position is a static, steady snapshot", () => {
 });
 
 test("moving the read position at 1x reproduces the recording", () => {
-  const v = new FreezeVocoder(2048, 0);
+  const v = createFreezeVocoder(2048, 0);
   let err = 0;
   for (let k = 0; k < 40; k++) {
     const p = 8000 + k * v.hop;

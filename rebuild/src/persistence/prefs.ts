@@ -1,19 +1,4 @@
-import type { LoopMode, RecordingSeconds, Section, SpeedRatio } from "../core";
-
-export interface RecordingPrefs {
-  speed: SpeedRatio;
-  pitch: number;
-  gain: number;
-  loop: Section | null;
-  view: Section | null;
-  position: RecordingSeconds;
-}
-
-export interface LoopPrefs {
-  mode: "manual" | "automatic";
-  delayMode: "fixed" | "relative";
-  delayValue: number;
-}
+import type { LoopPrefs, Persistence, RecordingPrefs } from "./interfaces";
 
 const DEFAULT_LOOP: LoopPrefs = { mode: "automatic", delayMode: "fixed", delayValue: 0 };
 
@@ -35,7 +20,7 @@ const write = (key: string, value: unknown) => {
 
 type RecordingMap = Record<string, Partial<RecordingPrefs>>;
 
-export const recordingPrefs = (name: string): RecordingPrefs => ({
+export const recordingPrefs: Persistence["recordingPrefs"] = (name) => ({
   speed: 1,
   pitch: 0,
   gain: 1,
@@ -45,27 +30,27 @@ export const recordingPrefs = (name: string): RecordingPrefs => ({
   ...read<RecordingMap>("recordings", {})[name],
 });
 
-export const saveRecordingPrefs = (name: string, patch: Partial<RecordingPrefs>) => {
+export const saveRecordingPrefs: Persistence["saveRecordingPrefs"] = (name, patch) => {
   const all = read<RecordingMap>("recordings", {});
   write("recordings", { ...all, [name]: { ...all[name], ...patch } });
 };
 
-export const removeRecordingPrefs = (name: string) => {
+export const removeRecordingPrefs: Persistence["removeRecordingPrefs"] = (name) => {
   const all = read<RecordingMap>("recordings", {});
   delete all[name];
   write("recordings", all);
 };
 
-export const loopPrefs = () => read("loop", DEFAULT_LOOP);
-export const saveLoopPrefs = (patch: Partial<LoopPrefs>) => write("loop", { ...loopPrefs(), ...patch });
+export const loopPrefs: Persistence["loopPrefs"] = () => read("loop", DEFAULT_LOOP);
+export const saveLoopPrefs: Persistence["saveLoopPrefs"] = (patch) => write("loop", { ...loopPrefs(), ...patch });
 
-export const toLoopMode = (p: LoopPrefs, loopLength: number): LoopMode =>
+export const toLoopMode: Persistence["toLoopMode"] = (p, loopLength) =>
   p.mode === "manual"
     ? { type: "manual" }
     : { type: "automatic", delay: p.delayMode === "fixed" ? p.delayValue : (p.delayValue / 100) * loopLength };
 
-export const flag = (key: string) => read(`flag:${key}`, { on: false }).on;
-export const setFlag = (key: string, on: boolean) => write(`flag:${key}`, { on });
+export const flag: Persistence["flag"] = (key) => read(`flag:${key}`, { on: false }).on;
+export const setFlag: Persistence["setFlag"] = (key, on) => write(`flag:${key}`, { on });
 
-export const lastOpened = () => read<{ name: string | null }>("last", { name: null }).name;
-export const setLastOpened = (name: string | null) => write("last", { name });
+export const lastOpened: Persistence["lastOpened"] = () => read<{ name: string | null }>("last", { name: null }).name;
+export const setLastOpened: Persistence["setLastOpened"] = (name) => write("last", { name });

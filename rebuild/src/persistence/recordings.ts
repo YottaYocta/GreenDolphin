@@ -1,7 +1,4 @@
-export interface StoredRecording {
-  file: File;
-  addedAt: number;
-}
+import type { Persistence, StoredRecording } from "./interfaces";
 
 const STORE = "recordings";
 let db: Promise<IDBDatabase> | null = null;
@@ -23,10 +20,11 @@ async function run<T>(mode: IDBTransactionMode, op: (store: IDBObjectStore) => I
   });
 }
 
-export const listRecordings = async () =>
+export const listRecordings: Persistence["listRecordings"] = async () =>
   (await run<StoredRecording[]>("readonly", (s) => s.getAll())).sort((a, b) => b.addedAt - a.addedAt);
 
-export const putRecording = (file: File) =>
-  run("readwrite", (s) => s.put({ file, addedAt: Date.now() } satisfies StoredRecording, file.name));
+export const putRecording: Persistence["putRecording"] = async (file) => {
+  await run("readwrite", (s) => s.put({ file, addedAt: Date.now() } satisfies StoredRecording, file.name));
+};
 
-export const deleteRecording = (name: string) => run("readwrite", (s) => s.delete(name));
+export const deleteRecording: Persistence["deleteRecording"] = (name) => run("readwrite", (s) => s.delete(name));

@@ -1,59 +1,30 @@
-import { core, type ClockSeconds, type DurationSeconds, type Output, type Playback, type Player, type RecordingSeconds, type SpeedRatio } from "../core";
-
-export interface YTPlayer {
-  playVideo(): void;
-  pauseVideo(): void;
-  seekTo(position: RecordingSeconds, allowSeekAhead: boolean): void;
-  getCurrentTime(): RecordingSeconds;
-  getDuration(): DurationSeconds;
-  setPlaybackRate(rate: SpeedRatio): void;
-  setVolume(volume: number): void;
-  destroy(): void;
-}
-
-interface YTNamespace {
-  Player: new (
-    el: HTMLElement,
-    options: {
-      videoId: string;
-      playerVars: Record<string, number>;
-      events: {
-        onReady: (e: { target: YTPlayer }) => void;
-        onStateChange: (e: { data: number }) => void;
-        onError: (e: { data: number }) => void;
-      };
-    },
-  ) => YTPlayer;
-}
-
-declare global {
-  interface Window {
-    YT?: YTNamespace;
-    onYouTubeIframeAPIReady?: () => void;
-  }
-}
+import { core, type ClockSeconds, type Playback, type Player, type RecordingSeconds } from "../core";
+import type { LinearGain } from "../audio";
+import type { YouTube, YouTubeBackend, YTNamespace, YTPlayer, YTPlayerState } from "./interfaces";
 
 let api: Promise<YTNamespace> | null = null;
-export const loadYouTubeApi = () =>
+export const loadApi: YouTube["loadApi"] = () =>
   (api ??= new Promise((resolve) => {
     if (window.YT?.Player) return resolve(window.YT);
     window.onYouTubeIframeAPIReady = () => resolve(window.YT!);
     document.head.appendChild(Object.assign(document.createElement("script"), { src: "https://www.youtube.com/iframe_api" }));
   }));
 
-export function describeYouTubeError(code: number) {
+export const describeError: YouTube["describeError"] = (code) => {
   if (code === 2) return "That video link looks invalid.";
   if (code === 100) return "This video was removed or is private.";
   if (code === 101 || code === 150) return "The owner of this video doesn't allow it to be played outside YouTube.";
   return "This video couldn't be played.";
-}
+};
 
-export const YT_PLAYING = 1;
-export const YT_PAUSED = 2;
+const YT_PLAYING = 1;
+const YT_PAUSED = 2;
 const DRIFT = 0.4;
 const SEEK_TIMEOUT = 3;
 
-export class YouTubeBackend implements Output {
+export const createBackend: YouTube["createBackend"] = (yt) => new EmbedBackend(yt);
+
+class EmbedBackend implements YouTubeBackend {
   private last: Playback | null = null;
   private seek: { position: RecordingSeconds; at: ClockSeconds } | null = null;
   private pausedAt = -Infinity;
@@ -81,7 +52,7 @@ export class YouTubeBackend implements Output {
     this.yt.setPlaybackRate(p.rate);
   }
 
-  setVolume(gain: number) {
+  setVolume(gain: LinearGain) {
     this.yt.setVolume(Math.round(Math.min(1, gain) * 100));
   }
 
@@ -94,7 +65,7 @@ export class YouTubeBackend implements Output {
     else if (Math.abs(time - player.position()) > DRIFT) player.correctPosition(time);
   }
 
-  onStateChange(state: number, player: Player) {
+  onStateChange(state: YTPlayerState, player: Player) {
     const playing = player.getState().playState === "playing";
     if (state === YT_PLAYING && !playing) {
       if (this.now() - this.pausedAt < SEEK_TIMEOUT) return this.yt.pauseVideo();

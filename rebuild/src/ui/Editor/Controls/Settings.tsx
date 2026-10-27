@@ -3,9 +3,9 @@ import { PlayIcon } from "@phosphor-icons/react";
 import { capture } from "../../../analytics";
 import { length } from "../Timeline/geometry";
 import type { Player } from "../../../core";
-import { loopPrefs, saveLoopPrefs, toLoopMode, type LoopPrefs } from "../../../persistence/prefs";
 import { ModeToggle, NumericInput, Slider } from "../../shared/primitives";
 import { usePlayer, type Sound } from "../session";
+import { persistence, type LoopPrefs } from "../../../persistence";
 
 const percent = (v: number) => String(Math.round(v * 100));
 
@@ -65,13 +65,13 @@ export function SoundSettings(props: { player: Player; sound: Sound; onSound: (s
 
 export function LoopSettings({ player }: { player: Player }) {
   const { loop } = usePlayer(player);
-  const [prefs, setPrefs] = useState(loopPrefs);
+  const [prefs, setPrefs] = useState(persistence.loopPrefs);
   const loopLength = length(loop);
   const update = (patch: Partial<LoopPrefs>) => {
     const next = { ...prefs, ...patch };
     setPrefs(next);
-    saveLoopPrefs(next);
-    player.setLoopMode(toLoopMode(next, loopLength));
+    persistence.saveLoopPrefs(next);
+    player.setLoopMode(persistence.toLoopMode(next, loopLength));
   };
   const unit = prefs.delayMode === "fixed" ? "s" : "%";
   const shown = String(Math.round(prefs.delayValue * 10) / 10);
@@ -112,7 +112,7 @@ export function LoopSettings({ player }: { player: Player }) {
               ]}
               value={prefs.delayMode}
               onChange={(delayMode) => {
-                const seconds = toLoopMode(prefs, loopLength);
+                const seconds = persistence.toLoopMode(prefs, loopLength);
                 const s = seconds.type === "automatic" ? seconds.delay : 0;
                 update({ delayMode, delayValue: delayMode === "fixed" ? s : loopLength > 0 ? (s / loopLength) * 100 : 0 });
                 capture("loop_delay_changed", { delay_mode: delayMode });

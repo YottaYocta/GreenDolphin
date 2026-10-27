@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
-import type { AudioEngine } from "../../../audio/engine";
 import { drag } from "../../shared/drag";
+import type { AudioEngine } from "../../../audio";
 
 const FIRST = 24;
 const OCTAVES = 7;

@@ -1,22 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SpinnerIcon } from "@phosphor-icons/react";
 import { capture } from "../analytics";
-import { flag, lastOpened, removeRecordingPrefs, setFlag, setLastOpened } from "../persistence/prefs";
-import { deleteRecording, listRecordings, putRecording, type StoredRecording } from "../persistence/recordings";
 import { LibraryContext, type LibraryApi, type Opened } from "./context";
-import { fromFile, isYouTube, lookupVideo, parseVideoId, toFile } from "../youtube/source";
 import { AudioEditor, YouTubeEditor } from "./Editor";
 import { Library } from "./Library";
+import { persistence, type StoredRecording } from "../persistence";
+import { youtube } from "../youtube";
 
 const DEMO = "Wynton Kelly - On Green Dolphin Street.mp3";
 
 async function seedDemo() {
-  if (flag("demo")) return;
+  if (persistence.flag("demo")) return;
   const res = await fetch(`/${encodeURIComponent(DEMO)}`).catch(() => null);
   if (!res?.ok) return;
   const blob = await res.blob();
-  await putRecording(new File([blob], DEMO, { type: blob.type || "audio/mpeg" }));
-  setFlag("demo", true);
+  await persistence.putRecording(new File([blob], DEMO, { type: blob.type || "audio/mpeg" }));
+  persistence.setFlag("demo", true);
 }
 
 export function App() {
@@ -33,12 +32,12 @@ export function App() {
       setLoading(true);
       setError(null);
       try {
-        const next: Opened = isYouTube(file)
-          ? { name: file.name, size: file.size, kind: "youtube", source: await fromFile(file) }
+        const next: Opened = youtube.isYouTube(file)
+          ? { name: file.name, size: file.size, kind: "youtube", source: await youtube.fromFile(file) }
           : { name: file.name, size: file.size, kind: "audio", buffer: await ctx.decodeAudioData(await file.arrayBuffer()) };
         if (id !== request.current) return;
         setOpened(next);
-        setLastOpened(file.name);
+        persistence.setLastOpened(file.name);
       } catch {
         if (id === request.current) setError(`Couldn't open “${file.name}”. Is it an audio file?`);
       } finally {
@@ -51,9 +50,9 @@ export function App() {
   useEffect(() => {
     (async () => {
       await seedDemo();
-      const list = await listRecordings();
+      const list = await persistence.listRecordings();
       setRecordings(list);
-      const last = list.find((r) => r.file.name === lastOpened());
+      const last = list.find((r) => r.file.name === persistence.lastOpened());
       if (last) await openFile(last.file);
       else setLoading(false);
     })().catch(() => setLoading(false));
@@ -63,7 +62,7 @@ export function App() {
   }, [ctx, openFile]);
 
   const api = useMemo<LibraryApi>(() => {
-    const refresh = async () => setRecordings(await listRecordings());
+    const refresh = async () => setRecordings(await persistence.listRecordings());
     return {
       recordings,
       opened,
@@ -75,26 +74,26 @@ export function App() {
         void openFile(rec.file);
       },
       add: async (file) => {
-        await putRecording(file);
-        removeRecordingPrefs(file.name);
+        await persistence.putRecording(file);
+        persistence.removeRecordingPrefs(file.name);
         await refresh();
         capture("file_uploaded", { filename: file.name, file_size: file.size, file_type: file.type });
         await openFile(file);
       },
       addYouTube: async (link) => {
-        const videoId = parseVideoId(link);
+        const videoId = youtube.parseVideoId(link);
         if (!videoId) throw new Error("Couldn't find a video in that link.");
-        const found = await lookupVideo(videoId);
+        const found = await youtube.lookupVideo(videoId);
         if ("error" in found) throw new Error(found.error);
-        const file = toFile({ videoId, url: link.trim(), title: found.title ?? `YouTube ${videoId}` });
-        await putRecording(file);
+        const file = youtube.toFile({ videoId, url: link.trim(), title: found.title ?? `YouTube ${videoId}` });
+        await persistence.putRecording(file);
         await refresh();
         capture("youtube_video_added", { video_id: videoId });
         await openFile(file);
       },
       remove: async (name) => {
-        await deleteRecording(name);
-        removeRecordingPrefs(name);
+        await persistence.deleteRecording(name);
+        persistence.removeRecordingPrefs(name);
         await refresh();
         capture("recording_deleted", { filename: name });
       },
@@ -102,7 +101,7 @@ export function App() {
         request.current++;
         setOpened(null);
         setLoading(false);
-        setLastOpened(null);
+        persistence.setLastOpened(null);
       },
     };
   }, [recordings, opened, error, openFile]);

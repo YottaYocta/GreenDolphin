@@ -1,4 +1,4 @@
-type FFT = (re: Float64Array, im: Float64Array, inverse?: boolean) => void;
+import type { FFT } from "./interfaces";
 
 export function createFFT(n: number): FFT {
   const levels = Math.log2(n);

@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 import { formatTime, relativeDate, stripExt } from "../../../src/ui/shared/format";
 import { formatTick, tickStep } from "../../../src/ui/Editor/Timeline/ticks";
-import { parseVideoId } from "../../../src/youtube/source";
+import { youtube } from "../../../src/youtube";
 
 test.each([
   ["dQw4w9WgXcQ", "dQw4w9WgXcQ"],
@@ -14,7 +14,7 @@ test.each([
   ["https://music.youtube.com/watch?v=dQw4w9WgXcQ", "dQw4w9WgXcQ"],
   ["https://example.com/watch?v=dQw4w9WgXcQ", null],
   ["not a link", null],
-])("parses %s", (input, id) => expect(parseVideoId(input)).toBe(id));
+])("parses %s", (input, id) => expect(youtube.parseVideoId(input)).toBe(id));
 
 test("formatting", () => {
   expect(stripExt("Song.final.mp3")).toBe("Song.final");

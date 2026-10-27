@@ -1,4 +1,5 @@
-import { FreezeVocoder } from "./vocoder";
+import type { FreezeMessage, FreezeVocoder } from "./interfaces";
+import { createFreezeVocoder } from "./vocoder";
 
 declare const sampleRate: number;
 declare function registerProcessor(name: string, ctor: unknown): void;
@@ -6,12 +7,6 @@ declare class AudioWorkletProcessor {
   readonly port: MessagePort;
 }
 
-import type { RecordingSeconds } from "../core";
-
-export type FreezeMessage =
-  | { type: "load"; channels: Float32Array[] }
-  | { type: "seek"; position: RecordingSeconds; jump: boolean }
-  | { type: "active"; active: boolean };
 
 const WINDOW = 2048;
 const SPREAD_SECONDS = 0.02;
@@ -40,7 +35,7 @@ class FreezeProcessor extends AudioWorkletProcessor {
 
   private reset() {
     const spread = Math.round((SPREAD_SECONDS * sampleRate) / (WINDOW / 4));
-    this.voices = this.channels.map(() => new FreezeVocoder(WINDOW, spread));
+    this.voices = this.channels.map(() => createFreezeVocoder(WINDOW, spread));
     this.position = this.target;
     this.read = WINDOW / 4;
   }

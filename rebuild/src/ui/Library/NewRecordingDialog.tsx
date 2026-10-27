@@ -1,12 +1,12 @@
 import { useRef, useState } from "react";
 import { MusicNoteIcon, MusicNotesPlusIcon, SpinnerIcon, YoutubeLogoIcon } from "@phosphor-icons/react";
 import { noteColor } from "../shared/format";
-import { isYouTube } from "../../youtube/source";
 import { useLibrary } from "../context";
 import { Dialog } from "../shared/primitives";
+import { youtube } from "../../youtube";
 
 export const RecordingIcon = ({ file, size = 32 }: { file: File; size?: number }) =>
-  isYouTube(file) ? <YoutubeLogoIcon size={size} weight="fill" color="#FF0000" className="opacity-80 shrink-0" /> : <MusicNoteIcon size={size} weight="fill" color={noteColor(file.name)} className="shrink-0" />;
+  youtube.isYouTube(file) ? <YoutubeLogoIcon size={size} weight="fill" color="#FF0000" className="opacity-80 shrink-0" /> : <MusicNoteIcon size={size} weight="fill" color={noteColor(file.name)} className="shrink-0" />;
 
 export function NewRecordingDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const { add, addYouTube } = useLibrary();

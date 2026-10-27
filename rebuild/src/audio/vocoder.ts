@@ -1,6 +1,9 @@
 import { createFFT, wrapPhase } from "./fft";
+import type { Audio, FreezeVocoder } from "./interfaces";
 
-export class FreezeVocoder {
+export const createFreezeVocoder: Audio["createFreezeVocoder"] = (windowSize, spreadHops) => new PhaseLockedVocoder(windowSize, spreadHops);
+
+class PhaseLockedVocoder implements FreezeVocoder {
   readonly hop: number;
   private readonly n: number;
   private readonly spread: number;
@@ -33,7 +36,7 @@ export class FreezeVocoder {
     this.ready = new Float32Array(this.hop);
   }
 
-  frame(x: Float32Array, atSample: number): Float32Array {
+  frame(x: Float32Array, atSample: number) {
     const { n, hop, re, im, mag, phase, omega, out, peakOf, ola, window } = this;
     const bins = n / 2 + 1;
     const p = Math.round(atSample);
