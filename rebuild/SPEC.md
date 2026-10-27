@@ -105,7 +105,7 @@ Loop navigation, spelled out:
 ```
 src/core/          standalone playback state manager — imports nothing outside core/
   interfaces.ts    every type the core exposes, ending with Core: the signature of every exported function
-  index.ts         the public surface: those types + functions and factories only
+  index.ts         the public surface: those types + one `core` object implementing Core
   transport.ts     transition() — the table above (pure)
   playback.ts      positionAt() / continues() (shared with outputs)
   player.ts        createPlayer(): clock, loop-end/delay timers, scrub; the class stays private

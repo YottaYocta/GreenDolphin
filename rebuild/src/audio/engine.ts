@@ -1,7 +1,7 @@
 import { SoundTouchNode } from "@soundtouchjs/audio-worklet";
 import soundTouchUrl from "@soundtouchjs/audio-worklet/processor?url";
 import freezeUrl from "./freezeProcessor.ts?worker&url";
-import { continues, positionAt, type Output, type Playback, type RecordingSeconds } from "../core";
+import { core, type Output, type Playback, type RecordingSeconds } from "../core";
 import type { FreezeMessage } from "./freezeProcessor";
 
 const FADE = 0.03;
@@ -59,12 +59,12 @@ export class AudioEngine implements Output {
     this.last = p;
     if (p.mode !== "silent") void this.ctx.resume();
     const modeChanged = !prev || prev.mode !== p.mode;
-    const jumped = !modeChanged && !continues(prev!, p);
+    const jumped = !modeChanged && !core.continues(prev!, p);
     const stopCancelled = !!prev && !prev.loopWraps && p.loopWraps;
     const freezing = p.mode === "frozen" || p.mode === "scrubbing";
 
     if (modeChanged || (jumped && p.mode !== "scrubbing") || (stopCancelled && p.mode === "playing")) {
-      const position = positionAt(p, this.ctx.currentTime);
+      const position = core.positionAt(p, this.ctx.currentTime);
       this.stopSource();
       if (p.mode === "playing") this.startSource(p, position);
       if (freezing) this.post({ type: "seek", position, jump: true });

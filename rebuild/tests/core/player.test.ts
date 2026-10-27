@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
-import { continues, createPlayer, positionAt, type Output, type Playback, type PlayerOptions } from "../../src/core";
+import { core, type Output, type Playback, type PlayerOptions } from "../../src/core";
 
 let clock = 0;
 let renders: Playback[] = [];
 const output: Output = { now: () => clock, render: (p) => void renders.push(p) };
 const last = () => renders[renders.length - 1];
-const jumped = () => renders.length > 1 && !continues(renders[renders.length - 2], last());
+const jumped = () => renders.length > 1 && !core.continues(renders[renders.length - 2], last());
 const advance = (seconds: number) => {
   for (let ms = 0; ms < Math.round(seconds * 1000); ms++) {
     clock += 0.001;
@@ -13,7 +13,7 @@ const advance = (seconds: number) => {
   }
 };
 const make = (options: Partial<PlayerOptions> = {}) =>
-  createPlayer(output, { duration: 60, position: 12, loop: { start: 10, end: 20 }, loopMode: { type: "automatic", delay: 0 }, speed: 1, ...options });
+  core.createPlayer(output, { duration: 60, position: 12, loop: { start: 10, end: 20 }, loopMode: { type: "automatic", delay: 0 }, speed: 1, ...options });
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -137,7 +137,7 @@ test("outputs see the same playhead the player reports", () => {
   advance(3.3);
   p.setSpeed(1.5);
   advance(1.1);
-  expect(positionAt(last(), clock)).toBe(p.position());
+  expect(core.positionAt(last(), clock)).toBe(p.position());
 });
 
 test("a scrub has an explicit start: scrubTo before startScrub does nothing", () => {

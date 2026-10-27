@@ -1,4 +1,4 @@
-import { continues, positionAt, type ClockSeconds, type DurationSeconds, type Output, type Playback, type Player, type RecordingSeconds, type SpeedRatio } from "../core";
+import { core, type ClockSeconds, type DurationSeconds, type Output, type Playback, type Player, type RecordingSeconds, type SpeedRatio } from "../core";
 
 export interface YTPlayer {
   playVideo(): void;
@@ -69,8 +69,8 @@ export class YouTubeBackend implements Output {
     const prev = this.last;
     this.last = p;
     const modeChanged = !prev || prev.mode !== p.mode;
-    if (modeChanged || !continues(prev!, p)) {
-      const target = positionAt(p, this.now());
+    if (modeChanged || !core.continues(prev!, p)) {
+      const target = core.positionAt(p, this.now());
       if (modeChanged || Math.abs(this.yt.getCurrentTime() - target) > DRIFT) this.seekTo(target);
       if (modeChanged && p.mode === "playing") this.yt.playVideo();
       else if (modeChanged) {

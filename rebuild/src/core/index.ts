@@ -1,4 +1,8 @@
+import type { Core } from "./interfaces";
+import { createPlayer } from "./player";
+import { continues, positionAt } from "./playback";
+import { inLoop, loopDelay, transition } from "./transport";
+
 export type * from "./interfaces";
-export { createPlayer } from "./player";
-export { continues, positionAt } from "./playback";
-export { inLoop, loopDelay, transition } from "./transport";
+
+export const core: Core = { transition, inLoop, loopDelay, positionAt, continues, createPlayer };
