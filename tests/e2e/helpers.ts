@@ -20,7 +20,6 @@ export interface Snapshot {
   loopMode: { type: string; delay?: number };
 }
 
-/** Fresh app with the tutorial already seen, opened on the demo track. */
 export async function openDemo(page: Page, { tutorial = false } = {}) {
   if (!tutorial) await page.addInitScript(() => localStorage.setItem("gd2:flag:tutorial", JSON.stringify({ on: true })));
   await page.goto("/");
@@ -38,7 +37,6 @@ export const snapshot = (page: Page) =>
     return { ...gd.player.getState(), position: gd.player.position(), duration: gd.player.duration, loopMode: internals.player.loopMode, mode: internals.engine?.last?.mode ?? "silent" } as Snapshot;
   });
 
-/** Runs a method on the live player (for setups too slow to drive by hand, e.g. tiny loops). */
 export const callPlayer = (page: Page, method: string, ...args: unknown[]) =>
   page.evaluate(({ method, args }) => (window.__gd!.player as unknown as Record<string, (...a: unknown[]) => unknown>)[method](...args), { method, args });
 
@@ -48,7 +46,6 @@ export const openedPrefs = (page: Page) =>
     return JSON.parse(localStorage.getItem("gd2:recordings") ?? "{}")[id] ?? {};
   });
 
-/** Screen point at `fraction` across the timeline content lane, `y` (0..1) down it. */
 export async function lanePoint(page: Page, fraction: number, y = 0.5) {
   const box = (await page.locator("#waveform-canvas, #timeline-loop").first().boundingBox())!;
   return { x: box.x + box.width * fraction, y: box.y + box.height * y };
@@ -75,7 +72,6 @@ export async function mouseDrag(page: Page, from: { x: number; y: number }, to: 
 type Touch = { x: number; y: number; id: number };
 export type TouchStep = ["touchStart" | "touchMove", Touch[]] | ["touchEnd"];
 
-/** Raw touch input through the DevTools protocol (each step lists every finger still down). */
 const sessions = new WeakMap<Page, Promise<CDPSession>>();
 export async function touch(page: Page, steps: TouchStep[]) {
   if (!sessions.has(page)) sessions.set(page, page.context().newCDPSession(page));

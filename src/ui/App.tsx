@@ -13,6 +13,7 @@ const DEMO = "Wynton Kelly - On Green Dolphin Street.mp3";
 let seeding: Promise<void> | null = null;
 const seedDemo = () =>
   (seeding ??= (async () => {
+    await persistence.listRecordings();
     if (persistence.flag("demo")) return;
     const res = await fetch(`/${encodeURIComponent(DEMO)}`).catch(() => null);
     if (!res?.ok) return;

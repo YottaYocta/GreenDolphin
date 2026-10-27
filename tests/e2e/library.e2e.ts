@@ -1,7 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { DEMO, expectNear, lanePoint, openDemo, openedPrefs, snapshot, waitForEditor } from "./helpers";
 
-/** A mono 16-bit sine WAV, built in Node so uploads need no fixture files. */
 function wav(seconds: number, hz: number) {
   const rate = 22050;
   const n = Math.round(seconds * rate);
@@ -167,4 +166,33 @@ test("a long title truncates without colliding with the title bar buttons", asyn
       expect(boxes[i].x + boxes[i].width <= other.x || other.x + other.width <= boxes[i].x || boxes[i].y + boxes[i].height <= other.y || other.y + other.height <= boxes[i].y).toBe(true);
   const title = page.getByRole("button", { name: "Switch recording" }).locator("span");
   expect(await title.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(true);
+});
+
+test("recordings saved by the previous version are imported once, then its database is removed", async ({ page }) => {
+  await page.goto("/favicon/favicon.svg");
+  await page.evaluate(
+    (bytes) =>
+      new Promise<void>((resolve) => {
+        const req = indexedDB.open("greendolphin-v1", 3);
+        req.onupgradeneeded = () => ["files", "file-meta"].forEach((store) => req.result.createObjectStore(store));
+        req.onsuccess = () => {
+          const tx = req.result.transaction(["files", "file-meta"], "readwrite");
+          const video = JSON.stringify({ videoId: "jNQXAC9IVRw", url: "", title: "Me at the zoo" });
+          tx.objectStore("files").put(new File([new Uint8Array(bytes)], "old.wav", { type: "audio/wav" }), "old.wav");
+          tx.objectStore("files").put(new File([video], "Me at the zoo.yt", { type: "application/x-greendolphin-youtube" }), "Me at the zoo.yt");
+          tx.objectStore("file-meta").put({ uploadedAt: 1 }, "old.wav");
+          tx.objectStore("file-meta").put({ uploadedAt: 2 }, "Me at the zoo.yt");
+          tx.oncomplete = () => (req.result.close(), resolve());
+        };
+      }),
+    [...wav(2, 330)],
+  );
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: "Play old.wav" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Play Me at the zoo" })).toBeVisible();
+  await expect(page.getByRole("button", { name: `Play ${DEMO}.mp3` })).toHaveCount(0);
+  expect(await page.evaluate(async () => (await indexedDB.databases()).map((d) => d.name))).not.toContain("greendolphin-v1");
+  await page.getByRole("button", { name: "Play old.wav" }).click();
+  await waitForEditor(page);
+  expectNear((await snapshot(page)).duration, 2, 0.01);
 });
