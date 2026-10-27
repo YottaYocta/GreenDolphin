@@ -38,7 +38,6 @@ declare global {
 
 export interface YouTubeSource {
   videoId: string;
-  url: string;
   title: string;
 }
 

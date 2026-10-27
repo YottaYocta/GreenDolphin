@@ -52,7 +52,7 @@ export function PianoRoll({ engine }: { engine: AudioEngine }) {
       engine.analyser.getFloatFrequencyData(data);
       ctx.clearRect(0, 0, c.width, c.height);
       ctx.fillStyle = "#1CCA93";
-      semitoneLevels(data, engine.ctx.sampleRate).forEach((db, i) => {
+      semitoneLevels(data, engine.analyser.context.sampleRate).forEach((db, i) => {
         const h = Math.round(barHeight(db, FIRST + i) * dpr);
         const x = Math.round((i * c.width) / KEYS);
         if (h >= 1) ctx.fillRect(x, c.height - h, Math.round(((i + 1) * c.width) / KEYS) - x, h);

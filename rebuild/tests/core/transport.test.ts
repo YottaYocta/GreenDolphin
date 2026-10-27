@@ -1,12 +1,13 @@
 import { describe, expect, test } from "vitest";
-import { core, type LoopMode, type PlayState, type TransportEvent } from "../../src/core";
+import type { LoopMode, PlayState, TransportEvent } from "../../src/core";
+import { transition } from "../../src/core/transport";
 
 const loop = { start: 10, end: 20 };
 const auto0: LoopMode = { type: "automatic", delay: 0 };
 const auto2: LoopMode = { type: "automatic", delay: 2 };
 const manual: LoopMode = { type: "manual" };
 const run = (state: PlayState, event: TransportEvent, position = 15, loopMode: LoopMode = auto0) =>
-  core.transition(state, event, { position, loop, loopMode });
+  transition(state, event, { position, loop, loopMode });
 
 describe("play/pause", () => {
   test("toggles playing and paused", () => {

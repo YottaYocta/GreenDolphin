@@ -244,7 +244,7 @@ test("piano keys play a tone at the key's pitch", async ({ page }) => {
     engine.analyser.getFloatFrequencyData(data);
     let best = 0;
     for (let i = 1; i < data.length; i++) if (data[i] > data[best]) best = i;
-    return (best * engine.ctx.sampleRate) / 2 / data.length;
+    return (best * engine.analyser.context.sampleRate) / 2 / data.length;
   });
   await page.mouse.up();
   expectNear(peakHz, 440, 10);

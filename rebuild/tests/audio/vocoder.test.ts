@@ -9,7 +9,7 @@ const chord = Float32Array.from(
 const rms = (x: Float32Array) => Math.sqrt(x.reduce((a, v) => a + v * v, 0) / x.length);
 
 test("holding the read position is a static, steady snapshot", () => {
-  const v = createFreezeVocoder(2048, 2);
+  const v = createFreezeVocoder(2048, 1024);
   const levels: number[] = [];
   for (let k = 0; k < 400; k++) {
     const out = v.frame(chord, 20000);

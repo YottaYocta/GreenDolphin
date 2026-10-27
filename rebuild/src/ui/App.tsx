@@ -85,7 +85,7 @@ export function App() {
         if (!videoId) throw new Error("Couldn't find a video in that link.");
         const found = await youtube.lookupVideo(videoId);
         if ("error" in found) throw new Error(found.error);
-        const file = youtube.toFile({ videoId, url: link.trim(), title: found.title ?? `YouTube ${videoId}` });
+        const file = youtube.toFile({ videoId, title: found.title ?? `YouTube ${videoId}` });
         await persistence.putRecording(file);
         await refresh();
         capture("youtube_video_added", { video_id: videoId });

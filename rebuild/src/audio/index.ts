@@ -1,7 +1,6 @@
 import { createEngine } from "./engine";
 import type { Audio } from "./interfaces";
-import { createFreezeVocoder } from "./vocoder";
 
-export type * from "./interfaces";
+export type { Audio, AudioEngine, Hertz, LinearGain, Semitones } from "./interfaces";
 
-export const audio: Audio = { createEngine, createFreezeVocoder };
+export const audio: Audio = { createEngine };

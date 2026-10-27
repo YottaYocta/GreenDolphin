@@ -1,11 +1,11 @@
-import type { Core } from "./interfaces";
+import type { TransportRules } from "./interfaces";
 
-export const inLoop: Core["inLoop"] = (position, loop) =>
+export const inLoop: TransportRules["inLoop"] = (position, loop) =>
   position >= loop.start && position < loop.end;
 
-export const loopDelay: Core["loopDelay"] = (mode) => (mode.type === "automatic" ? mode.delay : 0);
+export const loopDelay: TransportRules["loopDelay"] = (mode) => (mode.type === "automatic" ? mode.delay : 0);
 
-export const transition: Core["transition"] = (state, event, context) => {
+export const transition: TransportRules["transition"] = (state, event, context) => {
   const { position, loop, loopMode } = context;
   const fromHere = inLoop(position, loop) ? {} : { position: loop.start };
   switch (event.type) {

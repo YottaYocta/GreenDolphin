@@ -50,7 +50,6 @@ export interface Output {
 export interface TransportState {
   playState: PlayState;
   loop: Section;
-  loopMode: LoopMode;
   speed: SpeedRatio;
   waitingUntil: ClockSeconds | null;
 }
@@ -80,10 +79,13 @@ export interface Player {
   dispose(): void;
 }
 
-export interface Core {
+export interface TransportRules {
   transition(state: PlayState, event: TransportEvent, context: TransportContext): Transition;
   inLoop(position: RecordingSeconds, loop: Section): boolean;
   loopDelay(mode: LoopMode): DurationSeconds;
+}
+
+export interface Core {
   positionAt(playback: Playback, time: ClockSeconds): RecordingSeconds;
   continues(previous: Playback, next: Playback): boolean;
   createPlayer(output: Output, options: PlayerOptions): Player;

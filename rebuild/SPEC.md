@@ -124,8 +124,11 @@ src/ui/            React, laid out like the screen
       Waveform/    peak summary and drawing
   shared/          primitives, drag and key helpers, text formatting
 Every non-UI folder follows the same shape: `interfaces.ts` holds all its types
-and ends with one interface listing its operations; implementations take their
-types from it; `index.ts` exports the types plus one object implementing it.
+(including internal contracts between its own files, e.g. engine ↔ worklet) and
+one interface listing its public operations; implementations take their types
+from it; `index.ts` exports only what other folders use — the public types plus
+one object implementing that interface. Tests may reach internals directly; the
+public surface never grows just for them.
 
 tests/             mirrors src/; tests/e2e is Playwright (desktop + Pixel 7 touch)
 ```

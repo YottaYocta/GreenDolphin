@@ -11,6 +11,7 @@ class TransportPlayer implements Player {
   readonly duration: DurationSeconds;
   private readonly output: Output;
   private state: TransportState;
+  private loopMode: LoopMode;
   private anchor: { position: RecordingSeconds; time: ClockSeconds };
   private playback!: Playback;
   private scrub: number | null = null;
@@ -20,7 +21,8 @@ class TransportPlayer implements Player {
   constructor(output: Output, { duration, position, loop, loopMode, speed }: PlayerOptions) {
     this.output = output;
     this.duration = duration;
-    this.state = { playState: "paused", loop: loop ?? { start: 0, end: duration }, loopMode, speed, waitingUntil: null };
+    this.state = { playState: "paused", loop: loop ?? { start: 0, end: duration }, speed, waitingUntil: null };
+    this.loopMode = loopMode;
     this.anchor = { position: clamp(position, 0, duration), time: output.now() };
     this.render();
   }
@@ -42,7 +44,8 @@ class TransportPlayer implements Player {
   }
 
   dispatch(event: TransportEvent) {
-    const { playState, loop, loopMode } = this.state;
+    const { playState, loop } = this.state;
+    const { loopMode } = this;
     const position = this.here();
     const next = transition(playState, event, { position, loop, loopMode });
     this.reanchor(next.position ?? position);
@@ -84,7 +87,7 @@ class TransportPlayer implements Player {
 
   setLoopMode(loopMode: LoopMode) {
     this.reanchor(this.here());
-    this.state = { ...this.state, loopMode };
+    this.loopMode = loopMode;
     this.render();
   }
 
@@ -108,7 +111,8 @@ class TransportPlayer implements Player {
   }
 
   private render() {
-    const { playState, loop, loopMode, speed } = this.state;
+    const { playState, loop, speed } = this.state;
+    const { loopMode } = this;
     const audible = playState === "playing" || playState === "frozen";
     const mode: PlaybackMode =
       this.scrub !== null && audible ? "scrubbing" : playState === "playing" ? "playing" : playState === "frozen" ? "frozen" : "silent";

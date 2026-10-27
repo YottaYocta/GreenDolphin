@@ -17,7 +17,7 @@ export const createEngine: Audio["createEngine"] = async (ctx, buffer) => {
 
 class WebAudioEngine implements AudioEngine {
   readonly analyser: AnalyserNode;
-  readonly ctx: AudioContext;
+  private readonly ctx: AudioContext;
   private readonly buffer: AudioBuffer;
   private readonly stretch: SoundTouchNode;
   private readonly gain: GainNode;
@@ -49,10 +49,6 @@ class WebAudioEngine implements AudioEngine {
   }
 
   now = () => this.ctx.currentTime;
-
-  get mode() {
-    return this.last?.mode ?? "silent";
-  }
 
   render(p: Playback) {
     const prev = this.last;

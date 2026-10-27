@@ -34,7 +34,8 @@ export const waitForEditor = (page: Page) =>
 export const snapshot = (page: Page) =>
   page.evaluate(() => {
     const gd = window.__gd!;
-    return { ...gd.player.getState(), position: gd.player.position(), duration: gd.player.duration, mode: gd.engine?.mode ?? "" } as Snapshot;
+    const internals = { player: gd.player as unknown as { loopMode: Snapshot["loopMode"] }, engine: gd.engine as unknown as { last: { mode: string } | null } | undefined };
+    return { ...gd.player.getState(), position: gd.player.position(), duration: gd.player.duration, loopMode: internals.player.loopMode, mode: internals.engine?.last?.mode ?? "silent" } as Snapshot;
   });
 
 /** Runs a method on the live player (for setups too slow to drive by hand, e.g. tiny loops). */

@@ -17,6 +17,7 @@ class FreezeProcessor extends AudioWorkletProcessor {
   private voices: FreezeVocoder[] = [];
   private frames: Float32Array[] = [];
   private read = 0;
+  private hop = 0;
   private position = 0;
   private target = 0;
   private active = false;
@@ -34,10 +35,10 @@ class FreezeProcessor extends AudioWorkletProcessor {
   }
 
   private reset() {
-    const spread = Math.round((SPREAD_SECONDS * sampleRate) / (WINDOW / 4));
-    this.voices = this.channels.map(() => createFreezeVocoder(WINDOW, spread));
+    this.voices = this.channels.map(() => createFreezeVocoder(WINDOW, SPREAD_SECONDS * sampleRate));
+    this.hop = this.voices[0]?.hop ?? 0;
     this.position = this.target;
-    this.read = WINDOW / 4;
+    this.read = this.hop;
   }
 
   process(_inputs: Float32Array[][], outputs: Float32Array[][]) {
@@ -47,7 +48,7 @@ class FreezeProcessor extends AudioWorkletProcessor {
     const glide = 1 - Math.exp(-block / (GLIDE_SECONDS * sampleRate));
     this.position += (this.target - this.position) * glide;
     for (let i = 0; i < block; i++) {
-      if (this.read === WINDOW / 4) {
+      if (this.read === this.hop) {
         this.voices.forEach((v, c) => (this.frames[c] = v.frame(this.channels[c], this.position)));
         this.read = 0;
       }
