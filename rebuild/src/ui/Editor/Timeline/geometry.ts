@@ -1,4 +1,4 @@
-import type { Section } from "../../../core";
+import type { DurationSeconds, Section } from "../../../core";
 
 export interface LoopFraction {
   start: number;
@@ -39,13 +39,13 @@ export function rescale(from: Section, to: Section, loop: LoopFraction): LoopFra
   return { start, end: Math.max(f(loop.end), start + MIN_LOOP) };
 }
 
-export function zoom(view: Section, anchor: number, factor: number, duration: number): Section {
+export function zoom(view: Section, anchorFraction: number, factor: number, duration: DurationSeconds): Section {
   const len = clamp(length(view) * factor, duration * MIN_VIEW, duration);
-  const pivot = at(view, anchor);
-  return fit({ start: pivot - anchor * len, end: pivot + (1 - anchor) * len }, { start: 0, end: duration });
+  const pivot = at(view, anchorFraction);
+  return fit({ start: pivot - anchorFraction * len, end: pivot + (1 - anchorFraction) * len }, { start: 0, end: duration });
 }
 
-export const pan = (view: Section, delta: number, duration: number): Section =>
+export const pan = (view: Section, delta: DurationSeconds, duration: DurationSeconds): Section =>
   fit({ start: view.start + delta, end: view.end + delta }, { start: 0, end: duration });
 
 export function resizeLoop(loop: LoopFraction, side: "start" | "end", f: number): LoopFraction {

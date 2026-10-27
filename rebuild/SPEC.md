@@ -128,11 +128,16 @@ The Player renders a `Playback` snapshot to its `Output` after every change:
 | field            | meaning                                                         |
 |------------------|-----------------------------------------------------------------|
 | `mode`           | `silent`, `playing`, `frozen` or `scrubbing`                     |
-| `anchorPosition` | where the playhead was (seconds into the recording)…            |
-| `anchorTime`     | …when the output clock read this                                |
-| `rate`           | seconds of recording per clock second while playing             |
+| `anchorPosition` | `RecordingSeconds`: where the playhead was…                      |
+| `anchorTime`     | `ClockSeconds`: …when the output clock read this                 |
+| `rate`           | `SpeedRatio`: recording seconds per clock second while playing   |
 | `loop`           | the loop in effect                                              |
 | `loopWraps`      | wrap seamlessly at the loop end, or stop there (manual / delay) |
+
+Units are named types: `RecordingSeconds` (positions, loops, views),
+`ClockSeconds` (output clock), `DurationSeconds` (lengths, delays) and
+`SpeedRatio`. A scrub is `startScrub` → `scrubTo`… → `endScrub`;
+`correctPosition` re-anchors to a position an output observed (YouTube drift).
 
 `positionAt(playback, time)` gives the playhead on that trajectory.
 `continues(prev, next)` is true when `next` carries on from `prev` without a

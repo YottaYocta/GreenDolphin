@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
-import type { Player, PlayerOptions, Section } from "../../core";
+import type { DurationSeconds, Player, PlayerOptions, Section } from "../../core";
 import { FULL, clamp, fit, length, toFraction, toSection } from "./Timeline/geometry";
 import { loopPrefs, recordingPrefs, saveRecordingPrefs, toLoopMode } from "../../persistence/prefs";
 
@@ -15,7 +15,7 @@ export interface SoundOutput {
   setPitch?(semitones: number): void;
 }
 
-export function restore(name: string, duration: number) {
+export function restore(name: string, duration: DurationSeconds) {
   const p = recordingPrefs(name);
   const full = { start: 0, end: duration };
   const view = p.view ? fit(p.view, full) : full;

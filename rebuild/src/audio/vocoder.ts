@@ -33,10 +33,10 @@ export class FreezeVocoder {
     this.ready = new Float32Array(this.hop);
   }
 
-  frame(x: Float32Array, position: number): Float32Array {
+  frame(x: Float32Array, atSample: number): Float32Array {
     const { n, hop, re, im, mag, phase, omega, out, peakOf, ola, window } = this;
     const bins = n / 2 + 1;
-    const p = Math.round(position);
+    const p = Math.round(atSample);
     if (p !== this.analysedAt) {
       this.analyse(x, p);
       this.analysedAt = p;

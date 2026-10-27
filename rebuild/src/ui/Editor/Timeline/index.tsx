@@ -1,7 +1,7 @@
 import { createRef, useCallback, useEffect, useMemo, useRef, type FC, type PointerEvent as ReactPointerEvent, type RefObject } from "react";
 import { FULL, at, clamp, isFull, length, pan, rescale, resizeLoop, shiftLoop, toSection, zoom, type LoopFraction } from "./geometry";
 import { formatTick, tickStep } from "./ticks";
-import type { Player } from "../../../core";
+import type { DurationSeconds, Player, RecordingSeconds } from "../../../core";
 import type { Section } from "../../../core";
 import { drag } from "../../shared/drag";
 import { useKeys } from "../../shared/keys";
@@ -74,7 +74,7 @@ export function Timeline(props: TimelineProps) {
     () => createModel({ player, initialView, initialLoop, onView, onLoopCommit }, content),
     [player, initialView, initialLoop, onView, onLoopCommit],
   );
-  const onTap = useCallback((time: number) => player.dispatch({ type: "move", position: time }), [player]);
+  const onTap = useCallback((time: RecordingSeconds) => player.dispatch({ type: "move", position: time }), [player]);
 
   useKeys({
     j: () => keyView(zoom(model.m.view, 0.5, 1 / (1 - KEY_STEP), duration)),
@@ -99,8 +99,16 @@ export function Timeline(props: TimelineProps) {
     model.lift();
     drag(e, (_, dx) => model.setLoop(shiftLoop(from, dx / model.width())), () => model.commit());
   };
-  const scrub = (e: ReactPointerEvent<HTMLDivElement>) =>
-    drag(e, (x) => player.scrubTo(model.time(x)), (moved) => moved && player.endScrub(), TAP_PX);
+  const scrub = (e: ReactPointerEvent<HTMLDivElement>) => {
+    let started = false;
+    const follow = (x: number) => {
+      const at = model.time(x);
+      if (started) return player.scrubTo(at);
+      started = true;
+      player.startScrub(at);
+    };
+    drag(e, follow, (moved) => moved && player.endScrub(), TAP_PX);
+  };
   const resetOnDoubleTap = (e: ReactPointerEvent) => {
     if (!e.isPrimary) return;
     const last = lastTap.current;
@@ -152,7 +160,7 @@ export function Timeline(props: TimelineProps) {
   );
 }
 
-function useViewportGestures(root: RefObject<HTMLDivElement | null>, model: Model, duration: number, onTap: (time: number) => void) {
+function useViewportGestures(root: RefObject<HTMLDivElement | null>, model: Model, duration: DurationSeconds, onTap: (time: RecordingSeconds) => void) {
   useEffect(() => {
     const el = root.current!;
     const pointers = new Map<number, number>();

@@ -89,13 +89,13 @@ test("clicking outside the loop: playing goes to the loop start, paused stays", 
 test("scrubbing while playing streams the freeze, then resumes at the drop", () => {
   const p = make();
   p.dispatch({ type: "toggle-play" });
-  p.scrubTo(15);
+  p.startScrub(15);
   expect(last()).toMatchObject({ mode: "scrubbing", anchorPosition: 15 });
   advance(30);
   expect(p.position()).toBe(15);
   p.endScrub();
   expect(last()).toMatchObject({ mode: "playing", anchorPosition: 15 });
-  p.scrubTo(50);
+  p.startScrub(50);
   p.endScrub();
   expect(p.position()).toBe(10);
 });
@@ -103,12 +103,12 @@ test("scrubbing while playing streams the freeze, then resumes at the drop", () 
 test("scrubbing while frozen moves the freeze; paused scrubs are silent", () => {
   const p = make();
   p.dispatch({ type: "toggle-freeze" });
-  p.scrubTo(30);
+  p.startScrub(30);
   expect(last()).toMatchObject({ mode: "scrubbing", anchorPosition: 30 });
   p.endScrub();
   expect(last()).toMatchObject({ mode: "frozen", anchorPosition: 30 });
   p.dispatch({ type: "toggle-freeze" });
-  p.scrubTo(5);
+  p.startScrub(5);
   expect(last().mode).toBe("silent");
   p.endScrub();
   expect(p.getState().playState).toBe("paused");
@@ -138,4 +138,16 @@ test("outputs see the same playhead the player reports", () => {
   p.setSpeed(1.5);
   advance(1.1);
   expect(positionAt(last(), clock)).toBe(p.position());
+});
+
+test("a scrub has an explicit start: scrubTo before startScrub does nothing", () => {
+  const p = make();
+  p.dispatch({ type: "toggle-play" });
+  p.scrubTo(15);
+  expect(last().mode).toBe("playing");
+  p.startScrub(15);
+  p.scrubTo(16);
+  expect(last()).toMatchObject({ mode: "scrubbing", anchorPosition: 16 });
+  p.endScrub();
+  expect(p.position()).toBe(16);
 });

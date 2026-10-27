@@ -1,12 +1,12 @@
-import type { LoopMode, Section } from "../core";
+import type { LoopMode, RecordingSeconds, Section, SpeedRatio } from "../core";
 
 export interface RecordingPrefs {
-  speed: number;
+  speed: SpeedRatio;
   pitch: number;
   gain: number;
   loop: Section | null;
   view: Section | null;
-  position: number;
+  position: RecordingSeconds;
 }
 
 export interface LoopPrefs {

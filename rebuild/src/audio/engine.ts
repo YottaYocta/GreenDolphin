@@ -1,7 +1,7 @@
 import { SoundTouchNode } from "@soundtouchjs/audio-worklet";
 import soundTouchUrl from "@soundtouchjs/audio-worklet/processor?url";
 import freezeUrl from "./freezeProcessor.ts?worker&url";
-import { continues, positionAt, type Output, type Playback } from "../core";
+import { continues, positionAt, type Output, type Playback, type RecordingSeconds } from "../core";
 import type { FreezeMessage } from "./freezeProcessor";
 
 const FADE = 0.03;
@@ -107,7 +107,7 @@ export class AudioEngine implements Output {
     for (const node of [this.freeze, this.freezeGain, this.stretch, this.gain, this.analyser]) node.disconnect();
   }
 
-  private startSource(p: Playback, position: number) {
+  private startSource(p: Playback, position: RecordingSeconds) {
     const source = Object.assign(this.ctx.createBufferSource(), { buffer: this.buffer, loop: true, loopStart: p.loop.start, loopEnd: p.loop.end });
     source.playbackRate.value = p.rate;
     source.connect(this.stretch);

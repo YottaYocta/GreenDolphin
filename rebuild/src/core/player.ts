@@ -1,8 +1,9 @@
 import { positionAt, type Playback, type PlaybackMode } from "./playback";
 import { loopDelay, transition, type LoopMode, type PlayState, type Section, type TransportEvent } from "./transport";
+import type { ClockSeconds, DurationSeconds, RecordingSeconds, SpeedRatio } from "./units";
 
 export interface Output {
-  now(): number;
+  now(): ClockSeconds;
   render(playback: Playback): void;
 }
 
@@ -10,31 +11,32 @@ export interface TransportState {
   playState: PlayState;
   loop: Section;
   loopMode: LoopMode;
-  speed: number;
-  waitingUntil: number | null;
+  speed: SpeedRatio;
+  waitingUntil: ClockSeconds | null;
 }
 
 export interface PlayerOptions {
-  duration: number;
-  position: number;
+  duration: DurationSeconds;
+  position: RecordingSeconds;
   loop: Section | null;
   loopMode: LoopMode;
-  speed: number;
+  speed: SpeedRatio;
 }
 
 export interface Player {
-  readonly duration: number;
+  readonly duration: DurationSeconds;
   subscribe(listener: () => void): () => void;
   getState(): TransportState;
-  position(): number;
-  delayRemaining(): number;
+  position(): RecordingSeconds;
+  delayRemaining(): DurationSeconds;
   dispatch(event: TransportEvent): void;
-  scrubTo(position: number): void;
+  startScrub(at: RecordingSeconds): void;
+  scrubTo(at: RecordingSeconds): void;
   endScrub(): void;
-  setSpeed(speed: number): void;
+  setSpeed(speed: SpeedRatio): void;
   setLoop(loop: Section | null): void;
   setLoopMode(loopMode: LoopMode): void;
-  resync(position: number): void;
+  correctPosition(observed: RecordingSeconds): void;
   dispose(): void;
 }
 
@@ -44,10 +46,10 @@ const DUE_SLACK = 0.002;
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
 class TransportPlayer implements Player {
-  readonly duration: number;
+  readonly duration: DurationSeconds;
   private readonly output: Output;
   private state: TransportState;
-  private anchor: { position: number; time: number };
+  private anchor: { position: RecordingSeconds; time: ClockSeconds };
   private playback!: Playback;
   private scrub: number | null = null;
   private timer: ReturnType<typeof setTimeout> | undefined;
@@ -87,8 +89,14 @@ class TransportPlayer implements Player {
     this.render();
   }
 
-  scrubTo(position: number) {
-    this.scrub = clamp(position, 0, this.duration);
+  startScrub(at: RecordingSeconds) {
+    this.scrub = clamp(at, 0, this.duration);
+    this.render();
+  }
+
+  scrubTo(at: RecordingSeconds) {
+    if (this.scrub === null) return;
+    this.scrub = clamp(at, 0, this.duration);
     this.render();
   }
 
@@ -99,7 +107,7 @@ class TransportPlayer implements Player {
     this.dispatch({ type: "move", position });
   }
 
-  setSpeed(speed: number) {
+  setSpeed(speed: SpeedRatio) {
     this.reanchor(this.here());
     this.state = { ...this.state, speed };
     this.render();
@@ -118,8 +126,8 @@ class TransportPlayer implements Player {
     this.render();
   }
 
-  resync(position: number) {
-    this.reanchor(position);
+  correctPosition(observed: RecordingSeconds) {
+    this.reanchor(observed);
     this.render();
   }
 
@@ -133,7 +141,7 @@ class TransportPlayer implements Player {
     return this.scrub ?? positionAt(this.playback, this.output.now());
   }
 
-  private reanchor(position: number) {
+  private reanchor(position: RecordingSeconds) {
     this.anchor = { position, time: this.output.now() };
   }
 

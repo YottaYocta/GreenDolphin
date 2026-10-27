@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { PauseIcon, PlayIcon, SkipBackIcon, SkipForwardIcon, SlidersIcon, SnowflakeIcon } from "@phosphor-icons/react";
 import { capture } from "../../../analytics";
 import { clamp } from "../Timeline/geometry";
-import type { Player } from "../../../core";
+import type { DurationSeconds, Player } from "../../../core";
 import { useKeys } from "../../shared/keys";
 import { Dialog } from "../../shared/primitives";
 import { usePlayer } from "../session";
@@ -34,7 +34,7 @@ export function Controls({ player, freeze, settings }: { player: Player; freeze:
     player.dispatch({ type: "toggle-play" });
   };
   const toggleFreeze = () => freeze && player.dispatch({ type: "toggle-freeze" });
-  const nudge = (seconds: number) => player.dispatch({ type: "move", position: clamp(player.position() + seconds, 0, player.duration) });
+  const nudge = (seconds: DurationSeconds) => player.dispatch({ type: "move", position: clamp(player.position() + seconds, 0, player.duration) });
   useKeys({
     " ": togglePlay,
     p: togglePlay,
@@ -46,7 +46,7 @@ export function Controls({ player, freeze, settings }: { player: Player; freeze:
     "0": () => player.dispatch({ type: "move", position: 0 }),
   });
 
-  const nav = (Icon: typeof SkipBackIcon, seconds: number, label: string) => (
+  const nav = (Icon: typeof SkipBackIcon, seconds: DurationSeconds, label: string) => (
     <button aria-label={label} onClick={() => nudge(seconds)} className={BTN}>
       <Icon size={freeze ? 28 : 32} weight="fill" className="opacity-65 shrink-0" />
     </button>

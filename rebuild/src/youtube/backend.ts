@@ -1,12 +1,12 @@
-import { continues, positionAt, type Output, type Playback, type Player } from "../core";
+import { continues, positionAt, type ClockSeconds, type DurationSeconds, type Output, type Playback, type Player, type RecordingSeconds, type SpeedRatio } from "../core";
 
 export interface YTPlayer {
   playVideo(): void;
   pauseVideo(): void;
-  seekTo(seconds: number, allowSeekAhead: boolean): void;
-  getCurrentTime(): number;
-  getDuration(): number;
-  setPlaybackRate(rate: number): void;
+  seekTo(position: RecordingSeconds, allowSeekAhead: boolean): void;
+  getCurrentTime(): RecordingSeconds;
+  getDuration(): DurationSeconds;
+  setPlaybackRate(rate: SpeedRatio): void;
   setVolume(volume: number): void;
   destroy(): void;
 }
@@ -55,7 +55,7 @@ const SEEK_TIMEOUT = 3;
 
 export class YouTubeBackend implements Output {
   private last: Playback | null = null;
-  private seek: { position: number; at: number } | null = null;
+  private seek: { position: RecordingSeconds; at: ClockSeconds } | null = null;
   private pausedAt = -Infinity;
   private readonly yt: YTPlayer;
 
@@ -91,7 +91,7 @@ export class YouTubeBackend implements Output {
     const time = this.yt.getCurrentTime();
     if (this.seeking(time)) return;
     if (p.loopWraps && time >= p.loop.end) this.seekTo(p.loop.start);
-    else if (Math.abs(time - player.position()) > DRIFT) player.resync(time);
+    else if (Math.abs(time - player.position()) > DRIFT) player.correctPosition(time);
   }
 
   onStateChange(state: number, player: Player) {
@@ -106,12 +106,12 @@ export class YouTubeBackend implements Output {
     }
   }
 
-  private seekTo(position: number) {
+  private seekTo(position: RecordingSeconds) {
     this.seek = { position, at: this.now() };
     this.yt.seekTo(position, true);
   }
 
-  private seeking(time: number) {
+  private seeking(time: RecordingSeconds) {
     if (this.seek && Math.abs(time - this.seek.position) > DRIFT && this.now() - this.seek.at < SEEK_TIMEOUT) return true;
     this.seek = null;
     return false;

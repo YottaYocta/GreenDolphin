@@ -1,32 +1,34 @@
+import type { DurationSeconds, RecordingSeconds } from "./units";
+
 export type PlayState = "paused" | "playing" | "frozen" | "waiting";
 
 export interface Section {
-  start: number;
-  end: number;
+  start: RecordingSeconds;
+  end: RecordingSeconds;
 }
 
-export type LoopMode = { type: "manual" } | { type: "automatic"; delay: number };
+export type LoopMode = { type: "manual" } | { type: "automatic"; delay: DurationSeconds };
 
 export type TransportEvent =
   | { type: "toggle-play" }
   | { type: "toggle-freeze" }
-  | { type: "move"; position: number }
+  | { type: "move"; position: RecordingSeconds }
   | { type: "loop-end" }
   | { type: "delay-end" }
   | { type: "loop-change" };
 
 export interface TransportContext {
-  position: number;
+  position: RecordingSeconds;
   loop: Section;
   loopMode: LoopMode;
 }
 
 export interface Transition {
   state: PlayState;
-  position?: number;
+  position?: RecordingSeconds;
 }
 
-export const inLoop = (position: number, loop: Section) =>
+export const inLoop = (position: RecordingSeconds, loop: Section) =>
   position >= loop.start && position < loop.end;
 
 export const loopDelay = (mode: LoopMode) => (mode.type === "automatic" ? mode.delay : 0);

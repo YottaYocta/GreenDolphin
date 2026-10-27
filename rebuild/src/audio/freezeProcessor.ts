@@ -6,9 +6,11 @@ declare class AudioWorkletProcessor {
   readonly port: MessagePort;
 }
 
+import type { RecordingSeconds } from "../core";
+
 export type FreezeMessage =
   | { type: "load"; channels: Float32Array[] }
-  | { type: "seek"; position: number; jump: boolean }
+  | { type: "seek"; position: RecordingSeconds; jump: boolean }
   | { type: "active"; active: boolean };
 
 const WINDOW = 2048;
