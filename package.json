@@ -5,13 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "experiments": "vite --config experiments/vite.config.ts",
-    "rebuild:dev": "vite --config rebuild/vite.config.ts",
-    "rebuild:build": "tsc -p rebuild/tsconfig.json && vite build --config rebuild/vite.config.ts",
-    "rebuild:test": "vitest run --root rebuild",
-    "rebuild:e2e": "playwright test -c rebuild/playwright.config.ts",
-    "test": "vitest",
-    "build": "tsc -b && vite build",
+    "build": "tsc && vite build",
+    "test": "vitest run",
+    "e2e": "playwright test",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -22,8 +18,7 @@
     "posthog-js": "^1.391.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "tailwindcss": "^4.1.8",
-    "tinykeys": "^4.0.0"
+    "tailwindcss": "^4.1.8"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",

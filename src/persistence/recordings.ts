@@ -7,7 +7,7 @@ let db: Promise<IDBDatabase> | null = null;
 
 const open = () =>
   (db ??= new Promise((resolve, reject) => {
-    const req = indexedDB.open("greendolphin-rebuild", 3);
+    const req = indexedDB.open("greendolphin", 1);
     req.onupgradeneeded = () => {
       for (const name of [...req.result.objectStoreNames]) req.result.deleteObjectStore(name);
       req.result.createObjectStore(RECORDINGS, { keyPath: "id" });

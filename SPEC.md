@@ -1,4 +1,4 @@
-# GreenDolphin (rebuild) — behaviour spec
+# GreenDolphin — behaviour spec
 
 Local-first looper for learning music by ear. No audio leaves the device.
 Every rule here is covered by a unit or end-to-end test.
@@ -159,5 +159,4 @@ jump; outputs restart only on a mode change or a jump, and adjust in place
 otherwise. Pitch and volume never enter the core — the editor sends them
 straight to the output.
 
-Commands (from the repo root): `pnpm rebuild:dev`, `pnpm rebuild:test`,
-`pnpm rebuild:e2e`, `pnpm rebuild:build`.
+Commands: `pnpm dev`, `pnpm test`, `pnpm e2e`, `pnpm build`.
