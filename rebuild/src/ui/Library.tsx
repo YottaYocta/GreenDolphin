@@ -1,0 +1,149 @@
+import { useRef, useState } from "react";
+import { MusicNoteIcon, MusicNotesPlusIcon, PlayIcon, SpinnerIcon, TrashIcon, YoutubeLogoIcon } from "@phosphor-icons/react";
+import { noteColor, relativeDate, stripExt } from "../domain/format";
+import { isYouTube } from "../youtube/source";
+import { useLibrary } from "./context";
+import { Dialog } from "./primitives";
+
+export const RecordingIcon = ({ file, size = 32 }: { file: File; size?: number }) =>
+  isYouTube(file) ? <YoutubeLogoIcon size={size} weight="fill" color="#FF0000" className="opacity-80 shrink-0" /> : <MusicNoteIcon size={size} weight="fill" color={noteColor(file.name)} className="shrink-0" />;
+
+export function NewRecordingDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  const { add, addYouTube } = useLibrary();
+  const input = useRef<HTMLInputElement>(null);
+  const [link, setLink] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const submit = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      await addYouTube(link);
+      setLink("");
+      onOpenChange(false);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Couldn't add that video. Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Dialog title="New Recording" open={open} onOpenChange={onOpenChange}>
+      <div className="flex flex-col gap-4">
+        <button onClick={() => input.current?.click()} className="btn-surface rounded-lg gap-2 h-12 w-full">
+          <MusicNotesPlusIcon size={20} weight="fill" className="opacity-50" />
+          <span className="opacity-40">Upload Audio File</span>
+        </button>
+        <input
+          ref={input}
+          type="file"
+          accept="audio/*,video/*"
+          aria-label="Upload audio file"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            e.target.value = "";
+            if (!file) return;
+            onOpenChange(false);
+            void add(file);
+          }}
+        />
+        <div className="flex items-center gap-3 text-sm text-black/30 font-inria">
+          <div className="flex-1 h-px bg-border" />
+          or
+          <div className="flex-1 h-px bg-border" />
+        </div>
+        <input
+          type="url"
+          aria-label="YouTube link"
+          value={link}
+          onChange={(e) => {
+            setLink(e.target.value);
+            setError(null);
+          }}
+          onKeyDown={(e) => e.key === "Enter" && void submit()}
+          placeholder="https://www.youtube.com/watch?v=…"
+          className="rounded-lg bg-surface-input h-12 px-3 font-space-mono text-sm/5 text-black/60 outline-none placeholder:text-black/25"
+        />
+        {error && <p className="text-sm text-red-600/80 font-inria">{error}</p>}
+        <button onClick={() => void submit()} disabled={busy || !link.trim()} className="btn-surface rounded-lg gap-2 h-12 w-full disabled:opacity-60 disabled:cursor-not-allowed">
+          {busy ? <SpinnerIcon size={20} className="animate-spin opacity-40" /> : <YoutubeLogoIcon size={20} weight="fill" className="opacity-50" />}
+          <span className="opacity-40">{busy ? "Adding…" : "Add Video"}</span>
+        </button>
+      </div>
+    </Dialog>
+  );
+}
+
+export function Library() {
+  const { recordings, error, open, remove } = useLibrary();
+  const [adding, setAdding] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const newButton = (className: string) => (
+    <button onClick={() => setAdding(true)} className={`flex items-center justify-center gap-2 self-stretch bg-surface border-border ${className}`}>
+      <MusicNotesPlusIcon size={20} weight="fill" className="opacity-50" />
+      <span className="opacity-40">New Recording</span>
+    </button>
+  );
+
+  return (
+    <main className="flex flex-col items-center px-4 py-8 h-dvh overflow-hidden font-inria text-base/5">
+      <div className="flex flex-col items-center justify-center gap-5 w-full max-w-2xl flex-1 min-h-0 md:py-24 md:pb-48">
+        <header className="flex max-md:flex-col max-md:items-start max-md:pl-4 items-center gap-4 self-stretch p-4 md:justify-center max-md:flex-1">
+          <img src="/favicon/favicon.svg" alt="" className="w-20 rounded-[9px] shadow-drop border border-emerald-600/30 bg-white" />
+          <div className="flex flex-col gap-1">
+            <h1 className="font-bold text-play text-[29px]/9">GreenDolphin</h1>
+            <p className="text-black/50 text-sm/4.5">Audio Looper & Recording Analyzer</p>
+          </div>
+        </header>
+        {error && <p role="alert" className="text-sm text-red-600/80">{error}</p>}
+        <section aria-label="My Recordings" className="flex flex-col rounded-2xl overflow-hidden self-stretch shadow-panel bg-white border border-border min-h-0 max-md:flex-3">
+          {newButton("md:hidden m-4 rounded-2xl shadow-btn border h-12")}
+          <ul className="flex-1 min-h-0 overflow-y-auto divide-y divide-border max-md:border-t border-border">
+            {recordings.length === 0 && <li className="px-6 py-8 text-center text-black/50 text-sm">No recordings yet. Upload a file to get started.</li>}
+            {recordings.map(({ file, addedAt }) => (
+              <li key={file.name} className="flex max-md:flex-col md:items-center gap-4 p-4 md:p-6">
+                <div className="flex items-center gap-4 flex-1 min-w-0">
+                  <div className="flex items-center justify-center shrink-0 rounded-full size-14 bg-white shadow-(--shadow-drop) border border-border">
+                    <RecordingIcon file={file} />
+                  </div>
+                  <div className="flex flex-col gap-1 min-w-0">
+                    <p className="truncate">{stripExt(file.name)}</p>
+                    <p className="opacity-40 md:text-sm">{relativeDate(addedAt)}</p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button aria-label={`Play ${file.name}`} onClick={() => open(file.name)} className="btn-surface max-md:flex-1 h-10 md:size-10">
+                    <PlayIcon size={20} weight="fill" color="var(--color-play)" />
+                  </button>
+                  <button aria-label={`Delete ${file.name}`} onClick={() => setDeleting(file.name)} className="btn-surface max-md:flex-1 h-10 md:size-10">
+                    <TrashIcon size={20} weight="fill" className="opacity-40" />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+          {newButton("max-md:hidden min-h-18 border-t shadow-inset-dim hover:bg-surface-track cursor-pointer")}
+        </section>
+      </div>
+      <NewRecordingDialog open={adding} onOpenChange={setAdding} />
+      <Dialog title="Delete Recording" open={deleting !== null} onOpenChange={(o) => !o && setDeleting(null)}>
+        <p className="font-inria text-black/70 pb-6">Delete “{stripExt(deleting ?? "")}”? Its loop and settings go with it.</p>
+        <div className="flex gap-3">
+          <button onClick={() => setDeleting(null)} className="btn-surface flex-1 h-10 rounded-lg">
+            Cancel
+          </button>
+          <button
+            onClick={() => {
+              void remove(deleting!);
+              setDeleting(null);
+            }}
+            className="flex-1 h-10 rounded-lg bg-red-500 text-white hover:bg-red-600 cursor-pointer"
+          >
+            Delete
+          </button>
+        </div>
+      </Dialog>
+    </main>
+  );
+}

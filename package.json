@@ -6,6 +6,10 @@
   "scripts": {
     "dev": "vite",
     "experiments": "vite --config experiments/vite.config.ts",
+    "rebuild:dev": "vite --config rebuild/vite.config.ts",
+    "rebuild:build": "tsc -p rebuild/tsconfig.json && vite build --config rebuild/vite.config.ts",
+    "rebuild:test": "vitest run --root rebuild",
+    "rebuild:e2e": "playwright test -c rebuild/playwright.config.ts",
     "test": "vitest",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
@@ -23,6 +27,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
+    "@playwright/test": "1.56.1",
     "@tailwindcss/vite": "^4.1.8",
     "@types/node": "^25.9.3",
     "@types/react": "^19.1.2",
