@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { PlayIcon } from "@phosphor-icons/react";
 import { capture } from "../../../analytics";
 import { length } from "../Timeline/geometry";
 import type { Player } from "../../../core";
@@ -91,15 +90,6 @@ export function LoopSettings({ player }: { player: Player }) {
             capture("loop_mode_changed", { loop_mode: mode });
           }}
         />
-        <p className="font-inria text-sm text-black/50 pt-1">
-          {prefs.mode === "manual" ? (
-            <>
-              Pauses at loop end; press <PlayIcon size={12} weight="fill" color="var(--color-play)" className="inline align-middle" /> to replay.
-            </>
-          ) : (
-            "Playback loops automatically, with an optional delay between loops."
-          )}
-        </p>
       </div>
       {prefs.mode === "automatic" && (
         <div className="flex flex-col gap-1.5">
@@ -127,7 +117,6 @@ export function LoopSettings({ player }: { player: Player }) {
               }}
             />
           </div>
-          <p className="font-inria text-sm text-black/50 pt-1">{`A ${shown}${unit} delay will occur between loops.`}</p>
         </div>
       )}
     </>
