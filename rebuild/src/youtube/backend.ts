@@ -1,4 +1,4 @@
-import type { Backend, Output, Player } from "../domain/player";
+import type { Backend, Output, Player } from "../core/player";
 
 export interface YTPlayer {
   playVideo(): void;

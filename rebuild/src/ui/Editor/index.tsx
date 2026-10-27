@@ -1,16 +1,17 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { AudioEngine } from "../audio/engine";
-import { buildPeaks, drawWaveform, type Peaks } from "../audio/peaks";
-import { formatSize, formatTime } from "../domain/format";
-import { Player } from "../domain/player";
-import type { Section } from "../domain/transport";
-import { YouTubeBackend, describeYouTubeError, loadYouTubeApi, type YTPlayer } from "../youtube/backend";
-import type { YouTubeSource } from "../youtube/source";
+import { AudioEngine } from "../../audio/engine";
+import { buildPeaks, drawWaveform, type Peaks } from "./Timeline/Waveform/peaks";
+import { formatSize, formatTime } from "../shared/format";
+import { Player } from "../../core/player";
+import type { Section } from "../../core/transport";
+import { YouTubeBackend, describeYouTubeError, loadYouTubeApi, type YTPlayer } from "../../youtube/backend";
+import type { YouTubeSource } from "../../youtube/source";
 import { Controls } from "./Controls";
-import { KeepAwake, Tutorial, type TutorialStep } from "./extras";
+import { KeepAwake } from "./KeepAwake";
+import { Tutorial, type TutorialStep } from "./Tutorial";
 import { PianoRoll } from "./PianoRoll";
 import { restore, usePersistence } from "./session";
-import { LoopSettings, SoundSettings } from "./Settings";
+import { LoopSettings, SoundSettings } from "./Controls/Settings";
 import { Timeline, type TimelineProps } from "./Timeline";
 import { TitleBar } from "./TitleBar";
 

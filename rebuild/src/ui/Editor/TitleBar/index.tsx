@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Menu } from "@base-ui/react/menu";
 import { CaretRightIcon, FileMagnifyingGlassIcon, HouseIcon, MusicNotesPlusIcon } from "@phosphor-icons/react";
-import { stripExt } from "../domain/format";
-import { useLibrary } from "./context";
-import { NewRecordingDialog, RecordingIcon } from "./Library";
-import { Dialog } from "./primitives";
+import { stripExt } from "../../shared/format";
+import { useLibrary } from "../../context";
+import { NewRecordingDialog, RecordingIcon } from "../../Library/NewRecordingDialog";
+import { Dialog } from "../../shared/primitives";
 
 const GHOST = "flex items-center justify-center gap-2 h-12 shrink-0 rounded-lg cursor-pointer hover:bg-black/5 active:bg-black/10";
 const ITEM = "flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-neutral-50 active:bg-neutral-100";

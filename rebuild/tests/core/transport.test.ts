@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { transition, type LoopMode, type PlayState, type TransportEvent } from "../src/domain/transport";
+import { transition, type LoopMode, type PlayState, type TransportEvent } from "../../src/core/transport";
 
 const loop = { start: 10, end: 20 };
 const auto0: LoopMode = { type: "automatic", delay: 0 };

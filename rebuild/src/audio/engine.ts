@@ -1,7 +1,7 @@
 import { SoundTouchNode } from "@soundtouchjs/audio-worklet";
 import soundTouchUrl from "@soundtouchjs/audio-worklet/processor?url";
 import freezeUrl from "./freezeProcessor.ts?worker&url";
-import type { Backend, Output } from "../domain/player";
+import type { Backend, Output } from "../core/player";
 import type { FreezeMessage } from "./freezeProcessor";
 
 const FADE = 0.03;

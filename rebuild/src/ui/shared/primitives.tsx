@@ -1,7 +1,7 @@
 import { useRef, type ReactNode } from "react";
 import { Dialog as BaseDialog } from "@base-ui/react/dialog";
 import { ArrowClockwiseIcon, XIcon } from "@phosphor-icons/react";
-import { clamp } from "../domain/geometry";
+import { clamp } from "../Editor/Timeline/geometry";
 import { drag } from "./drag";
 
 export function Dialog({ title, open, onOpenChange, children }: { title: string; open: boolean; onOpenChange: (open: boolean) => void; children: ReactNode }) {

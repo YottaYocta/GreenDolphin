@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
-import { Player, type Backend, type Output, type PlayerInit } from "../src/domain/player";
+import { Player, type Backend, type Output, type PlayerInit } from "../../src/core/player";
 
 let clock = 0;
 let outputs: Output[] = [];

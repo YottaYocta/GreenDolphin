@@ -1,4 +1,3 @@
-import { clamp } from "./geometry";
 import { loopDelay, transition, type LoopMode, type PlayState, type Section, type TransportEvent } from "./transport";
 
 export interface Settings {
@@ -38,6 +37,7 @@ export interface PlayerInit extends Settings {
 }
 
 const DUE_SLACK = 0.002;
+const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
 export class Player {
   readonly duration: number;

@@ -1,10 +1,10 @@
 import { createRef, useCallback, useEffect, useMemo, useRef, type FC, type PointerEvent as ReactPointerEvent, type RefObject } from "react";
-import { FULL, at, clamp, isFull, length, pan, rescale, resizeLoop, shiftLoop, toSection, zoom, type LoopFraction } from "../domain/geometry";
-import { formatTick, tickStep } from "../domain/format";
-import type { Player } from "../domain/player";
-import type { Section } from "../domain/transport";
-import { drag } from "./drag";
-import { useKeys } from "./keys";
+import { FULL, at, clamp, isFull, length, pan, rescale, resizeLoop, shiftLoop, toSection, zoom, type LoopFraction } from "./geometry";
+import { formatTick, tickStep } from "./ticks";
+import type { Player } from "../../../core/player";
+import type { Section } from "../../../core/transport";
+import { drag } from "../../shared/drag";
+import { useKeys } from "../../shared/keys";
 
 export interface TimelineProps {
   player: Player;

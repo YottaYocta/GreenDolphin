@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { PlayIcon } from "@phosphor-icons/react";
-import { capture } from "../analytics";
-import { length } from "../domain/geometry";
-import type { Player } from "../domain/player";
-import { loopPrefs, saveLoopPrefs, toLoopMode, type LoopPrefs } from "../persistence/prefs";
-import { ModeToggle, NumericInput, Slider } from "./primitives";
-import { usePlayer } from "./session";
+import { capture } from "../../../analytics";
+import { length } from "../Timeline/geometry";
+import type { Player } from "../../../core/player";
+import { loopPrefs, saveLoopPrefs, toLoopMode, type LoopPrefs } from "../../../persistence/prefs";
+import { ModeToggle, NumericInput, Slider } from "../../shared/primitives";
+import { usePlayer } from "../session";
 
 const percent = (v: number) => String(Math.round(v * 100));
 

@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
-import { formatTick, formatTime, relativeDate, stripExt, tickStep } from "../src/domain/format";
-import { parseVideoId } from "../src/youtube/source";
+import { formatTime, relativeDate, stripExt } from "../../../src/ui/shared/format";
+import { formatTick, tickStep } from "../../../src/ui/Editor/Timeline/ticks";
+import { parseVideoId } from "../../../src/youtube/source";
 
 test.each([
   ["dQw4w9WgXcQ", "dQw4w9WgXcQ"],

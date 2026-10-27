@@ -1,5 +1,5 @@
-import type { Settings } from "../domain/player";
-import type { LoopMode, Section } from "../domain/transport";
+import type { Settings } from "../core/player";
+import type { LoopMode, Section } from "../core/transport";
 
 export interface RecordingPrefs extends Settings {
   loop: Section | null;

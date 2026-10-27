@@ -1,11 +1,11 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { PauseIcon, PlayIcon, SkipBackIcon, SkipForwardIcon, SlidersIcon, SnowflakeIcon } from "@phosphor-icons/react";
-import { capture } from "../analytics";
-import { clamp } from "../domain/geometry";
-import type { Player } from "../domain/player";
-import { useKeys } from "./keys";
-import { Dialog } from "./primitives";
-import { usePlayer } from "./session";
+import { capture } from "../../../analytics";
+import { clamp } from "../Timeline/geometry";
+import type { Player } from "../../../core/player";
+import { useKeys } from "../../shared/keys";
+import { Dialog } from "../../shared/primitives";
+import { usePlayer } from "../session";
 
 const BTN = "btn-surface rounded-xl h-full min-h-0 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed p-3 md:p-6";
 const COLORED = "[box-shadow:var(--shadow-btn-colored)]";

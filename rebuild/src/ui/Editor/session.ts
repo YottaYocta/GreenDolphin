@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useSyncExternalStore } from "react";
-import { FULL, clamp, fit, length, toFraction, toSection } from "../domain/geometry";
-import type { Player, PlayerInit } from "../domain/player";
-import type { Section } from "../domain/transport";
-import { loopPrefs, recordingPrefs, saveRecordingPrefs, toLoopMode } from "../persistence/prefs";
+import { FULL, clamp, fit, length, toFraction, toSection } from "./Timeline/geometry";
+import type { Player, PlayerInit } from "../../core/player";
+import type { Section } from "../../core/transport";
+import { loopPrefs, recordingPrefs, saveRecordingPrefs, toLoopMode } from "../../persistence/prefs";
 
 export const usePlayer = (player: Player) => useSyncExternalStore(player.subscribe, player.getState);
 

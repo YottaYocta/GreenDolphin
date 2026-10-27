@@ -1,5 +1,5 @@
 import { beforeEach, expect, test, vi } from "vitest";
-import { lastOpened, loopPrefs, recordingPrefs, removeRecordingPrefs, saveLoopPrefs, saveRecordingPrefs, setLastOpened, toLoopMode } from "../src/persistence/prefs";
+import { lastOpened, loopPrefs, recordingPrefs, removeRecordingPrefs, saveLoopPrefs, saveRecordingPrefs, setLastOpened, toLoopMode } from "../../src/persistence/prefs";
 
 beforeEach(() => {
   const data = new Map<string, string>();

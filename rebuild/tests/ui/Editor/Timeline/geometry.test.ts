@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { FULL, MIN_LOOP, fit, isFull, pan, rescale, resizeLoop, shiftLoop, toFraction, toSection, zoom } from "../src/domain/geometry";
+import { FULL, MIN_LOOP, fit, isFull, pan, rescale, resizeLoop, shiftLoop, toFraction, toSection, zoom } from "../../../../src/ui/Editor/Timeline/geometry";
 
 const D = 100;
 

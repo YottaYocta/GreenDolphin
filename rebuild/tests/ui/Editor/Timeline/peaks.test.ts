@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { buildPeaks } from "../src/audio/peaks";
+import { buildPeaks } from "../../../../src/ui/Editor/Timeline/Waveform/peaks";
 
 const fakeBuffer = (data: Float32Array) =>
   ({

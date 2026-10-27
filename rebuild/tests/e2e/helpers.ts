@@ -1,6 +1,6 @@
 import { expect, type CDPSession, type Page } from "@playwright/test";
 import type { AudioEngine } from "../../src/audio/engine";
-import type { Player } from "../../src/domain/player";
+import type { Player } from "../../src/core/player";
 
 declare global {
   interface Window {

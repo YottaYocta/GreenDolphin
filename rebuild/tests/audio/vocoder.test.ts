@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { FreezeVocoder } from "../src/audio/vocoder";
+import { FreezeVocoder } from "../../src/audio/vocoder";
 
 const sr = 44100;
 const chord = Float32Array.from(
