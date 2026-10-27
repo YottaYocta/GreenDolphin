@@ -22,10 +22,28 @@ export interface PlayerOptions {
   speed: number;
 }
 
+export interface Player {
+  readonly duration: number;
+  subscribe(listener: () => void): () => void;
+  getState(): TransportState;
+  position(): number;
+  delayRemaining(): number;
+  dispatch(event: TransportEvent): void;
+  scrubTo(position: number): void;
+  endScrub(): void;
+  setSpeed(speed: number): void;
+  setLoop(loop: Section | null): void;
+  setLoopMode(loopMode: LoopMode): void;
+  resync(position: number): void;
+  dispose(): void;
+}
+
+export const createPlayer = (output: Output, options: PlayerOptions): Player => new TransportPlayer(output, options);
+
 const DUE_SLACK = 0.002;
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
-export class Player {
+class TransportPlayer implements Player {
   readonly duration: number;
   private readonly output: Output;
   private state: TransportState;

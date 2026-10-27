@@ -106,7 +106,7 @@ Loop navigation, spelled out:
 src/core/          standalone playback state manager — imports nothing outside core/
   transport.ts     the transition table above (pure)
   playback.ts      Playback snapshot + positionAt / continues (shared with outputs)
-  player.ts        Player: clock, loop-end/delay timers, scrub; renders to an Output
+  player.ts        Player interface + createPlayer: clock, loop-end/delay timers, scrub; renders to an Output
 src/audio/         AudioEngine (Web Audio Output), freeze vocoder + worklet, FFT
 src/youtube/       YouTubeBackend (embed Output) and link/oEmbed/file helpers
 src/persistence/   localStorage prefs (per recording + global loop) and IndexedDB files

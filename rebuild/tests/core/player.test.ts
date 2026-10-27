@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
-import { Player, continues, positionAt, type Output, type Playback, type PlayerOptions } from "../../src/core";
+import { continues, createPlayer, positionAt, type Output, type Playback, type PlayerOptions } from "../../src/core";
 
 let clock = 0;
 let renders: Playback[] = [];
@@ -13,7 +13,7 @@ const advance = (seconds: number) => {
   }
 };
 const make = (options: Partial<PlayerOptions> = {}) =>
-  new Player(output, { duration: 60, position: 12, loop: { start: 10, end: 20 }, loopMode: { type: "automatic", delay: 0 }, speed: 1, ...options });
+  createPlayer(output, { duration: 60, position: 12, loop: { start: 10, end: 20 }, loopMode: { type: "automatic", delay: 0 }, speed: 1, ...options });
 
 beforeEach(() => {
   vi.useFakeTimers();

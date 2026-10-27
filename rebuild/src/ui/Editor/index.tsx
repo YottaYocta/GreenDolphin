@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { AudioEngine } from "../../audio/engine";
 import { buildPeaks, drawWaveform, type Peaks } from "./Timeline/Waveform/peaks";
 import { formatSize, formatTime } from "../shared/format";
-import { Player } from "../../core";
+import { createPlayer, type Player } from "../../core";
 import type { Section } from "../../core";
 import { YouTubeBackend, describeYouTubeError, loadYouTubeApi, type YTPlayer } from "../../youtube/backend";
 import type { YouTubeSource } from "../../youtube/source";
@@ -91,7 +91,7 @@ export function AudioEditor({ name, size, buffer, ctx }: { name: string; size: n
     void AudioEngine.create(ctx, buffer).then((engine) => {
       if (!live) return engine.dispose();
       const restored = restore(name, buffer.duration);
-      made = { engine, player: new Player(engine, restored.options) };
+      made = { engine, player: createPlayer(engine, restored.options) };
       if (import.meta.env.DEV) Object.assign(window, { __gd: made });
       setSession({ ...made, restored, output: engine });
     });
@@ -143,7 +143,7 @@ export function YouTubeEditor({ name, source }: { name: string; source: YouTubeS
       restored.options.speed = Math.min(2, Math.max(0.25, Math.round(restored.options.speed * 4) / 4));
       restored.sound.gain = Math.min(1, restored.sound.gain);
       const backend = new YouTubeBackend(target);
-      made = { backend, player: new Player(backend, restored.options) };
+      made = { backend, player: createPlayer(backend, restored.options) };
       if (import.meta.env.DEV) Object.assign(window, { __gd: made });
       setSession({ ...made, restored, output: backend });
     };
