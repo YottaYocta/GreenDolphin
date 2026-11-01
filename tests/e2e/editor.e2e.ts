@@ -231,10 +231,9 @@ test("touch: one finger pans, two fingers pinch-zoom, tap sets the playhead", as
 });
 
 test("piano keys play a tone at the key's pitch", async ({ page }) => {
-  const key = page.locator('[data-key="57"]');
-  await key.scrollIntoViewIfNeeded();
-  const box = (await key.boundingBox())!;
-  await page.mouse.move(box.x + box.width / 2, box.y + box.height * 0.8);
+  await page.getByRole("button", { name: "Show piano" }).click();
+  const box = (await page.locator('[data-key="69"]').boundingBox())!;
+  await page.mouse.move(box.x + box.width - 4, box.y + box.height / 2);
   await page.mouse.down();
   await page.waitForTimeout(300);
   const peakHz = await page.evaluate(() => {

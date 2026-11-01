@@ -34,6 +34,8 @@ class TransportPlayer implements Player {
 
   getState = () => this.state;
 
+  getPlayback = () => this.playback;
+
   position() {
     return Math.min(this.here(), this.duration);
   }
