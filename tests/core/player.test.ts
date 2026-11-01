@@ -100,7 +100,7 @@ test("scrubbing while playing streams the freeze, then resumes at the drop", () 
   expect(p.position()).toBe(10);
 });
 
-test("scrubbing while frozen moves the freeze; paused scrubs are silent", () => {
+test("scrubbing streams the freeze whether frozen or paused", () => {
   const p = make();
   p.dispatch({ type: "toggle-freeze" });
   p.startScrub(30);
@@ -109,7 +109,7 @@ test("scrubbing while frozen moves the freeze; paused scrubs are silent", () => 
   expect(last()).toMatchObject({ mode: "frozen", anchorPosition: 30 });
   p.dispatch({ type: "toggle-freeze" });
   p.startScrub(5);
-  expect(last().mode).toBe("silent");
+  expect(last().mode).toBe("scrubbing");
   p.endScrub();
   expect(p.getState().playState).toBe("paused");
   expect(p.position()).toBe(5);
@@ -150,4 +150,19 @@ test("a scrub has an explicit start: scrubTo before startScrub does nothing", ()
   expect(last()).toMatchObject({ mode: "scrubbing", anchorPosition: 16 });
   p.endScrub();
   expect(p.position()).toBe(16);
+});
+
+test("while playing, position is what is being heard, and pausing stays there", () => {
+  const delayed: Output = { ...output, latency: () => 0.2 };
+  const p = core.createPlayer(delayed, { duration: 100, position: 10, loop: null, loopMode: { type: "automatic", delay: 0 }, speed: 1 });
+  p.dispatch({ type: "toggle-play" });
+  expect(p.position()).toBe(10);
+  clock += 0.1;
+  expect(p.position()).toBe(10);
+  clock += 0.9;
+  expect(p.position()).toBeCloseTo(10.8);
+  expect(p.renderedPosition()).toBeCloseTo(11);
+  p.dispatch({ type: "toggle-play" });
+  expect(p.position()).toBeCloseTo(10.8);
+  p.dispose();
 });

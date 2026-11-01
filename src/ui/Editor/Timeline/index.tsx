@@ -5,7 +5,7 @@ import type { DurationSeconds, Player, RecordingSeconds } from "../../../core";
 import type { Section } from "../../../core";
 import type { AudioEngine, NoteSynth } from "../../../audio";
 import type { Note } from "../../../persistence";
-import { DEFAULT_NOTE, HIGH_PITCH, LOW_PITCH, MIN_NOTE, clampPitch, editNote, hitNote, pitchFrequency, type NoteEdit, type NoteStore } from "../notes";
+import { DEFAULT_NOTE, HIGH_PITCH, LOW_PITCH, MIN_NOTE, clampPitch, deleteSelected, hitNote, moveNotes, notesInBox, pitchFrequency, resizeNote, withEdited, type NotePoint, type NoteResize, type NoteStore } from "../notes";
 import { drawNotes } from "./noteCanvas";
 import { PIANO_WIDTH, Piano } from "./Piano";
 import { drag } from "../../shared/drag";
@@ -15,7 +15,7 @@ export interface RollProps {
   notes: NoteStore;
   synth: NoteSynth;
   spectrum?: AudioEngine;
-  write: boolean;
+  pen: boolean;
 }
 
 export interface TimelineProps {
@@ -34,6 +34,7 @@ const TAP_PX = 6;
 const WHEEL_SETTLE_MS = 250;
 const DOUBLE_TAP_MS = 300;
 const DOUBLE_TAP_PX = 24;
+const MIN_TAP_NOTE_PX = 24;
 const KEY_STEP = 0.1;
 const EDGE_PX = { mouse: 6, touch: 14 };
 const ROW_HEIGHT = { fine: 12, coarse: 18 };
@@ -50,7 +51,7 @@ type ModelProps = Pick<TimelineProps, "player" | "initialView" | "initialLoop" |
 
 function createModel(props: ModelProps, content: RefObject<HTMLDivElement | null>, pane: RefObject<HTMLDivElement | null>) {
   const { player, initialView, initialLoop, onView, onLoopCommit, initialPitchTop, onPitchTop } = props;
-  const m = { view: initialView, loop: initialLoop, version: 0, pitchTop: initialPitchTop, rollVersion: 0 };
+  const m = { view: initialView, loop: initialLoop, version: 0, pitchTop: initialPitchTop, rollVersion: 0, noteLength: DEFAULT_NOTE, box: null as [NotePoint, NotePoint] | null };
   const rowHeight = window.matchMedia("(pointer: coarse)").matches ? ROW_HEIGHT.coarse : ROW_HEIGHT.fine;
   const paneHeight = () => pane.current?.clientHeight || 1;
   const top = () => clamp(m.pitchTop ?? (HIGH_PITCH - 60) * rowHeight - paneHeight() / 2, 0, Math.max(0, (HIGH_PITCH - LOW_PITCH + 1) * rowHeight - paneHeight()));
@@ -64,6 +65,14 @@ function createModel(props: ModelProps, content: RefObject<HTMLDivElement | null
     rowHeight,
     top,
     pitch: (clientY: number) => clampPitch(HIGH_PITCH - Math.floor((clientY - (pane.current?.getBoundingClientRect().top ?? 0) + top()) / rowHeight)),
+    newNoteLength: () => Math.max(m.noteLength, (MIN_TAP_NOTE_PX / width()) * length(m.view)),
+    rememberNoteLength(noteLength: number) {
+      m.noteLength = noteLength;
+    },
+    setBox(box: [NotePoint, NotePoint] | null) {
+      m.box = box;
+      m.rollVersion++;
+    },
     setTop(next: number) {
       m.pitchTop = next;
       m.pitchTop = top();
@@ -116,6 +125,7 @@ export function Timeline(props: TimelineProps) {
     k: () => keyView(zoom(model.m.view, 0.5, 1 - KEY_STEP, duration)),
     H: () => keyView(pan(model.m.view, -KEY_STEP * length(model.m.view), duration)),
     L: () => keyView(pan(model.m.view, KEY_STEP * length(model.m.view), duration)),
+    ...(roll && { Delete: () => deleteSelected(roll.notes), Backspace: () => deleteSelected(roll.notes) }),
   });
   const keyView = (view: Section) => {
     model.setView(view);
@@ -135,14 +145,11 @@ export function Timeline(props: TimelineProps) {
     drag(e, (_, dx) => model.setLoop(shiftLoop(from, dx / model.width())), () => model.commit());
   };
   const scrub = (e: ReactPointerEvent<HTMLDivElement>) => {
-    let started = false;
-    const follow = (x: number) => {
-      const at = model.time(x);
-      if (started) return player.scrubTo(at);
-      started = true;
-      player.startScrub(at);
-    };
-    drag(e, follow, (moved) => moved && player.endScrub(), TAP_PX);
+    if (!e.isPrimary) return;
+    const onGrip = e.target instanceof Element && e.target.closest('[aria-label="Playhead"]');
+    const grab = onGrip ? player.position() - model.time(e.clientX) : 0;
+    player.startScrub(model.time(e.clientX) + grab);
+    drag(e, (x) => player.scrubTo(model.time(x) + grab), () => player.endScrub());
   };
   const resetOnDoubleTap = (e: ReactPointerEvent) => {
     if (!e.isPrimary) return;
@@ -162,10 +169,10 @@ export function Timeline(props: TimelineProps) {
 
   return (
     <div ref={root} className="relative flex flex-col w-full flex-1 min-h-0 select-none touch-none">
-      <div id="timeline-ruler" className={ROW} style={inset}>
+      <div id="timeline-ruler" data-control className={`${ROW} cursor-ew-resize touch-none`} style={inset} onPointerDown={scrub}>
         <div className="relative w-full h-full">
           <div ref={els.ticks} className="absolute inset-0 pointer-events-none" />
-          <div ref={els.grip} data-control aria-label="Playhead" className="absolute top-0 -translate-x-1/2 z-10 flex justify-center w-9 h-7 cursor-ew-resize touch-none" onPointerDown={scrub}>
+          <div ref={els.grip} aria-label="Playhead" className="absolute top-0 -translate-x-1/2 z-10 flex justify-center w-9 h-7">
             <Triangle points="0,0 16,0 8,22" fill="var(--color-play)" />
           </div>
         </div>
@@ -173,13 +180,13 @@ export function Timeline(props: TimelineProps) {
       <div className={`relative ${draw || roll ? "flex-1 min-h-0" : "h-12"} flex flex-col overflow-hidden bg-white px-4`} style={inset}>
         {roll && (
           <div className={`absolute left-0 right-0 bottom-0 ${draw ? "top-12" : "top-0"}`} style={{ width: PIANO_WIDTH }}>
-            <Piano keys={els.keys} top={model.top} rowHeight={model.rowHeight} synth={roll.synth} spectrum={roll.spectrum} />
+            <Piano keys={els.keys} top={model.top} rowHeight={model.rowHeight} roll={roll} player={player} newNoteLength={model.newNoteLength} />
           </div>
         )}
         <div ref={content} className="relative w-full flex-1 min-h-0">
           {draw ? <canvas id="waveform-canvas" ref={canvas} className={roll ? `absolute top-0 inset-x-0 w-full ${STRIP}` : "absolute inset-0 w-full h-full"} /> : !roll && <div ref={els.grid} className="absolute inset-0 pointer-events-none" />}
           {roll && (
-            <div ref={pane} data-roll className={`absolute inset-x-0 bottom-0 ${draw ? "top-12 border-t border-border" : "top-0"} ${roll.write ? "cursor-crosshair" : ""}`}>
+            <div ref={pane} data-roll className={`absolute inset-x-0 bottom-0 ${draw ? "top-12 border-t border-border" : "top-0"} ${roll.pen ? "cursor-crosshair" : ""}`}>
               <canvas id="note-canvas" ref={noteCanvas} className="absolute inset-0 w-full h-full" />
             </div>
           )}
@@ -222,8 +229,12 @@ function useViewportGestures(root: RefObject<HTMLDivElement | null>, model: Mode
       anchor: number;
       edge: number;
     } | null = null;
-    let edit: { kind: NoteEdit; original: Note | null; base: Note[]; from: { time: number; pitch: number }; note: Note } | null = null;
-    let noteLength = DEFAULT_NOTE;
+    let edit:
+      | { kind: NoteResize; original: Note; base: Note[]; from: NotePoint; note: Note }
+      | { kind: "move"; moving: Note[]; moved: Note[]; base: Note[]; from: NotePoint }
+      | { kind: "box"; from: NotePoint }
+      | null = null;
+    let lastTap: { note: Note; time: number } | null = null;
     let active = false;
     let wheelTimer: ReturnType<typeof setTimeout> | undefined;
     const begin = () => {
@@ -238,36 +249,77 @@ function useViewportGestures(root: RefObject<HTMLDivElement | null>, model: Mode
     const inRollTarget = (target: EventTarget | null) => !!roll && target instanceof Element && !!target.closest("[data-roll]");
     const edgeSeconds = (pointerType: string) => ((pointerType === "mouse" ? EDGE_PX.mouse : EDGE_PX.touch) / model.width()) * length(model.m.view);
 
+    const pointAt = (x: number, y: number) => ({ time: model.time(x), pitch: model.pitch(y) });
     const startEdit = (g: NonNullable<typeof gesture>) => {
-      const notes = roll!.notes.get();
-      const from = { time: model.time(g.x), pitch: model.pitch(g.y) };
-      const hit = hitNote(notes, from.time, from.pitch, g.edge);
-      const note = hit?.note ?? { pitch: from.pitch, start: from.time, length: MIN_NOTE };
-      edit = { kind: hit ? hit.part : "draw", original: hit?.note ?? null, base: notes.filter((n) => n !== hit?.note), from, note };
+      const { notes: store, synth } = roll!;
+      const notes = store.get();
+      const from = pointAt(g.x, g.y);
       g.kind = "edit";
-      roll!.synth.playTone(pitchFrequency(note.pitch));
+      const hit = hitNote(notes, from.time, from.pitch, g.edge);
+      if (!hit) {
+        edit = { kind: "box", from };
+        return store.select([]);
+      }
+      synth.playTone(pitchFrequency(hit.note.pitch));
+      if (hit.part === "body") {
+        const moving = store.selected().has(hit.note) ? [...store.selected()] : [hit.note];
+        const others = new Set(moving);
+        edit = { kind: "move", moving, moved: moving, base: notes.filter((n) => !others.has(n)), from };
+        return store.select(moving);
+      }
+      edit = { kind: hit.part, original: hit.note, base: notes.filter((n) => n !== hit.note), from, note: hit.note };
+      store.select([hit.note]);
     };
-    const finishNote = (g: NonNullable<typeof gesture>, e: PointerEvent) => {
-      const notes = roll!.notes;
-      if (g.kind === "note" && e.type === "pointerup") {
-        const time = model.time(g.x);
-        const pitch = model.pitch(g.y);
-        const hit = hitNote(notes.get(), time, pitch, 0);
-        if (hit) notes.commit(notes.get().filter((n) => n !== hit.note));
+    const continueEdit = (x: number, y: number) => {
+      const store = roll!.notes;
+      const to = pointAt(x, y);
+      if (!edit) return;
+      if (edit.kind === "box") {
+        model.setBox([edit.from, to]);
+        return store.select(notesInBox(store.get(), edit.from, to));
+      }
+      if (edit.kind === "move") {
+        const moved = moveNotes(edit.moving, edit.from, to, duration);
+        if (moved[0].pitch !== edit.moved[0].pitch) roll!.synth.playTone(pitchFrequency(moved[0].pitch));
+        edit.moved = moved;
+        return store.preview(withEdited(edit.base, moved), moved);
+      }
+      edit.note = resizeNote(edit.kind, edit.original, edit.from, to, duration);
+      store.preview(withEdited(edit.base, [edit.note]), [edit.note]);
+    };
+    const tapNote = (g: NonNullable<typeof gesture>, timeStamp: number) => {
+      const { notes: store, synth } = roll!;
+      const { time, pitch } = pointAt(g.x, g.y);
+      const hit = hitNote(store.get(), time, pitch, 0);
+      if (hit) {
+        const repeated = lastTap?.note === hit.note && timeStamp - lastTap.time < DOUBLE_TAP_MS;
+        lastTap = repeated ? null : { note: hit.note, time: timeStamp };
+        if (repeated) return store.commit(store.get().filter((n) => n !== hit.note));
+        synth.playNote(pitchFrequency(hit.note.pitch), 0, 0.2);
+        return store.select([hit.note]);
+      }
+      lastTap = null;
+      const start = Math.min(time, duration - MIN_NOTE);
+      const note = { pitch, start, length: Math.min(model.newNoteLength(), duration - start) };
+      store.commit(withEdited(store.get(), [note]), [note]);
+      synth.playNote(pitchFrequency(pitch), 0, 0.2);
+    };
+    const finishEdit = (accepted: boolean) => {
+      const store = roll!.notes;
+      roll!.synth.playTone(null);
+      if (edit?.kind === "box") model.setBox(null);
+      if (edit?.kind === "move") {
+        if (accepted) store.commit(withEdited(edit.base, edit.moved), edit.moved);
+        else store.preview([...edit.base, ...edit.moving], edit.moving);
+      }
+      if (edit && "note" in edit) {
+        if (!accepted) store.preview([...edit.base, edit.original], [edit.original]);
         else {
-          notes.commit([...notes.get(), { pitch, start: Math.min(time, duration - MIN_NOTE), length: Math.min(noteLength, duration - time) }]);
-          roll!.synth.playNote(pitchFrequency(pitch), 0, 0.2);
+          model.rememberNoteLength(edit.note.length);
+          store.commit(withEdited(edit.base, [edit.note]), [edit.note]);
         }
       }
-      if (g.kind === "edit" && edit) {
-        roll!.synth.playTone(null);
-        if (e.type !== "pointerup") notes.preview(edit.original ? [...edit.base, edit.original] : edit.base);
-        else {
-          if (edit.kind !== "body") noteLength = edit.note.length;
-          notes.commit([...edit.base, edit.note]);
-        }
-        edit = null;
-      }
+      edit = null;
     };
 
     const down = (e: PointerEvent) => {
@@ -278,7 +330,7 @@ function useViewportGestures(root: RefObject<HTMLDivElement | null>, model: Mode
       const view = model.m.view;
       const top = model.top();
       const inRoll = inRollTarget(e.target);
-      if (pointers.size === 1) gesture = { kind: inRoll && roll!.write ? "note" : "pending", id: e.pointerId, x: e.clientX, y: e.clientY, view, top, inRoll, panTime: true, spread: 0, anchor: 0, edge: edgeSeconds(e.pointerType) };
+      if (pointers.size === 1) gesture = { kind: inRoll && roll!.pen ? "note" : "pending", id: e.pointerId, x: e.clientX, y: e.clientY, view, top, inRoll, panTime: true, spread: 0, anchor: 0, edge: edgeSeconds(e.pointerType) };
       else if (pointers.size === 2 && gesture?.kind !== "edit") {
         const [a, b] = points();
         begin();
@@ -287,9 +339,9 @@ function useViewportGestures(root: RefObject<HTMLDivElement | null>, model: Mode
     };
     const move = (e: PointerEvent) => {
       if (!pointers.has(e.pointerId) || !gesture) {
-        if (e.pointerType === "mouse" && roll?.write && inRollTarget(e.target)) {
+        if (e.pointerType === "mouse" && roll?.pen && inRollTarget(e.target)) {
           const part = hitNote(roll.notes.get(), model.time(e.clientX), model.pitch(e.clientY), edgeSeconds("mouse"))?.part;
-          el.style.cursor = part === "body" ? "grab" : part ? "ew-resize" : "";
+          el.style.cursor = !part ? "" : part === "body" ? "grab" : "ew-resize";
         }
         return;
       }
@@ -298,13 +350,7 @@ function useViewportGestures(root: RefObject<HTMLDivElement | null>, model: Mode
       if ((g.kind === "note" || g.kind === "edit") && e.pointerId !== g.id) return;
       const [dx, dy] = [e.clientX - g.x, e.clientY - g.y];
       if (g.kind === "note" && Math.hypot(dx, dy) > TAP_PX) startEdit(g);
-      if (g.kind === "edit" && edit) {
-        const to = { time: model.time(e.clientX), pitch: model.pitch(e.clientY) };
-        const next = editNote(edit.kind, edit.original, edit.from, to, duration);
-        if (next.pitch !== edit.note.pitch) roll!.synth.playTone(pitchFrequency(next.pitch));
-        edit.note = next;
-        roll!.notes.preview([...edit.base, next]);
-      }
+      if (g.kind === "edit") continueEdit(e.clientX, e.clientY);
       if (g.kind === "pending" && (g.inRoll ? Math.hypot(dx, dy) : Math.abs(dx)) > TAP_PX) {
         g.kind = "pan";
         g.panTime = !g.inRoll || Math.abs(dy) < 2 * Math.abs(dx);
@@ -323,10 +369,20 @@ function useViewportGestures(root: RefObject<HTMLDivElement | null>, model: Mode
     };
     const up = (e: PointerEvent) => {
       if (!pointers.delete(e.pointerId) || !gesture) return;
-      if (gesture.kind === "pending" && e.type === "pointerup") onTap(model.time(e.clientX));
+      if (gesture.kind === "pending" && e.type === "pointerup") {
+        const hit = gesture.inRoll ? hitNote(roll!.notes.get(), model.time(e.clientX), model.pitch(e.clientY), 0) : null;
+        if (hit) {
+          roll!.synth.playNote(pitchFrequency(hit.note.pitch), 0, 0.2);
+          roll!.notes.select([hit.note]);
+        } else {
+          onTap(model.time(e.clientX));
+          roll?.notes.select([]);
+        }
+      }
       if (gesture.kind === "note" || gesture.kind === "edit") {
         if (e.pointerId !== gesture.id) return;
-        finishNote(gesture, e);
+        if (gesture.kind === "note" && e.type === "pointerup") tapNote(gesture, e.timeStamp);
+        if (gesture.kind === "edit") finishEdit(e.type === "pointerup");
       }
       if (pointers.size === 0) {
         gesture = null;
@@ -401,7 +457,7 @@ function useRender(model: Model, player: Player, els: Els, canvas: RefObject<HTM
       const rollKey = `${version}|${model.m.rollVersion}|${width}|${pane.current?.clientHeight}`;
       if (notes && noteCanvas.current && rollKey !== rollDrawn) {
         rollDrawn = rollKey;
-        drawNotes(noteCanvas.current, notes.get(), view, model.top(), model.rowHeight);
+        drawNotes(noteCanvas.current, notes.get(), notes.selected(), model.m.box, view, model.top(), model.rowHeight);
         if (els.keys.current) els.keys.current.style.transform = `translateY(${-model.top()}px)`;
       }
       const x = toPx(player.position());

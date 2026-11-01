@@ -1,27 +1,16 @@
-import { useState, useSyncExternalStore } from "react";
+import { useState } from "react";
 import type { StoredRecording } from "../../../persistence";
 import { Menu } from "@base-ui/react/menu";
-import { CaretRightIcon, DownloadSimpleIcon, FileMagnifyingGlassIcon, HouseIcon, MusicNotesPlusIcon } from "@phosphor-icons/react";
+import { CaretRightIcon, FileMagnifyingGlassIcon, HouseIcon, MusicNotesPlusIcon } from "@phosphor-icons/react";
 import { stripExt } from "../../shared/format";
 import { useLibrary } from "../../context";
 import { NewRecordingDialog, RecordingIcon } from "../../Library/NewRecordingDialog";
 import { Dialog } from "../../shared/primitives";
-import { notesToMidi, type NoteStore } from "../notes";
 
 const GHOST = "flex items-center gap-2 h-12 rounded-lg cursor-pointer hover:bg-black/5 active:bg-black/10";
 const ITEM = "flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-neutral-50 active:bg-neutral-100";
 
-const NO_NOTES: never[] = [];
-const noSubscription = () => () => {};
-
-function exportMidi(title: string, store: NoteStore) {
-  const url = URL.createObjectURL(new Blob([notesToMidi(store.get())], { type: "audio/midi" }));
-  Object.assign(document.createElement("a"), { href: url, download: `${stripExt(title)}.mid` }).click();
-  URL.revokeObjectURL(url);
-}
-
-export function TitleBar({ recording, info, notes }: { recording: StoredRecording; info: [string, string][]; notes?: NoteStore }) {
-  const hasNotes = useSyncExternalStore(notes?.subscribe ?? noSubscription, () => notes?.get() ?? NO_NOTES).length > 0;
+export function TitleBar({ recording, info }: { recording: StoredRecording; info: [string, string][] }) {
   const { recordings, open, home } = useLibrary();
   const [adding, setAdding] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
@@ -58,9 +47,6 @@ export function TitleBar({ recording, info, notes }: { recording: StoredRecordin
         </Menu.Root>
         <button aria-label="File info" onClick={() => setShowInfo(true)} className={`${GHOST} justify-center shrink-0 size-12`}>
           <FileMagnifyingGlassIcon size={16} weight="fill" className="opacity-50" />
-        </button>
-        <button aria-label="Export notes" disabled={!hasNotes} onClick={() => exportMidi(recording.title, notes!)} className={`${GHOST} justify-center shrink-0 size-12 disabled:opacity-40 disabled:cursor-default disabled:hover:bg-transparent`}>
-          <DownloadSimpleIcon size={16} weight="bold" className="opacity-50" />
         </button>
       </div>
       <button aria-label="Home" onClick={home} className={`${GHOST} justify-center shrink-0 px-3 max-md:size-12 max-md:px-0`}>

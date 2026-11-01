@@ -119,3 +119,19 @@ export function Slider({ label, value, min, max, step, defaultValue, display, pa
     </div>
   );
 }
+
+export function Toggle({ id, label, checked, onChange }: { id?: string; label: string; checked: boolean; onChange: (checked: boolean) => void }) {
+  return (
+    <button
+      id={id}
+      type="button"
+      role="switch"
+      aria-label={label}
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className={`flex items-center shrink-0 w-9 h-5 p-0.5 rounded-full cursor-pointer outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-play/50 focus-visible:ring-offset-2 motion-reduce:transition-none ${checked ? "bg-play" : "bg-black/15 hover:bg-black/25"}`}
+    >
+      <span className={`size-4 rounded-full bg-white shadow-[0_1px_2px_rgb(0_0_0/25%)] transition-transform duration-150 ease-out motion-reduce:transition-none ${checked ? "translate-x-4" : "translate-x-0"}`} />
+    </button>
+  );
+}

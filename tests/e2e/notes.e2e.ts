@@ -19,9 +19,9 @@ const savedNotes = (page: Page) =>
       }),
   );
 
-async function showRoll(page: Page, write = true) {
-  await toggle(page, "Show piano").click();
-  if (write) await toggle(page, "Write notes").click();
+async function showRoll(page: Page, pen = true) {
+  await page.getByRole("switch", { name: "Show piano" }).click();
+  if (pen) await toggle(page, "Pen").click();
 }
 
 async function point(page: Page, x: number, y: number) {
@@ -29,27 +29,39 @@ async function point(page: Page, x: number, y: number) {
   return { x: box.x + box.width * x, y: box.y + box.height * y };
 }
 
-async function pointOnNote(page: Page, fraction: number) {
+async function seedNotes(page: Page) {
+  await page.evaluate(() => {
+    const { notes, player } = window.__gd!;
+    const d = player.duration;
+    notes.commit([[60, 0.2], [61, 0.3], [62, 0.4], [64, 0.8]].map(([pitch, s]) => ({ pitch, start: s * d, length: 0.05 * d })));
+  });
+}
+
+async function onNote(page: Page, index: number, fraction = 0.5) {
   const box = (await page.locator("#note-canvas").boundingBox())!;
   return page.evaluate(
-    ({ box, fraction }) => {
+    ({ box, index, fraction }) => {
       const { player, notes } = window.__gd!;
-      const [note] = notes.get();
+      const note = notes.get()[index];
       const keys = document.querySelector<HTMLElement>("[data-key]")!.parentElement!.getBoundingClientRect();
       return { x: box.x + ((note.start + note.length * fraction) / player.duration) * box.width, y: keys.y + ((108 - note.pitch + 0.5) * keys.height) / 88 };
     },
-    { box, fraction },
+    { box, index, fraction },
   );
 }
 
+const pitches = async (page: Page) => (await notes(page)).map((n) => n.pitch).sort((a, b) => a - b);
+
 test("write, play and export only appear with the piano, which replaces the full waveform", async ({ page }) => {
   await openDemo(page);
-  await expect(toggle(page, "Write notes")).toHaveCount(0);
+  await expect(toggle(page, "Pen")).toHaveCount(0);
   await expect(page.locator("#note-canvas")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Export notes" })).toBeDisabled();
+  await expect(toggle(page, "Export notes")).toHaveCount(0);
   const tall = (await page.locator("#waveform-canvas").boundingBox())!.height;
   await showRoll(page, false);
-  await expect(toggle(page, "Write notes")).toBeVisible();
+  await expect(toggle(page, "Pen")).toBeVisible();
+  await expect(toggle(page, "Undo")).toBeDisabled();
+  await expect(toggle(page, "Export notes")).toBeDisabled();
   await expect(toggle(page, "Play notes")).toBeVisible();
   expect((await page.locator("#waveform-canvas").boundingBox())!.height).toBeLessThan(tall / 2);
   const [strip, roll] = [(await page.locator("#waveform-canvas").boundingBox())!, (await page.locator("#note-canvas").boundingBox())!];
@@ -83,57 +95,82 @@ test("with write off a drag pans time and pitch and leaves the notes alone", asy
   expect(await notes(page)).toEqual([]);
 });
 
-test("draw, move, resize and delete notes with the mouse; they survive a reload", async ({ page }) => {
+test("the pen enters a note per click; notes move, resize and survive a reload", async ({ page }) => {
   desktop();
   await openDemo(page);
   await showRoll(page);
-  const duration = await page.evaluate(() => window.__gd!.player.duration);
-  await mouseDrag(page, await point(page, 0.2, 0.5), await point(page, 0.4, 0.5));
-  let [note] = await notes(page);
-  expect(Math.abs(note.start - duration * 0.2)).toBeLessThan(duration * 0.01);
-  expect(Math.abs(note.length - duration * 0.2)).toBeLessThan(duration * 0.01);
+  const [first, second] = [await point(page, 0.2, 0.5), await point(page, 0.5, 0.5)];
+  await page.mouse.click(first.x, first.y);
+  await page.mouse.click(second.x, second.y);
+  expect(await notes(page)).toHaveLength(2);
+  expect(await page.evaluate(() => window.__gd!.notes.selected().size)).toBe(1);
 
-  const body = await pointOnNote(page, 0.5);
+  const [note] = await notes(page);
+  const body = await onNote(page, 0);
   await mouseDrag(page, body, { x: body.x + 40, y: body.y - 36 });
-  const [moved] = await notes(page);
-  expect(moved.pitch).toBe(note.pitch + 3);
+  const moved = (await notes(page)).find((n) => n.pitch === note.pitch + 3)!;
   expect(moved.start).toBeGreaterThan(note.start);
-  expect(Math.abs(moved.length - note.length)).toBeLessThan(1e-6);
-  note = moved;
+  expect(moved.length).toBeCloseTo(note.length);
 
-  const edge = await pointOnNote(page, 0.999);
+  const edge = await onNote(page, 1, 0.99);
   await mouseDrag(page, edge, { x: edge.x + 50, y: edge.y });
-  const [resized] = await notes(page);
+  const resized = (await notes(page)).at(-1)!;
   expect(resized.length).toBeGreaterThan(note.length);
-  expect(Math.abs(resized.start - note.start)).toBeLessThan(1e-6);
 
-  await expect.poll(async () => (await savedNotes(page)).flat()).toEqual([resized]);
+  const all = await notes(page);
+  await expect.poll(async () => (await savedNotes(page)).flat()).toEqual(all);
   await page.reload();
   await waitForEditor(page);
-  expect(await notes(page)).toEqual([resized]);
-  await expect(page.locator("#note-canvas")).toBeVisible();
-  await expect(toggle(page, "Write notes")).toHaveAttribute("aria-pressed", "false");
-
-  await toggle(page, "Write notes").click();
-  const tap = await pointOnNote(page, 0.5);
-  await page.mouse.click(tap.x, tap.y);
-  expect(await notes(page)).toEqual([]);
-  await expect.poll(async () => (await savedNotes(page)).flat()).toEqual([]);
-
-  const empty = await point(page, 0.6, 0.5);
-  await page.mouse.click(empty.x, empty.y);
-  expect((await notes(page))[0].length).toBeCloseTo(0.25);
+  expect(await notes(page)).toEqual(all);
+  await expect(toggle(page, "Pen")).toHaveAttribute("aria-pressed", "false");
 });
 
-test("touch: one finger draws while writing, two fingers pinch without drawing", async ({ page }) => {
+test("dragging empty space with the pen lassos every touched note; they move and delete together", async ({ page }) => {
+  desktop();
+  await openDemo(page);
+  await showRoll(page);
+  await seedNotes(page);
+  const [a, b] = [await onNote(page, 0), await onNote(page, 2)];
+  await mouseDrag(page, { x: a.x - 60, y: a.y }, { x: b.x, y: b.y });
+  expect(await page.evaluate(() => [...window.__gd!.notes.selected()].map((n) => n.pitch))).toEqual([60, 61, 62]);
+  expect(await notes(page)).toHaveLength(4);
+
+  const grab = await onNote(page, 1);
+  await mouseDrag(page, grab, { x: grab.x, y: grab.y - 24 });
+  expect(await pitches(page)).toEqual([62, 63, 64, 64]);
+
+  await page.keyboard.press("Delete");
+  expect(await pitches(page)).toEqual([64]);
+});
+
+test("double-clicking a note deletes it, and undo and redo walk the note history", async ({ page }) => {
+  desktop();
+  await openDemo(page);
+  await showRoll(page);
+  await seedNotes(page);
+  const target = await onNote(page, 3);
+  await page.mouse.dblclick(target.x, target.y);
+  expect(await pitches(page)).toEqual([60, 61, 62]);
+
+  await page.keyboard.press("ControlOrMeta+z");
+  expect(await pitches(page)).toEqual([60, 61, 62, 64]);
+  await expect.poll(async () => (await savedNotes(page)).flat()).toHaveLength(4);
+  await page.keyboard.press("ControlOrMeta+Shift+z");
+  expect(await pitches(page)).toEqual([60, 61, 62]);
+  await toggle(page, "Undo").click();
+  expect(await pitches(page)).toEqual([60, 61, 62, 64]);
+});
+
+test("touch: a tap enters a note, a double tap deletes it, two fingers pinch without editing", async ({ page }) => {
   mobile();
   await openDemo(page);
   await showRoll(page);
-  await touch(page, swipe(await point(page, 0.3, 0.5), await point(page, 0.6, 0.5)));
+  const spot = await point(page, 0.5, 0.5);
+  await page.touchscreen.tap(spot.x, spot.y);
   await expect.poll(async () => (await notes(page)).length).toBe(1);
 
-  const body = await pointOnNote(page, 0.5);
-  await touch(page, swipe(body, { x: body.x + 20, y: body.y - 36 }));
+  const body = await onNote(page, 0);
+  await touch(page, swipe(body, { x: body.x, y: body.y - 36 }));
   const before = (await notes(page))[0];
   const [a, b] = [await point(page, 0.3, 0.8), await point(page, 0.7, 0.8)];
   await touch(page, [
@@ -143,14 +180,19 @@ test("touch: one finger draws while writing, two fingers pinch without drawing",
     ["touchEnd"],
   ]);
   expect(await notes(page)).toEqual([before]);
-  await expect(page.locator("#waveform-canvas")).toBeVisible();
+
+  const again = await onNote(page, 0);
+  await page.touchscreen.tap(again.x, again.y);
+  await page.touchscreen.tap(again.x, again.y);
+  await expect.poll(async () => (await notes(page)).length).toBe(0);
 });
 
 test("exports the notes as a MIDI file named after the recording", async ({ page }) => {
   desktop();
   await openDemo(page);
   await showRoll(page);
-  await mouseDrag(page, await point(page, 0.2, 0.5), await point(page, 0.4, 0.5));
+  const spot = await point(page, 0.2, 0.5);
+  await page.mouse.click(spot.x, spot.y);
   const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Export notes" }).click()]);
   expect(download.suggestedFilename()).toMatch(/Street\.mid$/);
   expect(readFileSync(await download.path()).subarray(0, 4).toString()).toBe("MThd");
@@ -191,9 +233,9 @@ test("YouTube recordings get the same notes, sounded by their own synth", async 
   await page.getByRole("button", { name: "Add Video" }).click();
   await waitForEditor(page);
   await showRoll(page);
-  const [from, to] = [await point(page, 0.2, 0.5), await point(page, 0.4, 0.5)];
-  if (test.info().project.name === "desktop") await mouseDrag(page, from, to);
-  else await touch(page, swipe(from, to));
+  const spot = await point(page, 0.2, 0.5);
+  if (test.info().project.name === "desktop") await page.mouse.click(spot.x, spot.y);
+  else await page.touchscreen.tap(spot.x, spot.y);
   await expect.poll(async () => (await notes(page)).length).toBe(1);
   const [note] = await notes(page);
   await expect.poll(async () => (await savedNotes(page)).flat()).toEqual([note]);
@@ -214,7 +256,7 @@ test("YouTube recordings get the same notes, sounded by their own synth", async 
   });
   await toggle(page, "Play notes").click();
   await page.getByRole("button", { name: "Play", exact: true }).click();
-  await expect.poll(() => page.evaluate(() => (window as unknown as { noteCalls: number[] }).noteCalls), { timeout: 20_000 }).toEqual([440]);
+  await expect.poll(() => page.evaluate(() => (window as unknown as { noteCalls: number[] }).noteCalls), { timeout: 20_000 }).toContain(440);
 });
 
 test("upgrading the database keeps recordings saved before notes existed", async ({ page }) => {

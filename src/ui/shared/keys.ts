@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-const typing = (t: EventTarget | null) =>
+export const typing = (t: EventTarget | null) =>
   t instanceof HTMLElement && (t.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName));
 
 export function useKeys(map: Record<string, () => void>) {

@@ -1,13 +1,15 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { MusicNotesIcon, PencilSimpleIcon, PianoKeysIcon } from "@phosphor-icons/react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { ArrowCounterClockwiseIcon, DownloadSimpleIcon, MusicNotesIcon, PencilSimpleIcon, PianoKeysIcon, TrashIcon } from "@phosphor-icons/react";
 import { buildPeaks, drawWaveform, type Peaks } from "./Timeline/Waveform/peaks";
-import { formatSize, formatTime } from "../shared/format";
+import { formatSize, formatTime, stripExt } from "../shared/format";
 import { core, type Player } from "../../core";
 import type { Section } from "../../core";
 import { Controls } from "./Controls";
 import { KeepAwake } from "./KeepAwake";
 import { Tutorial, type TutorialStep } from "./Tutorial";
-import { createNoteStore, type NoteStore } from "./notes";
+import { createNoteStore, deleteSelected, notesToMidi, type NoteStore } from "./notes";
+import { typing } from "../shared/keys";
+import { Toggle } from "../shared/primitives";
 import { restore, useNotePlayback, usePersistence, useSound, type SoundOutput } from "./session";
 import { LoopSettings, SoundSettings } from "./Controls/Settings";
 import { Timeline, type TimelineProps } from "./Timeline";
@@ -41,48 +43,91 @@ interface Session {
   spectrum?: AudioEngine;
 }
 
-function RollToggle({ id, label, on, onClick, icon }: { id?: string; label: string; on: boolean; onClick: () => void; icon: ReactNode }) {
+const TOOL_BUTTON = "flex items-center justify-center size-9 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-default";
+
+function ToolButton({ label, on, onClick, disabled, children }: { label: string; on?: boolean; onClick: () => void; disabled?: boolean; children: ReactNode }) {
   return (
-    <button id={id} aria-label={label} aria-pressed={on} onClick={onClick} className={`flex items-center justify-center size-9 rounded-lg cursor-pointer ${on ? "bg-surface-active text-play" : "text-black/40 hover:bg-black/5"}`}>
-      {icon}
+    <button aria-label={label} aria-pressed={on} disabled={disabled} onClick={onClick} className={`${TOOL_BUTTON} ${on ? "bg-surface-active text-play" : "text-black/40 enabled:hover:bg-black/5"}`}>
+      {children}
     </button>
   );
 }
 
-function TimelineCard({ id, session, draw }: { id: RecordingId; session: Session; draw?: TimelineProps["draw"] }) {
+function exportMidi(title: string, store: NoteStore) {
+  const url = URL.createObjectURL(new Blob([notesToMidi(store.get())], { type: "audio/midi" }));
+  Object.assign(document.createElement("a"), { href: url, download: `${stripExt(title)}.mid` }).click();
+  URL.revokeObjectURL(url);
+}
+
+function TimelineCard({ recording, session, draw }: { recording: StoredRecording; session: Session; draw?: TimelineProps["draw"] }) {
+  const { id } = recording;
   const { player, restored, notes, synth, spectrum } = session;
   const { onView, onLoopCommit, onPitchTop } = usePersistence(id, player);
   const [piano, setPiano] = useState(restored.piano);
-  const [write, setWrite] = useState(false);
+  const [pen, setPen] = useState(false);
   const [playNotes, setPlayNotes] = useState(restored.playNotes);
+  const hasNotes = useSyncExternalStore(notes.subscribe, () => notes.get().length > 0);
+  const hasSelection = useSyncExternalStore(notes.subscribe, () => notes.selected().size > 0);
+  const canUndo = useSyncExternalStore(notes.subscribe, notes.canUndo);
   useNotePlayback(player, notes, synth, piano && playNotes);
-  const roll = useMemo(() => (piano ? { notes, synth, spectrum, write } : null), [piano, notes, synth, spectrum, write]);
-  const size = !piano ? (draw ? "flex-1 min-h-0 md:min-h-72" : "shrink-0") : draw ? "flex-1 min-h-0 md:min-h-[min(32rem,60dvh)]" : "flex-1 min-h-0 md:min-h-[min(32rem,max(15rem,calc(100dvh-30rem)))]";
+  const roll = useMemo(() => (piano ? { notes, synth, spectrum, pen } : null), [piano, notes, synth, spectrum, pen]);
+  useEffect(() => {
+    if (!piano) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== "z" || typing(e.target)) return;
+      e.preventDefault();
+      if (e.shiftKey) notes.redo();
+      else notes.undo();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [piano, notes]);
+  const size = !piano ? (draw ? "flex-1 min-h-0 md:min-h-72" : "shrink-0") : draw ? "flex-1 min-h-0 md:min-h-[390px]" : "flex-1 min-h-0 md:min-h-[342px]";
   return (
-    <div className={`${CARD} ${size} p-4 pt-2 gap-2`}>
-      <div className="flex items-center gap-1 shrink-0">
-        <RollToggle
-          id="piano-toggle"
-          label="Show piano"
-          on={piano}
-          icon={<PianoKeysIcon size={20} weight="fill" />}
-          onClick={() => {
-            setPiano(!piano);
-            setWrite(false);
-            persistence.saveRecordingPrefs(id, { piano: !piano });
-          }}
-        />
-        {piano && <RollToggle label="Write notes" on={write} icon={<PencilSimpleIcon size={20} weight="fill" />} onClick={() => setWrite(!write)} />}
-        {piano && (
-          <RollToggle
-            label="Play notes"
-            on={playNotes}
-            icon={<MusicNotesIcon size={20} weight="fill" />}
-            onClick={() => {
-              setPlayNotes(!playNotes);
-              persistence.saveRecordingPrefs(id, { playNotes: !playNotes });
+    <div data-fill={piano || draw ? true : undefined} className={`${CARD} ${size} p-4 pt-2 gap-2`}>
+      <div className="flex items-center justify-between gap-2 h-9 shrink-0">
+        <div className="flex items-center gap-2 text-black/50">
+          <PianoKeysIcon size={20} weight="fill" aria-hidden />
+          <Toggle
+            id="piano-toggle"
+            label="Show piano"
+            checked={piano}
+            onChange={(next) => {
+              setPiano(next);
+              setPen(false);
+              notes.select([]);
+              persistence.saveRecordingPrefs(id, { piano: next });
             }}
           />
+        </div>
+        {piano && (
+          <div className="flex items-center gap-1">
+            {hasSelection && (
+              <ToolButton label="Delete selected" onClick={() => deleteSelected(notes)}>
+                <TrashIcon size={20} weight="fill" />
+              </ToolButton>
+            )}
+            <ToolButton label="Undo" disabled={!canUndo} onClick={notes.undo}>
+              <ArrowCounterClockwiseIcon size={20} weight="bold" />
+            </ToolButton>
+            <ToolButton label="Pen" on={pen} onClick={() => setPen(!pen)}>
+              <PencilSimpleIcon size={20} weight="fill" />
+            </ToolButton>
+            <div className="w-px h-5 mx-1 bg-border-solid" />
+            <ToolButton
+              label="Play notes"
+              on={playNotes}
+              onClick={() => {
+                setPlayNotes(!playNotes);
+                persistence.saveRecordingPrefs(id, { playNotes: !playNotes });
+              }}
+            >
+              <MusicNotesIcon size={20} weight="fill" />
+            </ToolButton>
+            <ToolButton label="Export notes" disabled={!hasNotes} onClick={() => exportMidi(recording.title, notes)}>
+              <DownloadSimpleIcon size={20} weight="bold" />
+            </ToolButton>
+          </div>
         )}
       </div>
       <Timeline player={player} initialView={restored.view} initialLoop={restored.loopFraction} onView={onView} onLoopCommit={onLoopCommit} draw={draw} initialPitchTop={restored.pitchTop} onPitchTop={onPitchTop} roll={roll} />
@@ -113,10 +158,10 @@ function Layout(props: { recording: StoredRecording; info: [string, string][]; s
       <KeepAwake />
       <div className="w-full h-dvh flex items-center justify-center">
         <div className="w-full max-w-240 h-full md:h-min min-h-0 p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:py-10">
-          <div className="flex flex-col gap-4 max-md:gap-2 h-full min-h-0">
-            <TitleBar recording={recording} info={info} notes={session?.notes} />
+          <div className="flex flex-col gap-4 max-md:gap-2 min-h-0 has-[[data-fill]]:h-full">
+            <TitleBar recording={recording} info={info} />
             {top}
-            {session ? <TimelineCard id={recording.id} session={session} draw={draw} /> : <div className={`${CARD} ${youtube ? "h-28" : "flex-1 min-h-0 md:min-h-72"}`} />}
+            {session ? <TimelineCard recording={recording} session={session} draw={draw} /> : <div data-fill={youtube ? undefined : true} className={`${CARD} ${youtube ? "h-28" : "flex-1 min-h-0 md:min-h-72"}`} />}
           </div>
           {session && <EditorControls id={recording.id} session={session} youtube={youtube} />}
         </div>
@@ -198,13 +243,13 @@ export function YouTubeEditor({ recording, videoId }: { recording: StoredRecordi
   }, [recording.id, videoId]);
 
   const video = (
-    <div className={`${CARD} items-center p-4 md:pt-6 shrink min-h-0`}>
-      <div className="relative aspect-video h-[min(9rem,18dvh)] md:h-45 max-w-full bg-black rounded-lg overflow-hidden opacity-90">
-        <div ref={host} className="absolute inset-0 [&_iframe]:w-full [&_iframe]:h-full" />
+    <>
+      <div className="absolute size-0 overflow-hidden">
+        <div ref={host} className="w-80 h-45 [&_iframe]:w-full [&_iframe]:h-full" />
       </div>
-      {error !== null && <p className="pt-3 text-sm text-red-600/80 font-inria">{error}</p>}
-      {!session && error === null && <p className="pt-3 text-sm text-black/40 font-inria">Loading video…</p>}
-    </div>
+      {error !== null && <p className={`${CARD} p-4 shrink-0 text-sm text-red-600/80 font-inria`}>{error}</p>}
+      {!session && error === null && <p className={`${CARD} p-4 shrink-0 text-sm text-black/40 font-inria`}>Loading video…</p>}
+    </>
   );
   const info: [string, string][] = [
     ["Source", "YouTube"],

@@ -1,15 +1,18 @@
 import { useEffect, useRef, type RefObject } from "react";
-import type { AudioEngine, NoteSynth } from "../../../audio";
+import type { DurationSeconds, Player } from "../../../core";
+import type { Note } from "../../../persistence";
 import { drag } from "../../shared/drag";
-import { HIGH_PITCH, isBlack, pitchFrequency } from "../notes";
+import { HIGH_PITCH, LOW_PITCH, isBlack, pitchFrequency, withEdited } from "../notes";
 import { PITCHES, fitCanvas } from "./noteCanvas";
+import type { RollProps } from "./index";
 
 export const PIANO_WIDTH = 48;
 const BARS_WIDTH = 56;
-const WHITE_STEPS = [0, 2, 4, 5, 7, 9, 11];
-const WHITE_ROWS = 12 / 7;
 
-const whiteRow = (pitch: number) => HIGH_PITCH + 1 - (pitch - pitch % 12) - (WHITE_STEPS.indexOf(pitch % 12) + 1) * WHITE_ROWS;
+const whiteEdges = (pitch: number) => ({
+  low: Math.max(LOW_PITCH, pitch - (isBlack(pitch - 1) ? 0.5 : 0)),
+  high: Math.min(HIGH_PITCH + 1, pitch + 1 + (isBlack(pitch + 1) ? 0.5 : 0)),
+});
 
 function barWidth(db: number, pitch: number) {
   const intensity = Math.min(140, db + 140);
@@ -33,11 +36,34 @@ interface PianoProps {
   keys: RefObject<HTMLDivElement | null>;
   top: () => number;
   rowHeight: number;
-  synth: NoteSynth;
-  spectrum?: AudioEngine;
+  roll: RollProps;
+  player: Player;
+  newNoteLength: () => DurationSeconds;
 }
 
-export function Piano({ keys, top, rowHeight, synth, spectrum }: PianoProps) {
+function enterNote(pitch: number, { notes }: RollProps, player: Player, newNoteLength: () => DurationSeconds) {
+  const base = notes.get();
+  const start = player.position();
+  const minimum = newNoteLength();
+  const shape = (): Note => {
+    const played = player.position() - start;
+    return { pitch, start, length: Math.min(played > minimum ? played : minimum, player.duration - start) };
+  };
+  let raf = 0;
+  const grow = () => {
+    raf = requestAnimationFrame(grow);
+    notes.preview(withEdited(base, [shape()]), []);
+  };
+  grow();
+  return () => {
+    cancelAnimationFrame(raf);
+    const note = shape();
+    notes.commit(withEdited(base, [note]), [note]);
+  };
+}
+
+export function Piano({ keys, top, rowHeight, roll, player, newNoteLength }: PianoProps) {
+  const { synth, spectrum, pen } = roll;
   const bars = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -61,7 +87,18 @@ export function Piano({ keys, top, rowHeight, synth, spectrum }: PianoProps) {
 
   useEffect(() => () => synth.playTone(null), [synth]);
 
-  const play = (key: string | undefined) => key !== undefined && synth.playTone(pitchFrequency(+key));
+  const entry = useRef<{ key: string; finish?: () => void } | null>(null);
+  const play = (key: string | undefined) => {
+    if (key === undefined || key === entry.current?.key) return;
+    synth.playTone(pitchFrequency(+key));
+    entry.current?.finish?.();
+    entry.current = { key, finish: pen ? enterNote(+key, roll, player, newNoteLength) : undefined };
+  };
+  const release = () => {
+    synth.playTone(null);
+    entry.current?.finish?.();
+    entry.current = null;
+  };
 
   return (
     <div id="piano" data-control data-roll className="absolute left-0 inset-y-0 z-20 touch-none" style={{ width: PIANO_WIDTH }}>
@@ -69,13 +106,13 @@ export function Piano({ keys, top, rowHeight, synth, spectrum }: PianoProps) {
         className="absolute inset-0 overflow-hidden border-r border-border cursor-pointer"
         onPointerDown={(e) => {
           play(keyAt(e.clientX, e.clientY));
-          drag(e, (_x, _dx, y) => play(keyAt(e.clientX, y)), () => synth.playTone(null));
+          drag(e, (_x, _dx, y) => play(keyAt(e.clientX, y)), release);
         }}
       >
         <div ref={keys} className="relative" style={{ height: PITCHES.length * rowHeight }}>
           {PITCHES.filter((pitch) => !isBlack(pitch)).map((pitch) => (
-            <div key={pitch} data-key={pitch} className="absolute inset-x-0 bg-[#FBFBFB] hover:bg-[#F0F0F0] border-b border-[#00000033]" style={{ top: whiteRow(pitch) * rowHeight, height: WHITE_ROWS * rowHeight }}>
-              {pitch % 12 === 0 && <span className="absolute right-1 bottom-0 font-space-mono text-[8px] leading-none text-black/40 pointer-events-none">C{pitch / 12 - 1}</span>}
+            <div key={pitch} data-key={pitch} className="absolute inset-x-0 bg-[#FBFBFB] hover:bg-[#F0F0F0] border-b border-[#00000033]" style={{ top: (HIGH_PITCH + 1 - whiteEdges(pitch).high) * rowHeight, height: (whiteEdges(pitch).high - whiteEdges(pitch).low) * rowHeight }}>
+              {pitch % 12 === 0 && <span className="absolute right-1 inset-y-0 flex items-center font-space-mono text-[8px] leading-none text-black/40 pointer-events-none">C{pitch / 12 - 1}</span>}
             </div>
           ))}
           {PITCHES.filter(isBlack).map((pitch) => (

@@ -98,8 +98,8 @@ export function useNotePlayback(player: Player, notes: NoteStore, synth: NoteSyn
         until = null;
         return;
       }
-      const position = player.position();
-      const context = { position, rate, loop, loopWraps };
+      const position = player.renderedPosition();
+      const context = { position, rate, loop, loopWraps, latency: player.latency() };
       const span = loop.end - loop.start;
       const play = (scheduled: ReturnType<typeof upcomingNotes>) => scheduled.forEach((note) => synth.playNote(pitchFrequency(note.pitch), note.delay, note.duration));
       if (until === null) {

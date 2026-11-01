@@ -120,21 +120,35 @@ test("dragging the playhead live-scrubs while playing, then resumes at the drop"
   expectNear(s.position, s.duration * 0.6, s.duration * 0.03);
 });
 
-test("a press on the playhead without moving does nothing", async ({ page }) => {
+test("pressing anywhere in the playhead bar seeks there at once and streams the freeze", async ({ page }) => {
   desktop();
-  await page.getByRole("button", { name: "Play" }).click();
-  const grip = await center(page, '[aria-label="Playhead"]');
-  await page.mouse.move(grip.x, grip.y);
+  const at = await rowPoint(page, "timeline-ruler", 0.4);
+  await page.mouse.move(at.x, at.y);
   await page.mouse.down();
-  expect((await snapshot(page)).mode).toBe("playing");
-  await page.waitForTimeout(300);
+  let s = await snapshot(page);
+  expect(s.mode).toBe("scrubbing");
+  expectNear(s.position, s.duration * 0.4, s.duration * 0.03);
   await page.mouse.up();
-  const s = await snapshot(page);
-  expect(s.mode).toBe("playing");
-  expect(s.position).toBeGreaterThan(0.25);
+  s = await snapshot(page);
+  expect(s).toMatchObject({ playState: "paused", mode: "silent" });
+  expectNear(s.position, s.duration * 0.4, s.duration * 0.03);
 });
 
-test("scrubbing while frozen moves the freeze; paused drags are silent", async ({ page }) => {
+test("dragging the waveform only pans: no seek and no freeze", async ({ page }) => {
+  desktop();
+  const p = await lanePoint(page, 0.5);
+  await page.mouse.move(p.x, p.y);
+  await page.mouse.wheel(0, 400);
+  await page.waitForTimeout(400);
+  const before = (await snapshot(page)).position;
+  await page.mouse.down();
+  await page.mouse.move(p.x - 80, p.y, { steps: 5 });
+  expect((await snapshot(page)).mode).toBe("silent");
+  await page.mouse.up();
+  expect((await snapshot(page)).position).toBe(before);
+});
+
+test("scrubbing streams the freeze whether frozen or paused", async ({ page }) => {
   desktop();
   await page.getByRole("button", { name: "Freeze" }).click();
   const grip = await center(page, '[aria-label="Playhead"]');
@@ -147,7 +161,7 @@ test("scrubbing while frozen moves the freeze; paused drags are silent", async (
   await page.mouse.down();
   const to = await rowPoint(page, "timeline-ruler", 0.5);
   await page.mouse.move(to.x, to.y, { steps: 5 });
-  expect((await snapshot(page)).mode).toBe("silent");
+  expect((await snapshot(page)).mode).toBe("scrubbing");
   await page.mouse.up();
   s = await snapshot(page);
   expect(s.playState).toBe("paused");
@@ -231,7 +245,7 @@ test("touch: one finger pans, two fingers pinch-zoom, tap sets the playhead", as
 });
 
 test("piano keys play a tone at the key's pitch", async ({ page }) => {
-  await page.getByRole("button", { name: "Show piano" }).click();
+  await page.getByRole("switch", { name: "Show piano" }).click();
   const box = (await page.locator('[data-key="69"]').boundingBox())!;
   await page.mouse.move(box.x + box.width - 4, box.y + box.height / 2);
   await page.mouse.down();

@@ -45,6 +45,7 @@ export interface Playback {
 export interface Output {
   now(): ClockSeconds;
   render(playback: Playback): void;
+  latency?(): DurationSeconds;
 }
 
 export interface TransportState {
@@ -68,6 +69,8 @@ export interface Player {
   getState(): TransportState;
   getPlayback(): Playback;
   position(): RecordingSeconds;
+  renderedPosition(): RecordingSeconds;
+  latency(): DurationSeconds;
   delayRemaining(): DurationSeconds;
   dispatch(event: TransportEvent): void;
   startScrub(at: RecordingSeconds): void;

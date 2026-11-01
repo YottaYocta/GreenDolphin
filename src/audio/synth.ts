@@ -1,4 +1,4 @@
-import { audioContext } from "./recording";
+import { audioContext, outputDelay } from "./recording";
 import type { Audio, Hertz, NoteSynth } from "./interfaces";
 
 const LEVEL = 0.25;
@@ -30,7 +30,7 @@ export class ToneSynth implements NoteSynth {
   }
 
   playNote(frequency: Hertz, delay: number, duration: number) {
-    const at = this.ctx.currentTime + delay;
+    const at = this.ctx.currentTime + Math.max(0, delay - outputDelay(this.ctx));
     const voice = this.voice(frequency, at);
     voice.envelope.gain.setValueAtTime(LEVEL, at + Math.max(ATTACK, duration - RELEASE));
     voice.envelope.gain.linearRampToValueAtTime(0, at + Math.max(ATTACK, duration));

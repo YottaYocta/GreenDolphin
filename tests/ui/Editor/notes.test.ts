@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { editNote, hitNote, notesToMidi, soundingNotes, upcomingNotes } from "../../../src/ui/Editor/notes";
+import { hitNote, moveNotes, notesInBox, notesToMidi, resizeNote, soundingNotes, upcomingNotes, withEdited, withoutOverlaps } from "../../../src/ui/Editor/notes";
 
 const note = { pitch: 60, start: 1, length: 1 };
 const context = { position: 3.9, rate: 2, loop: { start: 3, end: 4 }, loopWraps: true };
@@ -10,23 +10,33 @@ test("hit testing finds the note under the point and which part of it", () => {
   expect(hitNote([note], 1.95, 60, 0.1)?.part).toBe("end");
   expect(hitNote([note], 1.5, 61, 0.1)).toBeNull();
   expect(hitNote([note], 2.5, 60, 0.1)).toBeNull();
-});
-
-test("drawing spans the drag in either direction and follows the pitch", () => {
-  expect(editNote("draw", null, { time: 2, pitch: 60 }, { time: 3, pitch: 62 }, 10)).toEqual({ pitch: 62, start: 2, length: 1 });
-  expect(editNote("draw", null, { time: 2, pitch: 60 }, { time: 1, pitch: 60 }, 10)).toEqual({ pitch: 60, start: 1, length: 1 });
+  expect(hitNote([note], 2.05, 60, 0.1)?.part).toBe("end");
+  expect(hitNote([note], 0.95, 60, 0.1)?.part).toBe("start");
+  expect(hitNote([note], 2.05, 60, 0)).toBeNull();
 });
 
 test("moving and resizing stay inside the recording and the piano", () => {
   const from = { time: 1.5, pitch: 60 };
-  expect(editNote("body", note, from, { time: 2, pitch: 62 }, 10)).toEqual({ pitch: 62, start: 1.5, length: 1 });
-  expect(editNote("body", note, from, { time: 100, pitch: 500 }, 10)).toEqual({ pitch: 108, start: 9, length: 1 });
-  expect(editNote("end", note, from, { time: 2, pitch: 60 }, 10).length).toBe(1.5);
-  expect(editNote("end", note, from, { time: -9, pitch: 60 }, 10).length).toBe(0.05);
-  expect(editNote("start", note, from, { time: 1, pitch: 60 }, 10)).toEqual({ pitch: 60, start: 0.5, length: 1.5 });
-  const shortest = editNote("start", note, from, { time: 9, pitch: 60 }, 10);
+  expect(moveNotes([note], from, { time: 2, pitch: 62 }, 10)).toEqual([{ pitch: 62, start: 1.5, length: 1 }]);
+  expect(moveNotes([note], from, { time: 100, pitch: 500 }, 10)).toEqual([{ pitch: 108, start: 9, length: 1 }]);
+  expect(resizeNote("end", note, from, { time: 2, pitch: 60 }, 10).length).toBe(1.5);
+  expect(resizeNote("end", note, from, { time: -9, pitch: 60 }, 10).length).toBe(0.05);
+  expect(resizeNote("start", note, from, { time: 1, pitch: 60 }, 10)).toEqual({ pitch: 60, start: 0.5, length: 1.5 });
+  const shortest = resizeNote("start", note, from, { time: 9, pitch: 60 }, 10);
   expect(shortest.start).toBeCloseTo(1.95);
   expect(shortest.length).toBeCloseTo(0.05);
+});
+
+test("a group moves together and stops as a whole at the limits", () => {
+  const group = [{ pitch: 60, start: 1, length: 1 }, { pitch: 100, start: 5, length: 2 }];
+  const moved = moveNotes(group, { time: 0, pitch: 60 }, { time: 100, pitch: 200 }, 10);
+  expect(moved).toEqual([{ pitch: 68, start: 4, length: 1 }, { pitch: 108, start: 8, length: 2 }]);
+});
+
+test("a box selects every note it touches", () => {
+  const [a, b, c] = [{ pitch: 60, start: 1, length: 1 }, { pitch: 62, start: 1.9, length: 1 }, { pitch: 70, start: 1, length: 1 }];
+  expect(notesInBox([a, b, c], { time: 2, pitch: 62 }, { time: 1.5, pitch: 60 })).toEqual([a, b]);
+  expect(notesInBox([a, b, c], { time: 5, pitch: 60 }, { time: 6, pitch: 70 })).toEqual([]);
 });
 
 test("upcoming notes account for playback speed, the loop end and wrapping", () => {
@@ -56,4 +66,29 @@ test("MIDI export writes a valid single-track file", () => {
   expect([...bytes.subarray(29, 33)]).toEqual([0, 0x90, 60, 80]);
   expect([...bytes.subarray(33, 38)]).toEqual([0x83, 0x60, 0x90, 64, 80]);
   expect([...bytes.subarray(-3)]).toEqual([0xff, 0x2f, 0]);
+});
+
+test("notes are delayed to line up with the recording as heard", () => {
+  const [scheduled] = upcomingNotes([{ pitch: 60, start: 3.95, length: 0.01 }], { ...context, latency: 0.2 }, 3.9, 4);
+  expect(scheduled.delay).toBeCloseTo(0.225);
+  expect(soundingNotes([{ pitch: 60, start: 3.8, length: 0.2 }], { ...context, latency: 0.2 })[0].delay).toBe(0.2);
+});
+
+test("the edited note trims what it overlaps on its own key and deletes what it covers; chords are fine", () => {
+  const n = (pitch: number, start: number, length: number) => ({ pitch, start, length });
+  const edited = n(60, 2, 2);
+  expect(withEdited([n(60, 1, 2)], [edited])).toEqual([n(60, 1, 1), edited]);
+  expect(withEdited([n(60, 3, 2)], [edited])).toEqual([n(60, 4, 1), edited]);
+  expect(withEdited([n(60, 2.5, 1)], [edited])).toEqual([edited]);
+  expect(withEdited([n(60, 1, 5)], [edited])).toEqual([n(60, 1, 1), edited]);
+  expect(withEdited([n(60, 0, 1)], [edited])).toEqual([n(60, 0, 1), edited]);
+  expect(withEdited([n(60, 1.98, 1)], [edited])).toEqual([edited]);
+  expect(withEdited([n(64, 2, 2)], [edited])).toEqual([n(64, 2, 2), edited]);
+});
+
+test("notes saved with overlaps on one key are trimmed on load; chords are kept", () => {
+  const n = (pitch: number, start: number, length: number) => ({ pitch, start, length });
+  expect(withoutOverlaps([n(60, 3, 1), n(60, 1, 5)])).toEqual([n(60, 1, 2), n(60, 3, 1)]);
+  expect(withoutOverlaps([n(60, 1, 1), n(60, 1, 1)])).toEqual([n(60, 1, 1)]);
+  expect(withoutOverlaps([n(64, 1, 2), n(60, 1, 2)])).toEqual([n(60, 1, 2), n(64, 1, 2)]);
 });
