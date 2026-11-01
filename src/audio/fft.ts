@@ -9,10 +9,13 @@ export function createFFT(n: number): FFT {
   return (re, im, inverse = false) => {
     for (let i = 0; i < n; i++) {
       const j = rev[i];
-      if (j > i) {
-        [re[i], re[j]] = [re[j], re[i]];
-        [im[i], im[j]] = [im[j], im[i]];
-      }
+      if (j <= i) continue;
+      const r = re[i];
+      re[i] = re[j];
+      re[j] = r;
+      const m = im[i];
+      im[i] = im[j];
+      im[j] = m;
     }
     const sign = inverse ? 1 : -1;
     for (let size = 2; size <= n; size *= 2) {

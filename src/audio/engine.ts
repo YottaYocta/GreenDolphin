@@ -18,6 +18,7 @@ export const createEngine: Audio["createEngine"] = async (recording) => {
 class WebAudioEngine implements AudioEngine {
   readonly spectrumBinHz: Hertz;
   private readonly analyser: AnalyserNode;
+  private readonly limiter: DynamicsCompressorNode;
   private readonly spectrum: Float32Array<ArrayBuffer>;
   private readonly ctx: AudioContext;
   private readonly buffer: AudioBuffer;
@@ -39,7 +40,8 @@ class WebAudioEngine implements AudioEngine {
     this.analyser = Object.assign(ctx.createAnalyser(), { fftSize: ANALYSER_SIZE, minDecibels: -140, maxDecibels: 0, smoothingTimeConstant: 0.1 });
     this.spectrum = new Float32Array(this.analyser.frequencyBinCount);
     this.spectrumBinHz = ctx.sampleRate / ANALYSER_SIZE;
-    this.stretch.connect(this.gain).connect(this.analyser).connect(ctx.destination);
+    this.limiter = new DynamicsCompressorNode(ctx, { threshold: -1, knee: 0, ratio: 20, attack: 0.001, release: 0.1 });
+    this.stretch.connect(this.gain).connect(this.limiter).connect(this.analyser).connect(ctx.destination);
     this.freeze = new AudioWorkletNode(ctx, "gd-freeze", { numberOfInputs: 0, outputChannelCount: [buffer.numberOfChannels] });
     this.freezeGain = ctx.createGain();
     this.freezeGain.gain.value = 0;
@@ -109,7 +111,7 @@ class WebAudioEngine implements AudioEngine {
     this.playTone(null);
     clearTimeout(this.idle);
     this.post({ type: "active", active: false });
-    for (const node of [this.freeze, this.freezeGain, this.stretch, this.gain, this.analyser]) node.disconnect();
+    for (const node of [this.freeze, this.freezeGain, this.stretch, this.gain, this.limiter, this.analyser]) node.disconnect();
   }
 
   private startSource(p: Playback, position: RecordingSeconds) {
