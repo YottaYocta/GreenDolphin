@@ -84,17 +84,14 @@ class PhaseLockedVocoder implements FreezeVocoder {
     const { n, hop, spread, re, im, mag, phase, omega, peakOf } = this;
     const bins = n / 2 + 1;
     mag.fill(0);
-    for (let j = -spread; j <= spread; j++) {
+    for (let j = Math.min(-1, -spread); j <= spread; j++) {
       this.transform(x, p + j * hop - n / 2);
-      for (let k = 0; k < bins; k++) mag[k] += re[k] * re[k] + im[k] * im[k];
+      if (j >= -spread) for (let k = 0; k < bins; k++) mag[k] += re[k] * re[k] + im[k] * im[k];
+      if (j === -1) for (let k = 0; k < bins; k++) omega[k] = Math.atan2(im[k], re[k]);
+      if (j === 0) for (let k = 0; k < bins; k++) phase[k] = Math.atan2(im[k], re[k]);
     }
-    for (let k = 0; k < bins; k++) mag[k] = Math.sqrt(mag[k] / (2 * spread + 1));
-
-    this.transform(x, p - hop - n / 2);
-    for (let k = 0; k < bins; k++) omega[k] = Math.atan2(im[k], re[k]);
-    this.transform(x, p - n / 2);
     for (let k = 0; k < bins; k++) {
-      phase[k] = Math.atan2(im[k], re[k]);
+      mag[k] = Math.sqrt(mag[k] / (2 * spread + 1));
       const bin = (2 * Math.PI * k) / n;
       omega[k] = bin + wrapPhase(phase[k] - omega[k] - bin * hop) / hop;
     }

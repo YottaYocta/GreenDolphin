@@ -9,13 +9,14 @@ declare class AudioWorkletProcessor {
 
 
 const WINDOW = 2048;
-const SPREAD_SECONDS = 0.02;
-const GLIDE_SECONDS = 0.04;
+const SPREAD_SECONDS = 0.03;
+const GLIDE_SECONDS = 0.015;
 
 class FreezeProcessor extends AudioWorkletProcessor {
   private channels: Float32Array[] = [];
   private voices: FreezeVocoder[] = [];
   private frames: Float32Array[] = [];
+  private next: Float32Array[] = [];
   private read = 0;
   private hop = 0;
   private position = 0;
@@ -38,7 +39,8 @@ class FreezeProcessor extends AudioWorkletProcessor {
     this.voices = this.channels.map(() => createFreezeVocoder(WINDOW, SPREAD_SECONDS * sampleRate));
     this.hop = this.voices[0]?.hop ?? 0;
     this.position = this.target;
-    this.read = this.hop;
+    this.frames = this.voices.map((v, c) => Float32Array.from(v.frame(this.channels[c], this.position)));
+    this.read = 0;
   }
 
   process(_inputs: Float32Array[][], outputs: Float32Array[][]) {
@@ -47,13 +49,13 @@ class FreezeProcessor extends AudioWorkletProcessor {
     const block = out[0].length;
     const glide = 1 - Math.exp(-block / (GLIDE_SECONDS * sampleRate));
     this.position += (this.target - this.position) * glide;
+    const count = this.voices.length;
     for (let i = 0; i < block; i++) {
-      if (this.read === this.hop) {
-        this.voices.forEach((v, c) => (this.frames[c] = v.frame(this.channels[c], this.position)));
-        this.read = 0;
-      }
-      for (let c = 0; c < out.length; c++) out[c][i] = this.frames[Math.min(c, this.frames.length - 1)][this.read];
-      this.read++;
+      for (let c = 0; c < count; c++) if (this.read === Math.floor((c * this.hop) / count)) this.next[c] = this.voices[c].frame(this.channels[c], this.position);
+      for (let c = 0; c < out.length; c++) out[c][i] = this.frames[Math.min(c, count - 1)][this.read];
+      if (++this.read < this.hop) continue;
+      this.frames.forEach((frame, c) => frame.set(this.next[c]));
+      this.read = 0;
     }
     return true;
   }
