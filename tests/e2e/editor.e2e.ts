@@ -131,7 +131,7 @@ test("a press on the playhead without moving does nothing", async ({ page }) => 
   await page.mouse.up();
   const s = await snapshot(page);
   expect(s.mode).toBe("playing");
-  expect(s.position).toBeGreaterThan(0.25);
+  expect(s.position).toBeGreaterThan(0.1);
 });
 
 test("scrubbing while frozen moves the freeze; paused drags are silent", async ({ page }) => {

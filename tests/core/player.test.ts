@@ -151,3 +151,18 @@ test("a scrub has an explicit start: scrubTo before startScrub does nothing", ()
   p.endScrub();
   expect(p.position()).toBe(16);
 });
+
+test("while playing, position is what is being heard, and pausing stays there", () => {
+  const delayed: Output = { ...output, latency: () => 0.2 };
+  const p = core.createPlayer(delayed, { duration: 100, position: 10, loop: null, loopMode: { type: "automatic", delay: 0 }, speed: 1 });
+  p.dispatch({ type: "toggle-play" });
+  expect(p.position()).toBe(10);
+  clock += 0.1;
+  expect(p.position()).toBe(10);
+  clock += 0.9;
+  expect(p.position()).toBeCloseTo(10.8);
+  expect(p.renderedPosition()).toBeCloseTo(11);
+  p.dispatch({ type: "toggle-play" });
+  expect(p.position()).toBeCloseTo(10.8);
+  p.dispose();
+});

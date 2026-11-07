@@ -3,9 +3,10 @@ import soundTouchUrl from "@soundtouchjs/audio-worklet/processor?url";
 import freezeUrl from "./freezeProcessor.ts?worker&url";
 import { core, type Playback, type RecordingSeconds } from "../core";
 import type { Audio, AudioEngine, FreezeMessage, Hertz, LinearGain, Semitones } from "./interfaces";
-import { audioContext, bufferOf } from "./recording";
+import { audioContext, bufferOf, outputDelay } from "./recording";
 
 const FADE = 0.03;
+const STRETCH_LATENCY = 0.125;
 const ANALYSER_SIZE = 16384;
 let registered: Promise<unknown> | null = null;
 
@@ -55,6 +56,8 @@ class WebAudioEngine implements AudioEngine {
   }
 
   now = () => this.ctx.currentTime;
+
+  latency = () => STRETCH_LATENCY + outputDelay(this.ctx);
 
   render(p: Playback) {
     const prev = this.last;

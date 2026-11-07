@@ -10,6 +10,8 @@ export function audioContext() {
   return ctx;
 }
 
+export const outputDelay = (ctx: AudioContext) => (ctx.outputLatency || 0) + (ctx.baseLatency || 0);
+
 export const bufferOf = (recording: Recording) => buffers.get(recording)!;
 
 export const decode: Audio["decode"] = async (data) => {
