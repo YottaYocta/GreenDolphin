@@ -145,14 +145,11 @@ export function Timeline(props: TimelineProps) {
     drag(e, (_, dx) => model.setLoop(shiftLoop(from, dx / model.width())), () => model.commit());
   };
   const scrub = (e: ReactPointerEvent<HTMLDivElement>) => {
-    let started = false;
-    const follow = (x: number) => {
-      const at = model.time(x);
-      if (started) return player.scrubTo(at);
-      started = true;
-      player.startScrub(at);
-    };
-    drag(e, follow, (moved) => moved && player.endScrub(), TAP_PX);
+    if (!e.isPrimary) return;
+    const onGrip = e.target instanceof Element && e.target.closest('[aria-label="Playhead"]');
+    const grab = onGrip ? player.position() - model.time(e.clientX) : 0;
+    player.startScrub(model.time(e.clientX) + grab);
+    drag(e, (x) => player.scrubTo(model.time(x) + grab), () => player.endScrub());
   };
   const resetOnDoubleTap = (e: ReactPointerEvent) => {
     if (!e.isPrimary) return;
@@ -172,10 +169,10 @@ export function Timeline(props: TimelineProps) {
 
   return (
     <div ref={root} className="relative flex flex-col w-full flex-1 min-h-0 select-none touch-none">
-      <div id="timeline-ruler" className={ROW} style={inset}>
+      <div id="timeline-ruler" data-control className={`${ROW} cursor-ew-resize touch-none`} style={inset} onPointerDown={scrub}>
         <div className="relative w-full h-full">
           <div ref={els.ticks} className="absolute inset-0 pointer-events-none" />
-          <div ref={els.grip} data-control aria-label="Playhead" className="absolute top-0 -translate-x-1/2 z-10 flex justify-center w-9 h-7 cursor-ew-resize touch-none" onPointerDown={scrub}>
+          <div ref={els.grip} aria-label="Playhead" className="absolute top-0 -translate-x-1/2 z-10 flex justify-center w-9 h-7">
             <Triangle points="0,0 16,0 8,22" fill="var(--color-play)" />
           </div>
         </div>

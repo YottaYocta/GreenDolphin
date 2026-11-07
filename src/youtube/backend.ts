@@ -17,10 +17,12 @@ const describeError = (code: YTErrorCode) => {
   return "This video couldn't be played.";
 };
 
+const YT_ENDED = 0;
 const YT_PLAYING = 1;
 const YT_PAUSED = 2;
 const DRIFT = 0.4;
 const SEEK_TIMEOUT = 3;
+const END_MARGIN = 0.25;
 
 export const embed: YouTube["embed"] = (host, videoId, onError) => {
   const el = host.appendChild(document.createElement("div"));
@@ -109,6 +111,10 @@ class EmbedOutput implements YouTubeOutput {
     const player = this.player;
     if (!player) return;
     const playing = player.getState().playState === "playing";
+    if (state === YT_ENDED && this.last?.mode === "playing" && this.last.loopWraps) {
+      this.seekTo(this.last.loop.start);
+      return this.yt.playVideo();
+    }
     if (state === YT_PLAYING && !playing) {
       if (this.now() - this.pausedAt < SEEK_TIMEOUT) return this.yt.pauseVideo();
       player.dispatch({ type: "move", position: this.yt.getCurrentTime() });
@@ -124,7 +130,7 @@ class EmbedOutput implements YouTubeOutput {
     if (p?.mode !== "playing") return;
     const time = this.yt.getCurrentTime();
     if (this.seeking(time)) return;
-    if (p.loopWraps && time >= p.loop.end) this.seekTo(p.loop.start);
+    if (p.loopWraps && time >= Math.min(p.loop.end, this.duration - END_MARGIN)) this.seekTo(p.loop.start);
     else if (Math.abs(time - player.position()) > DRIFT) player.correctPosition(time);
   }
 
