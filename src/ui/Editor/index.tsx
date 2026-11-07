@@ -92,37 +92,45 @@ function EditorControls({ id, session, youtube, general }: { id: RecordingId; se
   );
 }
 
-function Layout(props: { recording: StoredRecording; info: [string, string][]; session: Session | null; top?: ReactNode; draw?: TimelineProps["draw"]; youtube?: boolean }) {
-  const { recording, info, session, top, draw, youtube = false } = props;
-  const [piano, setPiano] = useState(() => persistence.recordingPrefs(recording.id).piano);
-  const showPiano = (next: boolean) => {
-    setPiano(next);
-    session?.notes.select([]);
-    persistence.saveRecordingPrefs(recording.id, { piano: next });
-  };
+function useEditorPrefs(notes: NoteStore | undefined) {
+  const [piano, setPiano] = useState(() => persistence.flag("piano"));
   const [awake, setAwake] = useState(() => !persistence.flag("allowSleep"));
+  const keepAwake = useCallback((next: boolean) => {
+    setAwake(next);
+    persistence.setFlag("allowSleep", !next);
+  }, []);
+  const allowSleep = useCallback(() => keepAwake(false), [keepAwake]);
   const [tutorialStep, setTutorialStep] = useState<number | null>(null);
   const general: GeneralPrefs = {
     piano,
-    onPiano: showPiano,
-    awake,
-    onAwake: (next) => {
-      setAwake(next);
-      persistence.setFlag("allowSleep", !next);
+    onPiano(next) {
+      setPiano(next);
+      notes?.select([]);
+      persistence.setFlag("piano", next);
     },
+    awake,
+    onAwake: keepAwake,
     onTutorial: () => setTutorialStep(0),
   };
+  return { general, allowSleep, tutorialStep, setTutorialStep };
+}
+
+function Layout(props: { recording: StoredRecording; info: [string, string][]; session: Session | null; top?: ReactNode; draw?: TimelineProps["draw"]; youtube?: boolean }) {
+  const { recording, info, session, top, draw, youtube = false } = props;
+  const { general, allowSleep, tutorialStep, setTutorialStep } = useEditorPrefs(session?.notes);
   return (
     <>
-      <div className="w-full h-dvh flex items-center justify-center">
-        <div className="w-full max-w-240 h-full md:h-min min-h-0 p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:pt-6 max-md:pb-10">
-          <div className="flex flex-col gap-4 max-md:gap-2 min-h-0 has-[[data-fill]]:h-full">
-            <KeepAwake enabled={awake} />
-            <TitleBar recording={recording} info={info} />
-            {top}
-            {session ? <TimelineCard recording={recording} session={session} draw={draw} piano={piano} /> : <div data-fill={youtube ? undefined : true} className={`${CARD} ${youtube ? "h-28" : "flex-1 min-h-0 md:min-h-72"}`} />}
+      <div className="w-full h-dvh flex flex-col">
+        <KeepAwake enabled={general.awake} onUnsupported={allowSleep} />
+        <div className="flex-1 min-h-0 flex items-center justify-center">
+          <div className="w-full max-w-240 h-full md:h-min min-h-0 p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:pt-6 max-md:pb-10">
+            <div className="flex flex-col gap-4 max-md:gap-2 min-h-0 has-[[data-fill]]:h-full">
+              <TitleBar recording={recording} info={info} />
+              {top}
+              {session ? <TimelineCard recording={recording} session={session} draw={draw} piano={general.piano} /> : <div data-fill={youtube ? undefined : true} className={`${CARD} ${youtube ? "h-28" : "flex-1 min-h-0 md:min-h-72"}`} />}
+            </div>
+            {session && <EditorControls id={recording.id} session={session} youtube={youtube} general={general} />}
           </div>
-          {session && <EditorControls id={recording.id} session={session} youtube={youtube} general={general} />}
         </div>
       </div>
       {session && <Tutorial steps={youtube ? VIDEO_STEPS : AUDIO_STEPS} step={tutorialStep} setStep={setTutorialStep} />}

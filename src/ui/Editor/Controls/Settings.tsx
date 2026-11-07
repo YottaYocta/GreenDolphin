@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { Dialog as BaseDialog } from "@base-ui/react/dialog";
 import { capture } from "../../../analytics";
 import { length } from "../Timeline/geometry";
 import type { Player } from "../../../core";
-import { ModeToggle, NumericInput, Slider, Toggle } from "../../shared/primitives";
+import { DialogClose, ModeToggle, NumericInput, Slider, Toggle } from "../../shared/primitives";
 import { usePlayer, type Sound } from "../session";
 import { persistence, type LoopPrefs } from "../../../persistence";
 
 const percent = (v: number) => String(Math.round(v * 100));
+const ROW = "flex items-center justify-between gap-4";
+const LABEL = "font-inria text-sm text-black/50";
 
 export function SoundSettings(props: { player: Player; sound: Sound; onSound: (sound: Sound) => void; youtube?: boolean }) {
   const { player, sound, onSound, youtube = false } = props;
@@ -71,9 +72,6 @@ export interface GeneralPrefs {
   onTutorial: () => void;
 }
 
-const ROW = "flex items-center justify-between gap-4";
-const LABEL = "font-inria text-sm text-black/50";
-
 export function GeneralSettings({ piano, onPiano, awake, onAwake, onTutorial }: GeneralPrefs) {
   return (
     <div className="flex flex-col gap-4">
@@ -85,9 +83,9 @@ export function GeneralSettings({ piano, onPiano, awake, onAwake, onTutorial }: 
         <div className={LABEL}>Keep screen awake</div>
         <Toggle label="Keep screen awake" checked={awake} onChange={onAwake} />
       </div>
-      <BaseDialog.Close onClick={onTutorial} className="btn-surface h-9 rounded-lg font-inria text-sm cursor-pointer">
+      <DialogClose onClick={onTutorial} className="btn-surface h-9 rounded-lg font-inria text-sm cursor-pointer">
         Replay tutorial
-      </BaseDialog.Close>
+      </DialogClose>
     </div>
   );
 }
@@ -108,7 +106,7 @@ export function LoopSettings({ player }: { player: Player }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
-        <div className="font-inria text-sm text-black/50">Loop mode</div>
+        <div className={LABEL}>Loop mode</div>
         <ModeToggle
           options={[
             { value: "manual", label: "Manual" },
@@ -123,7 +121,7 @@ export function LoopSettings({ player }: { player: Player }) {
       </div>
       {prefs.mode === "automatic" && (
         <div className="flex flex-col gap-1.5 ml-1 pl-4 border-l-2 border-border">
-          <div className="font-inria text-sm text-black/50">Loop delay</div>
+          <div className={LABEL}>Loop delay</div>
           <div className="flex items-center gap-4">
             <ModeToggle
               options={[
