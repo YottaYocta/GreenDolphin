@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { hitNote, moveNotes, notesInBox, notesToMidi, resizeNote, soundingNotes, upcomingNotes, withEdited, withoutOverlaps } from "../../../src/ui/Editor/notes";
+import { hitNote, moveNotes, notesInBox, notesToMidi, resizeNote, soundingNotes, upcomingNotes, withEdited } from "../../../src/ui/Editor/notes";
 
 const note = { pitch: 60, start: 1, length: 1 };
 const context = { position: 3.9, rate: 2, loop: { start: 3, end: 4 }, loopWraps: true };
@@ -84,11 +84,4 @@ test("the edited note trims what it overlaps on its own key and deletes what it 
   expect(withEdited([n(60, 0, 1)], [edited])).toEqual([n(60, 0, 1), edited]);
   expect(withEdited([n(60, 1.98, 1)], [edited])).toEqual([edited]);
   expect(withEdited([n(64, 2, 2)], [edited])).toEqual([n(64, 2, 2), edited]);
-});
-
-test("notes saved with overlaps on one key are trimmed on load; chords are kept", () => {
-  const n = (pitch: number, start: number, length: number) => ({ pitch, start, length });
-  expect(withoutOverlaps([n(60, 3, 1), n(60, 1, 5)])).toEqual([n(60, 1, 2), n(60, 3, 1)]);
-  expect(withoutOverlaps([n(60, 1, 1), n(60, 1, 1)])).toEqual([n(60, 1, 1)]);
-  expect(withoutOverlaps([n(64, 1, 2), n(60, 1, 2)])).toEqual([n(60, 1, 2), n(64, 1, 2)]);
 });

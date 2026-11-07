@@ -1,14 +1,14 @@
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
-import { ArrowCounterClockwiseIcon, DownloadSimpleIcon, MusicNotesIcon, PencilSimpleIcon, PianoKeysIcon, TrashIcon } from "@phosphor-icons/react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { PianoKeysIcon } from "@phosphor-icons/react";
 import { buildPeaks, drawWaveform, type Peaks } from "./Timeline/Waveform/peaks";
-import { formatSize, formatTime, stripExt } from "../shared/format";
+import { formatSize, formatTime } from "../shared/format";
 import { core, type Player } from "../../core";
 import type { Section } from "../../core";
 import { Controls } from "./Controls";
 import { KeepAwake } from "./KeepAwake";
 import { Tutorial, type TutorialStep } from "./Tutorial";
-import { createNoteStore, deleteSelected, notesToMidi, type NoteStore } from "./notes";
-import { typing } from "../shared/keys";
+import { createNoteStore, type NoteStore, type Spectrum } from "./notes";
+import { NotesToolbar } from "./NotesToolbar";
 import { Toggle } from "../shared/primitives";
 import { restore, useNotePlayback, usePersistence, useSound, type SoundOutput } from "./session";
 import { LoopSettings, SoundSettings } from "./Controls/Settings";
@@ -40,23 +40,7 @@ interface Session {
   output: SoundOutput;
   notes: NoteStore;
   synth: NoteSynth;
-  spectrum?: AudioEngine;
-}
-
-const TOOL_BUTTON = "flex items-center justify-center size-9 rounded-lg cursor-pointer disabled:opacity-40 disabled:cursor-default";
-
-function ToolButton({ label, on, onClick, disabled, children }: { label: string; on?: boolean; onClick: () => void; disabled?: boolean; children: ReactNode }) {
-  return (
-    <button aria-label={label} aria-pressed={on} disabled={disabled} onClick={onClick} className={`${TOOL_BUTTON} ${on ? "bg-surface-active text-play" : "text-black/40 enabled:hover:bg-black/5"}`}>
-      {children}
-    </button>
-  );
-}
-
-function exportMidi(title: string, store: NoteStore) {
-  const url = URL.createObjectURL(new Blob([notesToMidi(store.get())], { type: "audio/midi" }));
-  Object.assign(document.createElement("a"), { href: url, download: `${stripExt(title)}.mid` }).click();
-  URL.revokeObjectURL(url);
+  spectrum?: Spectrum;
 }
 
 function TimelineCard({ recording, session, draw }: { recording: StoredRecording; session: Session; draw?: TimelineProps["draw"] }) {
@@ -66,22 +50,8 @@ function TimelineCard({ recording, session, draw }: { recording: StoredRecording
   const [piano, setPiano] = useState(restored.piano);
   const [pen, setPen] = useState(false);
   const [playNotes, setPlayNotes] = useState(restored.playNotes);
-  const hasNotes = useSyncExternalStore(notes.subscribe, () => notes.get().length > 0);
-  const hasSelection = useSyncExternalStore(notes.subscribe, () => notes.selected().size > 0);
-  const canUndo = useSyncExternalStore(notes.subscribe, notes.canUndo);
   useNotePlayback(player, notes, synth, piano && playNotes);
   const roll = useMemo(() => (piano ? { notes, synth, spectrum, pen } : null), [piano, notes, synth, spectrum, pen]);
-  useEffect(() => {
-    if (!piano) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== "z" || typing(e.target)) return;
-      e.preventDefault();
-      if (e.shiftKey) notes.redo();
-      else notes.undo();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [piano, notes]);
   const size = !piano ? (draw ? "flex-1 min-h-0 md:min-h-72" : "shrink-0") : draw ? "flex-1 min-h-0 md:min-h-[390px]" : "flex-1 min-h-0 md:min-h-[342px]";
   return (
     <div data-fill={piano || draw ? true : undefined} className={`${CARD} ${size} p-4 pt-2 gap-2`}>
@@ -101,33 +71,17 @@ function TimelineCard({ recording, session, draw }: { recording: StoredRecording
           />
         </div>
         {piano && (
-          <div className="flex items-center gap-1">
-            {hasSelection && (
-              <ToolButton label="Delete selected" onClick={() => deleteSelected(notes)}>
-                <TrashIcon size={20} weight="fill" />
-              </ToolButton>
-            )}
-            <ToolButton label="Undo" disabled={!canUndo} onClick={notes.undo}>
-              <ArrowCounterClockwiseIcon size={20} weight="bold" />
-            </ToolButton>
-            <ToolButton label="Pen" on={pen} onClick={() => setPen(!pen)}>
-              <PencilSimpleIcon size={20} weight="fill" />
-            </ToolButton>
-            <div className="w-px h-5 mx-1 bg-border-solid" />
-            <ToolButton
-              label="Play notes"
-              on={playNotes}
-              onClick={() => {
-                setPlayNotes(!playNotes);
-                persistence.saveRecordingPrefs(id, { playNotes: !playNotes });
-              }}
-            >
-              <MusicNotesIcon size={20} weight="fill" />
-            </ToolButton>
-            <ToolButton label="Export notes" disabled={!hasNotes} onClick={() => exportMidi(recording.title, notes)}>
-              <DownloadSimpleIcon size={20} weight="bold" />
-            </ToolButton>
-          </div>
+          <NotesToolbar
+            title={recording.title}
+            notes={notes}
+            pen={pen}
+            onPen={setPen}
+            playNotes={playNotes}
+            onPlayNotes={(next) => {
+              setPlayNotes(next);
+              persistence.saveRecordingPrefs(id, { playNotes: next });
+            }}
+          />
         )}
       </div>
       <Timeline player={player} initialView={restored.view} initialLoop={restored.loopFraction} onView={onView} onLoopCommit={onLoopCommit} draw={draw} initialPitchTop={restored.pitchTop} onPitchTop={onPitchTop} roll={roll} />
@@ -183,7 +137,7 @@ export function AudioEditor({ recording, size, decoded }: { recording: StoredRec
       const restored = restore(recording.id, decoded.duration);
       made = { engine, player: core.createPlayer(engine, restored.options), notes: createNoteStore(recording.id, saved) };
       if (import.meta.env.DEV) Object.assign(window, { __gd: made });
-      setSession({ ...made, restored, output: engine, synth: engine, spectrum: engine });
+      setSession({ ...made, restored, output: engine, synth: engine.synth, spectrum: engine });
     });
     void buildPeaks(decoded).then((p) => live && setPeaks(p));
     return () => {
@@ -202,12 +156,7 @@ export function AudioEditor({ recording, size, decoded }: { recording: StoredRec
     ["Channels", String(decoded.channelCount)],
   ];
   return (
-    <Layout
-      recording={recording}
-      info={info}
-      session={session}
-      draw={draw}
-    />
+    <Layout recording={recording} info={info} session={session} draw={draw} />
   );
 }
 

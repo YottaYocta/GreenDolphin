@@ -204,8 +204,8 @@ test("play sounds notes as the playhead reaches them, and only while on and play
   await page.evaluate(() => {
     const { engine, notes, player } = window.__gd!;
     const calls: number[] = [];
-    const original = engine!.playNote.bind(engine);
-    engine!.playNote = (frequency, delay, duration) => {
+    const original = engine!.synth.playNote.bind(engine!.synth);
+    engine!.synth.playNote = (frequency, delay, duration) => {
       calls.push(frequency);
       original(frequency, delay, duration);
     };

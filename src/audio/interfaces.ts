@@ -33,11 +33,13 @@ export interface NoteSynth {
   dispose(): void;
 }
 
-export interface AudioEngine extends Output, NoteSynth {
+export interface AudioEngine extends Output {
+  readonly synth: NoteSynth;
   readonly spectrumBinHz: Hertz;
   readSpectrum(): Float32Array;
   setPitch(semitones: Semitones): void;
   setVolume(gain: LinearGain): void;
+  dispose(): void;
 }
 
 export interface Audio {

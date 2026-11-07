@@ -1,4 +1,5 @@
 import type { DurationSeconds, RecordingSeconds, Section, SpeedRatio } from "../../core";
+import type { AudioEngine, NoteSynth } from "../../audio";
 import { persistence, type MidiPitch, type Note, type RecordingId } from "../../persistence";
 
 export const LOW_PITCH = 21;
@@ -9,6 +10,8 @@ const HISTORY_LIMIT = 200;
 const BLACK = new Set([1, 3, 6, 8, 10]);
 const TICKS_PER_SECOND = 960;
 const VELOCITY = 80;
+
+export const PITCHES = Array.from({ length: HIGH_PITCH - LOW_PITCH + 1 }, (_, i) => HIGH_PITCH - i);
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 export const isBlack = (pitch: MidiPitch) => BLACK.has(pitch % 12);
@@ -22,9 +25,19 @@ export interface NoteStore {
   select(notes: Note[]): void;
   preview(notes: Note[], selection?: Note[]): void;
   commit(notes: Note[], selection?: Note[]): void;
+  deleteSelected(): void;
   canUndo(): boolean;
   undo(): void;
   redo(): void;
+}
+
+export type Spectrum = Pick<AudioEngine, "readSpectrum" | "spectrumBinHz">;
+
+export interface RollProps {
+  notes: NoteStore;
+  synth: NoteSynth;
+  spectrum?: Spectrum;
+  pen: boolean;
 }
 
 export function withEdited(others: Note[], edited: Note[]): Note[] {
@@ -41,20 +54,9 @@ export function withEdited(others: Note[], edited: Note[]): Note[] {
   return [...kept, ...edited];
 }
 
-export function withoutOverlaps(notes: Note[]): Note[] {
-  const sorted = [...notes].sort((a, b) => a.pitch - b.pitch || a.start - b.start);
-  return sorted.flatMap((note, i) => {
-    const next = sorted[i + 1];
-    const room = next?.pitch === note.pitch ? next.start - note.start : Infinity;
-    if (note.length <= room) return [note];
-    return room >= MIN_NOTE ? [{ ...note, length: room }] : [];
-  });
-}
-
 export function createNoteStore(id: RecordingId, saved: Note[]): NoteStore {
-  const initial = withoutOverlaps(saved);
-  let notes = initial;
-  let committed = initial;
+  let notes = saved;
+  let committed = saved;
   let selection: ReadonlySet<Note> = new Set();
   const undone: Note[][] = [];
   const done: Note[][] = [];
@@ -66,13 +68,21 @@ export function createNoteStore(id: RecordingId, saved: Note[]): NoteStore {
     selection = new Set(nextSelection ?? [...selection].filter((note) => present.has(note)));
     emit();
   };
-  const restore = (from: Note[][], to: Note[][]) => {
+  const step = (from: Note[][], to: Note[][]) => {
     const previous = from.pop();
     if (!previous) return;
     to.push(committed);
     committed = previous;
     preview(previous, []);
     void persistence.saveNotes(id, previous);
+  };
+  const commit = (next: Note[], nextSelection?: Note[]) => {
+    done.push(committed);
+    if (done.length > HISTORY_LIMIT) done.shift();
+    undone.length = 0;
+    committed = next;
+    preview(next, nextSelection);
+    void persistence.saveNotes(id, next);
   };
   return {
     get: () => notes,
@@ -86,24 +96,15 @@ export function createNoteStore(id: RecordingId, saved: Note[]): NoteStore {
       emit();
     },
     preview,
-    commit(next, nextSelection) {
-      done.push(committed);
-      if (done.length > HISTORY_LIMIT) done.shift();
-      undone.length = 0;
-      committed = next;
-      preview(next, nextSelection);
-      void persistence.saveNotes(id, next);
+    commit,
+    deleteSelected() {
+      if (selection.size > 0) commit(notes.filter((note) => !selection.has(note)));
     },
     canUndo: () => done.length > 0,
-    undo: () => restore(done, undone),
-    redo: () => restore(undone, done),
+    undo: () => step(done, undone),
+    redo: () => step(undone, done),
   };
 }
-
-export const deleteSelected = (store: NoteStore) => {
-  const selected = store.selected();
-  if (selected.size > 0) store.commit(store.get().filter((note) => !selected.has(note)));
-};
 
 export type NotePart = "start" | "end" | "body";
 

@@ -19,6 +19,7 @@ export const createEngine: Audio["createEngine"] = async (recording) => {
 
 class WebAudioEngine implements AudioEngine {
   readonly spectrumBinHz: Hertz;
+  readonly synth: ToneSynth;
   private readonly analyser: AnalyserNode;
   private readonly limiter: DynamicsCompressorNode;
   private readonly spectrum: Float32Array<ArrayBuffer>;
@@ -29,7 +30,6 @@ class WebAudioEngine implements AudioEngine {
   private readonly freeze: AudioWorkletNode;
   private readonly freezeGain: GainNode;
   private source: AudioBufferSourceNode | null = null;
-  private readonly synth: ToneSynth;
   private last: Playback | null = null;
   private idle: ReturnType<typeof setTimeout> | undefined;
 
@@ -96,18 +96,6 @@ class WebAudioEngine implements AudioEngine {
 
   setVolume(gain: LinearGain) {
     this.gain.gain.value = gain;
-  }
-
-  playTone(frequency: Hertz | null) {
-    this.synth.playTone(frequency);
-  }
-
-  playNote(frequency: Hertz, delay: number, duration: number) {
-    this.synth.playNote(frequency, delay, duration);
-  }
-
-  stopNotes() {
-    this.synth.stopNotes();
   }
 
   dispose() {
