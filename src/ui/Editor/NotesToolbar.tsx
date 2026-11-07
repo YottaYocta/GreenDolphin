@@ -48,25 +48,28 @@ export function NotesToolbar({ title, notes, pen, onPen, playNotes, onPlayNotes 
   const canUndo = useSyncExternalStore(notes.subscribe, notes.canUndo);
   useUndoKeys(notes);
   return (
-    <div className="flex items-center gap-1">
-      {hasSelection && (
-        <ToolButton label="Delete selected" onClick={notes.deleteSelected}>
-          <TrashIcon size={20} weight="fill" />
+    <div className="flex items-center justify-between w-full">
+      <div className="flex items-center gap-1">
+        <ToolButton label="Pen" on={pen} onClick={() => onPen(!pen)}>
+          <PencilSimpleIcon size={20} weight="fill" />
         </ToolButton>
-      )}
-      <ToolButton label="Undo" disabled={!canUndo} onClick={notes.undo}>
-        <ArrowCounterClockwiseIcon size={20} weight="bold" />
-      </ToolButton>
-      <ToolButton label="Pen" on={pen} onClick={() => onPen(!pen)}>
-        <PencilSimpleIcon size={20} weight="fill" />
-      </ToolButton>
-      <div className="w-px h-5 mx-1 bg-border-solid" />
-      <ToolButton label="Play notes" on={playNotes} onClick={() => onPlayNotes(!playNotes)}>
-        <MusicNotesIcon size={20} weight="fill" />
-      </ToolButton>
-      <ToolButton label="Export notes" disabled={!hasNotes} onClick={() => exportMidi(title, notes)}>
-        <DownloadSimpleIcon size={20} weight="bold" />
-      </ToolButton>
+        <ToolButton label="Undo" disabled={!canUndo} onClick={notes.undo}>
+          <ArrowCounterClockwiseIcon size={20} weight="bold" />
+        </ToolButton>
+        {hasSelection && (
+          <ToolButton label="Delete selected" onClick={notes.deleteSelected}>
+            <TrashIcon size={20} weight="fill" />
+          </ToolButton>
+        )}
+      </div>
+      <div className="flex items-center gap-1">
+        <ToolButton label="Play notes" on={playNotes} onClick={() => onPlayNotes(!playNotes)}>
+          <MusicNotesIcon size={20} weight="fill" />
+        </ToolButton>
+        <ToolButton label="Export notes" disabled={!hasNotes} onClick={() => exportMidi(title, notes)}>
+          <DownloadSimpleIcon size={20} weight="bold" />
+        </ToolButton>
+      </div>
     </div>
   );
 }

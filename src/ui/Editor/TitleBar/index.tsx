@@ -8,6 +8,7 @@ import { NewRecordingDialog, RecordingIcon } from "../../Library/NewRecordingDia
 import { Dialog } from "../../shared/primitives";
 
 const GHOST = "flex items-center gap-2 h-12 rounded-lg cursor-pointer hover:bg-black/5 active:bg-black/10";
+const ACTION = "justify-center shrink-0 px-3 max-md:size-12 max-md:px-0";
 const ITEM = "flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-neutral-50 active:bg-neutral-100";
 
 export function TitleBar({ recording, info }: { recording: StoredRecording; info: [string, string][] }) {
@@ -18,7 +19,7 @@ export function TitleBar({ recording, info }: { recording: StoredRecording; info
   const details = [...info, ["Added", new Date(recording.addedAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })]];
 
   return (
-    <div className="flex items-center justify-between gap-4 h-12 shrink-0">
+    <div className="flex items-center gap-2 h-12 shrink-0">
       <div className="flex items-center min-w-0 flex-1">
         <Menu.Root>
           <Menu.Trigger aria-label="Switch recording" className={`group ${GHOST} min-w-0 px-2`}>
@@ -45,11 +46,12 @@ export function TitleBar({ recording, info }: { recording: StoredRecording; info
             </Menu.Positioner>
           </Menu.Portal>
         </Menu.Root>
-        <button aria-label="File info" onClick={() => setShowInfo(true)} className={`${GHOST} justify-center shrink-0 size-12`}>
-          <FileMagnifyingGlassIcon size={16} weight="fill" className="opacity-50" />
-        </button>
       </div>
-      <button aria-label="Home" onClick={home} className={`${GHOST} justify-center shrink-0 px-3 max-md:size-12 max-md:px-0`}>
+      <button aria-label="File info" onClick={() => setShowInfo(true)} className={`${GHOST} ${ACTION}`}>
+        <FileMagnifyingGlassIcon size={16} weight="fill" className="opacity-50" />
+        <span className="opacity-40 font-inria max-md:hidden">File info</span>
+      </button>
+      <button aria-label="Home" onClick={home} className={`${GHOST} ${ACTION}`}>
         <HouseIcon size={16} weight="fill" className="opacity-50" />
         <span className="opacity-40 font-inria max-md:hidden">Home</span>
       </button>

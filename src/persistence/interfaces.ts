@@ -29,7 +29,7 @@ export interface LoopPrefs {
   delayValue: number;
 }
 
-export type Flag = "demo" | "tutorial";
+export type Flag = "demo" | "tutorial" | "allowSleep";
 
 export type RecordingSource = { kind: "file"; size: number } | { kind: "youtube"; videoId: string };
 

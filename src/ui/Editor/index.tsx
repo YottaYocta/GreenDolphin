@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { PianoKeysIcon } from "@phosphor-icons/react";
 import { buildPeaks, drawWaveform, type Peaks } from "./Timeline/Waveform/peaks";
 import { formatSize, formatTime } from "../shared/format";
 import { core, type Player } from "../../core";
@@ -9,9 +8,8 @@ import { KeepAwake } from "./KeepAwake";
 import { Tutorial, type TutorialStep } from "./Tutorial";
 import { createNoteStore, type NoteStore, type Spectrum } from "./notes";
 import { NotesToolbar } from "./NotesToolbar";
-import { Toggle } from "../shared/primitives";
 import { restore, useNotePlayback, usePersistence, useSound, type SoundOutput } from "./session";
-import { LoopSettings, SoundSettings } from "./Controls/Settings";
+import { GeneralSettings, LoopSettings, SoundSettings, type GeneralPrefs } from "./Controls/Settings";
 import { Timeline, type TimelineProps } from "./Timeline";
 import { TitleBar } from "./TitleBar";
 import { audio, type AudioEngine, type NoteSynth, type Recording } from "../../audio";
@@ -24,13 +22,13 @@ const AUDIO_STEPS: TutorialStep[] = [
   { selector: "#timeline-ruler", text: "Click to set playback position" },
   { selector: "#waveform-canvas", text: "Pinch to zoom in/out" },
   { selector: "#waveform-canvas", text: "Drag to pan" },
-  { selector: "#timeline-loop", text: "The loop stays put — drag the handles or pan the recording under it" },
-  { selector: "#piano-toggle", text: "Show the piano to play notes and write them over the recording" },
+  { selector: "#timeline-loop", text: "Drag the handles to set the loop" },
+  { selector: '[aria-label="Settings"]', text: "Turn on the piano in settings to play notes and write them over the recording" },
 ];
 const VIDEO_STEPS: TutorialStep[] = [
   { selector: "#timeline-ruler", text: "Click to set playback position" },
-  { selector: "#timeline-loop", text: "The loop stays put — drag the handles or pan the video under it" },
-  { selector: "#piano-toggle", text: "Show the piano to play notes and write them over the video" },
+  { selector: "#timeline-loop", text: "Drag the handles to set the loop" },
+  { selector: '[aria-label="Settings"]', text: "Turn on the piano in settings to play notes and write them over the video" },
 ];
 
 type Restored = ReturnType<typeof restore>;
@@ -43,34 +41,20 @@ interface Session {
   spectrum?: Spectrum;
 }
 
-function TimelineCard({ recording, session, draw }: { recording: StoredRecording; session: Session; draw?: TimelineProps["draw"] }) {
+function TimelineCard({ recording, session, draw, piano }: { recording: StoredRecording; session: Session; draw?: TimelineProps["draw"]; piano: boolean }) {
   const { id } = recording;
   const { player, restored, notes, synth, spectrum } = session;
   const { onView, onLoopCommit, onPitchTop } = usePersistence(id, player);
-  const [piano, setPiano] = useState(restored.piano);
   const [pen, setPen] = useState(false);
+  if (pen && !piano) setPen(false);
   const [playNotes, setPlayNotes] = useState(restored.playNotes);
   useNotePlayback(player, notes, synth, piano && playNotes);
   const roll = useMemo(() => (piano ? { notes, synth, spectrum, pen } : null), [piano, notes, synth, spectrum, pen]);
   const size = !piano ? (draw ? "flex-1 min-h-0 md:min-h-72" : "shrink-0") : draw ? "flex-1 min-h-0 md:min-h-[390px]" : "flex-1 min-h-0 md:min-h-[342px]";
   return (
-    <div data-fill={piano || draw ? true : undefined} className={`${CARD} ${size} p-4 pt-2 gap-2`}>
-      <div className="flex items-center justify-between gap-2 h-9 shrink-0">
-        <div className="flex items-center gap-2 text-black/50">
-          <PianoKeysIcon size={20} weight="fill" aria-hidden />
-          <Toggle
-            id="piano-toggle"
-            label="Show piano"
-            checked={piano}
-            onChange={(next) => {
-              setPiano(next);
-              setPen(false);
-              notes.select([]);
-              persistence.saveRecordingPrefs(id, { piano: next });
-            }}
-          />
-        </div>
-        {piano && (
+    <div data-fill={piano || draw ? true : undefined} className={`${CARD} ${size} p-4 ${piano ? "pt-2 gap-2" : ""}`}>
+      {piano && (
+        <div className="flex items-center h-9 shrink-0">
           <NotesToolbar
             title={recording.title}
             notes={notes}
@@ -82,14 +66,14 @@ function TimelineCard({ recording, session, draw }: { recording: StoredRecording
               persistence.saveRecordingPrefs(id, { playNotes: next });
             }}
           />
-        )}
-      </div>
+        </div>
+      )}
       <Timeline player={player} initialView={restored.view} initialLoop={restored.loopFraction} onView={onView} onLoopCommit={onLoopCommit} draw={draw} initialPitchTop={restored.pitchTop} onPitchTop={onPitchTop} roll={roll} />
     </div>
   );
 }
 
-function EditorControls({ id, session, youtube }: { id: RecordingId; session: Session; youtube: boolean }) {
+function EditorControls({ id, session, youtube, general }: { id: RecordingId; session: Session; youtube: boolean; general: GeneralPrefs }) {
   const [sound, setSound] = useSound(id, session.restored.sound, session.output);
   return (
     <Controls
@@ -98,7 +82,10 @@ function EditorControls({ id, session, youtube }: { id: RecordingId; session: Se
       settings={
         <>
           <SoundSettings player={session.player} sound={sound} onSound={setSound} youtube={youtube} />
+          <hr className="border-border" />
           <LoopSettings player={session.player} />
+          <hr className="border-border" />
+          <GeneralSettings {...general} />
         </>
       }
     />
@@ -107,20 +94,38 @@ function EditorControls({ id, session, youtube }: { id: RecordingId; session: Se
 
 function Layout(props: { recording: StoredRecording; info: [string, string][]; session: Session | null; top?: ReactNode; draw?: TimelineProps["draw"]; youtube?: boolean }) {
   const { recording, info, session, top, draw, youtube = false } = props;
+  const [piano, setPiano] = useState(() => persistence.recordingPrefs(recording.id).piano);
+  const showPiano = (next: boolean) => {
+    setPiano(next);
+    session?.notes.select([]);
+    persistence.saveRecordingPrefs(recording.id, { piano: next });
+  };
+  const [awake, setAwake] = useState(() => !persistence.flag("allowSleep"));
+  const [tutorialStep, setTutorialStep] = useState<number | null>(null);
+  const general: GeneralPrefs = {
+    piano,
+    onPiano: showPiano,
+    awake,
+    onAwake: (next) => {
+      setAwake(next);
+      persistence.setFlag("allowSleep", !next);
+    },
+    onTutorial: () => setTutorialStep(0),
+  };
   return (
     <>
-      <KeepAwake />
       <div className="w-full h-dvh flex items-center justify-center">
-        <div className="w-full max-w-240 h-full md:h-min min-h-0 p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:py-10">
+        <div className="w-full max-w-240 h-full md:h-min min-h-0 p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:pt-6 max-md:pb-10">
           <div className="flex flex-col gap-4 max-md:gap-2 min-h-0 has-[[data-fill]]:h-full">
+            <KeepAwake enabled={awake} />
             <TitleBar recording={recording} info={info} />
             {top}
-            {session ? <TimelineCard recording={recording} session={session} draw={draw} /> : <div data-fill={youtube ? undefined : true} className={`${CARD} ${youtube ? "h-28" : "flex-1 min-h-0 md:min-h-72"}`} />}
+            {session ? <TimelineCard recording={recording} session={session} draw={draw} piano={piano} /> : <div data-fill={youtube ? undefined : true} className={`${CARD} ${youtube ? "h-28" : "flex-1 min-h-0 md:min-h-72"}`} />}
           </div>
-          {session && <EditorControls id={recording.id} session={session} youtube={youtube} />}
+          {session && <EditorControls id={recording.id} session={session} youtube={youtube} general={general} />}
         </div>
       </div>
-      {session && <Tutorial steps={youtube ? VIDEO_STEPS : AUDIO_STEPS} />}
+      {session && <Tutorial steps={youtube ? VIDEO_STEPS : AUDIO_STEPS} step={tutorialStep} setStep={setTutorialStep} />}
     </>
   );
 }
