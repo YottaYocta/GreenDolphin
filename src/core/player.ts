@@ -34,6 +34,8 @@ class TransportPlayer implements Player {
 
   getState = () => this.state;
 
+  getPlayback = () => this.playback;
+
   position() {
     const { playback } = this;
     if (this.scrub !== null || playback.mode !== "playing") return this.renderedPosition();

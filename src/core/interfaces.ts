@@ -67,6 +67,7 @@ export interface Player {
   readonly duration: DurationSeconds;
   subscribe(listener: () => void): () => void;
   getState(): TransportState;
+  getPlayback(): Playback;
   position(): RecordingSeconds;
   renderedPosition(): RecordingSeconds;
   latency(): DurationSeconds;

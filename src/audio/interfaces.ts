@@ -26,16 +26,22 @@ export interface Recording {
   readChannel(into: Float32Array, channel: number, fromSample?: number): void;
 }
 
-export interface AudioEngine extends Output {
+export interface NoteSynth {
+  playTone(frequency: Hertz | null): void;
+  playNote(frequency: Hertz, delay: DurationSeconds, duration: DurationSeconds): void;
+  stopNotes(): void;
+  dispose(): void;
+}
+
+export interface AudioEngine extends Output, NoteSynth {
   readonly spectrumBinHz: Hertz;
   readSpectrum(): Float32Array;
   setPitch(semitones: Semitones): void;
   setVolume(gain: LinearGain): void;
-  playTone(frequency: Hertz | null): void;
-  dispose(): void;
 }
 
 export interface Audio {
   decode(data: ArrayBuffer): Promise<Recording>;
   createEngine(recording: Recording): Promise<AudioEngine>;
+  createSynth(): NoteSynth;
 }
