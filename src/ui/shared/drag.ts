@@ -2,7 +2,7 @@ import type { PointerEvent as ReactPointerEvent } from "react";
 
 export function drag(
   e: ReactPointerEvent<HTMLElement>,
-  onMove: (clientX: number, dx: number) => void,
+  onMove: (clientX: number, dx: number, clientY: number) => void,
   onEnd?: (moved: boolean) => void,
   threshold = 0,
 ) {
@@ -16,7 +16,7 @@ export function drag(
     if (ev.pointerId !== pointerId) return;
     if (!moved && Math.abs(ev.clientX - startX) <= threshold) return;
     moved = true;
-    onMove(ev.clientX, ev.clientX - startX);
+    onMove(ev.clientX, ev.clientX - startX, ev.clientY);
   };
   const end = (ev: PointerEvent) => {
     if (ev.pointerId !== pointerId) return;

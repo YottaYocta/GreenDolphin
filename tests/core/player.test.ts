@@ -166,3 +166,27 @@ test("while playing, position is what is being heard, and pausing stays there", 
   expect(p.position()).toBeCloseTo(10.8);
   p.dispose();
 });
+
+test("re-timing while playing keeps the heard position moving smoothly", () => {
+  const delayed: Output = { ...output, latency: () => 0.2 };
+  const p = core.createPlayer(delayed, { duration: 100, position: 10, loop: null, loopMode: { type: "automatic", delay: 0 }, speed: 1 });
+  p.dispatch({ type: "toggle-play" });
+  clock += 1;
+  const before = p.position();
+  p.setSpeed(0.5);
+  expect(p.position()).toBeCloseTo(before);
+  clock += 0.1;
+  expect(p.position()).toBeCloseTo(before + 0.1);
+  clock += 0.2;
+  expect(p.position()).toBeCloseTo(11.05);
+  expect(jumped()).toBe(false);
+  p.dispose();
+});
+
+test("setting the same loop mode again changes nothing", () => {
+  const p = make();
+  p.dispatch({ type: "toggle-play" });
+  const count = renders.length;
+  p.setLoopMode({ type: "automatic", delay: 0 });
+  expect(renders.length).toBe(count);
+});

@@ -1,10 +1,11 @@
 import { expect, type CDPSession, type Page } from "@playwright/test";
 import type { Player } from "../../src/core";
-import type { AudioEngine } from "../../src/audio";
+import type { AudioEngine, NoteSynth } from "../../src/audio";
+import type { NoteStore } from "../../src/ui/Editor/notes";
 
 declare global {
   interface Window {
-    __gd?: { player: Player; engine?: AudioEngine };
+    __gd?: { player: Player; engine?: AudioEngine; notes: NoteStore; synth?: NoteSynth };
   }
 }
 

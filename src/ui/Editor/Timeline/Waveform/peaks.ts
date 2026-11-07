@@ -1,5 +1,6 @@
 import type { Recording } from "../../../../audio";
 import type { Section } from "../../../../core";
+import { fitCanvas } from "../../../shared/canvas";
 
 const BASE = 64;
 const CHUNK = 1 << 16;
@@ -59,14 +60,7 @@ function columns(peaks: Peaks, recording: Recording, channel: number, view: Sect
 }
 
 export function drawWaveform(canvas: HTMLCanvasElement, peaks: Peaks, recording: Recording, view: Section, loop: Section) {
-  const dpr = window.devicePixelRatio || 1;
-  const width = canvas.clientWidth;
-  const height = canvas.clientHeight;
-  if (canvas.width !== Math.round(width * dpr)) canvas.width = Math.round(width * dpr);
-  if (canvas.height !== Math.round(height * dpr)) canvas.height = Math.round(height * dpr);
-  const ctx = canvas.getContext("2d")!;
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.clearRect(0, 0, width, height);
+  const { ctx, width, height } = fitCanvas(canvas);
   const lane = height / recording.channelCount;
   const toPx = (t: number) => ((t - view.start) / (view.end - view.start)) * width;
   const [loopFrom, loopTo] = [toPx(loop.start), toPx(loop.end)];

@@ -4,6 +4,7 @@ import freezeUrl from "./freezeProcessor.ts?worker&url";
 import { core, type Playback, type RecordingSeconds } from "../core";
 import type { Audio, AudioEngine, FreezeMessage, Hertz, LinearGain, Semitones } from "./interfaces";
 import { audioContext, bufferOf, outputDelay } from "./recording";
+import { ToneSynth } from "./synth";
 
 const FADE = 0.03;
 const STRETCH_LATENCY = 0.125;
@@ -18,6 +19,7 @@ export const createEngine: Audio["createEngine"] = async (recording) => {
 
 class WebAudioEngine implements AudioEngine {
   readonly spectrumBinHz: Hertz;
+  readonly synth: ToneSynth;
   private readonly analyser: AnalyserNode;
   private readonly limiter: DynamicsCompressorNode;
   private readonly spectrum: Float32Array<ArrayBuffer>;
@@ -28,7 +30,6 @@ class WebAudioEngine implements AudioEngine {
   private readonly freeze: AudioWorkletNode;
   private readonly freezeGain: GainNode;
   private source: AudioBufferSourceNode | null = null;
-  private tone: OscillatorNode | null = null;
   private last: Playback | null = null;
   private idle: ReturnType<typeof setTimeout> | undefined;
 
@@ -42,6 +43,7 @@ class WebAudioEngine implements AudioEngine {
     this.spectrum = new Float32Array(this.analyser.frequencyBinCount);
     this.spectrumBinHz = ctx.sampleRate / ANALYSER_SIZE;
     this.limiter = new DynamicsCompressorNode(ctx, { threshold: -1, knee: 0, ratio: 20, attack: 0.001, release: 0.1 });
+    this.synth = new ToneSynth(ctx, this.limiter);
     this.stretch.connect(this.gain).connect(this.limiter).connect(this.analyser).connect(ctx.destination);
     this.freeze = new AudioWorkletNode(ctx, "gd-freeze", { numberOfInputs: 0, outputChannelCount: [buffer.numberOfChannels] });
     this.freezeGain = ctx.createGain();
@@ -96,22 +98,9 @@ class WebAudioEngine implements AudioEngine {
     this.gain.gain.value = gain;
   }
 
-  playTone(frequency: Hertz | null) {
-    this.tone?.stop();
-    this.tone = null;
-    if (frequency === null) return;
-    void this.ctx.resume();
-    const level = this.ctx.createGain();
-    level.gain.value = 10 ** (-10 / 20);
-    this.tone = Object.assign(this.ctx.createOscillator(), { type: "sine" as const });
-    this.tone.frequency.value = frequency;
-    this.tone.connect(level).connect(this.analyser);
-    this.tone.start();
-  }
-
   dispose() {
     this.stopSource();
-    this.playTone(null);
+    this.synth.dispose();
     clearTimeout(this.idle);
     this.post({ type: "active", active: false });
     for (const node of [this.freeze, this.freezeGain, this.stretch, this.gain, this.limiter, this.analyser]) node.disconnect();

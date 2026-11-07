@@ -1,5 +1,5 @@
 import type { ClockSeconds, Core, DurationSeconds, LoopMode, Output, Playback, PlaybackMode, Player, PlayerOptions, RecordingSeconds, Section, SpeedRatio, TransportEvent, TransportState } from "./interfaces";
-import { positionAt } from "./playback";
+import { continues, positionAt } from "./playback";
 import { loopDelay, transition } from "./transport";
 
 export const createPlayer: Core["createPlayer"] = (output, options) => new TransportPlayer(output, options);
@@ -14,6 +14,8 @@ class TransportPlayer implements Player {
   private loopMode: LoopMode;
   private anchor: { position: RecordingSeconds; time: ClockSeconds };
   private playback!: Playback;
+  private audibleFrom: ClockSeconds = -Infinity;
+  private retimed: Playback | null = null;
   private scrub: number | null = null;
   private timer: ReturnType<typeof setTimeout> | undefined;
   private listeners = new Set<() => void>();
@@ -34,10 +36,16 @@ class TransportPlayer implements Player {
 
   getState = () => this.state;
 
+  getPlayback = () => this.playback;
+
   position() {
     const { playback } = this;
     if (this.scrub !== null || playback.mode !== "playing") return this.renderedPosition();
-    return Math.min(positionAt(playback, Math.max(playback.anchorTime, this.output.now() - this.latency())), this.duration);
+    const { loop, loopWraps, anchorPosition } = playback;
+    const time = Math.max(this.audibleFrom, this.output.now() - this.latency());
+    const heard = positionAt(time < playback.anchorTime && this.retimed ? this.retimed : playback, time);
+    const unwrapped = loopWraps && heard < loop.start && anchorPosition >= loop.start ? heard + loop.end - loop.start : heard;
+    return Math.min(unwrapped, this.duration);
   }
 
   renderedPosition() {
@@ -56,9 +64,10 @@ class TransportPlayer implements Player {
   dispatch(event: TransportEvent) {
     const { playState, loop } = this.state;
     const { loopMode } = this;
-    const position = this.here();
+    const now = this.output.now();
+    const position = this.here(now);
     const next = transition(playState, event, { position, loop, loopMode });
-    this.reanchor(next.position ?? (next.state === "playing" ? position : this.position()));
+    this.reanchor(next.position ?? (next.state === "playing" ? position : this.position()), now);
     const waitingUntil = next.state === "waiting" ? this.anchor.time + loopDelay(loopMode) : null;
     this.state = { ...this.state, playState: next.state, waitingUntil };
     this.render();
@@ -83,7 +92,7 @@ class TransportPlayer implements Player {
   }
 
   setSpeed(speed: SpeedRatio) {
-    this.reanchor(this.here());
+    this.reanchorHere();
     this.state = { ...this.state, speed };
     this.render();
   }
@@ -96,7 +105,8 @@ class TransportPlayer implements Player {
   }
 
   setLoopMode(loopMode: LoopMode) {
-    this.reanchor(this.here());
+    if (loopMode.type === this.loopMode.type && loopDelay(loopMode) === loopDelay(this.loopMode)) return;
+    this.reanchorHere();
     this.loopMode = loopMode;
     this.render();
   }
@@ -112,17 +122,23 @@ class TransportPlayer implements Player {
     this.output.render({ ...this.playback, mode: "silent" });
   }
 
-  private here() {
-    return this.scrub ?? positionAt(this.playback, this.output.now());
+  private here(now = this.output.now()) {
+    return this.scrub ?? positionAt(this.playback, now);
   }
 
-  private reanchor(position: RecordingSeconds) {
-    this.anchor = { position, time: this.output.now() };
+  private reanchor(position: RecordingSeconds, time = this.output.now()) {
+    this.anchor = { position, time };
+  }
+
+  private reanchorHere() {
+    const now = this.output.now();
+    this.reanchor(this.here(now), now);
   }
 
   private render() {
     const { playState, loop, speed } = this.state;
     const { loopMode } = this;
+    const previous = this.playback;
     const mode: PlaybackMode = this.scrub !== null ? "scrubbing" : playState === "playing" ? "playing" : playState === "frozen" ? "frozen" : "silent";
     this.playback = {
       mode,
@@ -132,6 +148,9 @@ class TransportPlayer implements Player {
       loop,
       loopWraps: loopMode.type === "automatic" && loopDelay(loopMode) === 0,
     };
+    const seamless = !!previous && continues(previous, this.playback);
+    if (!seamless) this.audibleFrom = this.anchor.time;
+    this.retimed = seamless ? previous : null;
     this.output.render(this.playback);
     this.schedule();
     this.listeners.forEach((listener) => listener());
