@@ -4,6 +4,8 @@ import { ArrowClockwiseIcon, XIcon } from "@phosphor-icons/react";
 import { clamp } from "../Editor/Timeline/geometry";
 import { drag } from "./drag";
 
+export const DialogClose = BaseDialog.Close;
+
 export function Dialog({ title, open, onOpenChange, children }: { title: string; open: boolean; onOpenChange: (open: boolean) => void; children: ReactNode }) {
   return (
     <BaseDialog.Root open={open} onOpenChange={onOpenChange}>

@@ -4,6 +4,7 @@ import { capture } from "../analytics";
 import { LibraryContext, type LibraryApi, type Opened } from "./context";
 import { AudioEditor, YouTubeEditor } from "./Editor";
 import { Library } from "./Library";
+import { PullToRefresh } from "./shared/PullToRefresh";
 import { audio } from "../audio";
 import { persistence, type StoredRecording } from "../persistence";
 import { youtube } from "../youtube";
@@ -103,6 +104,7 @@ export function App() {
 
   return (
     <LibraryContext.Provider value={api}>
+      <PullToRefresh />
       {loading ? (
         <div className="w-screen h-dvh flex items-center justify-center">
           <SpinnerIcon size={32} className="animate-spin opacity-40" />

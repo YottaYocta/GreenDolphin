@@ -31,7 +31,7 @@ export function restore(id: RecordingId, duration: DurationSeconds) {
     speed: p.speed,
   };
   const sound: Sound = { pitch: p.pitch, gain: p.gain };
-  return { view, loopFraction, options, sound, piano: p.piano, playNotes: p.playNotes, pitchTop: p.pitchTop };
+  return { view, loopFraction, options, sound, playNotes: p.playNotes, pitchTop: p.pitchTop };
 }
 
 export function useSound(id: RecordingId, initial: Sound, output: SoundOutput) {

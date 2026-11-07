@@ -160,7 +160,7 @@ test("a long title truncates without colliding with the title bar buttons", asyn
   await page.goto("/");
   await upload(page, `${"A very long recording title that keeps going ".repeat(4)}.wav`);
   await waitForEditor(page);
-  const boxes = await Promise.all(["Switch recording", "File info", "Home", "Keep awake status"].map(async (name) => (await page.getByRole("button", { name }).boundingBox())!));
+  const boxes = await Promise.all(["Switch recording", "File info", "Home"].map(async (name) => (await page.getByRole("button", { name }).boundingBox())!));
   for (let i = 0; i < boxes.length; i++)
     for (const other of boxes.slice(i + 1))
       expect(boxes[i].x + boxes[i].width <= other.x || other.x + other.width <= boxes[i].x || boxes[i].y + boxes[i].height <= other.y || other.y + other.height <= boxes[i].y).toBe(true);

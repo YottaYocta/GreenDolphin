@@ -18,7 +18,6 @@ export interface RecordingPrefs {
   loop: Section | null;
   view: Section | null;
   position: RecordingSeconds;
-  piano: boolean;
   playNotes: boolean;
   pitchTop: number | null;
 }
@@ -29,7 +28,7 @@ export interface LoopPrefs {
   delayValue: number;
 }
 
-export type Flag = "demo" | "tutorial";
+export type Flag = "demo" | "tutorial" | "allowSleep" | "piano";
 
 export type RecordingSource = { kind: "file"; size: number } | { kind: "youtube"; videoId: string };
 

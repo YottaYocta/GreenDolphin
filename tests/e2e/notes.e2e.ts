@@ -20,7 +20,9 @@ const savedNotes = (page: Page) =>
   );
 
 async function showRoll(page: Page, pen = true) {
-  await page.getByRole("switch", { name: "Show piano" }).click();
+  await page.getByRole("button", { name: "Settings" }).click();
+  await page.getByRole("switch", { name: "Show piano roll" }).click();
+  await page.keyboard.press("Escape");
   if (pen) await toggle(page, "Pen").click();
 }
 

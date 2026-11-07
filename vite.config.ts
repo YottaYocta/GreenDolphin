@@ -7,5 +7,6 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react(), tailwindcss()],
     server: { allowedHosts: env.NGROK_HOST ? [env.NGROK_HOST] : [] },
+    test: { exclude: ["**/node_modules/**", ".claude/**"] },
   };
 });

@@ -14,7 +14,7 @@ test("settings, loop, view and position are stored per recording", () => {
   persistence.saveRecordingPrefs("a", { pitch: 3, speed: 0.75, loop: { start: 1, end: 2 } });
   persistence.saveRecordingPrefs("b", { gain: 1.5, position: 42 });
   persistence.saveRecordingPrefs("a", { view: { start: 0, end: 5 } });
-  expect(persistence.recordingPrefs("a")).toEqual({ speed: 0.75, pitch: 3, gain: 1, loop: { start: 1, end: 2 }, view: { start: 0, end: 5 }, position: 0, piano: false, playNotes: false, pitchTop: null });
+  expect(persistence.recordingPrefs("a")).toEqual({ speed: 0.75, pitch: 3, gain: 1, loop: { start: 1, end: 2 }, view: { start: 0, end: 5 }, position: 0, playNotes: false, pitchTop: null });
   expect(persistence.recordingPrefs("b")).toMatchObject({ speed: 1, pitch: 0, gain: 1.5, position: 42, loop: null });
   removeRecordingPrefs("a");
   expect(persistence.recordingPrefs("a").pitch).toBe(0);
