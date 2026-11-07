@@ -123,9 +123,7 @@ class TransportPlayer implements Player {
   private render() {
     const { playState, loop, speed } = this.state;
     const { loopMode } = this;
-    const audible = playState === "playing" || playState === "frozen";
-    const mode: PlaybackMode =
-      this.scrub !== null && audible ? "scrubbing" : playState === "playing" ? "playing" : playState === "frozen" ? "frozen" : "silent";
+    const mode: PlaybackMode = this.scrub !== null ? "scrubbing" : playState === "playing" ? "playing" : playState === "frozen" ? "frozen" : "silent";
     this.playback = {
       mode,
       anchorPosition: this.scrub ?? this.anchor.position,

@@ -100,7 +100,7 @@ test("scrubbing while playing streams the freeze, then resumes at the drop", () 
   expect(p.position()).toBe(10);
 });
 
-test("scrubbing while frozen moves the freeze; paused scrubs are silent", () => {
+test("scrubbing streams the freeze whether frozen or paused", () => {
   const p = make();
   p.dispatch({ type: "toggle-freeze" });
   p.startScrub(30);
@@ -109,7 +109,7 @@ test("scrubbing while frozen moves the freeze; paused scrubs are silent", () => 
   expect(last()).toMatchObject({ mode: "frozen", anchorPosition: 30 });
   p.dispatch({ type: "toggle-freeze" });
   p.startScrub(5);
-  expect(last().mode).toBe("silent");
+  expect(last().mode).toBe("scrubbing");
   p.endScrub();
   expect(p.getState().playState).toBe("paused");
   expect(p.position()).toBe(5);

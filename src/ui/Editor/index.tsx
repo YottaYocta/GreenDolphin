@@ -39,7 +39,7 @@ interface Session {
 function TimelineCard({ id, player, restored, draw }: { id: RecordingId; player: Player; restored: Restored; draw?: TimelineProps["draw"] }) {
   const { onView, onLoopCommit } = usePersistence(id, player);
   return (
-    <div className={`${CARD} ${draw ? "flex-1 min-h-0 md:min-h-72" : "shrink-0"} p-4`}>
+    <div data-fill={draw ? true : undefined} className={`${CARD} ${draw ? "flex-1 min-h-0 md:min-h-72" : "shrink-0"} p-4`}>
       <Timeline player={player} initialView={restored.view} initialLoop={restored.loopFraction} onView={onView} onLoopCommit={onLoopCommit} draw={draw} />
     </div>
   );
@@ -68,10 +68,10 @@ function Layout(props: { recording: StoredRecording; info: [string, string][]; s
       <KeepAwake />
       <div className="w-full h-dvh flex items-center justify-center">
         <div className="w-full max-w-240 h-full md:h-min min-h-0 p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:py-10">
-          <div className="flex flex-col gap-4 max-md:gap-2 h-full min-h-0">
+          <div className="flex flex-col gap-4 max-md:gap-2 min-h-0 has-[[data-fill]]:h-full">
             <TitleBar recording={recording} info={info} />
             {top}
-            {session ? <TimelineCard id={recording.id} player={session.player} restored={session.restored} draw={draw} /> : <div className={`${CARD} ${youtube ? "h-28" : "flex-1 min-h-0 md:min-h-72"}`} />}
+            {session ? <TimelineCard id={recording.id} player={session.player} restored={session.restored} draw={draw} /> : <div data-fill={youtube ? undefined : true} className={`${CARD} ${youtube ? "h-28" : "flex-1 min-h-0 md:min-h-72"}`} />}
           </div>
           {session && <EditorControls id={recording.id} session={session} youtube={youtube} />}
         </div>
@@ -155,13 +155,13 @@ export function YouTubeEditor({ recording, videoId }: { recording: StoredRecordi
   }, [recording.id, videoId]);
 
   const video = (
-    <div className={`${CARD} items-center p-4 md:pt-6 shrink min-h-0`}>
-      <div className="relative aspect-video h-[min(9rem,18dvh)] md:h-45 max-w-full bg-black rounded-lg overflow-hidden opacity-90">
-        <div ref={host} className="absolute inset-0 [&_iframe]:w-full [&_iframe]:h-full" />
+    <>
+      <div className="absolute size-0 overflow-hidden">
+        <div ref={host} className="w-80 h-45 [&_iframe]:w-full [&_iframe]:h-full" />
       </div>
-      {error !== null && <p className="pt-3 text-sm text-red-600/80 font-inria">{error}</p>}
-      {!session && error === null && <p className="pt-3 text-sm text-black/40 font-inria">Loading video…</p>}
-    </div>
+      {error !== null && <p className={`${CARD} p-4 shrink-0 text-sm text-red-600/80 font-inria`}>{error}</p>}
+      {!session && error === null && <p className={`${CARD} p-4 shrink-0 text-sm text-black/40 font-inria`}>Loading video…</p>}
+    </>
   );
   const info: [string, string][] = [
     ["Source", "YouTube"],
