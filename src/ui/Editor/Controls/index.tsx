@@ -1,6 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { PauseIcon, PlayIcon, SkipBackIcon, SkipForwardIcon, SlidersIcon, SnowflakeIcon } from "@phosphor-icons/react";
-import { capture } from "../../../analytics";
 import { clamp } from "../Timeline/geometry";
 import type { DurationSeconds, Player } from "../../../core";
 import { useKeys } from "../../shared/keys";
@@ -29,10 +28,7 @@ export function Controls({ player, freeze, settings }: { player: Player; freeze:
   const { playState, waitingUntil } = usePlayer(player);
   const [open, setOpen] = useState(false);
   const countdown = useCountdown(player, waitingUntil);
-  const togglePlay = () => {
-    capture(playState === "playing" ? "playback_paused" : "playback_started");
-    player.dispatch({ type: "toggle-play" });
-  };
+  const togglePlay = () => player.dispatch({ type: "toggle-play" });
   const toggleFreeze = () => freeze && player.dispatch({ type: "toggle-freeze" });
   const nudge = (seconds: DurationSeconds) => player.dispatch({ type: "move", position: clamp(player.position() + seconds, 0, player.duration) });
   useKeys({

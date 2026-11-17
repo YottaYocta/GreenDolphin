@@ -13,6 +13,7 @@ import { Timeline, type TimelineProps } from "./Timeline";
 import { TitleBar } from "./TitleBar";
 import { audio, type AudioEngine, type Recording } from "../../audio";
 import { youtube } from "../../youtube";
+import { setReplay } from "../../analytics";
 import { persistence, type RecordingId, type StoredRecording } from "../../persistence";
 
 const CARD = "flex flex-col rounded-xl overflow-hidden [box-shadow:var(--shadow-panel)] bg-white border border-border";
@@ -72,6 +73,7 @@ function useEditorPrefs(hasPiano: boolean) {
     persistence.setFlag("allowSleep", !next);
   }, []);
   const allowSleep = useCallback(() => keepAwake(false), [keepAwake]);
+  const [replay, setReplayPref] = useState(() => !persistence.flag("noReplay"));
   const [tutorialStep, setTutorialStep] = useState<number | null>(null);
   const general: GeneralPrefs = {
     piano: hasPiano && piano,
@@ -83,6 +85,12 @@ function useEditorPrefs(hasPiano: boolean) {
       : undefined,
     awake,
     onAwake: keepAwake,
+    replay,
+    onReplay(next) {
+      setReplayPref(next);
+      setReplay(next);
+      persistence.setFlag("noReplay", !next);
+    },
     onTutorial: () => setTutorialStep(0),
   };
   return { general, allowSleep, tutorialStep, setTutorialStep };
