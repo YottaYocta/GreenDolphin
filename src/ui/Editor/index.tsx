@@ -40,7 +40,7 @@ interface Session {
 function TimelineCard({ id, player, restored, draw }: { id: RecordingId; player: Player; restored: Restored; draw?: TimelineProps["draw"] }) {
   const { onView, onLoopCommit } = usePersistence(id, player);
   return (
-    <div data-fill={draw ? true : undefined} className={`${CARD} ${draw ? "flex-1 min-h-0 md:min-h-72" : "shrink-0"} p-4`}>
+    <div data-fill className={`${CARD} flex-1 min-h-0 md:min-h-72 p-4`}>
       <Timeline player={player} initialView={restored.view} initialLoop={restored.loopFraction} onView={onView} onLoopCommit={onLoopCommit} draw={draw} />
     </div>
   );
@@ -116,7 +116,7 @@ function Layout(props: { recording: StoredRecording; info: [string, string][]; s
                 </div>
               )}
               {top}
-              {session ? <TimelineCard id={recording.id} player={session.player} restored={session.restored} draw={draw} /> : <div data-fill={youtube ? undefined : true} className={`${CARD} ${youtube ? "h-28" : "flex-1 min-h-0 md:min-h-72"}`} />}
+              {session ? <TimelineCard id={recording.id} player={session.player} restored={session.restored} draw={draw} /> : <div data-fill className={`${CARD} flex-1 min-h-0 md:min-h-72`} />}
             </div>
             {session && <EditorControls id={recording.id} session={session} youtube={youtube} />}
           </div>
