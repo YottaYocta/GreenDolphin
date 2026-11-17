@@ -248,16 +248,20 @@ test("piano keys play a tone at the key's pitch", async ({ page }) => {
   await page.getByRole("button", { name: "Settings" }).click();
   await page.getByRole("switch", { name: "Show piano roll" }).click();
   await page.keyboard.press("Escape");
-  const box = (await page.locator('[data-key="69"]').boundingBox())!;
-  await page.mouse.move(box.x + box.width - 4, box.y + box.height / 2);
+  const key = page.locator('[data-key="57"]');
+  await key.scrollIntoViewIfNeeded();
+  const box = (await key.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height * 0.8);
   await page.mouse.down();
   await page.waitForTimeout(300);
-  const peakHz = await page.evaluate(() => {
-    const engine = window.__gd!.engine!;
-    const data = engine.readSpectrum();
+  const peakHz = await page.evaluate(async () => {
+    const spectrum = window.__gd!.engine!.openSpectrum();
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    const data = spectrum.read();
+    spectrum.close();
     let best = 0;
     for (let i = 1; i < data.length; i++) if (data[i] > data[best]) best = i;
-    return best * engine.spectrumBinHz;
+    return best * spectrum.binHz;
   });
   await page.mouse.up();
   expectNear(peakHz, 440, 10);

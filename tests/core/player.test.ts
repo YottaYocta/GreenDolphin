@@ -161,7 +161,7 @@ test("while playing, position is what is being heard, and pausing stays there", 
   expect(p.position()).toBe(10);
   clock += 0.9;
   expect(p.position()).toBeCloseTo(10.8);
-  expect(p.renderedPosition()).toBeCloseTo(11);
+  expect((p as unknown as { renderedPosition(): number }).renderedPosition()).toBeCloseTo(11);
   p.dispatch({ type: "toggle-play" });
   expect(p.position()).toBeCloseTo(10.8);
   p.dispose();

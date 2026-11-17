@@ -3,13 +3,6 @@ import type { DurationSeconds, LoopMode, RecordingSeconds, Section, SpeedRatio }
 
 export type EpochMilliseconds = number;
 export type RecordingId = string;
-export type MidiPitch = number;
-
-export interface Note {
-  pitch: MidiPitch;
-  start: RecordingSeconds;
-  length: DurationSeconds;
-}
 
 export interface RecordingPrefs {
   speed: SpeedRatio;
@@ -18,8 +11,6 @@ export interface RecordingPrefs {
   loop: Section | null;
   view: Section | null;
   position: RecordingSeconds;
-  playNotes: boolean;
-  pitchTop: number | null;
 }
 
 export interface LoopPrefs {
@@ -54,6 +45,4 @@ export interface Persistence {
   addYouTube(title: string, videoId: string): Promise<StoredRecording>;
   readAudio(id: RecordingId): Promise<ArrayBuffer>;
   deleteRecording(id: RecordingId): Promise<void>;
-  readNotes(id: RecordingId): Promise<Note[]>;
-  saveNotes(id: RecordingId, notes: Note[]): Promise<void>;
 }

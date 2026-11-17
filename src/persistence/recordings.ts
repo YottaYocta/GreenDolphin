@@ -1,21 +1,21 @@
-import type { Note, Persistence, RecordingSource, StoredRecording } from "./interfaces";
+import type { Persistence, RecordingSource, StoredRecording } from "./interfaces";
 import { removeRecordingPrefs, setFlag } from "./prefs";
 
 const RECORDINGS = "recordings";
 const AUDIO = "audio";
-const NOTES = "notes";
+const RETIRED_NOTES = "notes";
 const LEGACY = "greendolphin-v1";
 const LEGACY_YOUTUBE = "application/x-greendolphin-youtube";
 let db: Promise<IDBDatabase> | null = null;
 
 const open = () =>
   (db ??= new Promise((resolve, reject) => {
-    const req = indexedDB.open("greendolphin", 2);
+    const req = indexedDB.open("greendolphin", 3);
     req.onupgradeneeded = () => {
       const { result } = req;
       if (!result.objectStoreNames.contains(RECORDINGS)) result.createObjectStore(RECORDINGS, { keyPath: "id" });
       if (!result.objectStoreNames.contains(AUDIO)) result.createObjectStore(AUDIO);
-      if (!result.objectStoreNames.contains(NOTES)) result.createObjectStore(NOTES);
+      if (result.objectStoreNames.contains(RETIRED_NOTES)) result.deleteObjectStore(RETIRED_NOTES);
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
@@ -95,18 +95,9 @@ export const readAudio: Persistence["readAudio"] = async (id) => {
 };
 
 export const deleteRecording: Persistence["deleteRecording"] = async (id) => {
-  await transact<void>([RECORDINGS, AUDIO, NOTES], "readwrite", (tx) => {
+  await transact<void>([RECORDINGS, AUDIO], "readwrite", (tx) => {
     tx.objectStore(RECORDINGS).delete(id);
     tx.objectStore(AUDIO).delete(id);
-    tx.objectStore(NOTES).delete(id);
   });
   removeRecordingPrefs(id);
 };
-
-export const readNotes: Persistence["readNotes"] = async (id) =>
-  (await transact<Note[] | undefined>([NOTES], "readonly", (tx) => tx.objectStore(NOTES).get(id))) ?? [];
-
-export const saveNotes: Persistence["saveNotes"] = (id, notes) =>
-  transact<void>([NOTES], "readwrite", (tx) => {
-    tx.objectStore(NOTES).put(notes, id);
-  });
