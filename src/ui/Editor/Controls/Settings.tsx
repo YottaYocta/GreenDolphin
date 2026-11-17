@@ -66,7 +66,7 @@ export function SoundSettings(props: { player: Player; sound: Sound; onSound: (s
 
 export interface GeneralPrefs {
   piano: boolean;
-  onPiano: (piano: boolean) => void;
+  onPiano?: (piano: boolean) => void;
   awake: boolean;
   onAwake: (awake: boolean) => void;
   onTutorial: () => void;
@@ -75,10 +75,12 @@ export interface GeneralPrefs {
 export function GeneralSettings({ piano, onPiano, awake, onAwake, onTutorial }: GeneralPrefs) {
   return (
     <div className="flex flex-col gap-4">
-      <div className={ROW}>
-        <div className={LABEL}>Show piano roll</div>
-        <Toggle id="piano-toggle" label="Show piano roll" checked={piano} onChange={onPiano} />
-      </div>
+      {onPiano && (
+        <div className={ROW}>
+          <div className={LABEL}>Show piano roll</div>
+          <Toggle id="piano-toggle" label="Show piano roll" checked={piano} onChange={onPiano} />
+        </div>
+      )}
       <div className={ROW}>
         <div className={LABEL}>Keep screen awake</div>
         <Toggle label="Keep screen awake" checked={awake} onChange={onAwake} />

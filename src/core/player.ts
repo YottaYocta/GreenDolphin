@@ -36,8 +36,6 @@ class TransportPlayer implements Player {
 
   getState = () => this.state;
 
-  getPlayback = () => this.playback;
-
   position() {
     const { playback } = this;
     if (this.scrub !== null || playback.mode !== "playing") return this.renderedPosition();
@@ -46,14 +44,6 @@ class TransportPlayer implements Player {
     const heard = positionAt(time < playback.anchorTime && this.retimed ? this.retimed : playback, time);
     const unwrapped = loopWraps && heard < loop.start && anchorPosition >= loop.start ? heard + loop.end - loop.start : heard;
     return Math.min(unwrapped, this.duration);
-  }
-
-  renderedPosition() {
-    return Math.min(this.here(), this.duration);
-  }
-
-  latency() {
-    return this.output.latency?.() ?? 0;
   }
 
   delayRemaining() {
@@ -120,6 +110,14 @@ class TransportPlayer implements Player {
     clearTimeout(this.timer);
     this.listeners.clear();
     this.output.render({ ...this.playback, mode: "silent" });
+  }
+
+  private renderedPosition() {
+    return Math.min(this.here(), this.duration);
+  }
+
+  private latency() {
+    return this.output.latency?.() ?? 0;
   }
 
   private here(now = this.output.now()) {

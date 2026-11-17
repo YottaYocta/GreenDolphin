@@ -196,3 +196,30 @@ test("recordings saved by the previous version are imported once, then its datab
   await waitForEditor(page);
   expectNear((await snapshot(page)).duration, 2, 0.01);
 });
+
+test("upgrading the database keeps recordings and drops the retired notes store", async ({ page }) => {
+  await page.goto("/favicon/favicon.svg");
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        const req = indexedDB.open("greendolphin", 2);
+        req.onupgradeneeded = () => ["recordings", "audio", "notes"].forEach((store) => req.result.createObjectStore(store, store === "recordings" ? { keyPath: "id" } : undefined));
+        req.onsuccess = () => {
+          const tx = req.result.transaction(["recordings", "notes"], "readwrite");
+          tx.objectStore("recordings").put({ id: "kept", title: "Kept video", addedAt: 1, source: { kind: "youtube", videoId: "jNQXAC9IVRw" } });
+          tx.objectStore("notes").put([{ pitch: 60, start: 1, length: 1 }], "kept");
+          tx.oncomplete = () => (req.result.close(), resolve());
+        };
+      }),
+  );
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: "Play Kept video" })).toBeVisible();
+  const stores = await page.evaluate(
+    () =>
+      new Promise<string[]>((resolve) => {
+        const req = indexedDB.open("greendolphin");
+        req.onsuccess = () => resolve([...req.result.objectStoreNames]);
+      }),
+  );
+  expect(stores.sort()).toEqual(["audio", "recordings"]);
+});
