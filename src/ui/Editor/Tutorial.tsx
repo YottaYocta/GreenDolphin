@@ -1,7 +1,6 @@
 import { useLayoutEffect, useState } from "react";
 import { Dialog as BaseDialog } from "@base-ui/react/dialog";
 import { ArrowRightIcon } from "@phosphor-icons/react";
-import { capture } from "../../analytics";
 import { persistence } from "../../persistence";
 
 export interface TutorialStep {
@@ -47,11 +46,7 @@ export function Tutorial({ steps, step, setStep }: { steps: TutorialStep[]; step
         <Walkthrough
           steps={steps}
           step={step}
-          onStep={(next) => {
-            if (next >= 0 && next < steps.length) return setStep(next);
-            capture("tutorial_completed");
-            finish();
-          }}
+          onStep={(next) => (next >= 0 && next < steps.length ? setStep(next) : finish())}
         />
       )}
     </>

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { capture } from "../../../analytics";
 import { length } from "../Timeline/geometry";
 import type { Player } from "../../../core";
 import { DialogClose, ModeToggle, NumericInput, Slider, Toggle } from "../../shared/primitives";
@@ -27,10 +26,7 @@ export function SoundSettings(props: { player: Player; sound: Sound; onSound: (s
           display={(v) => `${v > 0 ? "+" : ""}${Math.round(v * 10) / 10}`}
           parse={(v) => v}
           unit="#"
-          onChange={(v) => {
-            onSound({ ...sound, pitch: v });
-            capture("pitch_adjusted", { pitch_shift: v });
-          }}
+          onChange={(v) => onSound({ ...sound, pitch: v })}
         />
       )}
       <Slider
@@ -43,10 +39,7 @@ export function SoundSettings(props: { player: Player; sound: Sound; onSound: (s
         display={percent}
         parse={(v) => v / 100}
         unit="%"
-        onChange={(v) => {
-          player.setSpeed(v);
-          capture("speed_adjusted", { playback_speed: v, source: youtube ? "youtube" : "file" });
-        }}
+        onChange={(v) => player.setSpeed(v)}
       />
       <Slider
         label="Volume"
@@ -69,10 +62,12 @@ export interface GeneralPrefs {
   onPiano?: (piano: boolean) => void;
   awake: boolean;
   onAwake: (awake: boolean) => void;
+  replay: boolean;
+  onReplay: (replay: boolean) => void;
   onTutorial: () => void;
 }
 
-export function GeneralSettings({ piano, onPiano, awake, onAwake, onTutorial }: GeneralPrefs) {
+export function GeneralSettings({ piano, onPiano, awake, onAwake, replay, onReplay, onTutorial }: GeneralPrefs) {
   return (
     <div className="flex flex-col gap-4">
       {onPiano && (
@@ -84,6 +79,10 @@ export function GeneralSettings({ piano, onPiano, awake, onAwake, onTutorial }: 
       <div className={ROW}>
         <div className={LABEL}>Keep screen awake</div>
         <Toggle label="Keep screen awake" checked={awake} onChange={onAwake} />
+      </div>
+      <div className={ROW}>
+        <div className={LABEL}>Share debug info</div>
+        <Toggle label="Share debug info" checked={replay} onChange={onReplay} />
       </div>
       <DialogClose onClick={onTutorial} className="btn-surface h-9 rounded-lg font-inria text-sm cursor-pointer">
         Replay tutorial
@@ -115,10 +114,7 @@ export function LoopSettings({ player }: { player: Player }) {
             { value: "automatic", label: "Automatic" },
           ]}
           value={prefs.mode}
-          onChange={(mode) => {
-            update({ mode });
-            capture("loop_mode_changed", { loop_mode: mode });
-          }}
+          onChange={(mode) => update({ mode })}
         />
       </div>
       {prefs.mode === "automatic" && (
@@ -135,16 +131,12 @@ export function LoopSettings({ player }: { player: Player }) {
                 const seconds = persistence.toLoopMode(prefs, loopLength);
                 const s = seconds.type === "automatic" ? seconds.delay : 0;
                 update({ delayMode, delayValue: delayMode === "fixed" ? s : loopLength > 0 ? (s / loopLength) * 100 : 0 });
-                capture("loop_delay_changed", { delay_mode: delayMode });
               }}
             />
             <NumericInput
               value={shown}
               unit={unit}
-              onCommit={(v) => {
-                update({ delayValue: Math.max(0, v) });
-                capture("loop_delay_changed", { delay_value: v, delay_mode: prefs.delayMode });
-              }}
+              onCommit={(v) => update({ delayValue: Math.max(0, v) })}
             />
           </div>
         </div>

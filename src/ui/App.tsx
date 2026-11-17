@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SpinnerIcon } from "@phosphor-icons/react";
-import { capture } from "../analytics";
 import { LibraryContext, type LibraryApi, type Opened } from "./context";
 import { AudioEditor, YouTubeEditor } from "./Editor";
 import { Library } from "./Library";
@@ -69,13 +68,11 @@ export function App() {
       open: (id) => {
         const rec = recordings.find((r) => r.id === id);
         if (!rec) return;
-        capture(opened ? "recording_switched" : "recording_played", { filename: rec.title });
         void openRecording(rec);
       },
       add: async (file) => {
         const added = await persistence.addAudio(file.name, await file.arrayBuffer());
         await refresh();
-        capture("file_uploaded", { filename: file.name, file_size: file.size, file_type: file.type });
         await openRecording(added);
       },
       addYouTube: async (link) => {
@@ -85,13 +82,11 @@ export function App() {
         if ("error" in found) throw new Error(found.error);
         const added = await persistence.addYouTube(found.title ?? `YouTube ${videoId}`, videoId);
         await refresh();
-        capture("youtube_video_added", { video_id: videoId });
         await openRecording(added);
       },
       remove: async (id) => {
         await persistence.deleteRecording(id);
         await refresh();
-        capture("recording_deleted", { filename: recordings.find((r) => r.id === id)?.title });
       },
       home: () => {
         request.current++;
