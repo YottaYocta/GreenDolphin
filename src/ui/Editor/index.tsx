@@ -96,7 +96,7 @@ function Layout(props: { recording: StoredRecording; info: [string, string][]; s
       <div className="w-full h-dvh flex flex-col">
         <KeepAwake enabled={general.awake} onUnsupported={allowSleep} />
         <div className="flex-1 min-h-0 flex items-center justify-center">
-          <div className="w-full max-w-240 h-full md:h-min min-h-0 p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:pt-6 max-md:pb-10">
+          <div className="w-full max-w-220 h-full md:h-min min-h-0 p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:pt-6 max-md:pb-10">
             <div className="flex flex-col gap-4 max-md:gap-2 min-h-0 has-[[data-fill]]:h-full">
               <TitleBar
                 recording={recording}
