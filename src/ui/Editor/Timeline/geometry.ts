@@ -7,7 +7,7 @@ export interface LoopFraction {
 
 export const FULL: LoopFraction = { start: 0, end: 1 };
 export const MIN_LOOP = 0.01;
-export const MIN_VIEW = 0.005;
+const MIN_VIEW = 0.005;
 
 export const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 export const length = (s: Section) => s.end - s.start;
