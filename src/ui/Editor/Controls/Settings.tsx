@@ -122,7 +122,7 @@ export function LoopSettings({ player }: { player: Player }) {
         />
       </div>
       {prefs.mode === "automatic" && (
-        <div className="flex flex-col gap-1.5 ml-1 pl-4 border-l-2 border-border">
+        <div className="flex flex-col gap-1.5 pl-5">
           <div className={LABEL}>Loop delay</div>
           <div className="flex items-center gap-4">
             <ModeToggle
