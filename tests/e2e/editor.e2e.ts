@@ -36,7 +36,7 @@ test("keyboard shortcuts drive the transport and are ignored while typing", asyn
   expectNear((await snapshot(page)).position, start + 5, 0.05);
   await page.keyboard.press("ArrowLeft");
   expectNear((await snapshot(page)).position, start + 4.8, 0.05);
-  await page.getByRole("button", { name: "Settings" }).click();
+  await page.getByRole("button", { name: "Playback settings" }).click();
   const field = page.getByRole("textbox").first();
   await field.click();
   await page.keyboard.press("p");
@@ -65,7 +65,7 @@ test("clicking outside the loop: paused stays, playing goes to the loop start", 
   expect(paused.playState).toBe("paused");
   expectNear(paused.position, duration * 0.75, duration * 0.02);
 
-  await page.getByRole("button", { name: "Play" }).click();
+  await page.getByRole("button", { name: "Play", exact: true }).click();
   const playing = await snapshot(page);
   expect(playing.playState).toBe("playing");
   expectNear(playing.position, playing.loop.start, 0.3);
@@ -88,7 +88,7 @@ test("after the loop end: delay 0 wraps, a delay waits, manual pauses at the sta
   await callPlayer(page, "setLoopMode", { type: "automatic", delay: 1 });
   await page.waitForFunction(() => window.__gd!.player.getState().playState === "waiting");
   expect((await snapshot(page)).mode).toBe("silent");
-  await expect(page.getByRole("button", { name: "Play" })).toHaveAttribute("data-state", "waiting");
+  await expect(page.getByRole("button", { name: "Play", exact: true })).toHaveAttribute("data-state", "waiting");
   await page.waitForFunction(() => window.__gd!.player.getState().playState === "playing", null, { timeout: 3000 });
 
   await callPlayer(page, "setLoopMode", { type: "manual" });
@@ -97,7 +97,7 @@ test("after the loop end: delay 0 wraps, a delay waits, manual pauses at the sta
 });
 
 test("dragging the playhead live-scrubs while playing, then resumes at the drop", async ({ page }) => {
-  await page.getByRole("button", { name: "Play" }).click();
+  await page.getByRole("button", { name: "Play", exact: true }).click();
   const grip = await center(page, '[aria-label="Playhead"]');
   const drop = await rowPoint(page, "timeline-ruler", 0.6);
   if (test.info().project.name === "mobile") {
@@ -245,7 +245,7 @@ test("touch: one finger pans, two fingers pinch-zoom, tap sets the playhead", as
 });
 
 test("piano keys play a tone at the key's pitch", async ({ page }) => {
-  await page.getByRole("button", { name: "Settings" }).click();
+  await page.getByRole("button", { name: "Editor settings" }).click();
   await page.getByRole("switch", { name: "Show piano roll" }).click();
   await page.keyboard.press("Escape");
   const key = page.locator('[data-key="57"]');

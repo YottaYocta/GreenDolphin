@@ -33,7 +33,7 @@ async function upload(page: Page, name: string) {
 }
 
 const setPitch = async (page: Page, value: string) => {
-  await page.getByRole("button", { name: "Settings" }).click();
+  await page.getByRole("button", { name: "Playback settings" }).click();
   const pitch = page.getByRole("textbox").first();
   await pitch.fill(value);
   await pitch.press("Enter");
@@ -69,7 +69,7 @@ test("reopens the last recording with its view, position and settings", async ({
   await waitForEditor(page);
   const after = await snapshot(page);
   expect((await openedPrefs(page)).pitch).toBe(3);
-  await page.getByRole("button", { name: "Settings" }).click();
+  await page.getByRole("button", { name: "Playback settings" }).click();
   await expect(page.getByRole("slider", { name: "Pitch" })).toHaveAttribute("aria-valuenow", "3");
   const enginePitch = await page.evaluate(() => (window.__gd!.engine as unknown as { stretch: { pitchSemitones: AudioParam } }).stretch.pitchSemitones.value);
   expect(enginePitch).toBe(3);
@@ -81,7 +81,7 @@ test("reopens the last recording with its view, position and settings", async ({
 test("pitch, speed and volume belong to each recording; loop settings are global", async ({ page }) => {
   await openDemo(page);
   await setPitch(page, "-2");
-  await page.getByRole("button", { name: "Settings" }).click();
+  await page.getByRole("button", { name: "Editor settings" }).click();
   await page.getByRole("radio", { name: "Manual" }).click();
   await page.keyboard.press("Escape");
 
@@ -95,14 +95,14 @@ test("pitch, speed and volume belong to each recording; loop settings are global
   await page.waitForFunction(() => (window.__gd?.player.duration ?? 0) > 9);
   s = await snapshot(page);
   expect((await openedPrefs(page)).pitch).toBe(-2);
-  await page.getByRole("button", { name: "Settings" }).click();
+  await page.getByRole("button", { name: "Playback settings" }).click();
   await expect(page.getByRole("slider", { name: "Pitch" })).toHaveAttribute("aria-valuenow", "-2");
   expect(s.loopMode.type).toBe("manual");
 });
 
 test("relative loop delay is converted to seconds from the loop length", async ({ page }) => {
   await openDemo(page);
-  await page.getByRole("button", { name: "Settings" }).click();
+  await page.getByRole("button", { name: "Editor settings" }).click();
   await page.getByRole("radio", { name: "Relative" }).click();
   const field = page.getByRole("textbox").last();
   await field.fill("50");
@@ -149,7 +149,7 @@ test("a YouTube link opens the video editor and playback drives the embed", asyn
   await page.getByRole("button", { name: "Add Video" }).click();
   await waitForEditor(page);
   await expect(page.getByRole("button", { name: "Freeze" })).toHaveCount(0);
-  await page.getByRole("button", { name: "Play" }).click();
+  await page.getByRole("button", { name: "Play", exact: true }).click();
   await expect.poll(() => page.evaluate(() => window.__gd!.player.position()), { timeout: 20_000 }).toBeGreaterThan(1);
   await page.getByRole("button", { name: "Pause" }).click();
   expect((await snapshot(page)).playState).toBe("paused");

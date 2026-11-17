@@ -120,7 +120,7 @@ class EmbedOutput implements YouTubeOutput {
       player.dispatch({ type: "move", position: this.yt.getCurrentTime() });
       if (player.getState().playState !== "playing") player.dispatch({ type: "toggle-play" });
     } else if (state === YT_PAUSED && playing) {
-      if (this.seeking(this.yt.getCurrentTime())) return this.yt.playVideo();
+      if (this.seeking(this.yt.getCurrentTime()) || this.now() - this.pausedAt < SEEK_TIMEOUT) return this.yt.playVideo();
       player.dispatch({ type: "toggle-play" });
     }
   }

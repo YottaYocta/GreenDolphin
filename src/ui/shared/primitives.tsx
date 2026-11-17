@@ -70,7 +70,7 @@ export function NumericInput({ value, unit, onCommit }: { value: string; unit?: 
   );
 }
 
-export interface SliderProps {
+interface SliderProps {
   label: string;
   value: number;
   min: number;
