@@ -23,7 +23,7 @@ const AUDIO_STEPS: TutorialStep[] = [
   { selector: "#waveform-canvas", text: "Pinch to zoom in/out" },
   { selector: "#waveform-canvas", text: "Drag to pan" },
   { selector: "#timeline-loop", text: "Drag the handles to set the loop" },
-  { selector: '[aria-label="Settings"]', text: "Show the piano roll from settings" },
+  { selector: '[aria-label="Editor settings"]', text: "Show the piano roll from editor settings" },
 ];
 const VIDEO_STEPS: TutorialStep[] = [
   { selector: "#timeline-ruler", text: "Click to set playback position" },
@@ -46,21 +46,13 @@ function TimelineCard({ id, player, restored, draw }: { id: RecordingId; player:
   );
 }
 
-function EditorControls({ id, session, youtube, general }: { id: RecordingId; session: Session; youtube: boolean; general: GeneralPrefs }) {
+function EditorControls({ id, session, youtube }: { id: RecordingId; session: Session; youtube: boolean }) {
   const [sound, setSound] = useSound(id, session.restored.sound, session.output);
   return (
     <Controls
       player={session.player}
       freeze={!youtube}
-      settings={
-        <div className="flex flex-col gap-10">
-          <div className="flex flex-col gap-6">
-            <SoundSettings player={session.player} sound={sound} onSound={setSound} youtube={youtube} />
-          </div>
-          <LoopSettings player={session.player} />
-          <GeneralSettings {...general} />
-        </div>
-      }
+      settings={<SoundSettings player={session.player} sound={sound} onSound={setSound} youtube={youtube} />}
     />
   );
 }
@@ -106,7 +98,18 @@ function Layout(props: { recording: StoredRecording; info: [string, string][]; s
         <div className="flex-1 min-h-0 flex items-center justify-center">
           <div className="w-full max-w-240 h-full md:h-min min-h-0 p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:pt-6 max-md:pb-10">
             <div className="flex flex-col gap-4 max-md:gap-2 min-h-0 has-[[data-fill]]:h-full">
-              <TitleBar recording={recording} info={info} />
+              <TitleBar
+                recording={recording}
+                info={info}
+                editor={
+                  session && (
+                    <div className="flex flex-col gap-10">
+                      <LoopSettings player={session.player} />
+                      <GeneralSettings {...general} />
+                    </div>
+                  )
+                }
+              />
               {engine && general.piano && (
                 <div className={`${CARD} shrink-0`}>
                   <PianoRoll engine={engine} />
@@ -115,7 +118,7 @@ function Layout(props: { recording: StoredRecording; info: [string, string][]; s
               {top}
               {session ? <TimelineCard id={recording.id} player={session.player} restored={session.restored} draw={draw} /> : <div data-fill={youtube ? undefined : true} className={`${CARD} ${youtube ? "h-28" : "flex-1 min-h-0 md:min-h-72"}`} />}
             </div>
-            {session && <EditorControls id={recording.id} session={session} youtube={youtube} general={general} />}
+            {session && <EditorControls id={recording.id} session={session} youtube={youtube} />}
           </div>
         </div>
       </div>

@@ -67,10 +67,10 @@ export function Controls({ player, freeze, settings }: { player: Player; freeze:
           <SnowflakeIcon size={40} weight="fill" color={playState === "frozen" ? "#fff" : "var(--color-freeze)"} />
         </button>
       )}
-      <button aria-label="Settings" onClick={() => setOpen(true)} className={BTN}>
+      <button aria-label="Playback settings" onClick={() => setOpen(true)} className={BTN}>
         <SlidersIcon size={32} weight="fill" className="opacity-55" />
       </button>
-      <Dialog title="Settings" open={open} onOpenChange={setOpen}>
+      <Dialog title="Playback" open={open} onOpenChange={setOpen}>
         <div className="flex flex-col gap-6 pb-4">{settings}</div>
       </Dialog>
       <div className={freeze ? "grid grid-cols-2 gap-4 min-h-0" : "contents"}>
