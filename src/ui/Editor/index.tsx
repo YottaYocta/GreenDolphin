@@ -52,13 +52,13 @@ function EditorControls({ id, session, youtube, general }: { id: RecordingId; se
       player={session.player}
       freeze={!youtube}
       settings={
-        <>
-          <SoundSettings player={session.player} sound={sound} onSound={setSound} youtube={youtube} />
-          <hr className="border-border" />
+        <div className="flex flex-col gap-10">
+          <div className="flex flex-col gap-6">
+            <SoundSettings player={session.player} sound={sound} onSound={setSound} youtube={youtube} />
+          </div>
           <LoopSettings player={session.player} />
-          <hr className="border-border" />
           <GeneralSettings {...general} />
-        </>
+        </div>
       }
     />
   );
