@@ -92,11 +92,11 @@ export function Slider({ label, value, min, max, step, defaultValue, display, pa
   };
   return (
     <div>
-      <div className="text-black/50 text-sm flex items-center gap-1.5 h-5">
+      <div className="text-black/50 text-sm flex items-center gap-0.5 h-5">
         {label}
         {value !== defaultValue && (
           <button aria-label={`Reset ${label}`} onClick={() => onChange(defaultValue)} className="size-5 rounded-sm text-black/40 hover:text-black/55 hover:bg-black/5 flex items-center justify-center cursor-pointer">
-            <ArrowClockwiseIcon size={13} weight="fill" />
+            <ArrowClockwiseIcon size={13} weight="bold" />
           </button>
         )}
       </div>
