@@ -14,11 +14,10 @@ export function Library() {
     () =>
       recordings
         .map((recording) => {
-          const openedAt = byAdded ? 0 : persistence.recordingPrefs(recording.id).openedAt;
-          const at = Math.max(openedAt, recording.addedAt);
-          return { recording, at, when: relativeTime(at) };
+          const at = byAdded ? recording.addedAt : persistence.recordingPrefs(recording.id).openedAt;
+          return { recording, at, when: at ? relativeTime(at) : "" };
         })
-        .sort((a, b) => b.at - a.at),
+        .sort((a, b) => b.at - a.at || a.recording.title.localeCompare(b.recording.title)),
     [recordings, byAdded],
   );
 
@@ -46,7 +45,7 @@ export function Library() {
             }}
             className="h-13 px-4"
           >
-            {byAdded ? "Added" : "Modified"}
+            {byAdded ? "Added" : "Opened"}
           </IconButton>
         </div>
         <ul aria-label="My Recordings" className="rounded-lg self-stretch bg-white min-h-0 max-md:flex-1 overflow-y-auto scrollbar-slim">
