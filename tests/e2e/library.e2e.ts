@@ -140,10 +140,10 @@ test("the list sorts by last modified or by last added", async ({ page }) => {
   await page.getByRole("button", { name: "Home" }).click();
   const first = page.getByRole("list", { name: "My Recordings" }).getByRole("button").first();
   await expect(first).toHaveAccessibleName(`Open ${DEMO}.mp3`);
-  await page.getByRole("button", { name: "Last modified" }).click();
+  await page.getByRole("button", { name: "Modified", exact: true }).click();
   await expect(first).toHaveAccessibleName("Open newer.wav");
   await page.reload();
-  await expect(page.getByRole("button", { name: "Last added" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Added", exact: true })).toBeVisible();
 });
 
 test("a bad YouTube link is reported without leaving the dialog", async ({ page }) => {

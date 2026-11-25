@@ -46,7 +46,7 @@ export function Library() {
             }}
             className="h-13 px-4"
           >
-            {byAdded ? "Last added" : "Last modified"}
+            {byAdded ? "Added" : "Modified"}
           </IconButton>
         </div>
         <ul aria-label="My Recordings" className="rounded-lg self-stretch bg-white min-h-0 max-md:flex-1 overflow-y-auto scrollbar-slim">
