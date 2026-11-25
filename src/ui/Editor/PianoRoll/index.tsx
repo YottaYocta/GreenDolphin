@@ -75,7 +75,7 @@ export function PianoRoll({ engine }: { engine: AudioEngine }) {
   return (
     <div
       ref={scroller}
-      className="shrink-0 rounded-xl bg-white overflow-x-auto touch-pan-x cursor-grab"
+      className="shrink-0 mb-4 max-md:mb-2 rounded-xl bg-white overflow-x-auto touch-pan-x cursor-grab"
       onPointerDown={(e) => {
         const start = scroller.current!.scrollLeft;
         const pressed = keyAt(e.clientX, e.clientY);
