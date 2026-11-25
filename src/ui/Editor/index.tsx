@@ -5,7 +5,7 @@ import { formatSize, formatTime } from "../shared/format";
 import { core, type Player } from "../../core";
 import type { Section } from "../../core";
 import { Controls } from "./Controls";
-import { KeepAwake } from "./KeepAwake";
+import { useKeepAwake } from "./keepAwake";
 import { Tutorial, type TutorialStep } from "./Tutorial";
 import { PianoRoll } from "./PianoRoll";
 import { restore, usePersistence, useSound, type SoundOutput } from "./session";
@@ -61,11 +61,11 @@ function EditorControls({ id, session, youtube }: { id: RecordingId; session: Se
 function useEditorPrefs(hasPiano: boolean) {
   const [piano, setPiano] = useState(() => persistence.flag("piano"));
   const [awake, setAwake] = useState(() => !persistence.flag("allowSleep"));
-  const keepAwake = useCallback((next: boolean) => {
+  const keepAwake = (next: boolean) => {
     setAwake(next);
     persistence.setFlag("allowSleep", !next);
-  }, []);
-  const allowSleep = useCallback(() => keepAwake(false), [keepAwake]);
+  };
+  useKeepAwake(awake);
   const [replay, setReplayPref] = useState(() => !persistence.flag("noReplay"));
   const [tutorialStep, setTutorialStep] = useState<number | null>(null);
   const general: GeneralPrefs = {
@@ -86,16 +86,15 @@ function useEditorPrefs(hasPiano: boolean) {
     },
     onTutorial: () => setTutorialStep(0),
   };
-  return { general, allowSleep, tutorialStep, setTutorialStep };
+  return { general, tutorialStep, setTutorialStep };
 }
 
 function Layout(props: { recording: StoredRecording; info: [string, string][]; session: Session | null; top?: ReactNode; draw?: TimelineProps["draw"]; engine?: AudioEngine; youtube?: boolean }) {
   const { recording, info, session, top, draw, engine, youtube = false } = props;
-  const { general, allowSleep, tutorialStep, setTutorialStep } = useEditorPrefs(!!engine);
+  const { general, tutorialStep, setTutorialStep } = useEditorPrefs(!!engine);
   return (
     <>
       <div className="w-full h-dvh flex flex-col">
-        <KeepAwake enabled={general.awake} onUnsupported={allowSleep} />
         <div className="flex-1 min-h-0 flex items-center justify-center">
           <div className="w-full max-w-220 h-full md:h-min min-h-0 p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:pt-6 max-md:pb-10">
             <div className="flex flex-col gap-4 max-md:gap-2 min-h-0 has-[[data-fill]]:h-full">
