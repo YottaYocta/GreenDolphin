@@ -110,7 +110,7 @@ function Layout(props: { recording: StoredRecording; info: [string, string][]; s
   return (
     <>
       <div className="h-dvh flex items-center justify-center">
-        <div className="w-full max-w-220 h-full md:h-min p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:pt-6 max-md:pb-10">
+        <div className="w-full max-w-220 h-full md:h-min p-4 md:p-6 flex flex-col justify-center gap-4 max-md:gap-2 max-md:pt-6 max-md:pb-10">
           {session ? (
             <Loaded recording={recording} info={info} session={session} draw={draw} engine={engine} youtube={youtube} general={general} />
           ) : (
