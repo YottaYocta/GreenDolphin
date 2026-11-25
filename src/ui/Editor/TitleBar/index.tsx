@@ -30,7 +30,7 @@ export function TitleBar({ recording, info, editor }: { recording: StoredRecordi
           </Menu.Trigger>
           <Menu.Portal>
             <Menu.Positioner side="bottom" align="start" sideOffset={8}>
-              <Menu.Popup className="z-50 w-80 max-w-[calc(100vw-2rem)] rounded-xl bg-white border border-border [box-shadow:var(--shadow-menu)] overflow-hidden flex flex-col outline-none">
+              <Menu.Popup className="z-50 w-80 max-w-[calc(100vw-2rem)] rounded-xl bg-white [box-shadow:var(--shadow-menu)] overflow-hidden flex flex-col outline-none">
                 <div className="overflow-y-auto max-h-72 flex flex-col">
                   {others.length === 0 && <div className="p-4 font-inria text-black/50 text-sm text-center">No other recordings</div>}
                   {others.map((other) => (

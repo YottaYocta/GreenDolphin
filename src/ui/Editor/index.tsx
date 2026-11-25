@@ -16,7 +16,7 @@ import { youtube } from "../../youtube";
 import { setReplay } from "../../analytics";
 import { persistence, type RecordingId, type StoredRecording } from "../../persistence";
 
-const CARD = "flex flex-col rounded-xl overflow-hidden [box-shadow:var(--shadow-panel)] bg-white border border-border";
+const CARD = "flex flex-col rounded-xl overflow-hidden bg-white";
 
 const AUDIO_STEPS: TutorialStep[] = [
   { selector: "#timeline-ruler", text: "Click to set playback position" },

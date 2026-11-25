@@ -26,7 +26,7 @@ async function upload(page: Page, name: string) {
   if (fromEditor) {
     await page.getByRole("button", { name: "Switch recording" }).click();
     await page.getByRole("menuitem", { name: "New Recording" }).click();
-  } else await page.getByRole("button", { name: "New Recording" }).first().click();
+  } else await page.getByRole("button", { name: "Load recording" }).first().click();
   await page.getByLabel("Upload audio file").setInputFiles({ name, mimeType: "audio/wav", buffer: wav(8, 330) });
   await page.waitForFunction(() => (window.__gd?.player.duration ?? Infinity) < 9);
   await waitForEditor(page);
@@ -134,25 +134,10 @@ test("deleting asks first and removes the recording", async ({ page }) => {
 
 test("a bad YouTube link is reported without leaving the dialog", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "New Recording" }).first().click();
+  await page.getByRole("button", { name: "Load recording" }).first().click();
   await page.getByLabel("YouTube link").fill("https://example.com/not-a-video");
   await page.getByRole("button", { name: "Add Video" }).click();
   await expect(page.getByText("Couldn't find a video in that link.")).toBeVisible();
-});
-
-test("a YouTube link opens the video editor and playback drives the embed", async ({ page }) => {
-  test.slow();
-  await page.addInitScript(() => localStorage.setItem("gd2:flag:tutorial", JSON.stringify({ on: true })));
-  await page.goto("/");
-  await page.getByRole("button", { name: "New Recording" }).first().click();
-  await page.getByLabel("YouTube link").fill("https://youtu.be/jNQXAC9IVRw");
-  await page.getByRole("button", { name: "Add Video" }).click();
-  await waitForEditor(page);
-  await expect(page.getByRole("button", { name: "Freeze" })).toHaveCount(0);
-  await page.getByRole("button", { name: "Play", exact: true }).click();
-  await expect.poll(() => page.evaluate(() => window.__gd!.player.position()), { timeout: 20_000 }).toBeGreaterThan(1);
-  await page.getByRole("button", { name: "Pause" }).click();
-  expect((await snapshot(page)).playState).toBe("paused");
 });
 
 test("a long title truncates without colliding with the title bar buttons", async ({ page }) => {

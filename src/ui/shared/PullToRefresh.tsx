@@ -57,7 +57,7 @@ export function PullToRefresh() {
         const mask = `linear-gradient(to bottom, black ${((BLURS_PX.length - i - 1) / BLURS_PX.length) * 100}%, transparent ${((BLURS_PX.length - i) / BLURS_PX.length) * 100}%)`;
         return <div key={blur} className="absolute inset-0" style={{ backdropFilter: `blur(${blur * progress}px)`, maskImage: mask }} />;
       })}
-      <div className="relative flex items-center justify-center size-9 mb-1 rounded-full bg-white border border-border shadow-sm text-black/40" style={{ opacity: progress }}>
+      <div className="relative flex items-center justify-center size-9 mb-1 rounded-full bg-white shadow-sm text-black/40" style={{ opacity: progress }}>
         <ArrowClockwiseIcon size={18} weight="bold" style={{ transform: `rotate(${progress * 270}deg)` }} />
       </div>
     </div>
