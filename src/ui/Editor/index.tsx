@@ -21,16 +21,12 @@ import { persistence, type EditorSettings, type StoredRecording } from "../../pe
 const CARD = "flex flex-col rounded-xl overflow-hidden bg-white";
 const COLUMN = "flex flex-col gap-4 max-md:gap-2 min-h-0 has-[[data-fill]]:h-full";
 
-const AUDIO_STEPS: TutorialStep[] = [
+const tutorialSteps = (piano: boolean): TutorialStep[] => [
   { selector: "#timeline-ruler", text: "Click to set playback position" },
-  { selector: "#waveform-canvas", text: "Pinch to zoom in/out" },
-  { selector: "#waveform-canvas", text: "Drag to pan" },
+  { selector: "#timeline-view", text: "Pinch to zoom in/out" },
+  { selector: "#timeline-view", text: "Drag to pan" },
   { selector: "#timeline-loop", text: "Drag the handles to set the loop" },
-  { selector: '[aria-label="Editor settings"]', text: "Show the piano roll, playback settings and other editor customizations" },
-];
-const VIDEO_STEPS: TutorialStep[] = [
-  { selector: "#timeline-ruler", text: "Click to set playback position" },
-  { selector: "#timeline-loop", text: "Drag the handles to set the loop" },
+  { selector: '[aria-label="Editor settings"]', text: `Show ${piano ? "the piano roll, " : ""}playback settings and other editor customizations` },
 ];
 
 interface Session {
@@ -108,7 +104,7 @@ function Layout(props: { recording: StoredRecording; info: [string, string][]; s
           )}
         </div>
       </div>
-      {session && <Tutorial steps={engine ? AUDIO_STEPS : VIDEO_STEPS} step={tutorialStep} setStep={setTutorialStep} />}
+      {session && <Tutorial steps={tutorialSteps(!!engine)} step={tutorialStep} setStep={setTutorialStep} />}
     </>
   );
 }
