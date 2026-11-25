@@ -91,7 +91,7 @@ export function TitleBar({ recording, info, editor }: { recording: StoredRecordi
                   void remove(recording.id);
                   home();
                 }}
-                className="flex-1 h-10 rounded-lg bg-danger text-white hover:bg-danger-hover active:bg-danger-active cursor-pointer"
+                className="btn-surface flex-1 h-10 rounded-lg bg-danger text-white hover:bg-danger-hover active:bg-danger-active"
               >
                 Yes, I'm sure
               </button>

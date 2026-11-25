@@ -72,11 +72,13 @@ export function drawWaveform(canvas: HTMLCanvasElement, peaks: Peaks, recording:
   const lane = height / recording.channelCount;
   const toPx = (t: number) => ((t - view.start) / (view.end - view.start)) * width;
   const [loopFrom, loopTo] = [toPx(loop.start), toPx(loop.end)];
+  let current = "";
   for (let c = 0; c < recording.channelCount; c++) {
     const values = columns(peaks, recording, c, view, Math.max(1, Math.floor(width)));
     values.forEach((v, x) => {
       const h = Math.max(1, Math.round(v * lane));
-      ctx.fillStyle = x >= loopFrom && x < loopTo ? inLoop : outside;
+      const colour = x >= loopFrom && x < loopTo ? inLoop : outside;
+      if (colour !== current) ctx.fillStyle = current = colour;
       ctx.fillRect(x, lane * c + (lane - h) / 2, 1, h);
     });
   }

@@ -39,10 +39,20 @@ interface Session {
   output: SoundOutput;
 }
 
-function Loaded({ recording, info, session, draw, engine, youtube, general }: { recording: StoredRecording; info: [string, string][]; session: Session; draw?: TimelineProps["draw"]; engine?: AudioEngine; youtube: boolean; general: GeneralPrefs }) {
+function TimelineCard({ id, session, draw, children }: { id: StoredRecording["id"]; session: Session; draw?: TimelineProps["draw"]; children: ReactNode }) {
+  const { onView, onLoopCommit } = usePersistence(id, session.player);
+  return (
+    <div data-fill className={`${CARD} flex-1 min-h-0 md:min-h-72 p-4`}>
+      <Timeline player={session.player} initialView={session.restored.view} initialLoop={session.restored.loopFraction} onView={onView} onLoopCommit={onLoopCommit} draw={draw} />
+      {children}
+    </div>
+  );
+}
+
+function Loaded({ recording, info, session, draw, engine, general }: { recording: StoredRecording; info: [string, string][]; session: Session; draw?: TimelineProps["draw"]; engine?: AudioEngine; general: GeneralPrefs }) {
   const { player, restored } = session;
+  const youtube = recording.source.kind === "youtube";
   const [sound, setSound] = useSound(recording.id, restored.sound, session.output);
-  const { onView, onLoopCommit } = usePersistence(recording.id, player);
   const settings = <SoundSettings player={player} sound={sound} onSound={setSound} youtube={youtube} />;
   return (
     <>
@@ -58,10 +68,9 @@ function Loaded({ recording, info, session, draw, engine, youtube, general }: { 
           }
         />
         {engine && general.piano && <PianoRoll engine={engine} />}
-        <div data-fill className={`${CARD} flex-1 min-h-0 md:min-h-72 p-4`}>
-          <Timeline player={player} initialView={restored.view} initialLoop={restored.loopFraction} onView={onView} onLoopCommit={onLoopCommit} draw={draw} />
+        <TimelineCard id={recording.id} session={session} draw={draw}>
           {general.inline && <div className="grid md:grid-flow-col md:auto-cols-fr gap-x-8 gap-y-2 shrink-0 pt-4 px-4">{settings}</div>}
-        </div>
+        </TimelineCard>
       </div>
       <Controls player={player} freeze={!youtube} settings={general.inline ? undefined : settings} />
     </>
@@ -104,15 +113,15 @@ function useEditorPrefs(hasPiano: boolean) {
   return { general, tutorialStep, setTutorialStep };
 }
 
-function Layout(props: { recording: StoredRecording; info: [string, string][]; session: Session | null; top?: ReactNode; draw?: TimelineProps["draw"]; engine?: AudioEngine; youtube?: boolean }) {
-  const { recording, info, session, top, draw, engine, youtube = false } = props;
+function Layout(props: { recording: StoredRecording; info: [string, string][]; session: Session | null; top?: ReactNode; draw?: TimelineProps["draw"]; engine?: AudioEngine }) {
+  const { recording, info, session, top, draw, engine } = props;
   const { general, tutorialStep, setTutorialStep } = useEditorPrefs(!!engine);
   return (
     <>
       <div className="h-dvh flex items-center justify-center">
         <div className="w-full max-w-220 h-full md:h-min p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:pt-6 max-md:pb-10">
           {session ? (
-            <Loaded recording={recording} info={info} session={session} draw={draw} engine={engine} youtube={youtube} general={general} />
+            <Loaded recording={recording} info={info} session={session} draw={draw} engine={engine} general={general} />
           ) : (
             <div className={COLUMN}>
               <TitleBar recording={recording} info={info} />
@@ -122,7 +131,7 @@ function Layout(props: { recording: StoredRecording; info: [string, string][]; s
           )}
         </div>
       </div>
-      {session && <Tutorial steps={youtube ? VIDEO_STEPS : AUDIO_STEPS} step={tutorialStep} setStep={setTutorialStep} />}
+      {session && <Tutorial steps={engine ? AUDIO_STEPS : VIDEO_STEPS} step={tutorialStep} setStep={setTutorialStep} />}
     </>
   );
 }
@@ -196,7 +205,7 @@ export function YouTubeEditor({ recording, videoId }: { recording: StoredRecordi
     <>
       <div ref={host} className="absolute size-0 overflow-hidden [&_iframe]:w-80 [&_iframe]:h-45" />
       {session || error !== null ? (
-        <Layout recording={recording} info={info} session={session} top={error !== null && <p className={`${CARD} p-4 shrink-0 text-sm text-danger`}>{error}</p>} youtube />
+        <Layout recording={recording} info={info} session={session} top={error !== null && <p className={`${CARD} p-4 shrink-0 text-sm text-danger`}>{error}</p>} />
       ) : (
         <Loading />
       )}

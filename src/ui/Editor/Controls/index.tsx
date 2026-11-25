@@ -75,9 +75,11 @@ export function Controls({ player, freeze, settings }: { player: Player; freeze:
           <SlidersIcon size={32} weight="fill" className="text-ink-55" />
         </button>
       )}
-      <Dialog title="Playback" open={open} onOpenChange={setOpen}>
-        <div className="flex flex-col gap-6 pb-4">{settings}</div>
-      </Dialog>
+      {settings && (
+        <Dialog title="Playback" open={open} onOpenChange={setOpen}>
+          <div className="flex flex-col gap-6 pb-4">{settings}</div>
+        </Dialog>
+      )}
       <div className={paired ? "grid grid-cols-2 gap-4 min-h-0" : "contents"}>
         {nav(SkipBackIcon, -5, "Back 5 seconds")}
         {nav(SkipForwardIcon, 5, "Forward 5 seconds")}

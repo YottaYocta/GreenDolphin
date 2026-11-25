@@ -1,7 +1,9 @@
+const NOTE_COUNT = 10;
+
 export function noteColor(name: string) {
   let h = 0;
   for (let i = 0; i < name.length; i++) h = (Math.imul(h, 31) + name.charCodeAt(i)) >>> 0;
-  return `var(--color-note-${h % 10})`;
+  return `var(--color-note-${h % NOTE_COUNT})`;
 }
 
 export const stripExt = (name: string) => name.replace(/\.\w{1,5}$/, "");

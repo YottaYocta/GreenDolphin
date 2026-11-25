@@ -100,7 +100,7 @@ export default function DesignSystem() {
           <Swatch key={cls} name={`${cls} ×${uses}`} colour={colour!} />
         ))}
       </Section>
-      <Section title={`Colours written in component code, such as note icons (${literals.length})`}>
+      <Section title={`Colours written outside the theme (${literals.length})`}>
         {byShade(literals, ([colour]) => colour).map(([colour, uses]) => (
           <Swatch key={colour} name={`${colour} ×${uses}`} colour={colour} />
         ))}
@@ -111,7 +111,7 @@ export default function DesignSystem() {
             const [size, leading] = base(cls).slice(5).split("/");
             return (
               <p key={cls} style={{ fontSize: size.match(/^\[(.+)\]$/)?.[1] ?? `var(--text-${size})`, lineHeight: leading ? px(leading) : `var(--text-${size}--line-height)` }}>
-                GreenDolphin 0:30 <Note>{`${cls} ×${uses}`}</Note>
+                GreenDolphin 0:30 <span className="text-sm font-normal font-sans text-ink-25">{`${cls} ×${uses}`}</span>
               </p>
             );
           })}
@@ -189,8 +189,6 @@ export default function DesignSystem() {
     </main>
   );
 }
-
-const Note = ({ children }: { children: string }) => <span className="text-sm font-normal font-sans text-ink-25">{children}</span>;
 
 const Chip = ({ name, note = "" }: { name: string; note?: string }) => (
   <span className="rounded-sm bg-white px-2 py-1 font-space-mono text-xs text-ink-55">
