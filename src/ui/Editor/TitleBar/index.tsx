@@ -12,6 +12,15 @@ const TEXT_BUTTON = "flex items-center cursor-pointer hover:text-black/60 active
 const ACTION = "justify-center shrink-0 px-3 max-md:size-12 max-md:px-0";
 const ITEM = "flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-neutral-50 active:bg-neutral-100";
 
+function Action({ label, icon: Icon, text, onClick }: { label: string; icon: typeof InfoIcon; text?: string; onClick: () => void }) {
+  return (
+    <button aria-label={label} onClick={onClick} className={`${GHOST} ${ACTION}`}>
+      <Icon size={16} weight="fill" className="opacity-50" />
+      {text && <span className="opacity-40 font-inria max-md:hidden">{text}</span>}
+    </button>
+  );
+}
+
 export function TitleBar({ recording, info, editor }: { recording: StoredRecording; info: [string, string][]; editor?: ReactNode }) {
   const { recordings, open, home } = useLibrary();
   const [adding, setAdding] = useState(false);
@@ -48,20 +57,10 @@ export function TitleBar({ recording, info, editor }: { recording: StoredRecordi
             </Menu.Positioner>
           </Menu.Portal>
         </Menu.Root>
-        <button aria-label="File info" onClick={() => setShowInfo(true)} className={`${TEXT_BUTTON} justify-center shrink-0 size-8 text-black/50`}>
-          <InfoIcon size={18} weight="fill" />
-        </button>
+        <Action label="File info" icon={InfoIcon} onClick={() => setShowInfo(true)} />
       </div>
-      {editor && (
-        <button aria-label="Editor settings" onClick={() => setShowEditor(true)} className={`${GHOST} ${ACTION}`}>
-          <GearSixIcon size={16} weight="fill" className="opacity-50" />
-          <span className="opacity-40 font-inria max-md:hidden">Editor</span>
-        </button>
-      )}
-      <button aria-label="Home" onClick={home} className={`${GHOST} ${ACTION}`}>
-        <HouseIcon size={16} weight="fill" className="opacity-50" />
-        <span className="opacity-40 font-inria max-md:hidden">Home</span>
-      </button>
+      {editor && <Action label="Editor settings" icon={GearSixIcon} text="Editor" onClick={() => setShowEditor(true)} />}
+      <Action label="Home" icon={HouseIcon} text="Home" onClick={home} />
       <NewRecordingDialog open={adding} onOpenChange={setAdding} />
       <Dialog title="Editor" open={showEditor} onOpenChange={setShowEditor}>
         {editor}
