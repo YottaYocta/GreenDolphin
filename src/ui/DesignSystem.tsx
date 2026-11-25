@@ -20,11 +20,13 @@ const base = (cls: string) => cls.replace(/^(?:[^:[\]]+(?:\[[^\]]*\])?:)+/, "");
 const px = (value: string) => (/^[\d.]+$/.test(value) ? `${+value * 4}px` : (value.match(/^\[(.+)\]$/)?.[1] ?? value));
 
 function shade(colour: string) {
+  const probe = document.body.appendChild(Object.assign(document.createElement("i"), { style: `color:${colour}` }));
   const ctx = Object.assign(document.createElement("canvas"), { width: 1, height: 1 }).getContext("2d")!;
   ctx.fillStyle = "white";
   ctx.fillRect(0, 0, 1, 1);
-  ctx.fillStyle = colour;
+  ctx.fillStyle = getComputedStyle(probe).color;
   ctx.fillRect(0, 0, 1, 1);
+  probe.remove();
   const [r, g, b] = [...ctx.getImageData(0, 0, 1, 1).data].map((v) => v / 255);
   const [max, min] = [Math.max(r, g, b), Math.min(r, g, b)];
   const hue = max === min ? 0 : max === r ? ((g - b) / (max - min) + 6) % 6 : max === g ? (b - r) / (max - min) + 2 : (r - g) / (max - min) + 4;
@@ -65,7 +67,7 @@ function inventory() {
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-4">
-      <h2 className="text-sm text-black/40">{title}</h2>
+      <h2 className="text-sm text-ink-40">{title}</h2>
       <div className="flex flex-wrap items-start gap-4">{children}</div>
     </section>
   );
@@ -127,7 +129,7 @@ export default function DesignSystem() {
         {grouped.Spacing.map(({ cls, uses }) => {
           const value = px(base(cls).replace(GROUPS.Spacing, ""));
           return (
-            <div key={cls} className="flex flex-col gap-1 text-xs text-black/40">
+            <div key={cls} className="flex flex-col gap-1 text-xs text-ink-40">
               <div className="h-3 bg-play" style={{ width: value }} />
               {cls} · {value} ×{uses}
             </div>
@@ -182,24 +184,24 @@ export default function DesignSystem() {
         </div>
       </Section>
       <Dialog title="Dialog" open={open} onOpenChange={setOpen}>
-        <p className="text-black/70">Dialog body text.</p>
+        <p className="text-ink-70">Dialog body text.</p>
       </Dialog>
     </main>
   );
 }
 
-const Note = ({ children }: { children: string }) => <span className="text-sm font-normal font-sans text-black/25">{children}</span>;
+const Note = ({ children }: { children: string }) => <span className="text-sm font-normal font-sans text-ink-25">{children}</span>;
 
 const Chip = ({ name, note = "" }: { name: string; note?: string }) => (
-  <span className="rounded-sm bg-white px-2 py-1 font-space-mono text-xs text-black/55">
-    {name} <span className="text-black/25">{note}</span>
+  <span className="rounded-sm bg-white px-2 py-1 font-space-mono text-xs text-ink-55">
+    {name} <span className="text-ink-25">{note}</span>
   </span>
 );
 
 function Swatch({ name, colour }: { name: string; colour: string }) {
   return (
-    <div className="flex flex-col gap-1 w-24 text-xs text-black/40 break-words">
-      <div className="h-12 rounded-lg ring-1 ring-black/12" style={{ backgroundColor: colour }} />
+    <div className="flex flex-col gap-1 w-24 text-xs text-ink-40 break-words">
+      <div className="h-12 rounded-lg ring-1 ring-ink-12" style={{ backgroundColor: colour }} />
       {name}
     </div>
   );

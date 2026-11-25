@@ -29,10 +29,10 @@ export function Library() {
           <img src="/favicon/favicon.svg" alt="" className="w-13 rounded-lg bg-white" />
           <div className="flex flex-col gap-1">
             <h1 className="font-bold text-play text-[29px]/9">GreenDolphin</h1>
-            <p className="text-black/40 text-sm">Audio Looper & Recording Analyzer</p>
+            <p className="text-ink-40 text-sm">Audio Looper & Recording Analyzer</p>
           </div>
         </header>
-        {error && <p role="alert" className="text-sm text-red-500">{error}</p>}
+        {error && <p role="alert" className="text-sm text-danger">{error}</p>}
         <div className="flex justify-between gap-4 self-stretch shrink-0">
           <IconButton icon={MusicNotesPlusIcon} fill="white" onClick={() => setAdding(true)} className="h-13 px-4 max-md:flex-1">
             Load recording
@@ -50,14 +50,14 @@ export function Library() {
           </IconButton>
         </div>
         <ul aria-label="My Recordings" className="rounded-lg self-stretch bg-white min-h-0 max-md:flex-1 overflow-y-auto scrollbar-slim">
-          {recordings.length === 0 && <li className="px-6 py-8 text-center text-black/40 text-sm">No recordings yet. Upload a file to get started.</li>}
+          {recordings.length === 0 && <li className="px-6 py-8 text-center text-ink-40 text-sm">No recordings yet. Upload a file to get started.</li>}
           {rows.map(({ recording, when }) => (
             <li key={recording.id}>
-              <button aria-label={`Open ${recording.title}`} onClick={() => open(recording.id)} className="flex items-center gap-4 w-full p-4 md:py-3 text-left cursor-pointer hover:bg-page-bg active:bg-surface-active">
+              <button aria-label={`Open ${recording.title}`} onClick={() => open(recording.id)} className="flex items-center gap-4 w-full p-4 md:py-3 text-left cursor-pointer hover:bg-surface-active active:bg-surface-input">
                 <RecordingIcon recording={recording} />
                 <span className="flex max-md:flex-col md:items-center gap-1 md:gap-4 flex-1 min-w-0">
-                  <span className="md:flex-1 min-w-0 truncate text-black/70">{stripExt(recording.title)}</span>
-                  <span className="shrink-0 opacity-40 text-sm">{when}</span>
+                  <span className="md:flex-1 min-w-0 truncate text-ink-70">{stripExt(recording.title)}</span>
+                  <span className="shrink-0 text-ink-40 text-sm">{when}</span>
                 </span>
               </button>
             </li>

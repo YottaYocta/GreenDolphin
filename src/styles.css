@@ -2,31 +2,56 @@
 
 html, body {
   background-color: var(--color-page-bg);
+  color: var(--color-ink-70);
   overscroll-behavior: none;
 }
 
 #root { isolation: isolate; }
 
-@theme {
+@theme static {
   --font-sans: 'Inria Sans', system-ui, sans-serif;
-  --color-neutral-2: #c7c7c7;
 
-  --color-page-bg: #F8F8F8;
-  --color-surface-input: #E8E8E8;
-  --color-surface-active: #f0f0f0;
+  --color-*: initial;
+  --color-white: #ffffff;
+  --color-black: #000000;
+
+  --color-page-bg: color-mix(in srgb, var(--color-black) 3%, var(--color-white));
+  --color-surface-active: color-mix(in srgb, var(--color-black) 6%, var(--color-white));
+  --color-surface-input: color-mix(in srgb, var(--color-black) 9%, var(--color-white));
+  --color-ink-12: color-mix(in srgb, var(--color-black) 12%, var(--color-white));
+  --color-ink-25: color-mix(in srgb, var(--color-black) 25%, var(--color-white));
+  --color-ink-40: color-mix(in srgb, var(--color-black) 40%, var(--color-white));
+  --color-ink-55: color-mix(in srgb, var(--color-black) 55%, var(--color-white));
+  --color-ink-70: color-mix(in srgb, var(--color-black) 70%, var(--color-white));
 
   --color-play: #1CCA93;
-  --color-play-hover: #3DD4A3;
-  --color-play-active: #17A87A;
+  --color-play-muted: color-mix(in srgb, var(--color-play) 25%, var(--color-white));
+  --color-play-hover: color-mix(in srgb, var(--color-play), var(--color-white) 20%);
+  --color-play-active: color-mix(in srgb, var(--color-play), var(--color-black) 20%);
   --color-freeze: #0099DC;
-  --color-freeze-hover: #33ADDE;
-  --color-freeze-active: #007AB0;
+  --color-freeze-hover: color-mix(in srgb, var(--color-freeze), var(--color-white) 20%);
+  --color-freeze-active: color-mix(in srgb, var(--color-freeze), var(--color-black) 20%);
   --color-waiting: #F5C400;
-  --color-waiting-hover: #F7CE33;
-  --color-waiting-active: #C9A200;
+  --color-waiting-hover: color-mix(in srgb, var(--color-waiting), var(--color-white) 20%);
+  --color-waiting-active: color-mix(in srgb, var(--color-waiting), var(--color-black) 20%);
+  --color-danger: #FB2C36;
+  --color-danger-hover: color-mix(in srgb, var(--color-danger), var(--color-white) 20%);
+  --color-danger-active: color-mix(in srgb, var(--color-danger), var(--color-black) 20%);
 
-  --shadow-menu: #0000001a 0px 4px 16px;
-  --shadow-dialog: #0000001a 0px 4px 24px;
+  --color-youtube: #FF0000;
+  --color-note-0: #6366f1;
+  --color-note-1: #8b5cf6;
+  --color-note-2: #ec4899;
+  --color-note-3: #f97316;
+  --color-note-4: #eab308;
+  --color-note-5: #22c55e;
+  --color-note-6: #06b6d4;
+  --color-note-7: #3b82f6;
+  --color-note-8: #ef4444;
+  --color-note-9: #14b8a6;
+
+  --shadow-menu: 0px 4px 16px color-mix(in srgb, var(--color-black) 12%, transparent);
+  --shadow-dialog: 0px 4px 24px color-mix(in srgb, var(--color-black) 12%, transparent);
 }
 
 @utility btn-surface {
@@ -62,7 +87,7 @@ html, body {
   &::-webkit-scrollbar-thumb {
     border: 4px solid transparent;
     border-radius: 6px;
-    background-color: #00000033;
+    background-color: var(--color-ink-25);
     background-clip: content-box;
   }
   &::-webkit-scrollbar-thumb:hover, &::-webkit-scrollbar-thumb:active {
@@ -70,6 +95,6 @@ html, body {
   }
   @supports not selector(::-webkit-scrollbar) {
     scrollbar-width: thin;
-    scrollbar-color: #00000033 transparent;
+    scrollbar-color: var(--color-ink-25) transparent;
   }
 }

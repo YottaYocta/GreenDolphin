@@ -196,7 +196,7 @@ export function YouTubeEditor({ recording, videoId }: { recording: StoredRecordi
     <>
       <div ref={host} className="absolute size-0 overflow-hidden [&_iframe]:w-80 [&_iframe]:h-45" />
       {session || error !== null ? (
-        <Layout recording={recording} info={info} session={session} top={error !== null && <p className={`${CARD} p-4 shrink-0 text-sm text-red-500`}>{error}</p>} youtube />
+        <Layout recording={recording} info={info} session={session} top={error !== null && <p className={`${CARD} p-4 shrink-0 text-sm text-danger`}>{error}</p>} youtube />
       ) : (
         <Loading />
       )}

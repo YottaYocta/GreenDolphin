@@ -120,7 +120,7 @@ export function Timeline(props: TimelineProps) {
 
   const loopHandle = (ref: RefObject<HTMLDivElement | null>, side: "start" | "end") => (
     <div ref={ref} data-control aria-label={`Loop ${side}`} className="absolute bottom-0 -translate-x-1/2 z-10 flex items-end justify-center w-9 h-full cursor-ew-resize" onPointerDown={handle(side)}>
-      <Triangle points="8,0 16,22 0,22" fill="var(--color-neutral-2)" />
+      <Triangle points="8,0 16,22 0,22" fill="var(--color-ink-25)" />
     </div>
   );
 
@@ -137,8 +137,8 @@ export function Timeline(props: TimelineProps) {
       <div className="relative flex-1 min-h-0 flex flex-col overflow-hidden bg-white px-6 md:px-8">
         <div ref={content} className="relative w-full flex-1 min-h-0">
           {draw ? <canvas id="waveform-canvas" ref={canvas} className="absolute inset-0 w-full h-full" /> : <div ref={els.grid} className="absolute inset-0 pointer-events-none" />}
-          <div ref={els.startLine} className="absolute inset-y-0 w-px bg-black/12 pointer-events-none" />
-          <div ref={els.endLine} className="absolute inset-y-0 w-px -translate-x-full bg-black/12 pointer-events-none" />
+          <div ref={els.startLine} className="absolute inset-y-0 w-px bg-ink-12 pointer-events-none" />
+          <div ref={els.endLine} className="absolute inset-y-0 w-px -translate-x-full bg-ink-12 pointer-events-none" />
           <div ref={els.line} className="absolute inset-y-0 w-0.5 -translate-x-1/2 bg-play pointer-events-none z-10" />
         </div>
       </div>
@@ -147,7 +147,7 @@ export function Timeline(props: TimelineProps) {
           <div ref={els.shade} data-control aria-label="Loop" className="absolute inset-y-0 bg-surface-active flex items-center justify-center cursor-grab active:cursor-grabbing" onPointerDown={shift}>
             <div ref={els.marks} className="flex gap-0.5">
               {[0, 1, 2].map((i) => (
-                <span key={i} className="w-px h-2 bg-black/25" />
+                <span key={i} className="w-px h-2 bg-ink-25" />
               ))}
             </div>
           </div>
@@ -261,7 +261,7 @@ function useRender(model: Model, player: Player, els: Els, canvas: RefObject<HTM
         for (let t = Math.ceil(view.start / step) * step; t <= view.end; t += step) {
           const x = toPx(t);
           lines += `<div class="absolute inset-y-0 w-px bg-surface-input" style="left:${x}px"></div>`;
-          labels += `<div class="absolute top-1/2 -translate-y-1/2 font-space-mono text-[10px] leading-none text-black/25 tabular-nums" style="left:${x + 4}px">${formatTick(t, step)}</div>`;
+          labels += `<div class="absolute top-1/2 -translate-y-1/2 font-space-mono text-[10px] leading-none text-ink-25 tabular-nums" style="left:${x + 4}px">${formatTick(t, step)}</div>`;
         }
         if (els.ticks.current) els.ticks.current.innerHTML = lines + labels;
         if (els.grid.current) els.grid.current.innerHTML = lines;

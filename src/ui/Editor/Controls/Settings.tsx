@@ -6,7 +6,7 @@ import { usePlayer, type Sound } from "../session";
 import { persistence, type LoopPrefs } from "../../../persistence";
 
 const percent = (v: number) => String(Math.round(v * 100));
-const LABEL = "text-sm text-black/40";
+const LABEL = "text-sm text-ink-40";
 
 export function SoundSettings(props: { player: Player; sound: Sound; onSound: (sound: Sound) => void; youtube?: boolean }) {
   const { player, sound, onSound, youtube = false } = props;

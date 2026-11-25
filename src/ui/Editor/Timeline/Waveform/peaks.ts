@@ -67,6 +67,8 @@ export function drawWaveform(canvas: HTMLCanvasElement, peaks: Peaks, recording:
   const ctx = canvas.getContext("2d")!;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, width, height);
+  const style = getComputedStyle(canvas);
+  const [inLoop, outside] = [style.getPropertyValue("--color-play"), style.getPropertyValue("--color-play-muted")];
   const lane = height / recording.channelCount;
   const toPx = (t: number) => ((t - view.start) / (view.end - view.start)) * width;
   const [loopFrom, loopTo] = [toPx(loop.start), toPx(loop.end)];
@@ -74,7 +76,7 @@ export function drawWaveform(canvas: HTMLCanvasElement, peaks: Peaks, recording:
     const values = columns(peaks, recording, c, view, Math.max(1, Math.floor(width)));
     values.forEach((v, x) => {
       const h = Math.max(1, Math.round(v * lane));
-      ctx.fillStyle = x >= loopFrom && x < loopTo ? "#1CCA93" : "#1CCA934d";
+      ctx.fillStyle = x >= loopFrom && x < loopTo ? inLoop : outside;
       ctx.fillRect(x, lane * c + (lane - h) / 2, 1, h);
     });
   }

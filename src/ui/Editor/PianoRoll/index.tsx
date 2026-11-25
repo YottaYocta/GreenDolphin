@@ -49,11 +49,12 @@ export function PianoRoll({ engine }: { engine: AudioEngine }) {
     const ctx = c.getContext("2d")!;
     const spectrum = engine.openSpectrum();
     const bins = semitoneBins(spectrum.binHz);
+    const play = getComputedStyle(c).getPropertyValue("--color-play");
     let raf = 0;
     const frame = () => {
       raf = requestAnimationFrame(frame);
       ctx.clearRect(0, 0, c.width, c.height);
-      ctx.fillStyle = "#1CCA93";
+      ctx.fillStyle = play;
       const data = spectrum.read();
       bins.forEach((bin, i) => {
         const h = Math.round(barHeight(averageDb(data, bin), FIRST + i) * dpr);
@@ -96,12 +97,12 @@ export function PianoRoll({ engine }: { engine: AudioEngine }) {
         <div className="relative flex h-13.5 pt-2" style={{ width: WIDTH }}>
           {Array.from({ length: KEYS }, (_, i) =>
             BLACK.has(i % 12) ? null : (
-              <div key={i} data-key={FIRST + i} className="h-8.75 shrink-0 touch-none border border-black/12 bg-page-bg hover:bg-surface-active [box-shadow:#0000001A_0px_2px_3px] cursor-pointer" style={{ width: WHITE_W }} />
+              <div key={i} data-key={FIRST + i} className="h-8.75 shrink-0 touch-none border border-ink-12 bg-page-bg hover:bg-surface-active cursor-pointer" style={{ width: WHITE_W }} />
             ),
           )}
           {Array.from({ length: KEYS }, (_, i) =>
             BLACK.has(i % 12) ? (
-              <div key={i} data-key={FIRST + i} className="absolute top-2 touch-none w-2.5 h-6.25 -translate-x-1/2 border border-black/50 bg-[#787878] hover:bg-[#686868] cursor-pointer" style={{ left: whiteIndex(i) * WHITE_W }} />
+              <div key={i} data-key={FIRST + i} className="absolute top-2 touch-none w-2.5 h-6.25 -translate-x-1/2 border border-ink-55 bg-ink-55 hover:bg-ink-70 cursor-pointer" style={{ left: whiteIndex(i) * WHITE_W }} />
             ) : null,
           )}
         </div>
