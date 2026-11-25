@@ -1,22 +1,19 @@
 import { useState, type ReactNode } from "react";
 import type { StoredRecording } from "../../../persistence";
 import { Menu } from "@base-ui/react/menu";
-import { CaretRightIcon, GearSixIcon, HouseIcon, FileIcon, MusicNotesPlusIcon } from "@phosphor-icons/react";
+import { GearSixIcon, HouseIcon, FileIcon, MusicNotesPlusIcon, TriangleIcon, type Icon } from "@phosphor-icons/react";
 import { stripExt } from "../../shared/format";
 import { useLibrary } from "../../context";
 import { NewRecordingDialog, RecordingIcon } from "../../Library/NewRecordingDialog";
-import { Dialog } from "../../shared/primitives";
+import { Dialog, IconButton } from "../../shared/primitives";
 
-const GHOST = "flex items-center gap-2 h-12 rounded-lg cursor-pointer hover:bg-black/5 active:bg-black/10";
-const ACTION = "justify-center shrink-0 size-12 md:w-auto md:px-3";
 const ITEM = "flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-surface active:bg-surface-track";
 
-function Action({ label, icon: Icon, size = 16, text, onClick }: { label: string; icon: typeof FileIcon; size?: number; text: string; onClick: () => void }) {
+function Action({ label, icon, size = 16, text, onClick }: { label: string; icon: Icon; size?: number; text: string; onClick: () => void }) {
   return (
-    <button aria-label={label} onClick={onClick} className={`${GHOST} ${ACTION}`}>
-      <Icon size={size} weight="fill" className="opacity-40" />
-      <span className="opacity-40 max-md:hidden">{text}</span>
-    </button>
+    <IconButton aria-label={label} icon={icon} size={size} fill="none" onClick={onClick} className="shrink-0 size-12 md:w-auto md:px-3">
+      <span className="max-md:hidden">{text}</span>
+    </IconButton>
   );
 }
 
@@ -33,9 +30,9 @@ export function TitleBar({ recording, info, editor }: { recording: StoredRecordi
     <div className="flex items-center gap-2 h-12 shrink-0">
       <div className="flex items-center gap-2 min-w-0 flex-1">
         <Menu.Root>
-          <Menu.Trigger aria-label="Switch recording" className={`group ${GHOST} min-w-0 px-3 data-popup-open:bg-black/5`}>
-            <CaretRightIcon size={14} weight="bold" className="opacity-50 shrink-0 transition-transform group-data-popup-open:rotate-90" />
-            <span className="opacity-40 truncate">{stripExt(recording.title)}</span>
+          <Menu.Trigger aria-label="Switch recording" className="group btn-surface bg-transparent justify-start gap-2 h-12 rounded-lg min-w-0 px-3 text-black/40 hover:text-black/55 data-popup-open:bg-surface-active">
+            <TriangleIcon size={12} weight="fill" className="shrink-0 rotate-90 transition-transform group-data-popup-open:rotate-180" />
+            <span className="truncate">{stripExt(recording.title)}</span>
           </Menu.Trigger>
           <Menu.Portal>
             <Menu.Positioner side="bottom" align="start" sideOffset={8}>

@@ -1,6 +1,6 @@
-import { useRef, type ReactNode } from "react";
+import { useRef, type ComponentProps, type ReactNode } from "react";
 import { Dialog as BaseDialog } from "@base-ui/react/dialog";
-import { ArrowClockwiseIcon, SpinnerIcon, XIcon } from "@phosphor-icons/react";
+import { ArrowClockwiseIcon, SpinnerIcon, XIcon, type Icon } from "@phosphor-icons/react";
 import { clamp } from "../Editor/Timeline/geometry";
 import { drag } from "./drag";
 
@@ -34,7 +34,7 @@ export function ModeToggle<T extends string>({ options, value, onChange }: { opt
           role="radio"
           aria-checked={value === o.value}
           onClick={() => onChange(o.value)}
-          className={`flex-1 rounded-md px-2 py-1 text-sm/4.5 cursor-pointer ${value === o.value ? "bg-white text-black" : "text-black/40 hover:text-black/70"}`}
+          className={`flex-1 rounded-md px-2 py-1 text-sm/4.5 cursor-pointer ${value === o.value ? "bg-white text-black" : "text-black/40 hover:text-black/55"}`}
         >
           {o.label}
         </button>
@@ -95,7 +95,7 @@ export function Slider({ label, value, min, max, step, defaultValue, display, pa
       <div className="text-black/50 text-sm flex items-center gap-1.5 h-5">
         {label}
         {value !== defaultValue && (
-          <button aria-label={`Reset ${label}`} onClick={() => onChange(defaultValue)} className="size-5 rounded-sm text-black/40 hover:text-black/70 hover:bg-black/5 flex items-center justify-center cursor-pointer">
+          <button aria-label={`Reset ${label}`} onClick={() => onChange(defaultValue)} className="size-5 rounded-sm text-black/40 hover:text-black/55 hover:bg-black/5 flex items-center justify-center cursor-pointer">
             <ArrowClockwiseIcon size={13} weight="fill" />
           </button>
         )}
@@ -136,6 +136,17 @@ export function Toggle({ label, checked, onChange }: { label: string; checked: b
         <span className={`size-4 rounded-full bg-white transition-transform duration-150 ease-out motion-reduce:transition-none ${checked ? "translate-x-4" : "translate-x-0"}`} />
       </button>
     </label>
+  );
+}
+
+const FILL = { gray: "", white: "bg-white", none: "bg-transparent" };
+
+export function IconButton({ icon: Icon, size = 20, fill = "gray", className = "", children, ...rest }: { icon: Icon; size?: number; fill?: keyof typeof FILL } & ComponentProps<"button">) {
+  return (
+    <button {...rest} className={`btn-surface gap-2 rounded-lg text-black/40 hover:text-black/55 disabled:opacity-60 disabled:cursor-not-allowed ${FILL[fill]} ${className}`}>
+      <Icon size={size} weight="fill" className="shrink-0" />
+      {children}
+    </button>
   );
 }
 

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { MusicNotesPlusIcon } from "@phosphor-icons/react";
 import { relativeDate, stripExt } from "../shared/format";
 import { useLibrary } from "../context";
+import { IconButton } from "../shared/primitives";
 import { NewRecordingDialog, RecordingIcon } from "./NewRecordingDialog";
 
 export function Library() {
@@ -19,10 +20,9 @@ export function Library() {
           </div>
         </header>
         {error && <p role="alert" className="text-sm text-red-600/80">{error}</p>}
-        <button onClick={() => setAdding(true)} className="btn-surface bg-white gap-2 rounded-lg h-13 px-4 shrink-0 max-md:self-stretch md:self-start">
-          <MusicNotesPlusIcon size={20} weight="fill" className="opacity-50" />
-          <span className="opacity-40">Load recording</span>
-        </button>
+        <IconButton icon={MusicNotesPlusIcon} fill="white" onClick={() => setAdding(true)} className="h-13 px-4 shrink-0 max-md:self-stretch md:self-start">
+          Load recording
+        </IconButton>
         <ul aria-label="My Recordings" className="rounded-lg self-stretch bg-white min-h-0 max-md:flex-3 overflow-y-auto scrollbar-slim">
           {recordings.length === 0 && <li className="px-6 py-8 text-center text-black/50 text-sm">No recordings yet. Upload a file to get started.</li>}
           {recordings.map((recording) => (
