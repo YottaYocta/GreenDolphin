@@ -87,10 +87,7 @@ export function TitleBar({ recording, info, editor }: { recording: StoredRecordi
                 No
               </button>
               <button
-                onClick={() => {
-                  void remove(recording.id);
-                  home();
-                }}
+                onClick={() => void remove(recording.id).finally(home)}
                 className="btn-surface flex-1 h-10 rounded-lg bg-danger text-white hover:bg-danger-hover active:bg-danger-active"
               >
                 Yes, I'm sure

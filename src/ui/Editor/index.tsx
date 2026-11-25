@@ -49,7 +49,7 @@ function TimelineCard({ id, session, draw, children }: { id: StoredRecording["id
   );
 }
 
-function Loaded({ recording, info, session, draw, engine, general }: { recording: StoredRecording; info: [string, string][]; session: Session; draw?: TimelineProps["draw"]; engine?: AudioEngine; general: GeneralPrefs }) {
+function Loaded({ recording, info, session, top, draw, engine, general }: { recording: StoredRecording; info: [string, string][]; session: Session; top?: ReactNode; draw?: TimelineProps["draw"]; engine?: AudioEngine; general: GeneralPrefs }) {
   const { player, restored } = session;
   const youtube = recording.source.kind === "youtube";
   const [sound, setSound] = useSound(recording.id, restored.sound, session.output);
@@ -68,6 +68,7 @@ function Loaded({ recording, info, session, draw, engine, general }: { recording
           }
         />
         {engine && general.piano && <PianoRoll engine={engine} />}
+        {top}
         <TimelineCard id={recording.id} session={session} draw={draw}>
           {general.inline && <div className="grid md:grid-flow-col md:auto-cols-fr gap-x-8 gap-y-2 shrink-0 pt-4 px-4">{settings}</div>}
         </TimelineCard>
@@ -121,7 +122,7 @@ function Layout(props: { recording: StoredRecording; info: [string, string][]; s
       <div className="h-dvh flex items-center justify-center">
         <div className="w-full max-w-220 h-full md:h-min p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:pt-6 max-md:pb-10">
           {session ? (
-            <Loaded recording={recording} info={info} session={session} draw={draw} engine={engine} general={general} />
+            <Loaded recording={recording} info={info} session={session} top={top} draw={draw} engine={engine} general={general} />
           ) : (
             <div className={COLUMN}>
               <TitleBar recording={recording} info={info} />

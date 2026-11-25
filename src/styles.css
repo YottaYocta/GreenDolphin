@@ -25,7 +25,7 @@ html, body {
   --color-ink-70: color-mix(in srgb, var(--color-black) 70%, var(--color-white));
 
   --color-play: #1CCA93;
-  --color-play-muted: color-mix(in srgb, var(--color-play) 25%, var(--color-white));
+  --color-play-muted: #C6F2E4;
   --color-play-hover: color-mix(in srgb, var(--color-play), var(--color-white) 20%);
   --color-play-active: color-mix(in srgb, var(--color-play), var(--color-black) 20%);
   --color-freeze: #0099DC;
@@ -64,11 +64,11 @@ html, body {
   background-color: var(--color-surface-active);
   cursor: pointer;
   @media (hover: hover) {
-    &:hover {
+    &:hover:not(:disabled) {
       background-color: var(--color-surface-input);
     }
   }
-  &:active {
+  &:active:not(:disabled) {
     background-color: var(--color-surface-input);
   }
 }
