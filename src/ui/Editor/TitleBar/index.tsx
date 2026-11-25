@@ -31,7 +31,7 @@ export function TitleBar({ recording, info, editor }: { recording: StoredRecordi
       <div className="flex items-center gap-2 min-w-0 flex-1">
         <Menu.Root>
           <Menu.Trigger aria-label="Switch recording" className="group btn-surface bg-transparent justify-start gap-2 h-12 rounded-lg min-w-0 px-3 text-black/40 hover:text-black/55 data-popup-open:bg-surface-active">
-            <CaretRightIcon size={16} weight="fill" className="shrink-0 transition-transform group-data-popup-open:rotate-90" />
+            <CaretRightIcon size={14} weight="fill" className="shrink-0 transition-transform group-data-popup-open:rotate-90" />
             <span className="truncate">{stripExt(recording.title)}</span>
           </Menu.Trigger>
           <Menu.Portal>
