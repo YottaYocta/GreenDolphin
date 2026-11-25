@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import type { StoredRecording } from "../../../persistence";
 import { Menu } from "@base-ui/react/menu";
-import { GearSixIcon, HouseIcon, FileIcon, MusicNotesPlusIcon, TriangleIcon, type Icon } from "@phosphor-icons/react";
+import { CaretRightIcon, GearSixIcon, HouseIcon, FileIcon, MusicNotesPlusIcon, type Icon } from "@phosphor-icons/react";
 import { stripExt } from "../../shared/format";
 import { useLibrary } from "../../context";
 import { NewRecordingDialog, RecordingIcon } from "../../Library/NewRecordingDialog";
@@ -31,7 +31,7 @@ export function TitleBar({ recording, info, editor }: { recording: StoredRecordi
       <div className="flex items-center gap-2 min-w-0 flex-1">
         <Menu.Root>
           <Menu.Trigger aria-label="Switch recording" className="group btn-surface bg-transparent justify-start gap-2 h-12 rounded-lg min-w-0 px-3 text-black/40 hover:text-black/55 data-popup-open:bg-surface-active">
-            <TriangleIcon size={12} weight="fill" className="shrink-0 rotate-90 transition-transform group-data-popup-open:rotate-180" />
+            <CaretRightIcon size={16} weight="fill" className="shrink-0 transition-transform group-data-popup-open:rotate-90" />
             <span className="truncate">{stripExt(recording.title)}</span>
           </Menu.Trigger>
           <Menu.Portal>
