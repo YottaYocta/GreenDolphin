@@ -71,3 +71,21 @@ html, body {
 @utility font-space-mono {
   font-family: 'Space Mono', monospace;
 }
+
+@utility scrollbar-slim {
+  &::-webkit-scrollbar {
+    width: 12px;
+  }
+  &::-webkit-scrollbar-thumb {
+    border: 4px solid transparent;
+    border-radius: 6px;
+    background-color: #00000033;
+    background-clip: content-box;
+  }
+  &::-webkit-scrollbar-thumb:hover, &::-webkit-scrollbar-thumb:active {
+    border-width: 2px;
+  }
+  @supports not selector(::-webkit-scrollbar) {
+    scrollbar-width: thin;
+  }
+}
