@@ -27,7 +27,7 @@ export function Library() {
           <span className="opacity-40">Load recording</span>
         </button>
         <section aria-label="My Recordings" className="flex flex-col rounded-lg overflow-hidden self-stretch bg-white min-h-0 max-md:flex-3">
-          <ul className="flex-1 min-h-0 my-2 overflow-y-auto">
+          <ul className="flex-1 min-h-0 overflow-y-auto [scrollbar-width:thin]">
             {recordings.length === 0 && <li className="px-6 py-8 text-center text-black/50 text-sm">No recordings yet. Upload a file to get started.</li>}
             {recordings.map((recording) => (
               <li key={recording.id} className="flex max-md:flex-col md:items-center gap-4 p-4 md:py-3">
