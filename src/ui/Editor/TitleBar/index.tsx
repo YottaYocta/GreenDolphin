@@ -56,7 +56,7 @@ export function TitleBar({ recording, info, editor }: { recording: StoredRecordi
             </Menu.Positioner>
           </Menu.Portal>
         </Menu.Root>
-        <Action label="File info" icon={FileIcon} text="File" onClick={() => setShowInfo(true)} />
+        <Action label="File info" icon={FileIcon} text="File info" onClick={() => setShowInfo(true)} />
       </div>
       {editor && <Action label="Editor settings" icon={GearSixIcon} text="Editor" onClick={() => setShowEditor(true)} />}
       <Action label="Home" icon={HouseIcon} text="Home" onClick={home} />
