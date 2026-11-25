@@ -1,6 +1,6 @@
 import { useRef, type ReactNode } from "react";
 import { Dialog as BaseDialog } from "@base-ui/react/dialog";
-import { ArrowClockwiseIcon, XIcon } from "@phosphor-icons/react";
+import { ArrowClockwiseIcon, SpinnerIcon, XIcon } from "@phosphor-icons/react";
 import { clamp } from "../Editor/Timeline/geometry";
 import { drag } from "./drag";
 
@@ -11,7 +11,7 @@ export function Dialog({ title, open, onOpenChange, children }: { title: string;
     <BaseDialog.Root open={open} onOpenChange={onOpenChange}>
       <BaseDialog.Portal>
         <BaseDialog.Backdrop className="fixed inset-0 bg-black/20 z-40" />
-        <BaseDialog.Popup className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-84 max-w-[calc(100vw-2rem)] rounded-xl bg-white [box-shadow:var(--shadow-dialog)] flex flex-col outline-none">
+        <BaseDialog.Popup className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-84 max-w-[calc(100vw-2rem)] rounded-xl bg-white shadow-dialog flex flex-col outline-none">
           <div className="flex items-center justify-center h-12 px-8 rounded-t-xl bg-surface-track relative">
             <BaseDialog.Title className="font-inria text-black/40 text-lg/6">{title}</BaseDialog.Title>
             <BaseDialog.Close aria-label="Close" className="btn-surface bg-transparent size-8 absolute right-2 outline-none">
@@ -43,7 +43,7 @@ export function ModeToggle<T extends string>({ options, value, onChange }: { opt
   );
 }
 
-export function NumericInput({ value, unit, onCommit }: { value: string; unit?: string; onCommit: (v: number) => void }) {
+export function NumericInput({ value, unit, onCommit }: { value: string; unit: string; onCommit: (v: number) => void }) {
   return (
     <label className="flex items-center gap-1 px-1 py-0.5 rounded-sm bg-surface-input w-18 shrink-0 cursor-text">
       <input
@@ -65,7 +65,7 @@ export function NumericInput({ value, unit, onCommit }: { value: string; unit?: 
           }
         }}
       />
-      {unit && <span className="text-sm text-black/20 shrink-0">{unit}</span>}
+      <span className="text-sm text-black/20 shrink-0">{unit}</span>
     </label>
   );
 }
@@ -122,10 +122,9 @@ export function Slider({ label, value, min, max, step, defaultValue, display, pa
   );
 }
 
-export function Toggle({ id, label, checked, onChange }: { id?: string; label: string; checked: boolean; onChange: (checked: boolean) => void }) {
+export function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (checked: boolean) => void }) {
   return (
     <button
-      id={id}
       type="button"
       role="switch"
       aria-label={label}
@@ -137,3 +136,9 @@ export function Toggle({ id, label, checked, onChange }: { id?: string; label: s
     </button>
   );
 }
+
+export const Loading = () => (
+  <div className="w-screen h-dvh flex items-center justify-center">
+    <SpinnerIcon size={32} className="animate-spin opacity-40" />
+  </div>
+);

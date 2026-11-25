@@ -9,11 +9,6 @@ html, body {
 
 @theme {
   --color-neutral-2: #c7c7c7;
-  --color-icon: #000000;
-  --color-icon-muted: #666666;
-  --color-icon-subtle: #525252;
-  --color-icon-white: #ffffff;
-  --animate-ping-custom: ping-custom 2s ease-in-out infinite;
 
   --color-page-bg: #F8F8F8;
   --color-border-solid: #e4e4e4;
@@ -21,7 +16,6 @@ html, body {
   --color-surface-track: #F5F5F5;
   --color-surface-input: #E8E8E8;
   --color-surface-active: #f0f0f0;
-  --color-surface-pressed: #efefef;
 
   --color-play: #1CCA93;
   --color-play-hover: #3DD4A3;
@@ -35,15 +29,6 @@ html, body {
 
   --shadow-menu: #0000001a 0px 4px 16px;
   --shadow-dialog: #0000001a 0px 4px 24px;
-
-  @keyframes ping-custom {
-    25% {
-      opacity: 1;
-    }
-    75% {
-      opacity: 0;
-    }
-  }
 }
 
 @utility btn-surface {

@@ -10,7 +10,7 @@ declare global {
 
 export const DEMO = "Wynton Kelly - On Green Dolphin Street";
 
-export interface Snapshot {
+interface Snapshot {
   playState: string;
   position: number;
   duration: number;
@@ -70,7 +70,7 @@ export async function mouseDrag(page: Page, from: { x: number; y: number }, to: 
 }
 
 type Touch = { x: number; y: number; id: number };
-export type TouchStep = ["touchStart" | "touchMove", Touch[]] | ["touchEnd"];
+type TouchStep = ["touchStart" | "touchMove", Touch[]] | ["touchEnd"];
 
 const sessions = new WeakMap<Page, Promise<CDPSession>>();
 export async function touch(page: Page, steps: TouchStep[]) {

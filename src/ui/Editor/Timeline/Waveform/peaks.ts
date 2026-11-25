@@ -74,7 +74,7 @@ export function drawWaveform(canvas: HTMLCanvasElement, peaks: Peaks, recording:
     const values = columns(peaks, recording, c, view, Math.max(1, Math.floor(width)));
     values.forEach((v, x) => {
       const h = Math.max(1, Math.round(v * lane));
-      ctx.fillStyle = x >= loopFrom && x < loopTo ? "rgb(25 202 147)" : "rgb(25 202 147 / 30%)";
+      ctx.fillStyle = x >= loopFrom && x < loopTo ? "#1CCA93" : "#1CCA934d";
       ctx.fillRect(x, lane * c + (lane - h) / 2, 1, h);
     });
   }

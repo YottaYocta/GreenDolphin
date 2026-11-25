@@ -73,7 +73,7 @@ export function GeneralSettings({ piano, onPiano, awake, onAwake, replay, onRepl
       {onPiano && (
         <div className={ROW}>
           <div className={LABEL}>Show piano roll</div>
-          <Toggle id="piano-toggle" label="Show piano roll" checked={piano} onChange={onPiano} />
+          <Toggle label="Show piano roll" checked={piano} onChange={onPiano} />
         </div>
       )}
       <div className={ROW}>
@@ -84,7 +84,7 @@ export function GeneralSettings({ piano, onPiano, awake, onAwake, replay, onRepl
         <div className={LABEL}>Share debug info</div>
         <Toggle label="Share debug info" checked={replay} onChange={onReplay} />
       </div>
-      <DialogClose onClick={onTutorial} className="btn-surface h-9 rounded-lg font-inria text-sm cursor-pointer">
+      <DialogClose onClick={onTutorial} className="btn-surface h-9 rounded-lg font-inria text-sm">
         Replay tutorial
       </DialogClose>
     </div>

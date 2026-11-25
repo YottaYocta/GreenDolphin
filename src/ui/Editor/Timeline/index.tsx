@@ -137,7 +137,7 @@ export function Timeline(props: TimelineProps) {
           {draw ? <canvas id="waveform-canvas" ref={canvas} className="absolute inset-0 w-full h-full" /> : <div ref={els.grid} className="absolute inset-0 pointer-events-none" />}
           <div ref={els.startLine} className="absolute inset-y-0 w-px bg-black/12 pointer-events-none" />
           <div ref={els.endLine} className="absolute inset-y-0 w-px -translate-x-full bg-black/12 pointer-events-none" />
-          <div ref={els.line} data-testid="playhead" className="absolute inset-y-0 w-0.5 -translate-x-1/2 bg-play pointer-events-none z-10" />
+          <div ref={els.line} className="absolute inset-y-0 w-0.5 -translate-x-1/2 bg-play pointer-events-none z-10" />
         </div>
       </div>
       <div id="timeline-loop" className={ROW}>

@@ -6,7 +6,6 @@ export type Opened = { recording: StoredRecording } & ({ kind: "audio"; size: nu
 
 export interface LibraryApi {
   recordings: StoredRecording[];
-  opened: Opened | null;
   error: string | null;
   open: (id: RecordingId) => void;
   add: (file: File) => Promise<void>;

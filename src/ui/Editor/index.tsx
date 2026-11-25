@@ -1,7 +1,8 @@
-import { SpinnerIcon } from "@phosphor-icons/react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { buildPeaks, drawWaveform, type Peaks } from "./Timeline/Waveform/peaks";
 import { formatSize, formatTime } from "../shared/format";
+import { Loading } from "../shared/primitives";
+import { clamp } from "./Timeline/geometry";
 import { core, type Player } from "../../core";
 import type { Section } from "../../core";
 import { Controls } from "./Controls";
@@ -61,10 +62,6 @@ function EditorControls({ id, session, youtube }: { id: RecordingId; session: Se
 function useEditorPrefs(hasPiano: boolean) {
   const [piano, setPiano] = useState(() => persistence.flag("piano"));
   const [awake, setAwake] = useState(() => !persistence.flag("allowSleep"));
-  const keepAwake = (next: boolean) => {
-    setAwake(next);
-    persistence.setFlag("allowSleep", !next);
-  };
   useKeepAwake(awake);
   const [replay, setReplayPref] = useState(() => !persistence.flag("noReplay"));
   const [tutorialStep, setTutorialStep] = useState<number | null>(null);
@@ -77,7 +74,10 @@ function useEditorPrefs(hasPiano: boolean) {
         }
       : undefined,
     awake,
-    onAwake: keepAwake,
+    onAwake(next) {
+      setAwake(next);
+      persistence.setFlag("allowSleep", !next);
+    },
     replay,
     onReplay(next) {
       setReplayPref(next);
@@ -173,7 +173,7 @@ export function YouTubeEditor({ recording, videoId }: { recording: StoredRecordi
     void embed.ready.then((output) => {
       if (!live) return;
       const restored = restore(recording.id, output.duration);
-      restored.options.speed = Math.min(2, Math.max(0.25, Math.round(restored.options.speed * 4) / 4));
+      restored.options.speed = clamp(Math.round(restored.options.speed * 4) / 4, 0.25, 2);
       restored.sound.gain = Math.min(1, restored.sound.gain);
       player = core.createPlayer(output, restored.options);
       stopFollowing = output.follow(player);
@@ -200,9 +200,7 @@ export function YouTubeEditor({ recording, videoId }: { recording: StoredRecordi
       {session || error !== null ? (
         <Layout recording={recording} info={info} session={session} top={error !== null && <p className={`${CARD} p-4 shrink-0 text-sm text-red-600/80 font-inria`}>{error}</p>} youtube />
       ) : (
-        <div className="w-screen h-dvh flex items-center justify-center">
-          <SpinnerIcon size={32} className="animate-spin opacity-40" />
-        </div>
+        <Loading />
       )}
     </>
   );

@@ -9,7 +9,7 @@ import { Dialog } from "../../shared/primitives";
 
 const GHOST = "flex items-center gap-2 h-12 rounded-lg cursor-pointer hover:bg-black/5 active:bg-black/10";
 const ACTION = "justify-center shrink-0 size-12 md:w-auto md:px-3";
-const ITEM = "flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-neutral-50 active:bg-neutral-100";
+const ITEM = "flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-surface active:bg-surface-track";
 
 function Action({ label, icon: Icon, text, onClick }: { label: string; icon: typeof FileIcon; text: string; onClick: () => void }) {
   return (
@@ -38,7 +38,7 @@ export function TitleBar({ recording, info, editor }: { recording: StoredRecordi
           </Menu.Trigger>
           <Menu.Portal>
             <Menu.Positioner side="bottom" align="start" sideOffset={8}>
-              <Menu.Popup className="z-50 w-80 max-w-[calc(100vw-2rem)] rounded-xl bg-white [box-shadow:var(--shadow-menu)] overflow-hidden flex flex-col outline-none">
+              <Menu.Popup className="z-50 w-80 max-w-[calc(100vw-2rem)] rounded-xl bg-white shadow-menu overflow-hidden flex flex-col outline-none">
                 <div className="overflow-y-auto max-h-72 flex flex-col">
                   {others.length === 0 && <div className="p-4 font-inria text-black/50 text-sm text-center">No other recordings</div>}
                   {others.map((other) => (
