@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import type { StoredRecording } from "../../../persistence";
 import { Menu } from "@base-ui/react/menu";
-import { CaretRightIcon, GearSixIcon, HouseIcon, InfoIcon, MusicNotesPlusIcon } from "@phosphor-icons/react";
+import { CaretRightIcon, GearSixIcon, HouseIcon, FileIcon, MusicNotesPlusIcon } from "@phosphor-icons/react";
 import { stripExt } from "../../shared/format";
 import { useLibrary } from "../../context";
 import { NewRecordingDialog, RecordingIcon } from "../../Library/NewRecordingDialog";
@@ -9,14 +9,14 @@ import { Dialog } from "../../shared/primitives";
 
 const GHOST = "flex items-center gap-2 h-12 rounded-lg cursor-pointer hover:bg-black/5 active:bg-black/10";
 const TEXT_BUTTON = "flex items-center cursor-pointer hover:text-black/60 active:text-black/40 data-popup-open:text-black/60";
-const SQUARE = "justify-center shrink-0 size-12";
+const ACTION = "justify-center shrink-0 size-12 md:w-auto md:px-3";
 const ITEM = "flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-neutral-50 active:bg-neutral-100";
 
-function Action({ label, icon: Icon, text, onClick }: { label: string; icon: typeof InfoIcon; text?: string; onClick: () => void }) {
+function Action({ label, icon: Icon, text, onClick }: { label: string; icon: typeof FileIcon; text: string; onClick: () => void }) {
   return (
-    <button aria-label={label} onClick={onClick} className={`${GHOST} ${SQUARE} ${text ? "md:w-auto md:px-3" : ""}`}>
+    <button aria-label={label} onClick={onClick} className={`${GHOST} ${ACTION}`}>
       <Icon size={16} weight="fill" className="opacity-50" />
-      {text && <span className="opacity-40 font-inria max-md:hidden">{text}</span>}
+      <span className="opacity-40 font-inria max-md:hidden">{text}</span>
     </button>
   );
 }
@@ -57,7 +57,7 @@ export function TitleBar({ recording, info, editor }: { recording: StoredRecordi
             </Menu.Positioner>
           </Menu.Portal>
         </Menu.Root>
-        <Action label="File info" icon={InfoIcon} onClick={() => setShowInfo(true)} />
+        <Action label="File info" icon={FileIcon} text="File" onClick={() => setShowInfo(true)} />
       </div>
       {editor && <Action label="Editor settings" icon={GearSixIcon} text="Editor" onClick={() => setShowEditor(true)} />}
       <Action label="Home" icon={HouseIcon} text="Home" onClick={home} />
