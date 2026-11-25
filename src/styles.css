@@ -78,6 +78,7 @@ html, body {
   }
   &::-webkit-scrollbar-track {
     background: transparent;
+    margin-block: 8px;
   }
   &::-webkit-scrollbar-thumb {
     border: 4px solid transparent;
