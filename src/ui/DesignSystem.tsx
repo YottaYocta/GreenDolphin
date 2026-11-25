@@ -19,12 +19,24 @@ const count = (items: string[]) => [...items.reduce((m, i) => m.set(i, (m.get(i)
 const base = (cls: string) => cls.replace(/^(?:[^:[\]]+(?:\[[^\]]*\])?:)+/, "");
 const px = (value: string) => (/^[\d.]+$/.test(value) ? `${+value * 4}px` : (value.match(/^\[(.+)\]$/)?.[1] ?? value));
 
+function shade(colour: string) {
+  const ctx = Object.assign(document.createElement("canvas"), { width: 1, height: 1 }).getContext("2d")!;
+  ctx.fillStyle = "white";
+  ctx.fillRect(0, 0, 1, 1);
+  ctx.fillStyle = colour;
+  ctx.fillRect(0, 0, 1, 1);
+  const [r, g, b] = [...ctx.getImageData(0, 0, 1, 1).data].map((v) => v / 255);
+  const [max, min] = [Math.max(r, g, b), Math.min(r, g, b)];
+  const hue = max === min ? 0 : max === r ? ((g - b) / (max - min) + 6) % 6 : max === g ? (b - r) / (max - min) + 2 : (r - g) / (max - min) + 4;
+  return max - min < 0.08 ? -max : 1 + hue;
+}
+const byShade = <T,>(items: T[], colour: (item: T) => string) => items.map((item) => ({ item, at: shade(colour(item)) })).sort((a, b) => a.at - b.at).map(({ item }) => item);
+
 function inventory() {
   const root = getComputedStyle(document.documentElement);
   const css = [...document.styleSheets].filter((sheet) => !sheet.href || sheet.href.startsWith(location.origin)).flatMap((sheet) => [...sheet.cssRules].map((rule) => rule.cssText)).join("\n");
   const code = Object.entries(SOURCES).filter(([path]) => !path.endsWith(".css"));
-  const strings = code.flatMap(([, text]) => text.match(/"[^"\n]*"|`[^`]*`/g) ?? []);
-  const classes = count(strings.flatMap((str) => str.slice(1, -1).split(/[\s${}?'"]+/)).filter((token) => /^[-!\w[]/.test(token) && css.includes(`.${CSS.escape(token)}`)));
+  const classes = count(code.flatMap(([, text]) => text.split(/[\s"'`${}]+/)).filter((token) => /^[-!\w[]/.test(token) && css.includes(`.${CSS.escape(token)}`)));
   const colourOf = (value: string) => {
     const [name, alpha] = value.split("/");
     const solid = name.match(/^\[(#.+|rgb.+|var.+)\]$/)?.[1] ?? (name.startsWith("[") ? "" : ["transparent", "black", "white"].includes(name) ? name : root.getPropertyValue(`--color-${name}`).trim());
@@ -39,11 +51,12 @@ function inventory() {
     const group = found === "Font size" && !size.startsWith("[") && !root.getPropertyValue(`--text-${size}`) ? "Everything else" : found;
     grouped[group].push({ cls, uses, colour });
   }
+  grouped.Colour = byShade(grouped.Colour, (c) => c.colour!);
   const all = Object.values(SOURCES).join("\n");
   return {
     grouped,
     tokens: [...(Object.entries(SOURCES).find(([path]) => path.endsWith("styles.css"))?.[1] ?? "").matchAll(/^\s*--([\w-]+):\s*([^;]+);/gm)].map(([, name, value]) => ({ name, value })),
-    literals: count((all.match(/#[0-9a-fA-F]{6}(?:[0-9a-fA-F]{2})?\b|#[0-9a-fA-F]{3}\b|rgba?\([^)]*\)/g) ?? []).map((c) => c.toLowerCase())),
+    literals: count((code.map(([, text]) => text).join("\n").match(/#[0-9a-fA-F]{6}(?:[0-9a-fA-F]{2})?\b|#[0-9a-fA-F]{3}\b|rgba?\([^)]*\)/g) ?? []).map((c) => c.toLowerCase())),
     utilities: [...all.matchAll(/@utility ([\w-]+)/g)].map((m) => m[1]),
     components: Object.entries(SOURCES).flatMap(([path, text]) => [...text.matchAll(/^(?:export (?:default )?)?(?:function|const|class) ([A-Z][A-Za-z]+)\b(?=[^\n]*(?:\(|=>))/gm)].map((m) => `${m[1]} · ${path.replace("../", "")}`)),
   };
@@ -68,15 +81,25 @@ export default function DesignSystem() {
     <main className="max-w-220 mx-auto p-6 flex flex-col gap-12">
       <h1 className="text-[29px]/9 font-bold text-play">Design system</h1>
       <Section title={`Theme tokens in styles.css (${tokens.length})`}>
-        {tokens.map(({ name, value }) => (name.startsWith("color-") ? <Swatch key={name} name={`${name.slice(6)} ${value}`} colour={value} /> : <Chip key={name} name={`--${name}`} note={value} />))}
+        {byShade(
+          tokens.filter(({ name }) => name.startsWith("color-")),
+          ({ value }) => value,
+        ).map(({ name, value }) => (
+          <Swatch key={name} name={`${name.slice(6)} ${value}`} colour={value} />
+        ))}
+        {tokens
+          .filter(({ name }) => !name.startsWith("color-"))
+          .map(({ name, value }) => (
+            <Chip key={name} name={`--${name}`} note={value} />
+          ))}
       </Section>
       <Section title={`Colour classes (${grouped.Colour.length})`}>
         {grouped.Colour.map(({ cls, uses, colour }) => (
           <Swatch key={cls} name={`${cls} ×${uses}`} colour={colour!} />
         ))}
       </Section>
-      <Section title={`Colours written in code (${literals.length})`}>
-        {literals.map(([colour, uses]) => (
+      <Section title={`Colours written in component code, such as note icons (${literals.length})`}>
+        {byShade(literals, ([colour]) => colour).map(([colour, uses]) => (
           <Swatch key={colour} name={`${colour} ×${uses}`} colour={colour} />
         ))}
       </Section>
