@@ -1,6 +1,7 @@
 import { createRef, useCallback, useEffect, useMemo, useRef, type FC, type PointerEvent as ReactPointerEvent, type RefObject } from "react";
 import { FULL, at, clamp, isFull, length, pan, rescale, resizeLoop, shiftLoop, toSection, zoom, type LoopFraction } from "./geometry";
 import { formatTick, tickStep } from "./ticks";
+import { formatTime } from "../../shared/format";
 import type { DurationSeconds, Player, RecordingSeconds } from "../../../core";
 import type { Section } from "../../../core";
 import { drag } from "../../shared/drag";
@@ -59,7 +60,7 @@ function createModel(props: TimelineProps, content: RefObject<HTMLDivElement | n
 }
 
 type Model = ReturnType<typeof createModel>;
-const ELEMENTS = ["ticks", "grid", "grip", "line", "shade", "marks", "startHandle", "endHandle", "startLine", "endLine"] as const;
+const ELEMENTS = ["ticks", "grid", "grip", "time", "line", "shade", "marks", "startHandle", "endHandle", "startLine", "endLine"] as const;
 type Els = Record<(typeof ELEMENTS)[number], RefObject<HTMLDivElement | null>>;
 
 export function Timeline(props: TimelineProps) {
@@ -130,8 +131,9 @@ export function Timeline(props: TimelineProps) {
       <div id="timeline-ruler" data-control className={`${ROW} cursor-pointer`} onPointerDown={scrub}>
         <div className="relative h-full">
           <div ref={els.ticks} className="absolute inset-0 pointer-events-none" />
-          <div ref={els.grip} aria-label="Playhead" className="absolute top-0 -translate-x-1/2 z-10 flex justify-center w-9 h-7 cursor-ew-resize">
+          <div ref={els.grip} aria-label="Playhead" className="absolute inset-y-0 -translate-x-1/2 z-10 flex items-end justify-center w-9 cursor-ew-resize">
             <Triangle points="0,0 16,0 8,22" className="fill-play" />
+            <div ref={els.time} className="absolute top-1/2 -translate-y-1/2 px-1 rounded-sm bg-play text-white font-space-mono text-[10px] leading-4 tabular-nums" />
           </div>
         </div>
       </div>
@@ -273,7 +275,10 @@ function useRender(model: Model, player: Player, els: Els, canvas: RefObject<HTM
         [els.startHandle, els.startLine].forEach((r) => place(r, from));
         [els.endHandle, els.endLine].forEach((r) => place(r, to));
       }
-      const x = toPx(player.position());
+      const position = player.position();
+      const time = formatTime(position);
+      if (els.time.current && els.time.current.textContent !== time) els.time.current.textContent = time;
+      const x = toPx(position);
       const visible = x >= 0 && x <= width;
       for (const r of [els.grip, els.line]) {
         place(r, x);
