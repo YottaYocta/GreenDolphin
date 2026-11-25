@@ -131,7 +131,7 @@ test("deleting asks first and removes the recording", async ({ page }) => {
   await expect(page.getByText("doomed")).toBeHidden();
 });
 
-test("the list sorts by last opened or by date added", async ({ page }) => {
+test("the list sorts by last modified or by last added", async ({ page }) => {
   await openDemo(page);
   await upload(page, "newer.wav");
   await page.getByRole("button", { name: "Home" }).click();
@@ -140,7 +140,7 @@ test("the list sorts by last opened or by date added", async ({ page }) => {
   await page.getByRole("button", { name: "Home" }).click();
   const first = page.getByRole("list", { name: "My Recordings" }).getByRole("button").first();
   await expect(first).toHaveAccessibleName(`Open ${DEMO}.mp3`);
-  await page.getByRole("button", { name: "Last opened" }).click();
+  await page.getByRole("button", { name: "Last modified" }).click();
   await expect(first).toHaveAccessibleName("Open newer.wav");
   await page.reload();
   await expect(page.getByRole("button", { name: "Last added" })).toBeVisible();

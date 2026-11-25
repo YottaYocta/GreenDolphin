@@ -15,8 +15,8 @@ export function Library() {
       recordings
         .map((recording) => {
           const openedAt = byAdded ? 0 : persistence.recordingPrefs(recording.id).openedAt;
-          const at = openedAt || recording.addedAt;
-          return { recording, at, when: `${openedAt ? "Opened" : "Added"} ${relativeTime(at)}` };
+          const at = Math.max(openedAt, recording.addedAt);
+          return { recording, at, when: `${at === openedAt ? "Opened" : "Added"} ${relativeTime(at)}` };
         })
         .sort((a, b) => b.at - a.at),
     [recordings, byAdded],
@@ -46,7 +46,7 @@ export function Library() {
             }}
             className="h-13 px-4"
           >
-            {byAdded ? "Last added" : "Last opened"}
+            {byAdded ? "Last added" : "Last modified"}
           </IconButton>
         </div>
         <ul aria-label="My Recordings" className="rounded-lg self-stretch bg-white min-h-0 max-md:flex-1 overflow-y-auto scrollbar-slim">
