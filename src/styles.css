@@ -59,6 +59,7 @@ html, body {
   overflow: clip;
   align-items: center;
   justify-content: center;
+  white-space: nowrap;
   border-radius: var(--radius-md);
   background-color: var(--color-surface-active);
   cursor: pointer;
