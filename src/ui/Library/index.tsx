@@ -14,7 +14,7 @@ export function Library() {
   return (
     <main className="flex flex-col items-center px-4 py-8 h-dvh overflow-hidden font-inria text-base/5">
       <div className="flex flex-col items-center justify-center gap-5 w-full max-w-2xl flex-1 min-h-0 md:py-24 md:pb-48">
-        <header className="flex max-md:flex-col max-md:items-start max-md:pl-4 items-center gap-4 self-stretch p-4 max-md:flex-1">
+        <header className="flex max-md:flex-col max-md:items-start items-center gap-4 self-stretch py-4 max-md:flex-1">
           <img src="/favicon/favicon.svg" alt="" className="w-13 rounded-[9px] bg-white" />
           <div className="flex flex-col gap-1">
             <h1 className="font-bold text-play text-[29px]/9">GreenDolphin</h1>
