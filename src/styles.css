@@ -76,6 +76,9 @@ html, body {
   &::-webkit-scrollbar {
     width: 12px;
   }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
   &::-webkit-scrollbar-thumb {
     border: 4px solid transparent;
     border-radius: 6px;
@@ -87,5 +90,6 @@ html, body {
   }
   @supports not selector(::-webkit-scrollbar) {
     scrollbar-width: thin;
+    scrollbar-color: #00000033 transparent;
   }
 }
