@@ -29,7 +29,7 @@ export function Library() {
             <li key={recording.id}>
               <button aria-label={`Open ${recording.title}`} onClick={() => open(recording.id)} className="flex items-center gap-4 w-full p-4 md:py-3 text-left cursor-pointer hover:bg-surface active:bg-surface-track">
                 <RecordingIcon recording={recording} />
-                <span className="flex-1 min-w-0 truncate">{stripExt(recording.title)}</span>
+                <span className="flex-1 min-w-0 truncate text-black/70">{stripExt(recording.title)}</span>
                 <span className="shrink-0 opacity-40 text-sm">{relativeDate(recording.addedAt)}</span>
               </button>
             </li>
