@@ -16,7 +16,7 @@ export function Library() {
         .map((recording) => {
           const openedAt = byAdded ? 0 : persistence.recordingPrefs(recording.id).openedAt;
           const at = Math.max(openedAt, recording.addedAt);
-          return { recording, at, when: `${byAdded ? "Added" : "Modified"} ${relativeTime(at)}` };
+          return { recording, at, when: relativeTime(at) };
         })
         .sort((a, b) => b.at - a.at),
     [recordings, byAdded],
