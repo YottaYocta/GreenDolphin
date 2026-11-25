@@ -9,12 +9,12 @@ import { Dialog } from "../../shared/primitives";
 
 const GHOST = "flex items-center gap-2 h-12 rounded-lg cursor-pointer hover:bg-black/5 active:bg-black/10";
 const TEXT_BUTTON = "flex items-center cursor-pointer hover:text-black/60 active:text-black/40 data-popup-open:text-black/60";
-const ACTION = "justify-center shrink-0 px-3 max-md:size-12 max-md:px-0";
+const SQUARE = "justify-center shrink-0 size-12";
 const ITEM = "flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-neutral-50 active:bg-neutral-100";
 
 function Action({ label, icon: Icon, text, onClick }: { label: string; icon: typeof InfoIcon; text?: string; onClick: () => void }) {
   return (
-    <button aria-label={label} onClick={onClick} className={`${GHOST} ${ACTION}`}>
+    <button aria-label={label} onClick={onClick} className={`${GHOST} ${SQUARE} ${text ? "md:w-auto md:px-3" : ""}`}>
       <Icon size={16} weight="fill" className="opacity-50" />
       {text && <span className="opacity-40 font-inria max-md:hidden">{text}</span>}
     </button>
