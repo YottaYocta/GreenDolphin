@@ -26,7 +26,7 @@ const AUDIO_STEPS: TutorialStep[] = [
   { selector: "#waveform-canvas", text: "Pinch to zoom in/out" },
   { selector: "#waveform-canvas", text: "Drag to pan" },
   { selector: "#timeline-loop", text: "Drag the handles to set the loop" },
-  { selector: '[aria-label="Editor settings"]', text: "Show the piano roll from editor settings" },
+  { selector: '[aria-label="Editor settings"]', text: "Show the piano roll, playback settings and other editor customizations" },
 ];
 const VIDEO_STEPS: TutorialStep[] = [
   { selector: "#timeline-ruler", text: "Click to set playback position" },
