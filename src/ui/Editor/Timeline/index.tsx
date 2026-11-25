@@ -20,7 +20,7 @@ const WHEEL_SETTLE_MS = 250;
 const DOUBLE_TAP_MS = 300;
 const DOUBLE_TAP_PX = 24;
 const KEY_STEP = 0.1;
-const ROW = "h-7 shrink-0 bg-surface rounded-lg overflow-hidden px-8";
+const ROW = "h-7 shrink-0 bg-surface rounded-lg overflow-hidden px-6 md:px-8";
 
 const Triangle: FC<{ points: string; fill: string }> = ({ points, fill }) => (
   <svg width="16" height="22" viewBox="0 0 16 22" className="block">
@@ -134,7 +134,7 @@ export function Timeline(props: TimelineProps) {
           </div>
         </div>
       </div>
-      <div className="relative flex-1 min-h-0 flex flex-col overflow-hidden bg-white px-8">
+      <div className="relative flex-1 min-h-0 flex flex-col overflow-hidden bg-white px-6 md:px-8">
         <div ref={content} className="relative w-full flex-1 min-h-0">
           {draw ? <canvas id="waveform-canvas" ref={canvas} className="absolute inset-0 w-full h-full" /> : <div ref={els.grid} className="absolute inset-0 pointer-events-none" />}
           <div ref={els.startLine} className="absolute inset-y-0 w-px bg-black/12 pointer-events-none" />
