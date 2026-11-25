@@ -21,9 +21,10 @@ function Action({ label, icon: Icon, text, onClick }: { label: string; icon: typ
 }
 
 export function TitleBar({ recording, info, editor }: { recording: StoredRecording; info: [string, string][]; editor?: ReactNode }) {
-  const { recordings, open, home } = useLibrary();
+  const { recordings, open, home, remove } = useLibrary();
   const [adding, setAdding] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
+  const [confirming, setConfirming] = useState(false);
   const [showEditor, setShowEditor] = useState(false);
   const others = recordings.filter((r) => r.id !== recording.id);
   const details = [...info, ["Added", new Date(recording.addedAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })]];
@@ -56,7 +57,7 @@ export function TitleBar({ recording, info, editor }: { recording: StoredRecordi
             </Menu.Positioner>
           </Menu.Portal>
         </Menu.Root>
-        <Action label="File info" icon={FileIcon} text="File info" onClick={() => setShowInfo(true)} />
+        <Action label="File" icon={FileIcon} text="File" onClick={() => setShowInfo(true)} />
       </div>
       {editor && <Action label="Editor settings" icon={GearSixIcon} text="Editor" onClick={() => setShowEditor(true)} />}
       <Action label="Home" icon={HouseIcon} text="Home" onClick={home} />
@@ -64,7 +65,14 @@ export function TitleBar({ recording, info, editor }: { recording: StoredRecordi
       <Dialog title="Editor" open={showEditor} onOpenChange={setShowEditor}>
         {editor}
       </Dialog>
-      <Dialog title="File Info" open={showInfo} onOpenChange={setShowInfo}>
+      <Dialog
+        title="File"
+        open={showInfo}
+        onOpenChange={(next) => {
+          setShowInfo(next);
+          setConfirming(false);
+        }}
+      >
         <p className="font-inria text-lg pb-6 break-words">{stripExt(recording.title)}</p>
         <dl className="grid grid-cols-2 gap-6">
           {details.map(([label, value]) => (
@@ -74,6 +82,29 @@ export function TitleBar({ recording, info, editor }: { recording: StoredRecordi
             </div>
           ))}
         </dl>
+        {confirming && <p className="font-inria text-black/70 pt-6">Delete this recording? Its loop and settings go with it.</p>}
+        <div className="flex gap-3 pt-6 font-inria">
+          {confirming ? (
+            <>
+              <button onClick={() => setConfirming(false)} className="btn-surface flex-1 h-10 rounded-lg">
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  void remove(recording.id);
+                  home();
+                }}
+                className="flex-1 h-10 rounded-lg bg-red-500 text-white hover:bg-red-600 cursor-pointer"
+              >
+                Delete
+              </button>
+            </>
+          ) : (
+            <button onClick={() => setConfirming(true)} className="btn-surface flex-1 h-10 rounded-lg text-red-600/80">
+              Delete recording
+            </button>
+          )}
+        </div>
       </Dialog>
     </div>
   );

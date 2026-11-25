@@ -1,15 +1,12 @@
 import { useState } from "react";
-import type { StoredRecording } from "../../persistence";
-import { MusicNotesPlusIcon, PlayIcon, TrashIcon } from "@phosphor-icons/react";
+import { MusicNotesPlusIcon } from "@phosphor-icons/react";
 import { relativeDate, stripExt } from "../shared/format";
 import { useLibrary } from "../context";
-import { Dialog } from "../shared/primitives";
 import { NewRecordingDialog, RecordingIcon } from "./NewRecordingDialog";
 
 export function Library() {
-  const { recordings, error, open, remove } = useLibrary();
+  const { recordings, error, open } = useLibrary();
   const [adding, setAdding] = useState(false);
-  const [deleting, setDeleting] = useState<StoredRecording | null>(null);
 
   return (
     <main className="flex flex-col items-center px-4 py-8 h-dvh overflow-hidden font-inria text-base/5">
@@ -30,45 +27,18 @@ export function Library() {
           <ul className="flex-1 min-h-0 overflow-y-auto scrollbar-slim">
             {recordings.length === 0 && <li className="px-6 py-8 text-center text-black/50 text-sm">No recordings yet. Upload a file to get started.</li>}
             {recordings.map((recording) => (
-              <li key={recording.id} className="flex max-md:flex-col md:items-center gap-4 p-4 md:py-3">
-                <div className="flex items-center gap-4 flex-1 min-w-0">
+              <li key={recording.id}>
+                <button aria-label={`Open ${recording.title}`} onClick={() => open(recording.id)} className="flex items-center gap-4 w-full p-4 md:py-3 text-left cursor-pointer hover:bg-surface active:bg-surface-track">
                   <RecordingIcon recording={recording} />
-                  <div className="flex flex-col gap-1 min-w-0">
-                    <p className="truncate">{stripExt(recording.title)}</p>
-                    <p className="opacity-40 md:text-sm">{relativeDate(recording.addedAt)}</p>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <button aria-label={`Play ${recording.title}`} onClick={() => open(recording.id)} className="btn-surface bg-transparent max-md:flex-1 h-10 md:size-10">
-                    <PlayIcon size={20} weight="fill" color="var(--color-play)" />
-                  </button>
-                  <button aria-label={`Delete ${recording.title}`} onClick={() => setDeleting(recording)} className="btn-surface bg-transparent max-md:flex-1 h-10 md:size-10">
-                    <TrashIcon size={20} weight="fill" className="opacity-40" />
-                  </button>
-                </div>
+                  <span className="flex-1 min-w-0 truncate">{stripExt(recording.title)}</span>
+                  <span className="shrink-0 opacity-40 text-sm">{relativeDate(recording.addedAt)}</span>
+                </button>
               </li>
             ))}
           </ul>
         </section>
       </div>
       <NewRecordingDialog open={adding} onOpenChange={setAdding} />
-      <Dialog title="Delete Recording" open={deleting !== null} onOpenChange={(o) => !o && setDeleting(null)}>
-        <p className="font-inria text-black/70 pb-6">Delete “{stripExt(deleting?.title ?? "")}”? Its loop and settings go with it.</p>
-        <div className="flex gap-3">
-          <button onClick={() => setDeleting(null)} className="btn-surface flex-1 h-10 rounded-lg">
-            Cancel
-          </button>
-          <button
-            onClick={() => {
-              void remove(deleting!.id);
-              setDeleting(null);
-            }}
-            className="flex-1 h-10 rounded-lg bg-red-500 text-white hover:bg-red-600 cursor-pointer"
-          >
-            Delete
-          </button>
-        </div>
-      </Dialog>
     </main>
   );
 }

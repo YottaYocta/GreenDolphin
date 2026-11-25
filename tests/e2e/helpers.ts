@@ -23,7 +23,7 @@ interface Snapshot {
 export async function openDemo(page: Page, { tutorial = false } = {}) {
   if (!tutorial) await page.addInitScript(() => localStorage.setItem("gd2:flag:tutorial", JSON.stringify({ on: true })));
   await page.goto("/");
-  await page.getByRole("button", { name: `Play ${DEMO}.mp3` }).click();
+  await page.getByRole("button", { name: `Open ${DEMO}.mp3` }).click();
   await waitForEditor(page);
 }
 

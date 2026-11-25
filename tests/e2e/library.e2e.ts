@@ -122,14 +122,13 @@ test("Home returns to the library, and launch then stays there", async ({ page }
 test("deleting asks first and removes the recording", async ({ page }) => {
   await openDemo(page);
   await upload(page, "doomed.wav");
-  await page.getByRole("button", { name: "Home" }).click();
-  await page.getByRole("button", { name: "Delete doomed.wav" }).click();
+  await page.getByRole("button", { name: "File", exact: true }).click();
+  await page.getByRole("button", { name: "Delete recording" }).click();
   await page.getByRole("button", { name: "Cancel" }).click();
-  await expect(page.getByText("doomed")).toBeVisible();
-  await page.getByRole("button", { name: "Delete doomed.wav" }).click();
+  await page.getByRole("button", { name: "Delete recording" }).click();
   await page.getByRole("button", { name: "Delete", exact: true }).click();
+  await expect(page.getByRole("button", { name: `Open ${DEMO}.mp3` })).toBeVisible();
   await expect(page.getByText("doomed")).toBeHidden();
-  await expect(page.getByText(DEMO)).toBeVisible();
 });
 
 test("a bad YouTube link is reported without leaving the dialog", async ({ page }) => {
@@ -145,7 +144,7 @@ test("a long title truncates without colliding with the title bar buttons", asyn
   await page.goto("/");
   await upload(page, `${"A very long recording title that keeps going ".repeat(4)}.wav`);
   await waitForEditor(page);
-  const boxes = await Promise.all(["Switch recording", "File info", "Home"].map(async (name) => (await page.getByRole("button", { name }).boundingBox())!));
+  const boxes = await Promise.all(["Switch recording", "File", "Home"].map(async (name) => (await page.getByRole("button", { name }).boundingBox())!));
   for (let i = 0; i < boxes.length; i++)
     for (const other of boxes.slice(i + 1))
       expect(boxes[i].x + boxes[i].width <= other.x || other.x + other.width <= boxes[i].x || boxes[i].y + boxes[i].height <= other.y || other.y + other.height <= boxes[i].y).toBe(true);
@@ -173,11 +172,11 @@ test("recordings saved by the previous version are imported once, then its datab
     [...wav(2, 330)],
   );
   await page.goto("/");
-  await expect(page.getByRole("button", { name: "Play old.wav" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Play Me at the zoo" })).toBeVisible();
-  await expect(page.getByRole("button", { name: `Play ${DEMO}.mp3` })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Open old.wav" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Open Me at the zoo" })).toBeVisible();
+  await expect(page.getByRole("button", { name: `Open ${DEMO}.mp3` })).toHaveCount(0);
   expect(await page.evaluate(async () => (await indexedDB.databases()).map((d) => d.name))).not.toContain("greendolphin-v1");
-  await page.getByRole("button", { name: "Play old.wav" }).click();
+  await page.getByRole("button", { name: "Open old.wav" }).click();
   await waitForEditor(page);
   expectNear((await snapshot(page)).duration, 2, 0.01);
 });
@@ -198,7 +197,7 @@ test("upgrading the database keeps recordings and drops the retired notes store"
       }),
   );
   await page.goto("/");
-  await expect(page.getByRole("button", { name: "Play Kept video" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Open Kept video" })).toBeVisible();
   const stores = await page.evaluate(
     () =>
       new Promise<string[]>((resolve) => {
