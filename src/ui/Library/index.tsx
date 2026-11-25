@@ -26,13 +26,13 @@ export function Library() {
     <main className="flex flex-col items-center px-4 py-8 h-dvh overflow-hidden text-base/5">
       <div className="flex flex-col items-center justify-center gap-5 w-full max-w-2xl flex-1 min-h-0 md:py-24 md:pb-48">
         <header className="flex max-md:flex-col max-md:items-start items-center gap-4 self-stretch py-4">
-          <img src="/favicon/favicon.svg" alt="" className="w-13 rounded-[9px] bg-white" />
+          <img src="/favicon/favicon.svg" alt="" className="w-13 rounded-lg bg-white" />
           <div className="flex flex-col gap-1">
             <h1 className="font-bold text-play text-[29px]/9">GreenDolphin</h1>
-            <p className="text-black/40 text-sm/4.5">Audio Looper & Recording Analyzer</p>
+            <p className="text-black/40 text-sm">Audio Looper & Recording Analyzer</p>
           </div>
         </header>
-        {error && <p role="alert" className="text-sm text-red-600/80">{error}</p>}
+        {error && <p role="alert" className="text-sm text-red-500">{error}</p>}
         <div className="flex justify-between gap-4 self-stretch shrink-0">
           <IconButton icon={MusicNotesPlusIcon} fill="white" onClick={() => setAdding(true)} className="h-13 px-4 max-md:flex-1">
             Load recording

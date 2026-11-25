@@ -68,7 +68,7 @@ function Walkthrough({ steps, step, onStep }: { steps: TutorialStep[]; step: num
   const width = Math.min(POPUP_WIDTH, window.innerWidth - 2 * EDGE);
   const left = clamp(rect.left + rect.width / 2 - width / 2, EDGE, window.innerWidth - EDGE - width);
   return (
-    <div className="border-4 border-emerald-500 rounded-sm fixed z-50 pointer-events-none" style={{ left: rect.left - 8, top: rect.top - 8, width: rect.width + 16, height: rect.height + 16 }}>
+    <div className="border-4 border-play rounded-sm fixed z-50 pointer-events-none" style={{ left: rect.left - 8, top: rect.top - 8, width: rect.width + 16, height: rect.height + 16 }}>
       <div style={{ left: left - rect.left + 4, width }} className={`absolute rounded-xl bg-white shadow-menu pointer-events-auto ${below ? "top-full mt-4" : "bottom-full mb-4"}`}>
         <p className="p-4">{text}</p>
         <div className="flex items-center justify-between gap-2 p-2">
@@ -78,7 +78,7 @@ function Walkthrough({ steps, step, onStep }: { steps: TutorialStep[]; step: num
           <button onClick={() => onStep(step - 1)} className={`${BTN} ${step === 0 ? "invisible" : ""}`}>
             Back
           </button>
-          <span className="shrink-0 whitespace-nowrap text-xs opacity-70 px-3 py-1 bg-surface-active rounded-full">
+          <span className="shrink-0 whitespace-nowrap text-xs text-black/70 px-3 py-1 bg-surface-active rounded-full">
             {step + 1} / {steps.length}
           </span>
           <button onClick={() => onStep(step + 1)} className={`${PRIMARY} flex items-center gap-1`}>

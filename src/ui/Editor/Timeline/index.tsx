@@ -145,7 +145,7 @@ export function Timeline(props: TimelineProps) {
       <div id="timeline-loop" className={ROW}>
         <div className="relative h-full" onPointerDown={resetOnDoubleTap}>
           <div ref={els.shade} data-control aria-label="Loop" className="absolute inset-y-0 bg-surface-active flex items-center justify-center cursor-grab active:cursor-grabbing" onPointerDown={shift}>
-            <div ref={els.marks} className="flex gap-[3px]">
+            <div ref={els.marks} className="flex gap-0.5">
               {[0, 1, 2].map((i) => (
                 <span key={i} className="w-px h-2 bg-black/25" />
               ))}

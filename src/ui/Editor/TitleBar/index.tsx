@@ -97,7 +97,7 @@ export function TitleBar({ recording, info, editor }: { recording: StoredRecordi
               </button>
             </>
           ) : (
-            <button onClick={() => setConfirming(true)} className="btn-surface flex-1 h-10 rounded-lg text-red-600/80">
+            <button onClick={() => setConfirming(true)} className="btn-surface flex-1 h-10 rounded-lg text-red-500">
               Delete
             </button>
           )}

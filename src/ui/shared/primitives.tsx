@@ -13,7 +13,7 @@ export function Dialog({ title, open, onOpenChange, children }: { title: string;
         <BaseDialog.Backdrop className="fixed inset-0 bg-black/25 z-40" />
         <BaseDialog.Popup className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-84 max-w-[calc(100vw-2rem)] rounded-xl bg-white shadow-dialog outline-none">
           <div className="flex items-center justify-center h-12 px-8 rounded-t-xl bg-surface-active relative">
-            <BaseDialog.Title className="text-black/40 text-lg/6">{title}</BaseDialog.Title>
+            <BaseDialog.Title className="text-black/40 text-lg">{title}</BaseDialog.Title>
             <BaseDialog.Close aria-label="Close" className="btn-surface bg-transparent size-8 absolute right-2 outline-none">
               <XIcon size={16} weight="bold" className="opacity-40" />
             </BaseDialog.Close>
@@ -34,7 +34,7 @@ export function ModeToggle<T extends string>({ options, value, onChange }: { opt
           role="radio"
           aria-checked={value === o.value}
           onClick={() => onChange(o.value)}
-          className={`flex-1 rounded-md px-2 py-1 text-sm/4.5 cursor-pointer ${value === o.value ? "bg-white text-black" : "text-black/40 hover:text-black/55"}`}
+          className={`flex-1 rounded-md px-2 py-1 text-sm cursor-pointer ${value === o.value ? "bg-white text-black/70" : "text-black/40 hover:text-black/55"}`}
         >
           {o.label}
         </button>
@@ -108,7 +108,7 @@ export function Slider({ label, value, min, max, step, defaultValue, display, pa
           aria-valuemin={min}
           aria-valuemax={max}
           aria-valuenow={value}
-          className="relative flex-1 h-2 rounded-[3px] bg-surface-input cursor-pointer touch-none"
+          className="relative flex-1 h-2 rounded-xs bg-surface-input cursor-pointer touch-none"
           onPointerDown={(e) => {
             fromX(e.clientX);
             drag(e, fromX);

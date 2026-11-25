@@ -58,9 +58,9 @@ export function NewRecordingDialog({ open, onOpenChange }: { open: boolean; onOp
           }}
           onKeyDown={(e) => e.key === "Enter" && void submit()}
           placeholder="https://www.youtube.com/watch?v=…"
-          className="rounded-lg bg-surface-input h-12 px-3 font-space-mono text-sm/5 text-black/55 outline-none placeholder:text-black/25"
+          className="rounded-lg bg-surface-input h-12 px-3 font-space-mono text-sm text-black/55 outline-none placeholder:text-black/25"
         />
-        {error && <p className="text-sm text-red-600/80">{error}</p>}
+        {error && <p className="text-sm text-red-500">{error}</p>}
         <IconButton icon={busy ? SpinnerIcon : YoutubeLogoIcon} onClick={() => void submit()} disabled={busy || !link.trim()} className={`h-12 ${busy ? "[&>svg]:animate-spin" : ""}`}>
           {busy ? "Adding…" : "Add Video"}
         </IconButton>
