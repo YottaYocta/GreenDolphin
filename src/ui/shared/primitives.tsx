@@ -10,9 +10,9 @@ export function Dialog({ title, open, onOpenChange, children }: { title: string;
   return (
     <BaseDialog.Root open={open} onOpenChange={onOpenChange}>
       <BaseDialog.Portal>
-        <BaseDialog.Backdrop className="fixed inset-0 bg-black/20 z-40" />
+        <BaseDialog.Backdrop className="fixed inset-0 bg-black/25 z-40" />
         <BaseDialog.Popup className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-84 max-w-[calc(100vw-2rem)] rounded-xl bg-white shadow-dialog outline-none">
-          <div className="flex items-center justify-center h-12 px-8 rounded-t-xl bg-surface-track relative">
+          <div className="flex items-center justify-center h-12 px-8 rounded-t-xl bg-surface-active relative">
             <BaseDialog.Title className="text-black/40 text-lg/6">{title}</BaseDialog.Title>
             <BaseDialog.Close aria-label="Close" className="btn-surface bg-transparent size-8 absolute right-2 outline-none">
               <XIcon size={16} weight="bold" className="opacity-40" />
@@ -27,7 +27,7 @@ export function Dialog({ title, open, onOpenChange, children }: { title: string;
 
 export function ModeToggle<T extends string>({ options, value, onChange }: { options: readonly { value: T; label: string }[]; value: T; onChange: (v: T) => void }) {
   return (
-    <div role="radiogroup" className="flex flex-1 gap-0.5 rounded-lg bg-surface-track p-0.5">
+    <div role="radiogroup" className="flex flex-1 gap-0.5 rounded-lg bg-surface-active p-0.5">
       {options.map((o) => (
         <button
           key={o.value}
@@ -50,7 +50,7 @@ export function NumericInput({ value, unit, onCommit }: { value: string; unit: s
         key={value}
         defaultValue={value}
         inputMode="decimal"
-        className="font-space-mono text-black/60 text-base/5 tabular-nums bg-transparent outline-none min-w-0 w-full text-right"
+        className="font-space-mono text-black/55 text-base/5 tabular-nums bg-transparent outline-none min-w-0 w-full text-right"
         onFocus={(e) => e.currentTarget.select()}
         onBlur={(e) => {
           const n = parseFloat(e.currentTarget.value.replace(/^\+/, ""));
@@ -65,7 +65,7 @@ export function NumericInput({ value, unit, onCommit }: { value: string; unit: s
           }
         }}
       />
-      <span className="text-sm text-black/20 shrink-0">{unit}</span>
+      <span className="text-sm text-black/25 shrink-0">{unit}</span>
     </label>
   );
 }
@@ -92,10 +92,10 @@ export function Slider({ label, value, min, max, step, defaultValue, display, pa
   };
   return (
     <div>
-      <div className="text-black/50 text-sm flex items-center gap-0.5 h-5">
+      <div className="text-black/40 text-sm flex items-center gap-0.5 h-5">
         {label}
         {value !== defaultValue && (
-          <button aria-label={`Reset ${label}`} onClick={() => onChange(defaultValue)} className="size-5 rounded-sm text-black/40 hover:text-black/55 hover:bg-black/5 flex items-center justify-center cursor-pointer">
+          <button aria-label={`Reset ${label}`} onClick={() => onChange(defaultValue)} className="size-5 rounded-sm text-black/40 hover:text-black/55 hover:bg-black/12 flex items-center justify-center cursor-pointer">
             <ArrowClockwiseIcon size={13} weight="bold" />
           </button>
         )}
@@ -124,14 +124,14 @@ export function Slider({ label, value, min, max, step, defaultValue, display, pa
 
 export function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (checked: boolean) => void }) {
   return (
-    <label className="flex items-center justify-between gap-4 text-sm text-black/50">
+    <label className="flex items-center justify-between gap-4 text-sm text-black/40">
       {label}
       <button
         type="button"
         role="switch"
         aria-checked={checked}
         onClick={() => onChange(!checked)}
-        className={`flex items-center shrink-0 w-9 h-5 p-0.5 rounded-full cursor-pointer outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-play/50 focus-visible:ring-offset-2 motion-reduce:transition-none ${checked ? "bg-play" : "bg-black/15 hover:bg-black/25"}`}
+        className={`flex items-center shrink-0 w-9 h-5 p-0.5 rounded-full cursor-pointer outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-play/50 focus-visible:ring-offset-2 motion-reduce:transition-none ${checked ? "bg-play" : "bg-black/12 hover:bg-black/25"}`}
       >
         <span className={`size-4 rounded-full bg-white transition-transform duration-150 ease-out motion-reduce:transition-none ${checked ? "translate-x-4" : "translate-x-0"}`} />
       </button>
@@ -139,7 +139,7 @@ export function Toggle({ label, checked, onChange }: { label: string; checked: b
   );
 }
 
-const FILL = { gray: "", white: "bg-white", none: "bg-transparent" };
+const FILL = { gray: "", white: "bg-white hover:bg-surface-active", none: "bg-transparent hover:bg-surface-active" };
 
 export function IconButton({ icon: Icon, size = 20, fill = "gray", className = "", children, ...rest }: { icon: Icon; size?: number; fill?: keyof typeof FILL } & ComponentProps<"button">) {
   return (

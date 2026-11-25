@@ -96,7 +96,7 @@ export function PianoRoll({ engine }: { engine: AudioEngine }) {
         <div className="relative flex h-13.5 pt-2" style={{ width: WIDTH }}>
           {Array.from({ length: KEYS }, (_, i) =>
             BLACK.has(i % 12) ? null : (
-              <div key={i} data-key={FIRST + i} className="h-8.75 shrink-0 touch-none border border-black/10 bg-surface hover:bg-surface-active [box-shadow:#0000001A_0px_2px_3px] cursor-pointer" style={{ width: WHITE_W }} />
+              <div key={i} data-key={FIRST + i} className="h-8.75 shrink-0 touch-none border border-black/12 bg-page-bg hover:bg-surface-active [box-shadow:#0000001A_0px_2px_3px] cursor-pointer" style={{ width: WHITE_W }} />
             ),
           )}
           {Array.from({ length: KEYS }, (_, i) =>

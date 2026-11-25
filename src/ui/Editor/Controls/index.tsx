@@ -7,7 +7,8 @@ import { Dialog } from "../../shared/primitives";
 import { usePlayer } from "../session";
 
 const BTN = "btn-surface rounded-xl h-full min-h-0 p-3 md:p-6";
-const PLAIN = `${BTN} bg-white`;
+const IDLE = "bg-white hover:bg-surface-active";
+const PLAIN = `${BTN} ${IDLE}`;
 
 function useCountdown(player: Player, waitingUntil: number | null) {
   const [left, setLeft] = useState(0);
@@ -46,10 +47,10 @@ export function Controls({ player, freeze, settings }: { player: Player; freeze:
   const few = !freeze && !settings;
   const nav = (Icon: typeof SkipBackIcon, seconds: DurationSeconds, label: string) => (
     <button aria-label={label} onClick={() => nudge(seconds)} className={PLAIN}>
-      <Icon size={paired ? 28 : 32} weight="fill" className="opacity-65 shrink-0" />
+      <Icon size={paired ? 28 : 32} weight="fill" className="opacity-55 shrink-0" />
     </button>
   );
-  const playColor = playState === "waiting" ? `bg-waiting hover:bg-waiting-hover active:bg-waiting-active` : playState === "playing" ? `bg-play hover:bg-play-hover active:bg-play-active` : "bg-white";
+  const playColor = playState === "waiting" ? `bg-waiting hover:bg-waiting-hover active:bg-waiting-active` : playState === "playing" ? `bg-play hover:bg-play-hover active:bg-play-active` : IDLE;
 
   return (
     <div className={`grid gap-4 h-min max-md:flex-1 max-md:grid-cols-2 max-md:grid-rows-2 ${few ? "grid-cols-3" : "grid-cols-4"}`}>
@@ -65,7 +66,7 @@ export function Controls({ player, freeze, settings }: { player: Player; freeze:
         </span>
       </button>
       {freeze && (
-        <button aria-label="Freeze" aria-pressed={playState === "frozen"} onClick={toggleFreeze} className={`${BTN} ${playState === "frozen" ? `bg-freeze hover:bg-freeze-hover active:bg-freeze-active` : "bg-white"}`}>
+        <button aria-label="Freeze" aria-pressed={playState === "frozen"} onClick={toggleFreeze} className={`${BTN} ${playState === "frozen" ? `bg-freeze hover:bg-freeze-hover active:bg-freeze-active` : IDLE}`}>
           <SnowflakeIcon size={40} weight="fill" color={playState === "frozen" ? "white" : "var(--color-freeze)"} />
         </button>
       )}

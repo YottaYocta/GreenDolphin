@@ -6,7 +6,7 @@ import { Dialog, IconButton } from "../shared/primitives";
 import type { StoredRecording } from "../../persistence";
 
 export const RecordingIcon = ({ recording, size = 32 }: { recording: StoredRecording; size?: number }) =>
-  recording.source.kind === "youtube" ? <YoutubeLogoIcon size={size} weight="fill" color="#FF0000" className="opacity-80 shrink-0" /> : <MusicNoteIcon size={size} weight="fill" color={noteColor(recording.title)} className="shrink-0" />;
+  recording.source.kind === "youtube" ? <YoutubeLogoIcon size={size} weight="fill" color="#FF0000" className="opacity-70 shrink-0" /> : <MusicNoteIcon size={size} weight="fill" color={noteColor(recording.title)} className="shrink-0" />;
 
 export function NewRecordingDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const { add, addYouTube } = useLibrary();
@@ -47,7 +47,7 @@ export function NewRecordingDialog({ open, onOpenChange }: { open: boolean; onOp
             void add(file);
           }}
         />
-        <p className="text-center text-sm text-black/30">or</p>
+        <p className="text-center text-sm text-black/25">or</p>
         <input
           type="url"
           aria-label="YouTube link"
@@ -58,7 +58,7 @@ export function NewRecordingDialog({ open, onOpenChange }: { open: boolean; onOp
           }}
           onKeyDown={(e) => e.key === "Enter" && void submit()}
           placeholder="https://www.youtube.com/watch?v=…"
-          className="rounded-lg bg-surface-input h-12 px-3 font-space-mono text-sm/5 text-black/60 outline-none placeholder:text-black/25"
+          className="rounded-lg bg-surface-input h-12 px-3 font-space-mono text-sm/5 text-black/55 outline-none placeholder:text-black/25"
         />
         {error && <p className="text-sm text-red-600/80">{error}</p>}
         <IconButton icon={busy ? SpinnerIcon : YoutubeLogoIcon} onClick={() => void submit()} disabled={busy || !link.trim()} className={`h-12 ${busy ? "[&>svg]:animate-spin" : ""}`}>

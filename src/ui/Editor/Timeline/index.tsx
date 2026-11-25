@@ -20,7 +20,7 @@ const WHEEL_SETTLE_MS = 250;
 const DOUBLE_TAP_MS = 300;
 const DOUBLE_TAP_PX = 24;
 const KEY_STEP = 0.1;
-const ROW = "h-7 shrink-0 bg-surface rounded-lg overflow-hidden px-6 md:px-8";
+const ROW = "h-7 shrink-0 bg-page-bg rounded-lg overflow-hidden px-6 md:px-8";
 
 const Triangle: FC<{ points: string; fill: string }> = ({ points, fill }) => (
   <svg width="16" height="22" viewBox="0 0 16 22" className="block">
@@ -260,8 +260,8 @@ function useRender(model: Model, player: Player, els: Els, canvas: RefObject<HTM
         let lines = "";
         for (let t = Math.ceil(view.start / step) * step; t <= view.end; t += step) {
           const x = toPx(t);
-          lines += `<div class="absolute inset-y-0 w-px bg-border-solid" style="left:${x}px"></div>`;
-          labels += `<div class="absolute top-1/2 -translate-y-1/2 font-space-mono text-[10px] leading-none text-black/30 tabular-nums" style="left:${x + 4}px">${formatTick(t, step)}</div>`;
+          lines += `<div class="absolute inset-y-0 w-px bg-surface-input" style="left:${x}px"></div>`;
+          labels += `<div class="absolute top-1/2 -translate-y-1/2 font-space-mono text-[10px] leading-none text-black/25 tabular-nums" style="left:${x + 4}px">${formatTick(t, step)}</div>`;
         }
         if (els.ticks.current) els.ticks.current.innerHTML = lines + labels;
         if (els.grid.current) els.grid.current.innerHTML = lines;

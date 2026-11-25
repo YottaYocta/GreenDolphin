@@ -7,7 +7,7 @@ import { useLibrary } from "../../context";
 import { NewRecordingDialog, RecordingIcon } from "../../Library/NewRecordingDialog";
 import { Dialog, IconButton } from "../../shared/primitives";
 
-const ITEM = "flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-surface active:bg-surface-track";
+const ITEM = "flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-surface-active active:bg-surface-input";
 
 function Action({ label, icon, size = 16, text, onClick }: { label: string; icon: Icon; size?: number; text: string; onClick: () => void }) {
   return (
@@ -30,7 +30,7 @@ export function TitleBar({ recording, info, editor }: { recording: StoredRecordi
     <div className="flex items-center gap-2 h-12 shrink-0">
       <div className="flex items-center gap-2 min-w-0 flex-1">
         <Menu.Root>
-          <Menu.Trigger aria-label="Switch recording" className="group btn-surface bg-transparent justify-start gap-2 h-12 rounded-lg min-w-0 px-3 text-black/40 hover:text-black/55 data-popup-open:bg-surface-active">
+          <Menu.Trigger aria-label="Switch recording" className="group btn-surface bg-transparent hover:bg-surface-active justify-start gap-2 h-12 rounded-lg min-w-0 px-3 text-black/40 hover:text-black/55 data-popup-open:bg-surface-active">
             <CaretRightIcon size={16} weight="fill" className="shrink-0 transition-transform group-data-popup-open:rotate-90" />
             <span className="truncate">{stripExt(recording.title)}</span>
           </Menu.Trigger>
@@ -38,7 +38,7 @@ export function TitleBar({ recording, info, editor }: { recording: StoredRecordi
             <Menu.Positioner side="bottom" align="start" sideOffset={8}>
               <Menu.Popup className="z-50 w-80 max-w-[calc(100vw-2rem)] rounded-xl bg-white shadow-menu overflow-hidden flex flex-col outline-none">
                 <div className="overflow-y-auto max-h-72 flex flex-col">
-                  {others.length === 0 && <div className="p-4 text-black/50 text-sm text-center">No other recordings</div>}
+                  {others.length === 0 && <div className="p-4 text-black/40 text-sm text-center">No other recordings</div>}
                   {others.map((other) => (
                     <Menu.Item key={other.id} className={ITEM} onClick={() => open(other.id)}>
                       <RecordingIcon recording={other} size={18} />
@@ -46,8 +46,8 @@ export function TitleBar({ recording, info, editor }: { recording: StoredRecordi
                     </Menu.Item>
                   ))}
                 </div>
-                <Menu.Item className={`${ITEM} bg-surface-track`} onClick={() => setAdding(true)}>
-                  <MusicNotesPlusIcon size={18} weight="fill" className="opacity-50" />
+                <Menu.Item className={`${ITEM} bg-page-bg`} onClick={() => setAdding(true)}>
+                  <MusicNotesPlusIcon size={18} weight="fill" className="opacity-40" />
                   <span>New Recording</span>
                 </Menu.Item>
               </Menu.Popup>
@@ -75,7 +75,7 @@ export function TitleBar({ recording, info, editor }: { recording: StoredRecordi
           {details.map(([label, value]) => (
             <div key={label} className="flex flex-col gap-1">
               <dt className="text-black/40 text-sm">{label}</dt>
-              <dd className="font-space-mono text-black/90 break-all">{value}</dd>
+              <dd className="font-space-mono text-black/70 break-all">{value}</dd>
             </div>
           ))}
         </dl>

@@ -25,9 +25,9 @@ export function Tutorial({ steps, step, setStep }: { steps: TutorialStep[]; step
     <>
       <BaseDialog.Root open={!seen && step === null} onOpenChange={(open) => !open && finish()}>
         <BaseDialog.Portal>
-          <BaseDialog.Backdrop className="fixed inset-0 bg-black/20 z-40" />
+          <BaseDialog.Backdrop className="fixed inset-0 bg-black/25 z-40" />
           <BaseDialog.Popup className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-84 rounded-xl bg-white shadow-dialog flex flex-col gap-6 p-6 outline-none">
-            <BaseDialog.Title className="text-black/60 text-center">
+            <BaseDialog.Title className="text-black/55 text-center">
               Welcome to GreenDolphin!
               <br />
               Would you like a tutorial?
@@ -78,7 +78,7 @@ function Walkthrough({ steps, step, onStep }: { steps: TutorialStep[]; step: num
           <button onClick={() => onStep(step - 1)} className={`${BTN} ${step === 0 ? "invisible" : ""}`}>
             Back
           </button>
-          <span className="shrink-0 whitespace-nowrap text-xs opacity-70 px-3 py-1 bg-surface-track rounded-full">
+          <span className="shrink-0 whitespace-nowrap text-xs opacity-70 px-3 py-1 bg-surface-active rounded-full">
             {step + 1} / {steps.length}
           </span>
           <button onClick={() => onStep(step + 1)} className={`${PRIMARY} flex items-center gap-1`}>
