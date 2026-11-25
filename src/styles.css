@@ -64,11 +64,11 @@ html, body {
   background-color: var(--color-surface-active);
   cursor: pointer;
   @media (hover: hover) {
-    &:hover:not(:disabled) {
+    &:hover:where(:not(:disabled)) {
       background-color: var(--color-surface-input);
     }
   }
-  &:active:not(:disabled) {
+  &:active:where(:not(:disabled)) {
     background-color: var(--color-surface-input);
   }
 }
