@@ -114,7 +114,7 @@ export function Slider({ label, value, min, max, step, defaultValue, display, pa
             drag(e, fromX);
           }}
         >
-          <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-2.5 h-3 rounded-xs bg-white [box-shadow:var(--shadow-thumb)]" style={{ left: `${((value - min) / (max - min)) * 100}%` }} />
+          <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-2.5 h-3 rounded-xs bg-neutral-2" style={{ left: `${((value - min) / (max - min)) * 100}%` }} />
         </div>
         <NumericInput value={display(value)} unit={unit} onCommit={(v) => set(parse(v))} />
       </div>
@@ -133,7 +133,7 @@ export function Toggle({ id, label, checked, onChange }: { id?: string; label: s
       onClick={() => onChange(!checked)}
       className={`flex items-center shrink-0 w-9 h-5 p-0.5 rounded-full cursor-pointer outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-play/50 focus-visible:ring-offset-2 motion-reduce:transition-none ${checked ? "bg-play" : "bg-black/15 hover:bg-black/25"}`}
     >
-      <span className={`size-4 rounded-full bg-white [box-shadow:var(--shadow-thumb)] transition-transform duration-150 ease-out motion-reduce:transition-none ${checked ? "translate-x-4" : "translate-x-0"}`} />
+      <span className={`size-4 rounded-full bg-white transition-transform duration-150 ease-out motion-reduce:transition-none ${checked ? "translate-x-4" : "translate-x-0"}`} />
     </button>
   );
 }
