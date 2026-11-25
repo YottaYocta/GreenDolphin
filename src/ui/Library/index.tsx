@@ -33,6 +33,7 @@ export function Library() {
           </IconButton>
           <IconButton
             icon={ArrowsDownUpIcon}
+            fill="none"
             onClick={() => {
               setByAdded(!byAdded);
               persistence.setFlag("sortByAdded", !byAdded);
