@@ -39,11 +39,11 @@ interface Session {
   output: SoundOutput;
 }
 
-function TimelineCard({ id, session, draw, children }: { id: StoredRecording["id"]; session: Session; draw?: TimelineProps["draw"]; children: ReactNode }) {
+function TimelineCard({ id, session, draw, showTime, children }: { id: StoredRecording["id"]; session: Session; draw?: TimelineProps["draw"]; showTime: boolean; children: ReactNode }) {
   const { onView, onLoopCommit } = usePersistence(id, session.player);
   return (
     <div data-fill className={`${CARD} flex-1 min-h-0 md:min-h-72 p-4`}>
-      <Timeline player={session.player} initialView={session.restored.view} initialLoop={session.restored.loopFraction} onView={onView} onLoopCommit={onLoopCommit} draw={draw} />
+      <Timeline player={session.player} initialView={session.restored.view} initialLoop={session.restored.loopFraction} onView={onView} onLoopCommit={onLoopCommit} draw={draw} showTime={showTime} />
       {children}
     </div>
   );
@@ -69,7 +69,7 @@ function Loaded({ recording, info, session, top, draw, engine, general }: { reco
         />
         {engine && general.piano && <PianoRoll engine={engine} />}
         {top}
-        <TimelineCard id={recording.id} session={session} draw={draw}>
+        <TimelineCard id={recording.id} session={session} draw={draw} showTime={general.playheadTime}>
           {general.inline && <div className="grid md:grid-flow-col md:auto-cols-fr gap-x-8 gap-y-2 shrink-0 pt-4 px-4">{settings}</div>}
         </TimelineCard>
       </div>
@@ -81,6 +81,7 @@ function Loaded({ recording, info, session, top, draw, engine, general }: { reco
 function useEditorPrefs(hasPiano: boolean) {
   const [piano, setPiano] = useState(() => persistence.flag("piano"));
   const [inline, setInline] = useState(() => persistence.flag("inlineSound"));
+  const [playheadTime, setPlayheadTime] = useState(() => !persistence.flag("noPlayheadTime"));
   const [awake, setAwake] = useState(() => !persistence.flag("allowSleep"));
   useKeepAwake(awake);
   const [replay, setReplayPref] = useState(() => !persistence.flag("noReplay"));
@@ -97,6 +98,11 @@ function useEditorPrefs(hasPiano: boolean) {
     onInline(next) {
       setInline(next);
       persistence.setFlag("inlineSound", next);
+    },
+    playheadTime,
+    onPlayheadTime(next) {
+      setPlayheadTime(next);
+      persistence.setFlag("noPlayheadTime", !next);
     },
     awake,
     onAwake(next) {

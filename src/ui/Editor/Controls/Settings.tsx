@@ -61,6 +61,8 @@ export interface GeneralPrefs {
   onPiano?: (piano: boolean) => void;
   inline: boolean;
   onInline: (inline: boolean) => void;
+  playheadTime: boolean;
+  onPlayheadTime: (playheadTime: boolean) => void;
   awake: boolean;
   onAwake: (awake: boolean) => void;
   replay: boolean;
@@ -68,11 +70,12 @@ export interface GeneralPrefs {
   onTutorial: () => void;
 }
 
-export function GeneralSettings({ piano, onPiano, inline, onInline, awake, onAwake, replay, onReplay, onTutorial }: GeneralPrefs) {
+export function GeneralSettings({ piano, onPiano, inline, onInline, playheadTime, onPlayheadTime, awake, onAwake, replay, onReplay, onTutorial }: GeneralPrefs) {
   return (
     <div className="flex flex-col gap-4">
       {onPiano && <Toggle label="Show piano roll" checked={piano} onChange={onPiano} />}
       <Toggle label="Show playback settings" checked={inline} onChange={onInline} />
+      <Toggle label="Show time on playhead" checked={playheadTime} onChange={onPlayheadTime} />
       <Toggle label="Keep screen awake" checked={awake} onChange={onAwake} />
       <Toggle label="Share debug info" checked={replay} onChange={onReplay} />
       <DialogClose onClick={onTutorial} className="btn-surface h-9 rounded-lg text-sm">

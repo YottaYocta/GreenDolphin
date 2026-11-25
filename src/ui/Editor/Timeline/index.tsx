@@ -14,6 +14,7 @@ export interface TimelineProps {
   onView: (view: Section) => void;
   onLoopCommit: (loop: Section) => void;
   draw?: (canvas: HTMLCanvasElement, view: Section, loop: Section) => void;
+  showTime: boolean;
 }
 
 const TAP_PX = 6;
@@ -30,7 +31,7 @@ const Triangle: FC<{ points: string; className: string }> = ({ points, className
   </svg>
 );
 
-function createModel(props: TimelineProps, content: RefObject<HTMLDivElement | null>) {
+function createModel(props: Omit<TimelineProps, "draw" | "showTime">, content: RefObject<HTMLDivElement | null>) {
   const { player, initialView, initialLoop, onView, onLoopCommit } = props;
   const m = { view: initialView, loop: initialLoop, version: 0 };
   const width = () => content.current?.clientWidth || 1;
@@ -64,7 +65,7 @@ const ELEMENTS = ["ticks", "grid", "grip", "time", "line", "shade", "marks", "st
 type Els = Record<(typeof ELEMENTS)[number], RefObject<HTMLDivElement | null>>;
 
 export function Timeline(props: TimelineProps) {
-  const { player, draw } = props;
+  const { player, draw, showTime } = props;
   const root = useRef<HTMLDivElement>(null);
   const content = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -131,9 +132,9 @@ export function Timeline(props: TimelineProps) {
       <div id="timeline-ruler" data-control className={`${ROW} cursor-pointer`} onPointerDown={scrub}>
         <div className="relative h-full">
           <div ref={els.ticks} className="absolute inset-0 pointer-events-none" />
-          <div ref={els.grip} aria-label="Playhead" className="absolute inset-y-0 -translate-x-1/2 z-10 flex items-end justify-center w-9 cursor-ew-resize">
+          <div ref={els.grip} aria-label="Playhead" className={`absolute inset-y-0 -translate-x-1/2 z-10 flex justify-center w-9 cursor-ew-resize ${showTime ? "items-end" : ""}`}>
             <Triangle points="0,0 16,0 8,22" className="fill-play" />
-            <div ref={els.time} className="absolute top-1/2 -translate-y-1/2 px-1 rounded-sm bg-play text-white font-space-mono text-[10px] leading-4 tabular-nums" />
+            {showTime && <div ref={els.time} className="absolute top-1/2 -translate-y-1/2 px-1 rounded-sm bg-play text-white font-space-mono text-[10px] leading-4 tabular-nums" />}
           </div>
         </div>
       </div>

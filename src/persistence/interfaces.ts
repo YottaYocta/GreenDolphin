@@ -20,7 +20,7 @@ export interface LoopPrefs {
   delayValue: number;
 }
 
-export type Flag = "demo" | "tutorial" | "allowSleep" | "piano" | "noReplay" | "sortByAdded" | "inlineSound";
+export type Flag = "demo" | "tutorial" | "allowSleep" | "piano" | "noReplay" | "sortByAdded" | "inlineSound" | "noPlayheadTime";
 
 export type RecordingSource = { kind: "file"; size: number } | { kind: "youtube"; videoId: string };
 
