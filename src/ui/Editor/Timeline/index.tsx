@@ -126,10 +126,10 @@ export function Timeline(props: TimelineProps) {
 
   return (
     <div ref={root} className="flex flex-col flex-1 min-h-0 select-none touch-none">
-      <div id="timeline-ruler" data-control className={`${ROW} cursor-ew-resize`} onPointerDown={scrub}>
+      <div id="timeline-ruler" data-control className={ROW} onPointerDown={scrub}>
         <div className="relative h-full">
           <div ref={els.ticks} className="absolute inset-0 pointer-events-none" />
-          <div ref={els.grip} aria-label="Playhead" className="absolute top-0 -translate-x-1/2 z-10 flex justify-center w-9 h-7">
+          <div ref={els.grip} aria-label="Playhead" className="absolute top-0 -translate-x-1/2 z-10 flex justify-center w-9 h-7 cursor-ew-resize">
             <Triangle points="0,0 16,0 8,22" fill="var(--color-play)" />
           </div>
         </div>
