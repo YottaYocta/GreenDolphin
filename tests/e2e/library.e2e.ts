@@ -131,6 +131,21 @@ test("deleting asks first and removes the recording", async ({ page }) => {
   await expect(page.getByText("doomed")).toBeHidden();
 });
 
+test("the list sorts by last opened or by last added", async ({ page }) => {
+  await openDemo(page);
+  await upload(page, "newer.wav");
+  await page.getByRole("button", { name: "Home" }).click();
+  await page.getByRole("button", { name: `Open ${DEMO}.mp3` }).click();
+  await waitForEditor(page);
+  await page.getByRole("button", { name: "Home" }).click();
+  const first = page.getByRole("list", { name: "My Recordings" }).getByRole("button").first();
+  await expect(first).toHaveAccessibleName(`Open ${DEMO}.mp3`);
+  await page.getByRole("button", { name: "Opened", exact: true }).click();
+  await expect(first).toHaveAccessibleName("Open newer.wav");
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Added", exact: true })).toBeVisible();
+});
+
 test("a bad YouTube link is reported without leaving the dialog", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Load recording" }).first().click();

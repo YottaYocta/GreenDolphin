@@ -7,7 +7,8 @@ import { Dialog } from "../../shared/primitives";
 import { usePlayer } from "../session";
 
 const BTN = "btn-surface rounded-xl h-full min-h-0 p-3 md:p-6";
-const PLAIN = `${BTN} bg-white`;
+const IDLE = "bg-white hover:bg-surface-active";
+const PLAIN = `${BTN} ${IDLE}`;
 
 function useCountdown(player: Player, waitingUntil: number | null) {
   const [left, setLeft] = useState(0);
@@ -24,7 +25,7 @@ function useCountdown(player: Player, waitingUntil: number | null) {
   return left;
 }
 
-export function Controls({ player, freeze, settings }: { player: Player; freeze: boolean; settings: ReactNode }) {
+export function Controls({ player, freeze, settings }: { player: Player; freeze: boolean; settings?: ReactNode }) {
   const { playState, waitingUntil } = usePlayer(player);
   const [open, setOpen] = useState(false);
   const countdown = useCountdown(player, waitingUntil);
@@ -42,16 +43,18 @@ export function Controls({ player, freeze, settings }: { player: Player; freeze:
     "0": () => player.dispatch({ type: "move", position: 0 }),
   });
 
+  const paired = freeze && !!settings;
+  const few = !freeze && !settings;
   const nav = (Icon: typeof SkipBackIcon, seconds: DurationSeconds, label: string) => (
     <button aria-label={label} onClick={() => nudge(seconds)} className={PLAIN}>
-      <Icon size={freeze ? 28 : 32} weight="fill" className="opacity-65 shrink-0" />
+      <Icon size={paired ? 28 : 32} weight="fill" className="text-ink-55 shrink-0" />
     </button>
   );
-  const playColor = playState === "waiting" ? `bg-waiting hover:bg-waiting-hover active:bg-waiting-active` : playState === "playing" ? `bg-play hover:bg-play-hover active:bg-play-active` : "bg-white";
+  const playColor = playState === "waiting" ? `bg-waiting hover:bg-waiting-hover active:bg-waiting-active` : playState === "playing" ? `bg-play hover:bg-play-hover active:bg-play-active` : IDLE;
 
   return (
-    <div className="grid gap-4 h-min max-md:flex-1 max-md:grid-cols-2 max-md:grid-rows-2 grid-cols-4">
-      <button aria-label={playState === "playing" ? "Pause" : "Play"} data-state={playState} onClick={togglePlay} className={`${BTN} ${playColor}`}>
+    <div className={`grid gap-4 h-min max-md:flex-1 max-md:grid-cols-2 max-md:grid-rows-2 ${few ? "grid-cols-3" : "grid-cols-4"}`}>
+      <button aria-label={playState === "playing" ? "Pause" : "Play"} data-state={playState} onClick={togglePlay} className={`${BTN} ${playColor} ${few ? "max-md:col-span-2" : ""}`}>
         <span className="size-10 flex items-center justify-center">
           {playState === "playing" ? (
             <PauseIcon size={36} weight="fill" color="white" />
@@ -63,17 +66,21 @@ export function Controls({ player, freeze, settings }: { player: Player; freeze:
         </span>
       </button>
       {freeze && (
-        <button aria-label="Freeze" aria-pressed={playState === "frozen"} onClick={toggleFreeze} className={`${BTN} ${playState === "frozen" ? `bg-freeze hover:bg-freeze-hover active:bg-freeze-active` : "bg-white"}`}>
+        <button aria-label="Freeze" aria-pressed={playState === "frozen"} onClick={toggleFreeze} className={`${BTN} ${playState === "frozen" ? `bg-freeze hover:bg-freeze-hover active:bg-freeze-active` : IDLE}`}>
           <SnowflakeIcon size={40} weight="fill" color={playState === "frozen" ? "white" : "var(--color-freeze)"} />
         </button>
       )}
-      <button aria-label="Playback settings" onClick={() => setOpen(true)} className={PLAIN}>
-        <SlidersIcon size={32} weight="fill" className="opacity-55" />
-      </button>
-      <Dialog title="Playback" open={open} onOpenChange={setOpen}>
-        <div className="flex flex-col gap-6 pb-4">{settings}</div>
-      </Dialog>
-      <div className={freeze ? "grid grid-cols-2 gap-4 min-h-0" : "contents"}>
+      {settings && (
+        <button aria-label="Playback settings" onClick={() => setOpen(true)} className={PLAIN}>
+          <SlidersIcon size={32} weight="fill" className="text-ink-55" />
+        </button>
+      )}
+      {settings && (
+        <Dialog title="Playback" open={open} onOpenChange={setOpen}>
+          <div className="flex flex-col gap-6 pb-4">{settings}</div>
+        </Dialog>
+      )}
+      <div className={paired ? "grid grid-cols-2 gap-4 min-h-0" : "contents"}>
         {nav(SkipBackIcon, -5, "Back 5 seconds")}
         {nav(SkipForwardIcon, 5, "Forward 5 seconds")}
       </div>

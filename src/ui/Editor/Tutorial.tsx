@@ -25,15 +25,15 @@ export function Tutorial({ steps, step, setStep }: { steps: TutorialStep[]; step
     <>
       <BaseDialog.Root open={!seen && step === null} onOpenChange={(open) => !open && finish()}>
         <BaseDialog.Portal>
-          <BaseDialog.Backdrop className="fixed inset-0 bg-black/20 z-40" />
+          <BaseDialog.Backdrop className="fixed inset-0 bg-black/25 z-40" />
           <BaseDialog.Popup className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-84 rounded-xl bg-white shadow-dialog flex flex-col gap-6 p-6 outline-none">
-            <BaseDialog.Title className="text-black/60 text-center">
+            <BaseDialog.Title className="text-ink-55 text-center">
               Welcome to GreenDolphin!
               <br />
               Would you like a tutorial?
             </BaseDialog.Title>
             <div className="flex justify-center gap-4">
-              <button onClick={finish} className={`${BTN} text-black/40`}>
+              <button onClick={finish} className={`${BTN} text-ink-40`}>
                 Maybe later
               </button>
               <button onClick={() => setStep(0)} className={PRIMARY}>
@@ -68,7 +68,7 @@ function Walkthrough({ steps, step, onStep }: { steps: TutorialStep[]; step: num
   const width = Math.min(POPUP_WIDTH, window.innerWidth - 2 * EDGE);
   const left = clamp(rect.left + rect.width / 2 - width / 2, EDGE, window.innerWidth - EDGE - width);
   return (
-    <div className="border-4 border-emerald-500 rounded-sm fixed z-50 pointer-events-none" style={{ left: rect.left - 8, top: rect.top - 8, width: rect.width + 16, height: rect.height + 16 }}>
+    <div className="border-4 border-play rounded-sm fixed z-50 pointer-events-none" style={{ left: rect.left - 8, top: rect.top - 8, width: rect.width + 16, height: rect.height + 16 }}>
       <div style={{ left: left - rect.left + 4, width }} className={`absolute rounded-xl bg-white shadow-menu pointer-events-auto ${below ? "top-full mt-4" : "bottom-full mb-4"}`}>
         <p className="p-4">{text}</p>
         <div className="flex items-center justify-between gap-2 p-2">
@@ -78,7 +78,7 @@ function Walkthrough({ steps, step, onStep }: { steps: TutorialStep[]; step: num
           <button onClick={() => onStep(step - 1)} className={`${BTN} ${step === 0 ? "invisible" : ""}`}>
             Back
           </button>
-          <span className="shrink-0 whitespace-nowrap text-xs opacity-70 px-3 py-1 bg-surface-track rounded-full">
+          <span className="shrink-0 whitespace-nowrap text-xs text-ink-70 px-3 py-1 bg-surface-active rounded-full">
             {step + 1} / {steps.length}
           </span>
           <button onClick={() => onStep(step + 1)} className={`${PRIMARY} flex items-center gap-1`}>

@@ -41,6 +41,7 @@ export function App() {
       if (ticket !== request.current) return;
       setOpened(next);
       persistence.setLastOpened(id);
+      persistence.saveRecordingPrefs(id, { openedAt: Date.now() });
     } catch {
       if (ticket === request.current) setError(`Couldn't open “${title}”. Is it an audio file?`);
     } finally {

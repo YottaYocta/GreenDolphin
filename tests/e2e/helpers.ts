@@ -52,9 +52,8 @@ export async function lanePoint(page: Page, fraction: number, y = 0.5) {
 }
 
 export async function rowPoint(page: Page, id: "timeline-ruler" | "timeline-loop", fraction: number) {
-  const row = (await page.locator(`#${id}`).boundingBox())!;
-  const inner = { x: row.x + 32, width: row.width - 64 };
-  return { x: inner.x + inner.width * fraction, y: row.y + row.height / 2 };
+  const inner = (await page.locator(`#${id} > div`).boundingBox())!;
+  return { x: inner.x + inner.width * fraction, y: inner.y + inner.height / 2 };
 }
 
 export async function center(page: Page, selector: string) {

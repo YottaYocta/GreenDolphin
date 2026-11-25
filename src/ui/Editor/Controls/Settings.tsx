@@ -3,10 +3,10 @@ import { length } from "../Timeline/geometry";
 import type { Player } from "../../../core";
 import { DialogClose, ModeToggle, NumericInput, Slider, Toggle } from "../../shared/primitives";
 import { usePlayer, type Sound } from "../session";
-import { persistence, type LoopPrefs } from "../../../persistence";
+import { persistence, type EditorSettings, type LoopPrefs } from "../../../persistence";
 
 const percent = (v: number) => String(Math.round(v * 100));
-const LABEL = "text-sm text-black/50";
+const LABEL = "text-sm text-ink-40";
 
 export function SoundSettings(props: { player: Player; sound: Sound; onSound: (sound: Sound) => void; youtube?: boolean }) {
   const { player, sound, onSound, youtube = false } = props;
@@ -56,22 +56,20 @@ export function SoundSettings(props: { player: Player; sound: Sound; onSound: (s
   );
 }
 
-export interface GeneralPrefs {
-  piano: boolean;
-  onPiano?: (piano: boolean) => void;
-  awake: boolean;
-  onAwake: (awake: boolean) => void;
-  replay: boolean;
-  onReplay: (replay: boolean) => void;
-  onTutorial: () => void;
-}
+const TOGGLES: [keyof EditorSettings, string][] = [
+  ["piano", "Show piano roll"],
+  ["inlineSound", "Show playback settings"],
+  ["playheadTime", "Show time on playhead"],
+  ["awake", "Keep screen awake"],
+  ["replay", "Share debug info"],
+];
 
-export function GeneralSettings({ piano, onPiano, awake, onAwake, replay, onReplay, onTutorial }: GeneralPrefs) {
+export function GeneralSettings({ editor, onEditor, hasPiano, onTutorial }: { editor: EditorSettings; onEditor: (patch: Partial<EditorSettings>) => void; hasPiano: boolean; onTutorial: () => void }) {
   return (
     <div className="flex flex-col gap-4">
-      {onPiano && <Toggle label="Show piano roll" checked={piano} onChange={onPiano} />}
-      <Toggle label="Keep screen awake" checked={awake} onChange={onAwake} />
-      <Toggle label="Share debug info" checked={replay} onChange={onReplay} />
+      {TOGGLES.filter(([key]) => hasPiano || key !== "piano").map(([key, label]) => (
+        <Toggle key={key} label={label} checked={editor[key]} onChange={(on) => onEditor({ [key]: on })} />
+      ))}
       <DialogClose onClick={onTutorial} className="btn-surface h-9 rounded-lg text-sm">
         Replay tutorial
       </DialogClose>
@@ -94,7 +92,7 @@ export function LoopSettings({ player }: { player: Player }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-2">
         <div className={LABEL}>Loop mode</div>
         <ModeToggle
           options={[
@@ -106,7 +104,7 @@ export function LoopSettings({ player }: { player: Player }) {
         />
       </div>
       {prefs.mode === "automatic" && (
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-2">
           <div className={LABEL}>Loop delay</div>
           <div className="flex items-center gap-4">
             <ModeToggle

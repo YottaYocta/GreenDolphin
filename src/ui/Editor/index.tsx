@@ -10,113 +10,105 @@ import { useKeepAwake } from "./keepAwake";
 import { Tutorial, type TutorialStep } from "./Tutorial";
 import { PianoRoll } from "./PianoRoll";
 import { restore, usePersistence, useSound, type SoundOutput } from "./session";
-import { GeneralSettings, LoopSettings, SoundSettings, type GeneralPrefs } from "./Controls/Settings";
+import { GeneralSettings, LoopSettings, SoundSettings } from "./Controls/Settings";
 import { Timeline, type TimelineProps } from "./Timeline";
 import { TitleBar } from "./TitleBar";
 import { audio, type AudioEngine, type Recording } from "../../audio";
 import { youtube } from "../../youtube";
 import { setReplay } from "../../analytics";
-import { persistence, type RecordingId, type StoredRecording } from "../../persistence";
+import { persistence, type EditorSettings, type StoredRecording } from "../../persistence";
 
 const CARD = "flex flex-col rounded-xl overflow-hidden bg-white";
+const COLUMN = "flex flex-col gap-4 max-md:gap-2 min-h-0 has-[[data-fill]]:h-full";
 
 const AUDIO_STEPS: TutorialStep[] = [
   { selector: "#timeline-ruler", text: "Click to set playback position" },
   { selector: "#waveform-canvas", text: "Pinch to zoom in/out" },
   { selector: "#waveform-canvas", text: "Drag to pan" },
   { selector: "#timeline-loop", text: "Drag the handles to set the loop" },
-  { selector: '[aria-label="Editor settings"]', text: "Show the piano roll from editor settings" },
+  { selector: '[aria-label="Editor settings"]', text: "Show the piano roll, playback settings and other editor customizations" },
 ];
 const VIDEO_STEPS: TutorialStep[] = [
   { selector: "#timeline-ruler", text: "Click to set playback position" },
   { selector: "#timeline-loop", text: "Drag the handles to set the loop" },
 ];
 
-type Restored = ReturnType<typeof restore>;
 interface Session {
   player: Player;
-  restored: Restored;
+  restored: ReturnType<typeof restore>;
   output: SoundOutput;
 }
 
-function TimelineCard({ id, player, restored, draw }: { id: RecordingId; player: Player; restored: Restored; draw?: TimelineProps["draw"] }) {
-  const { onView, onLoopCommit } = usePersistence(id, player);
+function TimelineCard({ id, session, draw, showTime, children }: { id: StoredRecording["id"]; session: Session; draw?: TimelineProps["draw"]; showTime: boolean; children: ReactNode }) {
+  const { onView, onLoopCommit } = usePersistence(id, session.player);
   return (
     <div data-fill className={`${CARD} flex-1 min-h-0 md:min-h-72 p-4`}>
-      <Timeline player={player} initialView={restored.view} initialLoop={restored.loopFraction} onView={onView} onLoopCommit={onLoopCommit} draw={draw} />
+      <Timeline player={session.player} initialView={session.restored.view} initialLoop={session.restored.loopFraction} onView={onView} onLoopCommit={onLoopCommit} draw={draw} showTime={showTime} />
+      {children}
     </div>
   );
 }
 
-function EditorControls({ id, session, youtube }: { id: RecordingId; session: Session; youtube: boolean }) {
-  const [sound, setSound] = useSound(id, session.restored.sound, session.output);
+function Loaded({ recording, info, session, top, draw, engine, editor, general }: { recording: StoredRecording; info: [string, string][]; session: Session; top?: ReactNode; draw?: TimelineProps["draw"]; engine?: AudioEngine; editor: EditorSettings; general: ReactNode }) {
+  const { player, restored } = session;
+  const youtube = recording.source.kind === "youtube";
+  const [sound, setSound] = useSound(recording.id, restored.sound, session.output);
+  const settings = <SoundSettings player={player} sound={sound} onSound={setSound} youtube={youtube} />;
   return (
-    <Controls
-      player={session.player}
-      freeze={!youtube}
-      settings={<SoundSettings player={session.player} sound={sound} onSound={setSound} youtube={youtube} />}
-    />
+    <>
+      <div className={COLUMN}>
+        <TitleBar
+          recording={recording}
+          info={info}
+          editor={
+            <div className="flex flex-col gap-10">
+              <LoopSettings player={player} />
+              {general}
+            </div>
+          }
+        />
+        {engine && editor.piano && <PianoRoll engine={engine} />}
+        {top}
+        <TimelineCard id={recording.id} session={session} draw={draw} showTime={editor.playheadTime}>
+          {editor.inlineSound && <div className="grid md:grid-flow-col md:auto-cols-fr gap-x-8 gap-y-2 shrink-0 pt-4 px-4">{settings}</div>}
+        </TimelineCard>
+      </div>
+      <Controls player={player} freeze={!youtube} settings={editor.inlineSound ? undefined : settings} />
+    </>
   );
 }
 
-function useEditorPrefs(hasPiano: boolean) {
-  const [piano, setPiano] = useState(() => persistence.flag("piano"));
-  const [awake, setAwake] = useState(() => !persistence.flag("allowSleep"));
-  useKeepAwake(awake);
-  const [replay, setReplayPref] = useState(() => !persistence.flag("noReplay"));
-  const [tutorialStep, setTutorialStep] = useState<number | null>(null);
-  const general: GeneralPrefs = {
-    piano: hasPiano && piano,
-    onPiano: hasPiano
-      ? (next) => {
-          setPiano(next);
-          persistence.setFlag("piano", next);
-        }
-      : undefined,
-    awake,
-    onAwake(next) {
-      setAwake(next);
-      persistence.setFlag("allowSleep", !next);
-    },
-    replay,
-    onReplay(next) {
-      setReplayPref(next);
-      setReplay(next);
-      persistence.setFlag("noReplay", !next);
-    },
-    onTutorial: () => setTutorialStep(0),
+function useEditorSettings() {
+  const [editor, setEditor] = useState(persistence.editorSettings);
+  useKeepAwake(editor.awake);
+  const onEditor = (patch: Partial<EditorSettings>) => {
+    setEditor({ ...editor, ...patch });
+    persistence.saveEditorSettings(patch);
+    if (patch.replay !== undefined) setReplay(patch.replay);
   };
-  return { general, tutorialStep, setTutorialStep };
+  return { editor, onEditor };
 }
 
-function Layout(props: { recording: StoredRecording; info: [string, string][]; session: Session | null; top?: ReactNode; draw?: TimelineProps["draw"]; engine?: AudioEngine; youtube?: boolean }) {
-  const { recording, info, session, top, draw, engine, youtube = false } = props;
-  const { general, tutorialStep, setTutorialStep } = useEditorPrefs(!!engine);
+function Layout(props: { recording: StoredRecording; info: [string, string][]; session: Session | null; top?: ReactNode; draw?: TimelineProps["draw"]; engine?: AudioEngine }) {
+  const { recording, info, session, top, draw, engine } = props;
+  const { editor, onEditor } = useEditorSettings();
+  const [tutorialStep, setTutorialStep] = useState<number | null>(null);
   return (
     <>
       <div className="h-dvh flex items-center justify-center">
         <div className="w-full max-w-220 h-full md:h-min p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:pt-6 max-md:pb-10">
-          <div className="flex flex-col gap-4 max-md:gap-2 min-h-0 has-[[data-fill]]:h-full">
-            <TitleBar
-              recording={recording}
-              info={info}
-              editor={
-                session && (
-                  <div className="flex flex-col gap-10">
-                    <LoopSettings player={session.player} />
-                    <GeneralSettings {...general} />
-                  </div>
-                )
-              }
-            />
-            {engine && general.piano && <PianoRoll engine={engine} />}
-            {top}
-            {session ? <TimelineCard id={recording.id} player={session.player} restored={session.restored} draw={draw} /> : <div data-fill className={`${CARD} flex-1 min-h-0 md:min-h-72`} />}
-          </div>
-          {session && <EditorControls id={recording.id} session={session} youtube={youtube} />}
+          {session ? (
+            <Loaded recording={recording} info={info} session={session} top={top} draw={draw} engine={engine} editor={editor} general={<GeneralSettings editor={editor} onEditor={onEditor} hasPiano={!!engine} onTutorial={() => setTutorialStep(0)} />} />
+          ) : (
+            <div className={COLUMN}>
+              <TitleBar recording={recording} info={info} />
+              {top}
+              <div data-fill className={`${CARD} flex-1 min-h-0 md:min-h-72`} />
+            </div>
+          )}
         </div>
       </div>
-      {session && <Tutorial steps={youtube ? VIDEO_STEPS : AUDIO_STEPS} step={tutorialStep} setStep={setTutorialStep} />}
+      {session && <Tutorial steps={engine ? AUDIO_STEPS : VIDEO_STEPS} step={tutorialStep} setStep={setTutorialStep} />}
     </>
   );
 }
@@ -190,7 +182,7 @@ export function YouTubeEditor({ recording, videoId }: { recording: StoredRecordi
     <>
       <div ref={host} className="absolute size-0 overflow-hidden [&_iframe]:w-80 [&_iframe]:h-45" />
       {session || error !== null ? (
-        <Layout recording={recording} info={info} session={session} top={error !== null && <p className={`${CARD} p-4 shrink-0 text-sm text-red-600/80`}>{error}</p>} youtube />
+        <Layout recording={recording} info={info} session={session} top={error !== null && <p className={`${CARD} p-4 shrink-0 text-sm text-danger`}>{error}</p>} />
       ) : (
         <Loading />
       )}

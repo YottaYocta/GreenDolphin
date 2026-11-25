@@ -1,6 +1,7 @@
 import { createRef, useCallback, useEffect, useMemo, useRef, type FC, type PointerEvent as ReactPointerEvent, type RefObject } from "react";
 import { FULL, at, clamp, isFull, length, pan, rescale, resizeLoop, shiftLoop, toSection, zoom, type LoopFraction } from "./geometry";
 import { formatTick, tickStep } from "./ticks";
+import { formatTime } from "../../shared/format";
 import type { DurationSeconds, Player, RecordingSeconds } from "../../../core";
 import type { Section } from "../../../core";
 import { drag } from "../../shared/drag";
@@ -13,6 +14,7 @@ export interface TimelineProps {
   onView: (view: Section) => void;
   onLoopCommit: (loop: Section) => void;
   draw?: (canvas: HTMLCanvasElement, view: Section, loop: Section) => void;
+  showTime: boolean;
 }
 
 const TAP_PX = 6;
@@ -20,15 +22,16 @@ const WHEEL_SETTLE_MS = 250;
 const DOUBLE_TAP_MS = 300;
 const DOUBLE_TAP_PX = 24;
 const KEY_STEP = 0.1;
-const ROW = "h-7 shrink-0 bg-surface rounded-lg overflow-hidden px-8";
+const GUTTER = "px-6 md:px-8";
+const ROW = `h-7 shrink-0 bg-page-bg rounded-lg overflow-hidden ${GUTTER}`;
 
-const Triangle: FC<{ points: string; fill: string }> = ({ points, fill }) => (
+const Triangle: FC<{ points: string; className: string }> = ({ points, className }) => (
   <svg width="16" height="22" viewBox="0 0 16 22" className="block">
-    <polygon points={points} fill={fill} />
+    <polygon points={points} className={className} />
   </svg>
 );
 
-function createModel(props: TimelineProps, content: RefObject<HTMLDivElement | null>) {
+function createModel(props: Omit<TimelineProps, "draw" | "showTime">, content: RefObject<HTMLDivElement | null>) {
   const { player, initialView, initialLoop, onView, onLoopCommit } = props;
   const m = { view: initialView, loop: initialLoop, version: 0 };
   const width = () => content.current?.clientWidth || 1;
@@ -58,11 +61,11 @@ function createModel(props: TimelineProps, content: RefObject<HTMLDivElement | n
 }
 
 type Model = ReturnType<typeof createModel>;
-const ELEMENTS = ["ticks", "grid", "grip", "line", "shade", "marks", "startHandle", "endHandle", "startLine", "endLine"] as const;
+const ELEMENTS = ["ticks", "grid", "grip", "time", "line", "shade", "marks", "startHandle", "endHandle", "startLine", "endLine"] as const;
 type Els = Record<(typeof ELEMENTS)[number], RefObject<HTMLDivElement | null>>;
 
 export function Timeline(props: TimelineProps) {
-  const { player, draw } = props;
+  const { player, draw, showTime } = props;
   const root = useRef<HTMLDivElement>(null);
   const content = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -120,34 +123,35 @@ export function Timeline(props: TimelineProps) {
 
   const loopHandle = (ref: RefObject<HTMLDivElement | null>, side: "start" | "end") => (
     <div ref={ref} data-control aria-label={`Loop ${side}`} className="absolute bottom-0 -translate-x-1/2 z-10 flex items-end justify-center w-9 h-full cursor-ew-resize" onPointerDown={handle(side)}>
-      <Triangle points="8,0 16,22 0,22" fill="var(--color-neutral-2)" />
+      <Triangle points="8,0 16,22 0,22" className="fill-ink-25" />
     </div>
   );
 
   return (
     <div ref={root} className="flex flex-col flex-1 min-h-0 select-none touch-none">
-      <div id="timeline-ruler" data-control className={ROW} onPointerDown={scrub}>
+      <div id="timeline-ruler" data-control className={`${ROW} cursor-pointer`} onPointerDown={scrub}>
         <div className="relative h-full">
           <div ref={els.ticks} className="absolute inset-0 pointer-events-none" />
-          <div ref={els.grip} aria-label="Playhead" className="absolute top-0 -translate-x-1/2 z-10 flex justify-center w-9 h-7 cursor-ew-resize">
-            <Triangle points="0,0 16,0 8,22" fill="var(--color-play)" />
+          <div ref={els.grip} aria-label="Playhead" className={`absolute inset-y-0 -translate-x-1/2 z-10 flex justify-center w-9 cursor-ew-resize ${showTime ? "items-end" : ""}`}>
+            <Triangle points="0,0 16,0 8,22" className="fill-play" />
+            {showTime && <div ref={els.time} className="absolute top-1/2 -translate-y-1/2 px-1 rounded-sm bg-play text-white font-space-mono text-[10px] leading-4 tabular-nums" />}
           </div>
         </div>
       </div>
-      <div className="relative flex-1 min-h-0 flex flex-col overflow-hidden bg-white px-8">
+      <div className={`relative flex-1 min-h-0 flex flex-col overflow-hidden bg-white ${GUTTER}`}>
         <div ref={content} className="relative w-full flex-1 min-h-0">
           {draw ? <canvas id="waveform-canvas" ref={canvas} className="absolute inset-0 w-full h-full" /> : <div ref={els.grid} className="absolute inset-0 pointer-events-none" />}
-          <div ref={els.startLine} className="absolute inset-y-0 w-px bg-black/12 pointer-events-none" />
-          <div ref={els.endLine} className="absolute inset-y-0 w-px -translate-x-full bg-black/12 pointer-events-none" />
+          <div ref={els.startLine} className="absolute inset-y-0 w-px bg-ink-12 pointer-events-none" />
+          <div ref={els.endLine} className="absolute inset-y-0 w-px -translate-x-full bg-ink-12 pointer-events-none" />
           <div ref={els.line} className="absolute inset-y-0 w-0.5 -translate-x-1/2 bg-play pointer-events-none z-10" />
         </div>
       </div>
       <div id="timeline-loop" className={ROW}>
         <div className="relative h-full" onPointerDown={resetOnDoubleTap}>
           <div ref={els.shade} data-control aria-label="Loop" className="absolute inset-y-0 bg-surface-active flex items-center justify-center cursor-grab active:cursor-grabbing" onPointerDown={shift}>
-            <div ref={els.marks} className="flex gap-[3px]">
+            <div ref={els.marks} className="flex gap-0.5">
               {[0, 1, 2].map((i) => (
-                <span key={i} className="w-px h-2 bg-black/25" />
+                <span key={i} className="w-px h-2 bg-ink-25" />
               ))}
             </div>
           </div>
@@ -260,8 +264,8 @@ function useRender(model: Model, player: Player, els: Els, canvas: RefObject<HTM
         let lines = "";
         for (let t = Math.ceil(view.start / step) * step; t <= view.end; t += step) {
           const x = toPx(t);
-          lines += `<div class="absolute inset-y-0 w-px bg-border-solid" style="left:${x}px"></div>`;
-          labels += `<div class="absolute top-1/2 -translate-y-1/2 font-space-mono text-[10px] leading-none text-black/30 tabular-nums" style="left:${x + 4}px">${formatTick(t, step)}</div>`;
+          lines += `<div class="absolute inset-y-0 w-px bg-surface-input" style="left:${x}px"></div>`;
+          labels += `<div class="absolute top-1/2 -translate-y-1/2 font-space-mono text-[10px] leading-none text-ink-25 tabular-nums" style="left:${x + 4}px">${formatTick(t, step)}</div>`;
         }
         if (els.ticks.current) els.ticks.current.innerHTML = lines + labels;
         if (els.grid.current) els.grid.current.innerHTML = lines;
@@ -272,7 +276,10 @@ function useRender(model: Model, player: Player, els: Els, canvas: RefObject<HTM
         [els.startHandle, els.startLine].forEach((r) => place(r, from));
         [els.endHandle, els.endLine].forEach((r) => place(r, to));
       }
-      const x = toPx(player.position());
+      const position = player.position();
+      const time = formatTime(position);
+      if (els.time.current && els.time.current.textContent !== time) els.time.current.textContent = time;
+      const x = toPx(position);
       const visible = x >= 0 && x <= width;
       for (const r of [els.grip, els.line]) {
         place(r, x);

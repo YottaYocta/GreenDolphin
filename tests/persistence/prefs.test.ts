@@ -14,7 +14,7 @@ test("settings, loop, view and position are stored per recording", () => {
   persistence.saveRecordingPrefs("a", { pitch: 3, speed: 0.75, loop: { start: 1, end: 2 } });
   persistence.saveRecordingPrefs("b", { gain: 1.5, position: 42 });
   persistence.saveRecordingPrefs("a", { view: { start: 0, end: 5 } });
-  expect(persistence.recordingPrefs("a")).toEqual({ speed: 0.75, pitch: 3, gain: 1, loop: { start: 1, end: 2 }, view: { start: 0, end: 5 }, position: 0 });
+  expect(persistence.recordingPrefs("a")).toEqual({ speed: 0.75, pitch: 3, gain: 1, loop: { start: 1, end: 2 }, view: { start: 0, end: 5 }, position: 0, openedAt: 0 });
   expect(persistence.recordingPrefs("b")).toMatchObject({ speed: 1, pitch: 0, gain: 1.5, position: 42, loop: null });
   removeRecordingPrefs("a");
   expect(persistence.recordingPrefs("a").pitch).toBe(0);
@@ -43,4 +43,14 @@ test("last opened recording round-trips, including the library", () => {
 test("corrupt storage falls back to defaults", () => {
   localStorage.setItem("gd2:loop", "{not json");
   expect(persistence.loopPrefs().mode).toBe("automatic");
+});
+
+test("editor settings default sensibly, keep choices saved by older versions, and save changes", () => {
+  expect(persistence.editorSettings()).toEqual({ piano: false, inlineSound: false, playheadTime: true, awake: true, replay: true });
+  localStorage.setItem("gd2:flag:piano", JSON.stringify({ on: true }));
+  localStorage.setItem("gd2:flag:allowSleep", JSON.stringify({ on: true }));
+  localStorage.setItem("gd2:flag:noReplay", JSON.stringify({ on: true }));
+  expect(persistence.editorSettings()).toMatchObject({ piano: true, awake: false, replay: false });
+  persistence.saveEditorSettings({ awake: true, playheadTime: false });
+  expect(persistence.editorSettings()).toEqual({ piano: true, inlineSound: false, playheadTime: false, awake: true, replay: false });
 });

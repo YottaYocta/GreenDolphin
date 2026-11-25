@@ -1,21 +1,25 @@
-const NOTE_COLORS = ["#6366f1", "#8b5cf6", "#ec4899", "#f97316", "#eab308", "#22c55e", "#06b6d4", "#3b82f6", "#ef4444", "#14b8a6"];
+const NOTE_COUNT = 10;
 
 export function noteColor(name: string) {
   let h = 0;
   for (let i = 0; i < name.length; i++) h = (Math.imul(h, 31) + name.charCodeAt(i)) >>> 0;
-  return NOTE_COLORS[h % NOTE_COLORS.length];
+  return `var(--color-note-${h % NOTE_COUNT})`;
 }
 
 export const stripExt = (name: string) => name.replace(/\.\w{1,5}$/, "");
 
-export function relativeDate(ts: number, now = Date.now()) {
-  const days = Math.floor((now - ts) / 86_400_000);
-  if (days <= 0) return "Added today";
-  if (days === 1) return "Added yesterday";
-  if (days < 7) return `Added ${days} days ago`;
+export function relativeTime(ts: number, now = Date.now()) {
+  const minutes = Math.floor((now - ts) / 60_000);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hr ago`;
+  const days = Math.floor(hours / 24);
+  if (days === 1) return "yesterday";
+  if (days < 7) return `${days} days ago`;
   const weeks = Math.floor(days / 7);
-  if (weeks < 5) return weeks === 1 ? "Added 1 week ago" : `Added ${weeks} weeks ago`;
-  return `Added ${new Date(ts).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`;
+  if (weeks < 5) return weeks === 1 ? "a week ago" : `${weeks} weeks ago`;
+  return new Date(ts).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
 export const formatSize = (bytes: number) =>

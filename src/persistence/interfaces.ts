@@ -11,6 +11,7 @@ export interface RecordingPrefs {
   loop: Section | null;
   view: Section | null;
   position: RecordingSeconds;
+  openedAt: EpochMilliseconds;
 }
 
 export interface LoopPrefs {
@@ -19,7 +20,15 @@ export interface LoopPrefs {
   delayValue: number;
 }
 
-export type Flag = "demo" | "tutorial" | "allowSleep" | "piano" | "noReplay";
+export interface EditorSettings {
+  piano: boolean;
+  inlineSound: boolean;
+  playheadTime: boolean;
+  awake: boolean;
+  replay: boolean;
+}
+
+export type Flag = "demo" | "tutorial" | "sortByAdded";
 
 export type RecordingSource = { kind: "file"; size: number } | { kind: "youtube"; videoId: string };
 
@@ -36,6 +45,8 @@ export interface Persistence {
   loopPrefs(): LoopPrefs;
   saveLoopPrefs(patch: Partial<LoopPrefs>): void;
   toLoopMode(prefs: LoopPrefs, loopLength: DurationSeconds): LoopMode;
+  editorSettings(): EditorSettings;
+  saveEditorSettings(patch: Partial<EditorSettings>): void;
   flag(key: Flag): boolean;
   setFlag(key: Flag, on: boolean): void;
   lastOpened(): RecordingId | null;
