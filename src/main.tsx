@@ -7,7 +7,7 @@ import { persistence } from "./persistence";
 
 const DesignSystem = lazy(() => import("./ui/DesignSystem"));
 
-startAnalytics(!persistence.flag("noReplay"));
+startAnalytics(persistence.editorSettings().replay);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>{location.pathname === "/design" ? <DesignSystem /> : <App />}</StrictMode>,

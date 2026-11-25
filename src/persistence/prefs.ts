@@ -1,4 +1,4 @@
-import type { LoopPrefs, Persistence, RecordingId, RecordingPrefs } from "./interfaces";
+import type { EditorSettings, LoopPrefs, Persistence, RecordingId, RecordingPrefs } from "./interfaces";
 
 const DEFAULT_LOOP: LoopPrefs = { mode: "automatic", delayMode: "fixed", delayValue: 0 };
 
@@ -50,8 +50,13 @@ export const toLoopMode: Persistence["toLoopMode"] = (p, loopLength) =>
     ? { type: "manual" }
     : { type: "automatic", delay: p.delayMode === "fixed" ? p.delayValue : (p.delayValue / 100) * loopLength };
 
-export const flag: Persistence["flag"] = (key) => read(`flag:${key}`, { on: false }).on;
+const stored = (key: string) => read(`flag:${key}`, { on: false }).on;
+export const flag: Persistence["flag"] = stored;
 export const setFlag: Persistence["setFlag"] = (key, on) => write(`flag:${key}`, { on });
 
 export const lastOpened: Persistence["lastOpened"] = () => read<{ id: string | null }>("last", { id: null }).id;
 export const setLastOpened: Persistence["setLastOpened"] = (id) => write("last", { id });
+
+const legacyEditorSettings = (): EditorSettings => ({ piano: stored("piano"), inlineSound: false, playheadTime: true, awake: !stored("allowSleep"), replay: !stored("noReplay") });
+export const editorSettings: Persistence["editorSettings"] = () => read("editor", legacyEditorSettings());
+export const saveEditorSettings: Persistence["saveEditorSettings"] = (patch) => write("editor", { ...editorSettings(), ...patch });

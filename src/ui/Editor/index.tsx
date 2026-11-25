@@ -10,13 +10,13 @@ import { useKeepAwake } from "./keepAwake";
 import { Tutorial, type TutorialStep } from "./Tutorial";
 import { PianoRoll } from "./PianoRoll";
 import { restore, usePersistence, useSound, type SoundOutput } from "./session";
-import { GeneralSettings, LoopSettings, SoundSettings, type GeneralPrefs } from "./Controls/Settings";
+import { GeneralSettings, LoopSettings, SoundSettings } from "./Controls/Settings";
 import { Timeline, type TimelineProps } from "./Timeline";
 import { TitleBar } from "./TitleBar";
 import { audio, type AudioEngine, type Recording } from "../../audio";
 import { youtube } from "../../youtube";
 import { setReplay } from "../../analytics";
-import { persistence, type StoredRecording } from "../../persistence";
+import { persistence, type EditorSettings, type StoredRecording } from "../../persistence";
 
 const CARD = "flex flex-col rounded-xl overflow-hidden bg-white";
 const COLUMN = "flex flex-col gap-4 max-md:gap-2 min-h-0 has-[[data-fill]]:h-full";
@@ -49,7 +49,7 @@ function TimelineCard({ id, session, draw, showTime, children }: { id: StoredRec
   );
 }
 
-function Loaded({ recording, info, session, top, draw, engine, general }: { recording: StoredRecording; info: [string, string][]; session: Session; top?: ReactNode; draw?: TimelineProps["draw"]; engine?: AudioEngine; general: GeneralPrefs }) {
+function Loaded({ recording, info, session, top, draw, engine, editor, general }: { recording: StoredRecording; info: [string, string][]; session: Session; top?: ReactNode; draw?: TimelineProps["draw"]; engine?: AudioEngine; editor: EditorSettings; general: ReactNode }) {
   const { player, restored } = session;
   const youtube = recording.source.kind === "youtube";
   const [sound, setSound] = useSound(recording.id, restored.sound, session.output);
@@ -63,72 +63,42 @@ function Loaded({ recording, info, session, top, draw, engine, general }: { reco
           editor={
             <div className="flex flex-col gap-10">
               <LoopSettings player={player} />
-              <GeneralSettings {...general} />
+              {general}
             </div>
           }
         />
-        {engine && general.piano && <PianoRoll engine={engine} />}
+        {engine && editor.piano && <PianoRoll engine={engine} />}
         {top}
-        <TimelineCard id={recording.id} session={session} draw={draw} showTime={general.playheadTime}>
-          {general.inline && <div className="grid md:grid-flow-col md:auto-cols-fr gap-x-8 gap-y-2 shrink-0 pt-4 px-4">{settings}</div>}
+        <TimelineCard id={recording.id} session={session} draw={draw} showTime={editor.playheadTime}>
+          {editor.inlineSound && <div className="grid md:grid-flow-col md:auto-cols-fr gap-x-8 gap-y-2 shrink-0 pt-4 px-4">{settings}</div>}
         </TimelineCard>
       </div>
-      <Controls player={player} freeze={!youtube} settings={general.inline ? undefined : settings} />
+      <Controls player={player} freeze={!youtube} settings={editor.inlineSound ? undefined : settings} />
     </>
   );
 }
 
-function useEditorPrefs(hasPiano: boolean) {
-  const [piano, setPiano] = useState(() => persistence.flag("piano"));
-  const [inline, setInline] = useState(() => persistence.flag("inlineSound"));
-  const [playheadTime, setPlayheadTime] = useState(() => !persistence.flag("noPlayheadTime"));
-  const [awake, setAwake] = useState(() => !persistence.flag("allowSleep"));
-  useKeepAwake(awake);
-  const [replay, setReplayPref] = useState(() => !persistence.flag("noReplay"));
-  const [tutorialStep, setTutorialStep] = useState<number | null>(null);
-  const general: GeneralPrefs = {
-    piano: hasPiano && piano,
-    onPiano: hasPiano
-      ? (next) => {
-          setPiano(next);
-          persistence.setFlag("piano", next);
-        }
-      : undefined,
-    inline,
-    onInline(next) {
-      setInline(next);
-      persistence.setFlag("inlineSound", next);
-    },
-    playheadTime,
-    onPlayheadTime(next) {
-      setPlayheadTime(next);
-      persistence.setFlag("noPlayheadTime", !next);
-    },
-    awake,
-    onAwake(next) {
-      setAwake(next);
-      persistence.setFlag("allowSleep", !next);
-    },
-    replay,
-    onReplay(next) {
-      setReplayPref(next);
-      setReplay(next);
-      persistence.setFlag("noReplay", !next);
-    },
-    onTutorial: () => setTutorialStep(0),
+function useEditorSettings() {
+  const [editor, setEditor] = useState(persistence.editorSettings);
+  useKeepAwake(editor.awake);
+  const onEditor = (patch: Partial<EditorSettings>) => {
+    setEditor({ ...editor, ...patch });
+    persistence.saveEditorSettings(patch);
+    if (patch.replay !== undefined) setReplay(patch.replay);
   };
-  return { general, tutorialStep, setTutorialStep };
+  return { editor, onEditor };
 }
 
 function Layout(props: { recording: StoredRecording; info: [string, string][]; session: Session | null; top?: ReactNode; draw?: TimelineProps["draw"]; engine?: AudioEngine }) {
   const { recording, info, session, top, draw, engine } = props;
-  const { general, tutorialStep, setTutorialStep } = useEditorPrefs(!!engine);
+  const { editor, onEditor } = useEditorSettings();
+  const [tutorialStep, setTutorialStep] = useState<number | null>(null);
   return (
     <>
       <div className="h-dvh flex items-center justify-center">
         <div className="w-full max-w-220 h-full md:h-min p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:pt-6 max-md:pb-10">
           {session ? (
-            <Loaded recording={recording} info={info} session={session} top={top} draw={draw} engine={engine} general={general} />
+            <Loaded recording={recording} info={info} session={session} top={top} draw={draw} engine={engine} editor={editor} general={<GeneralSettings editor={editor} onEditor={onEditor} hasPiano={!!engine} onTutorial={() => setTutorialStep(0)} />} />
           ) : (
             <div className={COLUMN}>
               <TitleBar recording={recording} info={info} />
