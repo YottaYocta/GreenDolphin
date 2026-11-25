@@ -11,9 +11,9 @@ export function Dialog({ title, open, onOpenChange, children }: { title: string;
     <BaseDialog.Root open={open} onOpenChange={onOpenChange}>
       <BaseDialog.Portal>
         <BaseDialog.Backdrop className="fixed inset-0 bg-black/20 z-40" />
-        <BaseDialog.Popup className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-84 max-w-[calc(100vw-2rem)] rounded-xl bg-white shadow-dialog flex flex-col outline-none">
+        <BaseDialog.Popup className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-84 max-w-[calc(100vw-2rem)] rounded-xl bg-white shadow-dialog outline-none">
           <div className="flex items-center justify-center h-12 px-8 rounded-t-xl bg-surface-track relative">
-            <BaseDialog.Title className="font-inria text-black/40 text-lg/6">{title}</BaseDialog.Title>
+            <BaseDialog.Title className="text-black/40 text-lg/6">{title}</BaseDialog.Title>
             <BaseDialog.Close aria-label="Close" className="btn-surface bg-transparent size-8 absolute right-2 outline-none">
               <XIcon size={16} weight="bold" className="opacity-40" />
             </BaseDialog.Close>
@@ -34,7 +34,7 @@ export function ModeToggle<T extends string>({ options, value, onChange }: { opt
           role="radio"
           aria-checked={value === o.value}
           onClick={() => onChange(o.value)}
-          className={`flex-1 rounded-md px-2 py-1 font-inria text-sm/4.5 cursor-pointer ${value === o.value ? "bg-white text-black" : "text-black/40 hover:text-black/70"}`}
+          className={`flex-1 rounded-md px-2 py-1 text-sm/4.5 cursor-pointer ${value === o.value ? "bg-white text-black" : "text-black/40 hover:text-black/70"}`}
         >
           {o.label}
         </button>
@@ -91,8 +91,8 @@ export function Slider({ label, value, min, max, step, defaultValue, display, pa
     set(min + clamp((x - r.left) / r.width, 0, 1) * (max - min));
   };
   return (
-    <div className="flex flex-col self-stretch">
-      <div className="font-inria text-black/50 text-sm flex items-center gap-1.5 h-5">
+    <div>
+      <div className="text-black/50 text-sm flex items-center gap-1.5 h-5">
         {label}
         {value !== defaultValue && (
           <button aria-label={`Reset ${label}`} onClick={() => onChange(defaultValue)} className="size-5 rounded-sm text-black/40 hover:text-black/70 hover:bg-black/5 flex items-center justify-center cursor-pointer">
@@ -124,16 +124,18 @@ export function Slider({ label, value, min, max, step, defaultValue, display, pa
 
 export function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (checked: boolean) => void }) {
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-label={label}
-      aria-checked={checked}
-      onClick={() => onChange(!checked)}
-      className={`flex items-center shrink-0 w-9 h-5 p-0.5 rounded-full cursor-pointer outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-play/50 focus-visible:ring-offset-2 motion-reduce:transition-none ${checked ? "bg-play" : "bg-black/15 hover:bg-black/25"}`}
-    >
-      <span className={`size-4 rounded-full bg-white transition-transform duration-150 ease-out motion-reduce:transition-none ${checked ? "translate-x-4" : "translate-x-0"}`} />
-    </button>
+    <label className="flex items-center justify-between gap-4 text-sm text-black/50">
+      {label}
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        className={`flex items-center shrink-0 w-9 h-5 p-0.5 rounded-full cursor-pointer outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-play/50 focus-visible:ring-offset-2 motion-reduce:transition-none ${checked ? "bg-play" : "bg-black/15 hover:bg-black/25"}`}
+      >
+        <span className={`size-4 rounded-full bg-white transition-transform duration-150 ease-out motion-reduce:transition-none ${checked ? "translate-x-4" : "translate-x-0"}`} />
+      </button>
+    </label>
   );
 }
 

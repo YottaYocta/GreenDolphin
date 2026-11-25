@@ -50,7 +50,7 @@ export function Controls({ player, freeze, settings }: { player: Player; freeze:
   const playColor = playState === "waiting" ? `bg-waiting hover:bg-waiting-hover active:bg-waiting-active` : playState === "playing" ? `bg-play hover:bg-play-hover active:bg-play-active` : "bg-white";
 
   return (
-    <div className="grid gap-4 w-full h-min max-md:flex-1 max-md:grid-cols-2 max-md:grid-rows-2 grid-cols-4">
+    <div className="grid gap-4 h-min max-md:flex-1 max-md:grid-cols-2 max-md:grid-rows-2 grid-cols-4">
       <button aria-label={playState === "playing" ? "Pause" : "Play"} data-state={playState} onClick={togglePlay} className={`${BTN} ${playColor}`}>
         <span className="size-10 flex items-center justify-center">
           {playState === "playing" ? (

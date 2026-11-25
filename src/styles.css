@@ -8,6 +8,7 @@ html, body {
 #root { isolation: isolate; }
 
 @theme {
+  --font-sans: 'Inria Sans', system-ui, sans-serif;
   --color-neutral-2: #c7c7c7;
 
   --color-page-bg: #F8F8F8;
@@ -47,10 +48,6 @@ html, body {
   &:active {
     background-color: var(--color-surface-input);
   }
-}
-
-@utility font-inria {
-  font-family: 'Inria Sans', system-ui, sans-serif;
 }
 
 @utility font-space-mono {

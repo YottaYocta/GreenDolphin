@@ -94,32 +94,26 @@ function Layout(props: { recording: StoredRecording; info: [string, string][]; s
   const { general, tutorialStep, setTutorialStep } = useEditorPrefs(!!engine);
   return (
     <>
-      <div className="w-full h-dvh flex flex-col">
-        <div className="flex-1 min-h-0 flex items-center justify-center">
-          <div className="w-full max-w-220 h-full md:h-min min-h-0 p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:pt-6 max-md:pb-10">
-            <div className="flex flex-col gap-4 max-md:gap-2 min-h-0 has-[[data-fill]]:h-full">
-              <TitleBar
-                recording={recording}
-                info={info}
-                editor={
-                  session && (
-                    <div className="flex flex-col gap-10">
-                      <LoopSettings player={session.player} />
-                      <GeneralSettings {...general} />
-                    </div>
-                  )
-                }
-              />
-              {engine && general.piano && (
-                <div className={`${CARD} shrink-0`}>
-                  <PianoRoll engine={engine} />
-                </div>
-              )}
-              {top}
-              {session ? <TimelineCard id={recording.id} player={session.player} restored={session.restored} draw={draw} /> : <div data-fill className={`${CARD} flex-1 min-h-0 md:min-h-72`} />}
-            </div>
-            {session && <EditorControls id={recording.id} session={session} youtube={youtube} />}
+      <div className="h-dvh flex items-center justify-center">
+        <div className="w-full max-w-220 h-full md:h-min p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:pt-6 max-md:pb-10">
+          <div className="flex flex-col gap-4 max-md:gap-2 min-h-0 has-[[data-fill]]:h-full">
+            <TitleBar
+              recording={recording}
+              info={info}
+              editor={
+                session && (
+                  <div className="flex flex-col gap-10">
+                    <LoopSettings player={session.player} />
+                    <GeneralSettings {...general} />
+                  </div>
+                )
+              }
+            />
+            {engine && general.piano && <PianoRoll engine={engine} />}
+            {top}
+            {session ? <TimelineCard id={recording.id} player={session.player} restored={session.restored} draw={draw} /> : <div data-fill className={`${CARD} flex-1 min-h-0 md:min-h-72`} />}
           </div>
+          {session && <EditorControls id={recording.id} session={session} youtube={youtube} />}
         </div>
       </div>
       {session && <Tutorial steps={youtube ? VIDEO_STEPS : AUDIO_STEPS} step={tutorialStep} setStep={setTutorialStep} />}
@@ -194,11 +188,9 @@ export function YouTubeEditor({ recording, videoId }: { recording: StoredRecordi
   ];
   return (
     <>
-      <div className="absolute size-0 overflow-hidden">
-        <div ref={host} className="w-80 h-45 [&_iframe]:w-full [&_iframe]:h-full" />
-      </div>
+      <div ref={host} className="absolute size-0 overflow-hidden [&_iframe]:w-80 [&_iframe]:h-45" />
       {session || error !== null ? (
-        <Layout recording={recording} info={info} session={session} top={error !== null && <p className={`${CARD} p-4 shrink-0 text-sm text-red-600/80 font-inria`}>{error}</p>} youtube />
+        <Layout recording={recording} info={info} session={session} top={error !== null && <p className={`${CARD} p-4 shrink-0 text-sm text-red-600/80`}>{error}</p>} youtube />
       ) : (
         <Loading />
       )}

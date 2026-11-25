@@ -20,7 +20,7 @@ const WHEEL_SETTLE_MS = 250;
 const DOUBLE_TAP_MS = 300;
 const DOUBLE_TAP_PX = 24;
 const KEY_STEP = 0.1;
-const ROW = "relative h-7 shrink-0 bg-surface rounded-lg overflow-hidden px-4";
+const ROW = "h-7 shrink-0 bg-surface rounded-lg overflow-hidden px-4";
 
 const Triangle: FC<{ points: string; fill: string }> = ({ points, fill }) => (
   <svg width="16" height="22" viewBox="0 0 16 22" className="block">
@@ -91,10 +91,12 @@ export function Timeline(props: TimelineProps) {
   useRender(model, player, els, canvas, content, draw);
 
   const handle = (side: "start" | "end") => (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (!e.isPrimary) return;
     model.lift();
     drag(e, (x) => model.setLoop(resizeLoop(model.m.loop, side, clamp(model.fraction(x), 0, 1))), () => model.commit());
   };
   const shift = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (!e.isPrimary) return;
     const from = model.m.loop;
     model.lift();
     drag(e, (_, dx) => model.setLoop(shiftLoop(from, dx / model.width())), () => model.commit());
@@ -117,15 +119,15 @@ export function Timeline(props: TimelineProps) {
   };
 
   const loopHandle = (ref: RefObject<HTMLDivElement | null>, side: "start" | "end") => (
-    <div ref={ref} data-control aria-label={`Loop ${side}`} className="absolute bottom-0 -translate-x-1/2 z-10 flex items-end justify-center w-9 h-full cursor-ew-resize touch-none" onPointerDown={handle(side)}>
+    <div ref={ref} data-control aria-label={`Loop ${side}`} className="absolute bottom-0 -translate-x-1/2 z-10 flex items-end justify-center w-9 h-full cursor-ew-resize" onPointerDown={handle(side)}>
       <Triangle points="8,0 16,22 0,22" fill="var(--color-neutral-2)" />
     </div>
   );
 
   return (
-    <div ref={root} className="relative flex flex-col w-full flex-1 min-h-0 select-none touch-none">
-      <div id="timeline-ruler" data-control className={`${ROW} cursor-ew-resize touch-none`} onPointerDown={scrub}>
-        <div className="relative w-full h-full">
+    <div ref={root} className="flex flex-col flex-1 min-h-0 select-none touch-none">
+      <div id="timeline-ruler" data-control className={`${ROW} cursor-ew-resize`} onPointerDown={scrub}>
+        <div className="relative h-full">
           <div ref={els.ticks} className="absolute inset-0 pointer-events-none" />
           <div ref={els.grip} aria-label="Playhead" className="absolute top-0 -translate-x-1/2 z-10 flex justify-center w-9 h-7">
             <Triangle points="0,0 16,0 8,22" fill="var(--color-play)" />
@@ -141,8 +143,8 @@ export function Timeline(props: TimelineProps) {
         </div>
       </div>
       <div id="timeline-loop" className={ROW}>
-        <div className="relative w-full h-full" onPointerDown={resetOnDoubleTap}>
-          <div ref={els.shade} data-control aria-label="Loop" className="absolute inset-y-0 bg-surface-active flex items-center justify-center cursor-grab active:cursor-grabbing touch-none" onPointerDown={shift}>
+        <div className="relative h-full" onPointerDown={resetOnDoubleTap}>
+          <div ref={els.shade} data-control aria-label="Loop" className="absolute inset-y-0 bg-surface-active flex items-center justify-center cursor-grab active:cursor-grabbing" onPointerDown={shift}>
             <div ref={els.marks} className="flex gap-[3px]">
               {[0, 1, 2].map((i) => (
                 <span key={i} className="w-px h-2 bg-black/25" />

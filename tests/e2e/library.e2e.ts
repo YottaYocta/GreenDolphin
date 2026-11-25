@@ -114,19 +114,19 @@ test("relative loop delay is converted to seconds from the loop length", async (
 test("Home returns to the library, and launch then stays there", async ({ page }) => {
   await openDemo(page);
   await page.getByRole("button", { name: "Home" }).click();
-  await expect(page.getByRole("region", { name: "My Recordings" })).toBeVisible();
+  await expect(page.getByRole("list", { name: "My Recordings" })).toBeVisible();
   await page.reload();
-  await expect(page.getByRole("region", { name: "My Recordings" })).toBeVisible();
+  await expect(page.getByRole("list", { name: "My Recordings" })).toBeVisible();
 });
 
 test("deleting asks first and removes the recording", async ({ page }) => {
   await openDemo(page);
   await upload(page, "doomed.wav");
   await page.getByRole("button", { name: "File", exact: true }).click();
-  await page.getByRole("button", { name: "Delete recording" }).click();
-  await page.getByRole("button", { name: "Cancel" }).click();
-  await page.getByRole("button", { name: "Delete recording" }).click();
-  await page.getByRole("button", { name: "Delete", exact: true }).click();
+  await page.getByRole("button", { name: "Delete" }).click();
+  await page.getByRole("button", { name: "No", exact: true }).click();
+  await page.getByRole("button", { name: "Delete" }).click();
+  await page.getByRole("button", { name: "Yes, I'm sure" }).click();
   await expect(page.getByRole("button", { name: `Open ${DEMO}.mp3` })).toBeVisible();
   await expect(page.getByText("doomed")).toBeHidden();
 });

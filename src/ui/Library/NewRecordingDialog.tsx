@@ -30,7 +30,7 @@ export function NewRecordingDialog({ open, onOpenChange }: { open: boolean; onOp
   return (
     <Dialog title="New Recording" open={open} onOpenChange={onOpenChange}>
       <div className="flex flex-col gap-4">
-        <button onClick={() => input.current?.click()} className="btn-surface rounded-lg gap-2 h-12 w-full">
+        <button onClick={() => input.current?.click()} className="btn-surface rounded-lg gap-2 h-12">
           <MusicNotesPlusIcon size={20} weight="fill" className="opacity-50" />
           <span className="opacity-40">Upload Audio File</span>
         </button>
@@ -48,7 +48,7 @@ export function NewRecordingDialog({ open, onOpenChange }: { open: boolean; onOp
             void add(file);
           }}
         />
-        <p className="text-center text-sm text-black/30 font-inria">or</p>
+        <p className="text-center text-sm text-black/30">or</p>
         <input
           type="url"
           aria-label="YouTube link"
@@ -61,8 +61,8 @@ export function NewRecordingDialog({ open, onOpenChange }: { open: boolean; onOp
           placeholder="https://www.youtube.com/watch?v=…"
           className="rounded-lg bg-surface-input h-12 px-3 font-space-mono text-sm/5 text-black/60 outline-none placeholder:text-black/25"
         />
-        {error && <p className="text-sm text-red-600/80 font-inria">{error}</p>}
-        <button onClick={() => void submit()} disabled={busy || !link.trim()} className="btn-surface rounded-lg gap-2 h-12 w-full disabled:opacity-60 disabled:cursor-not-allowed">
+        {error && <p className="text-sm text-red-600/80">{error}</p>}
+        <button onClick={() => void submit()} disabled={busy || !link.trim()} className="btn-surface rounded-lg gap-2 h-12 disabled:opacity-60 disabled:cursor-not-allowed">
           {busy ? <SpinnerIcon size={20} className="animate-spin opacity-40" /> : <YoutubeLogoIcon size={20} weight="fill" className="opacity-50" />}
           <span className="opacity-40">{busy ? "Adding…" : "Add Video"}</span>
         </button>

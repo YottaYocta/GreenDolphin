@@ -11,11 +11,11 @@ const GHOST = "flex items-center gap-2 h-12 rounded-lg cursor-pointer hover:bg-b
 const ACTION = "justify-center shrink-0 size-12 md:w-auto md:px-3";
 const ITEM = "flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-surface active:bg-surface-track";
 
-function Action({ label, icon: Icon, text, onClick }: { label: string; icon: typeof FileIcon; text: string; onClick: () => void }) {
+function Action({ label, icon: Icon, size = 16, text, onClick }: { label: string; icon: typeof FileIcon; size?: number; text: string; onClick: () => void }) {
   return (
     <button aria-label={label} onClick={onClick} className={`${GHOST} ${ACTION}`}>
-      <Icon size={16} weight="fill" className="opacity-50" />
-      <span className="opacity-40 font-inria max-md:hidden">{text}</span>
+      <Icon size={size} weight="fill" className="opacity-40" />
+      <span className="opacity-40 max-md:hidden">{text}</span>
     </button>
   );
 }
@@ -35,23 +35,23 @@ export function TitleBar({ recording, info, editor }: { recording: StoredRecordi
         <Menu.Root>
           <Menu.Trigger aria-label="Switch recording" className={`group ${GHOST} min-w-0 px-3 data-popup-open:bg-black/5`}>
             <CaretRightIcon size={14} weight="bold" className="opacity-50 shrink-0 transition-transform group-data-popup-open:rotate-90" />
-            <span className="opacity-40 font-inria truncate">{stripExt(recording.title)}</span>
+            <span className="opacity-40 truncate">{stripExt(recording.title)}</span>
           </Menu.Trigger>
           <Menu.Portal>
             <Menu.Positioner side="bottom" align="start" sideOffset={8}>
               <Menu.Popup className="z-50 w-80 max-w-[calc(100vw-2rem)] rounded-xl bg-white shadow-menu overflow-hidden flex flex-col outline-none">
                 <div className="overflow-y-auto max-h-72 flex flex-col">
-                  {others.length === 0 && <div className="p-4 font-inria text-black/50 text-sm text-center">No other recordings</div>}
+                  {others.length === 0 && <div className="p-4 text-black/50 text-sm text-center">No other recordings</div>}
                   {others.map((other) => (
                     <Menu.Item key={other.id} className={ITEM} onClick={() => open(other.id)}>
                       <RecordingIcon recording={other} size={18} />
-                      <span className="flex-1 min-w-0 font-inria truncate">{stripExt(other.title)}</span>
+                      <span className="flex-1 min-w-0 truncate">{stripExt(other.title)}</span>
                     </Menu.Item>
                   ))}
                 </div>
                 <Menu.Item className={`${ITEM} bg-surface-track`} onClick={() => setAdding(true)}>
                   <MusicNotesPlusIcon size={18} weight="fill" className="opacity-50" />
-                  <span className="font-inria">New Recording</span>
+                  <span>New Recording</span>
                 </Menu.Item>
               </Menu.Popup>
             </Menu.Positioner>
@@ -60,7 +60,7 @@ export function TitleBar({ recording, info, editor }: { recording: StoredRecordi
         <Action label="File" icon={FileIcon} text="File" onClick={() => setShowInfo(true)} />
       </div>
       {editor && <Action label="Editor settings" icon={GearSixIcon} text="Editor" onClick={() => setShowEditor(true)} />}
-      <Action label="Home" icon={HouseIcon} text="Home" onClick={home} />
+      <Action label="Home" icon={HouseIcon} size={14} text="Home" onClick={home} />
       <NewRecordingDialog open={adding} onOpenChange={setAdding} />
       <Dialog title="Editor" open={showEditor} onOpenChange={setShowEditor}>
         {editor}
@@ -73,21 +73,21 @@ export function TitleBar({ recording, info, editor }: { recording: StoredRecordi
           setConfirming(false);
         }}
       >
-        <p className="font-inria text-lg pb-6 break-words">{stripExt(recording.title)}</p>
+        <p className="text-lg pb-6 break-words">{stripExt(recording.title)}</p>
         <dl className="grid grid-cols-2 gap-6">
           {details.map(([label, value]) => (
             <div key={label} className="flex flex-col gap-1">
-              <dt className="font-inria text-black/40 text-sm">{label}</dt>
+              <dt className="text-black/40 text-sm">{label}</dt>
               <dd className="font-space-mono text-black/90 break-all">{value}</dd>
             </div>
           ))}
         </dl>
-        {confirming && <p className="font-inria text-black/70 pt-6">Delete this recording? Its loop and settings go with it.</p>}
-        <div className="flex gap-3 pt-6 font-inria">
+        {confirming && <p className="text-black/70 pt-6">Are you sure?</p>}
+        <div className="flex gap-3 pt-6">
           {confirming ? (
             <>
               <button onClick={() => setConfirming(false)} className="btn-surface flex-1 h-10 rounded-lg">
-                Cancel
+                No
               </button>
               <button
                 onClick={() => {
@@ -96,12 +96,12 @@ export function TitleBar({ recording, info, editor }: { recording: StoredRecordi
                 }}
                 className="flex-1 h-10 rounded-lg bg-red-500 text-white hover:bg-red-600 cursor-pointer"
               >
-                Delete
+                Yes, I'm sure
               </button>
             </>
           ) : (
             <button onClick={() => setConfirming(true)} className="btn-surface flex-1 h-10 rounded-lg text-red-600/80">
-              Delete recording
+              Delete
             </button>
           )}
         </div>

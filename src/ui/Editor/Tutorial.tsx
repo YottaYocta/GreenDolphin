@@ -27,14 +27,14 @@ export function Tutorial({ steps, step, setStep }: { steps: TutorialStep[]; step
         <BaseDialog.Portal>
           <BaseDialog.Backdrop className="fixed inset-0 bg-black/20 z-40" />
           <BaseDialog.Popup className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-84 rounded-xl bg-white shadow-dialog flex flex-col gap-6 p-6 outline-none">
-            <BaseDialog.Title className="font-inria text-black/60 text-center">
+            <BaseDialog.Title className="text-black/60 text-center">
               Welcome to GreenDolphin!
               <br />
               Would you like a tutorial?
             </BaseDialog.Title>
             <div className="flex justify-center gap-4">
-              <button onClick={finish} className={BTN}>
-                <span className="opacity-40">Maybe later</span>
+              <button onClick={finish} className={`${BTN} text-black/40`}>
+                Maybe later
               </button>
               <button onClick={() => setStep(0)} className={PRIMARY}>
                 Yes
@@ -69,8 +69,8 @@ function Walkthrough({ steps, step, onStep }: { steps: TutorialStep[]; step: num
   const left = clamp(rect.left + rect.width / 2 - width / 2, EDGE, window.innerWidth - EDGE - width);
   return (
     <div className="border-4 border-emerald-500 rounded-sm fixed z-50 pointer-events-none" style={{ left: rect.left - 8, top: rect.top - 8, width: rect.width + 16, height: rect.height + 16 }}>
-      <div style={{ left: left - rect.left + 4, width }} className={`absolute flex flex-col rounded-xl bg-white shadow-menu pointer-events-auto ${below ? "top-full mt-4" : "bottom-full mb-4"}`}>
-        <p className="p-4 font-inria">{text}</p>
+      <div style={{ left: left - rect.left + 4, width }} className={`absolute rounded-xl bg-white shadow-menu pointer-events-auto ${below ? "top-full mt-4" : "bottom-full mb-4"}`}>
+        <p className="p-4">{text}</p>
         <div className="flex items-center justify-between gap-2 p-2">
           <button onClick={() => onStep(-1)} className={BTN}>
             Skip

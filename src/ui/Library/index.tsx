@@ -9,7 +9,7 @@ export function Library() {
   const [adding, setAdding] = useState(false);
 
   return (
-    <main className="flex flex-col items-center px-4 py-8 h-dvh overflow-hidden font-inria text-base/5">
+    <main className="flex flex-col items-center px-4 py-8 h-dvh overflow-hidden text-base/5">
       <div className="flex flex-col items-center justify-center gap-5 w-full max-w-2xl flex-1 min-h-0 md:py-24 md:pb-48">
         <header className="flex max-md:flex-col max-md:items-start items-center gap-4 self-stretch py-4 max-md:flex-1">
           <img src="/favicon/favicon.svg" alt="" className="w-13 rounded-[9px] bg-white" />
@@ -23,20 +23,18 @@ export function Library() {
           <MusicNotesPlusIcon size={20} weight="fill" className="opacity-50" />
           <span className="opacity-40">Load recording</span>
         </button>
-        <section aria-label="My Recordings" className="flex flex-col rounded-lg overflow-hidden self-stretch bg-white min-h-0 max-md:flex-3">
-          <ul className="flex-1 min-h-0 overflow-y-auto scrollbar-slim">
-            {recordings.length === 0 && <li className="px-6 py-8 text-center text-black/50 text-sm">No recordings yet. Upload a file to get started.</li>}
-            {recordings.map((recording) => (
-              <li key={recording.id}>
-                <button aria-label={`Open ${recording.title}`} onClick={() => open(recording.id)} className="flex items-center gap-4 w-full p-4 md:py-3 text-left cursor-pointer hover:bg-surface active:bg-surface-track">
-                  <RecordingIcon recording={recording} />
-                  <span className="flex-1 min-w-0 truncate">{stripExt(recording.title)}</span>
-                  <span className="shrink-0 opacity-40 text-sm">{relativeDate(recording.addedAt)}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </section>
+        <ul aria-label="My Recordings" className="rounded-lg self-stretch bg-white min-h-0 max-md:flex-3 overflow-y-auto scrollbar-slim">
+          {recordings.length === 0 && <li className="px-6 py-8 text-center text-black/50 text-sm">No recordings yet. Upload a file to get started.</li>}
+          {recordings.map((recording) => (
+            <li key={recording.id}>
+              <button aria-label={`Open ${recording.title}`} onClick={() => open(recording.id)} className="flex items-center gap-4 w-full p-4 md:py-3 text-left cursor-pointer hover:bg-surface active:bg-surface-track">
+                <RecordingIcon recording={recording} />
+                <span className="flex-1 min-w-0 truncate">{stripExt(recording.title)}</span>
+                <span className="shrink-0 opacity-40 text-sm">{relativeDate(recording.addedAt)}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
       </div>
       <NewRecordingDialog open={adding} onOpenChange={setAdding} />
     </main>
