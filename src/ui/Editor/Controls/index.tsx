@@ -24,7 +24,7 @@ function useCountdown(player: Player, waitingUntil: number | null) {
   return left;
 }
 
-export function Controls({ player, freeze, settings }: { player: Player; freeze: boolean; settings: ReactNode }) {
+export function Controls({ player, freeze, settings }: { player: Player; freeze: boolean; settings?: ReactNode }) {
   const { playState, waitingUntil } = usePlayer(player);
   const [open, setOpen] = useState(false);
   const countdown = useCountdown(player, waitingUntil);
@@ -42,16 +42,18 @@ export function Controls({ player, freeze, settings }: { player: Player; freeze:
     "0": () => player.dispatch({ type: "move", position: 0 }),
   });
 
+  const paired = freeze && !!settings;
+  const few = !freeze && !settings;
   const nav = (Icon: typeof SkipBackIcon, seconds: DurationSeconds, label: string) => (
     <button aria-label={label} onClick={() => nudge(seconds)} className={PLAIN}>
-      <Icon size={freeze ? 28 : 32} weight="fill" className="opacity-65 shrink-0" />
+      <Icon size={paired ? 28 : 32} weight="fill" className="opacity-65 shrink-0" />
     </button>
   );
   const playColor = playState === "waiting" ? `bg-waiting hover:bg-waiting-hover active:bg-waiting-active` : playState === "playing" ? `bg-play hover:bg-play-hover active:bg-play-active` : "bg-white";
 
   return (
-    <div className="grid gap-4 h-min max-md:flex-1 max-md:grid-cols-2 max-md:grid-rows-2 grid-cols-4">
-      <button aria-label={playState === "playing" ? "Pause" : "Play"} data-state={playState} onClick={togglePlay} className={`${BTN} ${playColor}`}>
+    <div className={`grid gap-4 h-min max-md:flex-1 max-md:grid-cols-2 max-md:grid-rows-2 ${few ? "grid-cols-3" : "grid-cols-4"}`}>
+      <button aria-label={playState === "playing" ? "Pause" : "Play"} data-state={playState} onClick={togglePlay} className={`${BTN} ${playColor} ${few ? "max-md:col-span-2" : ""}`}>
         <span className="size-10 flex items-center justify-center">
           {playState === "playing" ? (
             <PauseIcon size={36} weight="fill" color="white" />
@@ -67,13 +69,15 @@ export function Controls({ player, freeze, settings }: { player: Player; freeze:
           <SnowflakeIcon size={40} weight="fill" color={playState === "frozen" ? "white" : "var(--color-freeze)"} />
         </button>
       )}
-      <button aria-label="Playback settings" onClick={() => setOpen(true)} className={PLAIN}>
-        <SlidersIcon size={32} weight="fill" className="opacity-55" />
-      </button>
+      {settings && (
+        <button aria-label="Playback settings" onClick={() => setOpen(true)} className={PLAIN}>
+          <SlidersIcon size={32} weight="fill" className="opacity-55" />
+        </button>
+      )}
       <Dialog title="Playback" open={open} onOpenChange={setOpen}>
         <div className="flex flex-col gap-6 pb-4">{settings}</div>
       </Dialog>
-      <div className={freeze ? "grid grid-cols-2 gap-4 min-h-0" : "contents"}>
+      <div className={paired ? "grid grid-cols-2 gap-4 min-h-0" : "contents"}>
         {nav(SkipBackIcon, -5, "Back 5 seconds")}
         {nav(SkipForwardIcon, 5, "Forward 5 seconds")}
       </div>

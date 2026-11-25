@@ -266,3 +266,13 @@ test("piano keys play a tone at the key's pitch", async ({ page }) => {
   await page.mouse.up();
   expectNear(peakHz, 440, 10);
 });
+
+test("sound controls can sit under the timeline instead of in a dialog", async ({ page }) => {
+  await page.getByRole("button", { name: "Editor settings" }).click();
+  await page.getByRole("switch", { name: "Show sound controls" }).click();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("slider", { name: "Speed" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Playback settings" })).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole("slider", { name: "Speed" })).toBeVisible();
+});
