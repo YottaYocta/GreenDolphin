@@ -143,7 +143,7 @@ test("the list sorts by last opened or by date added", async ({ page }) => {
   await page.getByRole("button", { name: "Last opened" }).click();
   await expect(first).toHaveAccessibleName("Open newer.wav");
   await page.reload();
-  await expect(page.getByRole("button", { name: "Date added" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Last added" })).toBeVisible();
 });
 
 test("a bad YouTube link is reported without leaving the dialog", async ({ page }) => {

@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { formatTime, relativeDate, stripExt } from "../../../src/ui/shared/format";
+import { formatTime, relativeTime, stripExt } from "../../../src/ui/shared/format";
 import { formatTick, tickStep } from "../../../src/ui/Editor/Timeline/ticks";
 import { youtube } from "../../../src/youtube";
 
@@ -22,5 +22,5 @@ test("formatting", () => {
   expect(formatTick(65.25, 0.25)).toBe("1:05.3");
   expect(formatTick(59.96, 0.1)).toBe("1:00.0");
   expect(tickStep(60, 600)).toBe(15);
-  expect(relativeDate(0, 86_400_000 * 3)).toBe("Added 3 days ago");
+  expect(relativeTime(0, 86_400_000 * 3)).toBe("3 days ago");
 });
