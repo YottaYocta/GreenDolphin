@@ -48,11 +48,7 @@ export function NewRecordingDialog({ open, onOpenChange }: { open: boolean; onOp
             void add(file);
           }}
         />
-        <div className="flex items-center gap-3 text-sm text-black/30 font-inria">
-          <div className="flex-1 h-px bg-border" />
-          or
-          <div className="flex-1 h-px bg-border" />
-        </div>
+        <p className="text-center text-sm text-black/30 font-inria">or</p>
         <input
           type="url"
           aria-label="YouTube link"

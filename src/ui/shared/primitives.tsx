@@ -12,9 +12,9 @@ export function Dialog({ title, open, onOpenChange, children }: { title: string;
       <BaseDialog.Portal>
         <BaseDialog.Backdrop className="fixed inset-0 bg-black/20 z-40" />
         <BaseDialog.Popup className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-84 max-w-[calc(100vw-2rem)] rounded-xl bg-white [box-shadow:var(--shadow-dialog)] flex flex-col outline-none">
-          <div className="flex items-center justify-center h-12 px-8 border-b border-border relative">
+          <div className="flex items-center justify-center h-12 px-8 rounded-t-xl bg-surface-track relative">
             <BaseDialog.Title className="font-inria text-black/40 text-lg/6">{title}</BaseDialog.Title>
-            <BaseDialog.Close aria-label="Close" className="btn-surface size-8 absolute right-2 outline-none">
+            <BaseDialog.Close aria-label="Close" className="btn-surface bg-transparent size-8 absolute right-2 outline-none">
               <XIcon size={16} weight="bold" className="opacity-40" />
             </BaseDialog.Close>
           </div>

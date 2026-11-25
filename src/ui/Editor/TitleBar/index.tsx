@@ -24,7 +24,7 @@ export function TitleBar({ recording, info, editor }: { recording: StoredRecordi
     <div className="flex items-center gap-2 h-12 shrink-0">
       <div className="flex items-center gap-1 min-w-0 flex-1">
         <Menu.Root>
-          <Menu.Trigger aria-label="Switch recording" className={`group ${TEXT_BUTTON} gap-2 h-12 min-w-0 pl-3`}>
+          <Menu.Trigger aria-label="Switch recording" className={`group ${TEXT_BUTTON} gap-2 h-12 min-w-0 pl-3 text-black/40`}>
             <CaretRightIcon size={14} weight="bold" className="opacity-50 shrink-0 transition-transform group-data-popup-open:rotate-90" />
             <span className="font-inria truncate">{stripExt(recording.title)}</span>
           </Menu.Trigger>
@@ -40,7 +40,7 @@ export function TitleBar({ recording, info, editor }: { recording: StoredRecordi
                     </Menu.Item>
                   ))}
                 </div>
-                <Menu.Item className={`${ITEM} border-t border-border`} onClick={() => setAdding(true)}>
+                <Menu.Item className={`${ITEM} bg-surface-track`} onClick={() => setAdding(true)}>
                   <MusicNotesPlusIcon size={18} weight="fill" className="opacity-50" />
                   <span className="font-inria">New Recording</span>
                 </Menu.Item>
