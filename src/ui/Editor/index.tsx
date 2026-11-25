@@ -1,3 +1,4 @@
+import { SpinnerIcon } from "@phosphor-icons/react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { buildPeaks, drawWaveform, type Peaks } from "./Timeline/Waveform/peaks";
 import { formatSize, formatTime } from "../shared/format";
@@ -188,18 +189,22 @@ export function YouTubeEditor({ recording, videoId }: { recording: StoredRecordi
     };
   }, [recording.id, videoId]);
 
-  const video = (
-    <>
-      <div className="absolute size-0 overflow-hidden">
-        <div ref={host} className="w-80 h-45 [&_iframe]:w-full [&_iframe]:h-full" />
-      </div>
-      {error !== null && <p className={`${CARD} p-4 shrink-0 text-sm text-red-600/80 font-inria`}>{error}</p>}
-      {!session && error === null && <p className={`${CARD} p-4 shrink-0 text-sm text-black/40 font-inria`}>Loading video…</p>}
-    </>
-  );
   const info: [string, string][] = [
     ["Source", "YouTube"],
     ["Video ID", videoId],
   ];
-  return <Layout recording={recording} info={info} session={session} top={video} youtube />;
+  return (
+    <>
+      <div className="absolute size-0 overflow-hidden">
+        <div ref={host} className="w-80 h-45 [&_iframe]:w-full [&_iframe]:h-full" />
+      </div>
+      {session || error !== null ? (
+        <Layout recording={recording} info={info} session={session} top={error !== null && <p className={`${CARD} p-4 shrink-0 text-sm text-red-600/80 font-inria`}>{error}</p>} youtube />
+      ) : (
+        <div className="w-screen h-dvh flex items-center justify-center">
+          <SpinnerIcon size={32} className="animate-spin opacity-40" />
+        </div>
+      )}
+    </>
+  );
 }
