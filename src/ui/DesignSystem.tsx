@@ -1,19 +1,53 @@
-import { useState, type ReactNode } from "react";
-import { FileIcon, MusicNotesPlusIcon, PauseIcon, PlayIcon, SkipBackIcon, SnowflakeIcon } from "@phosphor-icons/react";
+import { useMemo, useState, type ReactNode } from "react";
+import { FileIcon, MusicNotesPlusIcon } from "@phosphor-icons/react";
 import { Dialog, IconButton, Loading, ModeToggle, NumericInput, Slider, Toggle } from "./shared/primitives";
 
-const COLORS = ["page-bg", "surface-active", "surface-input", "neutral-2", "play", "play-hover", "play-active", "freeze", "freeze-hover", "freeze-active", "waiting", "waiting-hover", "waiting-active"];
-const INKS = ["text-black/25", "text-black/40", "text-black/55", "text-black/70"];
-const TYPE = [
-  ["text-[29px]/9 font-bold text-play", "29 bold · app title"],
-  ["text-lg", "18 · dialog title, file name"],
-  ["text-base/5", "16 · rows, buttons"],
-  ["text-sm", "14 · labels, dates"],
-  ["text-xs", "12 · tutorial counter"],
-  ["font-space-mono text-sm", "14 mono · values, links"],
-  ["font-space-mono text-[10px]", "10 mono · ruler ticks"],
-];
-const CONTROL = "btn-surface rounded-xl size-20";
+const SOURCES = import.meta.glob<string>(["../**/*.{ts,tsx,css}", "!./DesignSystem.tsx"], { query: "?raw", import: "default", eager: true });
+const GROUPS = {
+  Colour: /^(bg|text|border|ring|fill|stroke|outline|placeholder)-/,
+  "Font size": /^text-/,
+  "Font family and weight": /^font-/,
+  Spacing: /^-?(p[xytblr]?|m[xytblr]?|gap(-[xy])?)-/,
+  Sizing: /^(size|w|h|min-w|min-h|max-w|max-h)-/,
+  Radius: /^rounded/,
+  Shadow: /^shadow-/,
+  Opacity: /^opacity-/,
+};
+type Group = keyof typeof GROUPS | "Everything else";
+
+const count = (items: string[]) => [...items.reduce((m, i) => m.set(i, (m.get(i) ?? 0) + 1), new Map<string, number>())].sort((a, b) => b[1] - a[1]);
+const base = (cls: string) => cls.replace(/^(?:[^:[\]]+(?:\[[^\]]*\])?:)+/, "");
+const px = (value: string) => (/^[\d.]+$/.test(value) ? `${+value * 4}px` : (value.match(/^\[(.+)\]$/)?.[1] ?? value));
+
+function inventory() {
+  const root = getComputedStyle(document.documentElement);
+  const css = [...document.styleSheets].filter((sheet) => !sheet.href || sheet.href.startsWith(location.origin)).flatMap((sheet) => [...sheet.cssRules].map((rule) => rule.cssText)).join("\n");
+  const code = Object.entries(SOURCES).filter(([path]) => !path.endsWith(".css"));
+  const strings = code.flatMap(([, text]) => text.match(/"[^"\n]*"|`[^`]*`/g) ?? []);
+  const classes = count(strings.flatMap((str) => str.slice(1, -1).split(/[\s${}?'"]+/)).filter((token) => /^[-!\w[]/.test(token) && css.includes(`.${CSS.escape(token)}`)));
+  const colourOf = (value: string) => {
+    const [name, alpha] = value.split("/");
+    const solid = name.match(/^\[(#.+|rgb.+|var.+)\]$/)?.[1] ?? (name.startsWith("[") ? "" : ["transparent", "black", "white"].includes(name) ? name : root.getPropertyValue(`--color-${name}`).trim());
+    return solid && (alpha ? `color-mix(in oklab, ${solid} ${alpha}%, transparent)` : solid);
+  };
+  const grouped = Object.fromEntries([...Object.keys(GROUPS), "Everything else"].map((g) => [g, [] as { cls: string; uses: number; colour?: string }[]])) as Record<Group, { cls: string; uses: number; colour?: string }[]>;
+  for (const [cls, uses] of classes) {
+    const b = base(cls);
+    const colour = GROUPS.Colour.test(b) ? colourOf(b.replace(GROUPS.Colour, "")) : "";
+    const found = colour ? "Colour" : ((Object.keys(GROUPS) as (keyof typeof GROUPS)[]).find((g) => g !== "Colour" && GROUPS[g].test(b)) ?? "Everything else");
+    const size = b.slice(5).split("/")[0];
+    const group = found === "Font size" && !size.startsWith("[") && !root.getPropertyValue(`--text-${size}`) ? "Everything else" : found;
+    grouped[group].push({ cls, uses, colour });
+  }
+  const all = Object.values(SOURCES).join("\n");
+  return {
+    grouped,
+    tokens: [...(Object.entries(SOURCES).find(([path]) => path.endsWith("styles.css"))?.[1] ?? "").matchAll(/^\s*--([\w-]+):\s*([^;]+);/gm)].map(([, name, value]) => ({ name, value })),
+    literals: count((all.match(/#[0-9a-fA-F]{6}(?:[0-9a-fA-F]{2})?\b|#[0-9a-fA-F]{3}\b|rgba?\([^)]*\)/g) ?? []).map((c) => c.toLowerCase())),
+    utilities: [...all.matchAll(/@utility ([\w-]+)/g)].map((m) => m[1]),
+    components: Object.entries(SOURCES).flatMap(([path, text]) => [...text.matchAll(/^(?:export (?:default )?)?(?:function|const|class) ([A-Z][A-Za-z]+)\b(?=[^\n]*(?:\(|=>))/gm)].map((m) => `${m[1]} · ${path.replace("../", "")}`)),
+  };
+}
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -29,79 +63,89 @@ export default function DesignSystem() {
   const [mode, setMode] = useState<"manual" | "automatic">("automatic");
   const [value, setValue] = useState(1);
   const [open, setOpen] = useState(false);
+  const { grouped, tokens, literals, utilities, components } = useMemo(inventory, []);
   return (
     <main className="max-w-220 mx-auto p-6 flex flex-col gap-12">
       <h1 className="text-[29px]/9 font-bold text-play">Design system</h1>
-      <Section title="Colours">
-        <Swatch name="white" className="bg-white" />
-        {COLORS.map((name) => (
-          <Swatch key={name} name={name} style={{ backgroundColor: `var(--color-${name})` }} />
+      <Section title={`Theme tokens in styles.css (${tokens.length})`}>
+        {tokens.map(({ name, value }) => (name.startsWith("color-") ? <Swatch key={name} name={`${name.slice(6)} ${value}`} colour={value} /> : <Chip key={name} name={`--${name}`} note={value} />))}
+      </Section>
+      <Section title={`Colour classes (${grouped.Colour.length})`}>
+        {grouped.Colour.map(({ cls, uses, colour }) => (
+          <Swatch key={cls} name={`${cls} ×${uses}`} colour={colour!} />
         ))}
       </Section>
-      <Section title="Ink (black at an opacity)">
-        {INKS.map((ink) => (
-          <p key={ink} className={`${ink} w-40`}>
-            {ink.slice(5)} · The quick brown fox
-          </p>
+      <Section title={`Colours written in code (${literals.length})`}>
+        {literals.map(([colour, uses]) => (
+          <Swatch key={colour} name={`${colour} ×${uses}`} colour={colour} />
         ))}
       </Section>
-      <Section title="Type">
+      <Section title={`Font sizes (${grouped["Font size"].length})`}>
         <div className="flex flex-col gap-3">
-          {TYPE.map(([className, note]) => (
-            <p key={note} className={className}>
-              GreenDolphin 0:30 <span className="text-sm font-normal font-sans text-black/25">{note}</span>
-            </p>
-          ))}
+          {grouped["Font size"].map(({ cls, uses }) => {
+            const [size, leading] = base(cls).slice(5).split("/");
+            return (
+              <p key={cls} style={{ fontSize: size.match(/^\[(.+)\]$/)?.[1] ?? `var(--text-${size})`, lineHeight: leading ? px(leading) : `var(--text-${size}--line-height)` }}>
+                GreenDolphin 0:30 <Note>{`${cls} ×${uses}`}</Note>
+              </p>
+            );
+          })}
         </div>
       </Section>
-      <Section title="Icon buttons (on the page)">
+      <Section title="Fonts">
+        <p>Inria Sans · default</p>
+        <p className="font-bold">Inria Sans bold</p>
+        <p className="font-space-mono">Space Mono 0:30</p>
+        {grouped["Font family and weight"].map(({ cls, uses }) => (
+          <Chip key={cls} name={cls} note={`×${uses}`} />
+        ))}
+      </Section>
+      <Section title={`Spacing (${grouped.Spacing.length})`}>
+        {grouped.Spacing.map(({ cls, uses }) => {
+          const value = px(base(cls).replace(GROUPS.Spacing, ""));
+          return (
+            <div key={cls} className="flex flex-col gap-1 text-xs text-black/40">
+              <div className="h-3 bg-play" style={{ width: value }} />
+              {cls} · {value} ×{uses}
+            </div>
+          );
+        })}
+      </Section>
+      {(["Sizing", "Radius", "Shadow", "Opacity", "Everything else"] as const).map((group) => (
+        <Section key={group} title={`${group} (${grouped[group].length})`}>
+          {grouped[group].map(({ cls, uses }) => (
+            <Chip key={cls} name={cls} note={group === "Sizing" ? `${px(base(cls).replace(GROUPS.Sizing, ""))} ×${uses}` : `×${uses}`} />
+          ))}
+        </Section>
+      ))}
+      <Section title={`Custom utilities (${utilities.length})`}>
+        {utilities.map((name) => (
+          <Chip key={name} name={name} />
+        ))}
+      </Section>
+      <Section title={`Components (${components.length})`}>
+        {components.map((name) => (
+          <Chip key={name} name={name} />
+        ))}
+      </Section>
+      <Section title="Shared components, live">
         <IconButton icon={MusicNotesPlusIcon} fill="white" className="h-13 px-4">
-          White
+          IconButton white
         </IconButton>
         <IconButton icon={FileIcon} fill="none" className="h-13 px-4">
-          None
+          IconButton none
         </IconButton>
-      </Section>
-      <Section title="Buttons (on a card)">
-        <div className="flex flex-wrap items-center gap-4 rounded-xl bg-white p-4">
-          <IconButton icon={MusicNotesPlusIcon} className="h-12 px-4">
-            Gray
-          </IconButton>
-          <IconButton icon={MusicNotesPlusIcon} disabled className="h-12 px-4">
-            Disabled
-          </IconButton>
-          <button className="btn-surface h-10 px-4 rounded-lg">Plain</button>
-          <button className="h-10 px-4 rounded-lg bg-red-500 text-white hover:bg-red-600 cursor-pointer">Destructive</button>
-          <button className="btn-surface px-3 py-1 text-sm bg-play hover:bg-play-hover active:bg-play-active text-white">Primary</button>
-          <button onClick={() => setOpen(true)} className="btn-surface h-10 px-4 rounded-lg">
-            Open dialog
-          </button>
-        </div>
-      </Section>
-      <Section title="Transport">
-        <button className={`${CONTROL} bg-white hover:bg-surface-active`}>
-          <PlayIcon size={40} weight="fill" color="var(--color-play)" />
-        </button>
-        <button className={`${CONTROL} bg-play hover:bg-play-hover active:bg-play-active`}>
-          <PauseIcon size={36} weight="fill" color="white" />
-        </button>
-        <button className={`${CONTROL} bg-waiting hover:bg-waiting-hover active:bg-waiting-active font-space-mono text-white text-lg`}>1.5</button>
-        <button className={`${CONTROL} bg-white hover:bg-surface-active`}>
-          <SnowflakeIcon size={40} weight="fill" color="var(--color-freeze)" />
-        </button>
-        <button className={`${CONTROL} bg-freeze hover:bg-freeze-hover active:bg-freeze-active`}>
-          <SnowflakeIcon size={40} weight="fill" color="white" />
-        </button>
-        <button className={`${CONTROL} bg-white hover:bg-surface-active`}>
-          <SkipBackIcon size={32} weight="fill" className="opacity-55" />
-        </button>
-      </Section>
-      <Section title="Inputs (on a card)">
         <div className="flex flex-col gap-6 w-84 rounded-xl bg-white p-6">
+          <IconButton icon={MusicNotesPlusIcon} onClick={() => setOpen(true)} className="h-12">
+            IconButton gray · opens Dialog
+          </IconButton>
+          <IconButton icon={MusicNotesPlusIcon} disabled className="h-12">
+            IconButton disabled
+          </IconButton>
           <Toggle label="Toggle" checked={on} onChange={setOn} />
           <ModeToggle
             options={[
-              { value: "manual", label: "Manual" },
+              { value: "manual", label: "ModeToggle" },
               { value: "automatic", label: "Automatic" },
             ]}
             value={mode}
@@ -110,21 +154,6 @@ export default function DesignSystem() {
           <Slider label="Slider" value={value} min={0} max={2} step={0.01} defaultValue={1} display={(v) => String(Math.round(v * 100))} parse={(v) => v / 100} unit="%" onChange={setValue} />
           <NumericInput value="100" unit="s" onCommit={() => {}} />
         </div>
-      </Section>
-      <Section title="Surfaces">
-        <div className="rounded-xl bg-white p-4 w-40 text-sm text-black/40">Card · rounded-xl</div>
-        <div className="rounded-lg bg-white p-4 w-40 text-sm text-black/40">List · rounded-lg</div>
-        <div className="rounded-xl bg-white shadow-menu p-4 w-40 text-sm text-black/40">Menu shadow</div>
-        <div className="rounded-xl bg-white shadow-dialog p-4 w-40 text-sm text-black/40">Dialog shadow</div>
-        <ul className="rounded-lg bg-white h-24 w-40 overflow-y-auto scrollbar-slim text-sm text-black/40">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <li key={i} className="p-3">
-              Slim scrollbar {i}
-            </li>
-          ))}
-        </ul>
-      </Section>
-      <Section title="Loading">
         <div className="h-24 w-40 overflow-hidden rounded-xl bg-white [&>div]:size-full">
           <Loading />
         </div>
@@ -136,10 +165,18 @@ export default function DesignSystem() {
   );
 }
 
-function Swatch({ name, ...rest }: { name: string; className?: string; style?: { backgroundColor: string } }) {
+const Note = ({ children }: { children: string }) => <span className="text-sm font-normal font-sans text-black/25">{children}</span>;
+
+const Chip = ({ name, note = "" }: { name: string; note?: string }) => (
+  <span className="rounded-sm bg-white px-2 py-1 font-space-mono text-xs text-black/55">
+    {name} <span className="text-black/25">{note}</span>
+  </span>
+);
+
+function Swatch({ name, colour }: { name: string; colour: string }) {
   return (
-    <div className="flex flex-col gap-1 text-xs text-black/40">
-      <div {...rest} className={`size-16 rounded-lg ring-1 ring-black/12 ${rest.className ?? ""}`} />
+    <div className="flex flex-col gap-1 w-24 text-xs text-black/40 break-words">
+      <div className="h-12 rounded-lg ring-1 ring-black/12" style={{ backgroundColor: colour }} />
       {name}
     </div>
   );
