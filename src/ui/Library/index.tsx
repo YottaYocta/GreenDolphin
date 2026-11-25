@@ -27,22 +27,22 @@ export function Library() {
           <span className="opacity-40">Load recording</span>
         </button>
         <section aria-label="My Recordings" className="flex flex-col rounded-lg overflow-hidden self-stretch bg-white min-h-0 max-md:flex-3">
-          <ul className="flex-1 min-h-0 flex flex-col gap-4 max-md:gap-8 p-4 overflow-y-auto scrollbar-slim">
-            {recordings.length === 0 && <li className="px-2 py-4 text-center text-black/50 text-sm">No recordings yet. Upload a file to get started.</li>}
+          <ul className="flex-1 min-h-0 overflow-y-auto scrollbar-slim">
+            {recordings.length === 0 && <li className="px-6 py-8 text-center text-black/50 text-sm">No recordings yet. Upload a file to get started.</li>}
             {recordings.map((recording) => (
-              <li key={recording.id} className="flex max-md:flex-col md:items-center gap-4 shrink-0">
+              <li key={recording.id} className="flex max-md:flex-col md:items-center gap-4 p-4 md:py-3">
                 <div className="flex items-center gap-4 flex-1 min-w-0">
                   <RecordingIcon recording={recording} />
-                  <div className="flex flex-col gap-1 md:gap-0 min-w-0">
+                  <div className="flex flex-col gap-1 min-w-0">
                     <p className="truncate">{stripExt(recording.title)}</p>
                     <p className="opacity-40 md:text-sm">{relativeDate(recording.addedAt)}</p>
                   </div>
                 </div>
-                <div className="flex gap-4">
-                  <button aria-label={`Play ${recording.title}`} onClick={() => open(recording.id)} className="btn-surface max-md:flex-1 h-10 md:size-10">
+                <div className="flex gap-2">
+                  <button aria-label={`Play ${recording.title}`} onClick={() => open(recording.id)} className="btn-surface bg-transparent max-md:flex-1 h-10 md:size-10">
                     <PlayIcon size={20} weight="fill" color="var(--color-play)" />
                   </button>
-                  <button aria-label={`Delete ${recording.title}`} onClick={() => setDeleting(recording)} className="btn-surface max-md:flex-1 h-10 md:size-10">
+                  <button aria-label={`Delete ${recording.title}`} onClick={() => setDeleting(recording)} className="btn-surface bg-transparent max-md:flex-1 h-10 md:size-10">
                     <TrashIcon size={20} weight="fill" className="opacity-40" />
                   </button>
                 </div>
