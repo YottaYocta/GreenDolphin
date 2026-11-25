@@ -31,7 +31,7 @@ export function TitleBar({ recording, info, editor }: { recording: StoredRecordi
 
   return (
     <div className="flex items-center gap-2 h-12 shrink-0">
-      <div className="flex items-center gap-1 min-w-0 flex-1">
+      <div className="flex items-center gap-3 min-w-0 flex-1">
         <Menu.Root>
           <Menu.Trigger aria-label="Switch recording" className={`group ${TEXT_BUTTON} gap-2 h-12 min-w-0 pl-3 text-black/40`}>
             <CaretRightIcon size={14} weight="bold" className="shrink-0 transition-transform group-data-popup-open:rotate-90" />
