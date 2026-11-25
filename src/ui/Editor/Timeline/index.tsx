@@ -22,9 +22,9 @@ const DOUBLE_TAP_PX = 24;
 const KEY_STEP = 0.1;
 const ROW = "h-7 shrink-0 bg-page-bg rounded-lg overflow-hidden px-6 md:px-8";
 
-const Triangle: FC<{ points: string; fill: string }> = ({ points, fill }) => (
+const Triangle: FC<{ points: string; className: string }> = ({ points, className }) => (
   <svg width="16" height="22" viewBox="0 0 16 22" className="block">
-    <polygon points={points} fill={fill} />
+    <polygon points={points} className={className} />
   </svg>
 );
 
@@ -120,7 +120,7 @@ export function Timeline(props: TimelineProps) {
 
   const loopHandle = (ref: RefObject<HTMLDivElement | null>, side: "start" | "end") => (
     <div ref={ref} data-control aria-label={`Loop ${side}`} className="absolute bottom-0 -translate-x-1/2 z-10 flex items-end justify-center w-9 h-full cursor-ew-resize" onPointerDown={handle(side)}>
-      <Triangle points="8,0 16,22 0,22" fill="var(--color-ink-25)" />
+      <Triangle points="8,0 16,22 0,22" className="fill-ink-25" />
     </div>
   );
 
@@ -130,7 +130,7 @@ export function Timeline(props: TimelineProps) {
         <div className="relative h-full">
           <div ref={els.ticks} className="absolute inset-0 pointer-events-none" />
           <div ref={els.grip} aria-label="Playhead" className="absolute top-0 -translate-x-1/2 z-10 flex justify-center w-9 h-7 cursor-ew-resize">
-            <Triangle points="0,0 16,0 8,22" fill="var(--color-play)" />
+            <Triangle points="0,0 16,0 8,22" className="fill-play" />
           </div>
         </div>
       </div>

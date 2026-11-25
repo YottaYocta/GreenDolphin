@@ -47,7 +47,7 @@ export function Controls({ player, freeze, settings }: { player: Player; freeze:
   const few = !freeze && !settings;
   const nav = (Icon: typeof SkipBackIcon, seconds: DurationSeconds, label: string) => (
     <button aria-label={label} onClick={() => nudge(seconds)} className={PLAIN}>
-      <Icon size={paired ? 28 : 32} weight="fill" className="text-ink-55 shrink-0" />
+      <Icon size={paired ? 28 : 32} weight="fill" className="text-ink-70 shrink-0" />
     </button>
   );
   const playColor = playState === "waiting" ? `bg-waiting hover:bg-waiting-hover active:bg-waiting-active` : playState === "playing" ? `bg-play hover:bg-play-hover active:bg-play-active` : IDLE;
