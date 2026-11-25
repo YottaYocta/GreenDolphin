@@ -27,6 +27,7 @@ export const recordingPrefs: Persistence["recordingPrefs"] = (id) => ({
   loop: null,
   view: null,
   position: 0,
+  openedAt: 0,
   ...read<RecordingMap>("recordings", {})[id],
 });
 
