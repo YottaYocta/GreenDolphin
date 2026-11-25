@@ -72,7 +72,7 @@ export function GeneralSettings({ piano, onPiano, inline, onInline, awake, onAwa
   return (
     <div className="flex flex-col gap-4">
       {onPiano && <Toggle label="Show piano roll" checked={piano} onChange={onPiano} />}
-      <Toggle label="Show sound controls" checked={inline} onChange={onInline} />
+      <Toggle label="Show playback settings" checked={inline} onChange={onInline} />
       <Toggle label="Keep screen awake" checked={awake} onChange={onAwake} />
       <Toggle label="Share debug info" checked={replay} onChange={onReplay} />
       <DialogClose onClick={onTutorial} className="btn-surface h-9 rounded-lg text-sm">
