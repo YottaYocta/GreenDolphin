@@ -6,8 +6,8 @@ import { useKeys } from "../../shared/keys";
 import { Dialog } from "../../shared/primitives";
 import { usePlayer } from "../session";
 
-const BTN = "btn-surface rounded-xl h-full min-h-0 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed p-3 md:p-6";
-const COLORED = "[box-shadow:var(--shadow-btn-colored)]";
+const BTN = "btn-surface rounded-xl h-full min-h-0 p-3 md:p-6";
+const PLAIN = `${BTN} bg-white`;
 
 function useCountdown(player: Player, waitingUntil: number | null) {
   const [left, setLeft] = useState(0);
@@ -15,7 +15,7 @@ function useCountdown(player: Player, waitingUntil: number | null) {
     if (waitingUntil === null) return;
     let raf = 0;
     const tick = () => {
-      setLeft(player.delayRemaining());
+      setLeft(Math.round(player.delayRemaining() * 10) / 10);
       raf = requestAnimationFrame(tick);
     };
     tick();
@@ -43,18 +43,18 @@ export function Controls({ player, freeze, settings }: { player: Player; freeze:
   });
 
   const nav = (Icon: typeof SkipBackIcon, seconds: DurationSeconds, label: string) => (
-    <button aria-label={label} onClick={() => nudge(seconds)} className={BTN}>
+    <button aria-label={label} onClick={() => nudge(seconds)} className={PLAIN}>
       <Icon size={freeze ? 28 : 32} weight="fill" className="opacity-65 shrink-0" />
     </button>
   );
-  const playColor = playState === "waiting" ? `bg-waiting hover:bg-waiting-hover active:bg-waiting-active ${COLORED}` : playState === "playing" ? `bg-play hover:bg-play-hover active:bg-play-active ${COLORED}` : "";
+  const playColor = playState === "waiting" ? `bg-waiting hover:bg-waiting-hover active:bg-waiting-active` : playState === "playing" ? `bg-play hover:bg-play-hover active:bg-play-active` : "bg-white";
 
   return (
-    <div className="grid gap-4 w-full h-min max-md:flex-1 max-md:grid-cols-2 max-md:grid-rows-2 grid-cols-4">
+    <div className="grid gap-4 h-min max-md:flex-1 max-md:grid-cols-2 max-md:grid-rows-2 grid-cols-4">
       <button aria-label={playState === "playing" ? "Pause" : "Play"} data-state={playState} onClick={togglePlay} className={`${BTN} ${playColor}`}>
         <span className="size-10 flex items-center justify-center">
           {playState === "playing" ? (
-            <PauseIcon size={36} weight="fill" color="var(--color-icon-white)" />
+            <PauseIcon size={36} weight="fill" color="white" />
           ) : playState === "waiting" ? (
             <span className="font-space-mono text-white text-lg tabular-nums">{countdown.toFixed(1)}</span>
           ) : (
@@ -63,11 +63,11 @@ export function Controls({ player, freeze, settings }: { player: Player; freeze:
         </span>
       </button>
       {freeze && (
-        <button aria-label="Freeze" aria-pressed={playState === "frozen"} onClick={toggleFreeze} className={`${BTN} ${playState === "frozen" ? `bg-freeze hover:bg-freeze-hover active:bg-freeze-active ${COLORED}` : ""}`}>
-          <SnowflakeIcon size={40} weight="fill" color={playState === "frozen" ? "#fff" : "var(--color-freeze)"} />
+        <button aria-label="Freeze" aria-pressed={playState === "frozen"} onClick={toggleFreeze} className={`${BTN} ${playState === "frozen" ? `bg-freeze hover:bg-freeze-hover active:bg-freeze-active` : "bg-white"}`}>
+          <SnowflakeIcon size={40} weight="fill" color={playState === "frozen" ? "white" : "var(--color-freeze)"} />
         </button>
       )}
-      <button aria-label="Playback settings" onClick={() => setOpen(true)} className={BTN}>
+      <button aria-label="Playback settings" onClick={() => setOpen(true)} className={PLAIN}>
         <SlidersIcon size={32} weight="fill" className="opacity-55" />
       </button>
       <Dialog title="Playback" open={open} onOpenChange={setOpen}>

@@ -6,8 +6,7 @@ import { usePlayer, type Sound } from "../session";
 import { persistence, type LoopPrefs } from "../../../persistence";
 
 const percent = (v: number) => String(Math.round(v * 100));
-const ROW = "flex items-center justify-between gap-4";
-const LABEL = "font-inria text-sm text-black/50";
+const LABEL = "text-sm text-black/50";
 
 export function SoundSettings(props: { player: Player; sound: Sound; onSound: (sound: Sound) => void; youtube?: boolean }) {
   const { player, sound, onSound, youtube = false } = props;
@@ -70,21 +69,10 @@ export interface GeneralPrefs {
 export function GeneralSettings({ piano, onPiano, awake, onAwake, replay, onReplay, onTutorial }: GeneralPrefs) {
   return (
     <div className="flex flex-col gap-4">
-      {onPiano && (
-        <div className={ROW}>
-          <div className={LABEL}>Show piano roll</div>
-          <Toggle id="piano-toggle" label="Show piano roll" checked={piano} onChange={onPiano} />
-        </div>
-      )}
-      <div className={ROW}>
-        <div className={LABEL}>Keep screen awake</div>
-        <Toggle label="Keep screen awake" checked={awake} onChange={onAwake} />
-      </div>
-      <div className={ROW}>
-        <div className={LABEL}>Share debug info</div>
-        <Toggle label="Share debug info" checked={replay} onChange={onReplay} />
-      </div>
-      <DialogClose onClick={onTutorial} className="btn-surface h-9 rounded-lg font-inria text-sm cursor-pointer">
+      {onPiano && <Toggle label="Show piano roll" checked={piano} onChange={onPiano} />}
+      <Toggle label="Keep screen awake" checked={awake} onChange={onAwake} />
+      <Toggle label="Share debug info" checked={replay} onChange={onReplay} />
+      <DialogClose onClick={onTutorial} className="btn-surface h-9 rounded-lg text-sm">
         Replay tutorial
       </DialogClose>
     </div>

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { SpinnerIcon } from "@phosphor-icons/react";
 import { LibraryContext, type LibraryApi, type Opened } from "./context";
 import { AudioEditor, YouTubeEditor } from "./Editor";
 import { Library } from "./Library";
+import { Loading } from "./shared/primitives";
 import { PullToRefresh } from "./shared/PullToRefresh";
 import { audio } from "../audio";
 import { persistence, type StoredRecording } from "../persistence";
@@ -63,7 +63,6 @@ export function App() {
     const refresh = async () => setRecordings(await persistence.listRecordings());
     return {
       recordings,
-      opened,
       error,
       open: (id) => {
         const rec = recordings.find((r) => r.id === id);
@@ -95,15 +94,13 @@ export function App() {
         persistence.setLastOpened(null);
       },
     };
-  }, [recordings, opened, error, openRecording]);
+  }, [recordings, error, openRecording]);
 
   return (
     <LibraryContext.Provider value={api}>
       <PullToRefresh />
       {loading ? (
-        <div className="w-screen h-dvh flex items-center justify-center">
-          <SpinnerIcon size={32} className="animate-spin opacity-40" />
-        </div>
+        <Loading />
       ) : opened?.kind === "audio" ? (
         <AudioEditor key={opened.recording.id} recording={opened.recording} size={opened.size} decoded={opened.decoded} />
       ) : opened?.kind === "youtube" ? (

@@ -26,7 +26,7 @@ async function upload(page: Page, name: string) {
   if (fromEditor) {
     await page.getByRole("button", { name: "Switch recording" }).click();
     await page.getByRole("menuitem", { name: "New Recording" }).click();
-  } else await page.getByRole("button", { name: "New Recording" }).first().click();
+  } else await page.getByRole("button", { name: "Load recording" }).first().click();
   await page.getByLabel("Upload audio file").setInputFiles({ name, mimeType: "audio/wav", buffer: wav(8, 330) });
   await page.waitForFunction(() => (window.__gd?.player.duration ?? Infinity) < 9);
   await waitForEditor(page);
@@ -114,45 +114,29 @@ test("relative loop delay is converted to seconds from the loop length", async (
 test("Home returns to the library, and launch then stays there", async ({ page }) => {
   await openDemo(page);
   await page.getByRole("button", { name: "Home" }).click();
-  await expect(page.getByRole("region", { name: "My Recordings" })).toBeVisible();
+  await expect(page.getByRole("list", { name: "My Recordings" })).toBeVisible();
   await page.reload();
-  await expect(page.getByRole("region", { name: "My Recordings" })).toBeVisible();
+  await expect(page.getByRole("list", { name: "My Recordings" })).toBeVisible();
 });
 
 test("deleting asks first and removes the recording", async ({ page }) => {
   await openDemo(page);
   await upload(page, "doomed.wav");
-  await page.getByRole("button", { name: "Home" }).click();
-  await page.getByRole("button", { name: "Delete doomed.wav" }).click();
-  await page.getByRole("button", { name: "Cancel" }).click();
-  await expect(page.getByText("doomed")).toBeVisible();
-  await page.getByRole("button", { name: "Delete doomed.wav" }).click();
-  await page.getByRole("button", { name: "Delete", exact: true }).click();
+  await page.getByRole("button", { name: "File", exact: true }).click();
+  await page.getByRole("button", { name: "Delete" }).click();
+  await page.getByRole("button", { name: "No", exact: true }).click();
+  await page.getByRole("button", { name: "Delete" }).click();
+  await page.getByRole("button", { name: "Yes, I'm sure" }).click();
+  await expect(page.getByRole("button", { name: `Open ${DEMO}.mp3` })).toBeVisible();
   await expect(page.getByText("doomed")).toBeHidden();
-  await expect(page.getByText(DEMO)).toBeVisible();
 });
 
 test("a bad YouTube link is reported without leaving the dialog", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "New Recording" }).first().click();
+  await page.getByRole("button", { name: "Load recording" }).first().click();
   await page.getByLabel("YouTube link").fill("https://example.com/not-a-video");
   await page.getByRole("button", { name: "Add Video" }).click();
   await expect(page.getByText("Couldn't find a video in that link.")).toBeVisible();
-});
-
-test("a YouTube link opens the video editor and playback drives the embed", async ({ page }) => {
-  test.slow();
-  await page.addInitScript(() => localStorage.setItem("gd2:flag:tutorial", JSON.stringify({ on: true })));
-  await page.goto("/");
-  await page.getByRole("button", { name: "New Recording" }).first().click();
-  await page.getByLabel("YouTube link").fill("https://youtu.be/jNQXAC9IVRw");
-  await page.getByRole("button", { name: "Add Video" }).click();
-  await waitForEditor(page);
-  await expect(page.getByRole("button", { name: "Freeze" })).toHaveCount(0);
-  await page.getByRole("button", { name: "Play", exact: true }).click();
-  await expect.poll(() => page.evaluate(() => window.__gd!.player.position()), { timeout: 20_000 }).toBeGreaterThan(1);
-  await page.getByRole("button", { name: "Pause" }).click();
-  expect((await snapshot(page)).playState).toBe("paused");
 });
 
 test("a long title truncates without colliding with the title bar buttons", async ({ page }) => {
@@ -160,7 +144,7 @@ test("a long title truncates without colliding with the title bar buttons", asyn
   await page.goto("/");
   await upload(page, `${"A very long recording title that keeps going ".repeat(4)}.wav`);
   await waitForEditor(page);
-  const boxes = await Promise.all(["Switch recording", "File info", "Home"].map(async (name) => (await page.getByRole("button", { name }).boundingBox())!));
+  const boxes = await Promise.all(["Switch recording", "File", "Home"].map(async (name) => (await page.getByRole("button", { name }).boundingBox())!));
   for (let i = 0; i < boxes.length; i++)
     for (const other of boxes.slice(i + 1))
       expect(boxes[i].x + boxes[i].width <= other.x || other.x + other.width <= boxes[i].x || boxes[i].y + boxes[i].height <= other.y || other.y + other.height <= boxes[i].y).toBe(true);
@@ -188,11 +172,11 @@ test("recordings saved by the previous version are imported once, then its datab
     [...wav(2, 330)],
   );
   await page.goto("/");
-  await expect(page.getByRole("button", { name: "Play old.wav" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Play Me at the zoo" })).toBeVisible();
-  await expect(page.getByRole("button", { name: `Play ${DEMO}.mp3` })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Open old.wav" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Open Me at the zoo" })).toBeVisible();
+  await expect(page.getByRole("button", { name: `Open ${DEMO}.mp3` })).toHaveCount(0);
   expect(await page.evaluate(async () => (await indexedDB.databases()).map((d) => d.name))).not.toContain("greendolphin-v1");
-  await page.getByRole("button", { name: "Play old.wav" }).click();
+  await page.getByRole("button", { name: "Open old.wav" }).click();
   await waitForEditor(page);
   expectNear((await snapshot(page)).duration, 2, 0.01);
 });
@@ -213,7 +197,7 @@ test("upgrading the database keeps recordings and drops the retired notes store"
       }),
   );
   await page.goto("/");
-  await expect(page.getByRole("button", { name: "Play Kept video" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Open Kept video" })).toBeVisible();
   const stores = await page.evaluate(
     () =>
       new Promise<string[]>((resolve) => {

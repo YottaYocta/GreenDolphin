@@ -1,81 +1,107 @@
 import { useState, type ReactNode } from "react";
 import type { StoredRecording } from "../../../persistence";
 import { Menu } from "@base-ui/react/menu";
-import { CaretRightIcon, GearSixIcon, HouseIcon, InfoIcon, MusicNotesPlusIcon } from "@phosphor-icons/react";
+import { CaretRightIcon, GearSixIcon, HouseIcon, FileIcon, MusicNotesPlusIcon, type Icon } from "@phosphor-icons/react";
 import { stripExt } from "../../shared/format";
 import { useLibrary } from "../../context";
 import { NewRecordingDialog, RecordingIcon } from "../../Library/NewRecordingDialog";
-import { Dialog } from "../../shared/primitives";
+import { Dialog, IconButton } from "../../shared/primitives";
 
-const GHOST = "flex items-center gap-2 h-12 rounded-lg cursor-pointer hover:bg-black/5 active:bg-black/10";
-const TEXT_BUTTON = "flex items-center cursor-pointer hover:text-black/60 active:text-black/40 data-popup-open:text-black/60";
-const ACTION = "justify-center shrink-0 px-3 max-md:size-12 max-md:px-0";
-const ITEM = "flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-neutral-50 active:bg-neutral-100";
+const ITEM = "flex items-center gap-3 px-4 py-3 cursor-pointer outline-none data-highlighted:bg-surface active:bg-surface-track";
+
+function Action({ label, icon, size = 16, text, onClick }: { label: string; icon: Icon; size?: number; text: string; onClick: () => void }) {
+  return (
+    <IconButton aria-label={label} icon={icon} size={size} fill="none" onClick={onClick} className="shrink-0 size-12 md:w-auto md:px-3">
+      <span className="max-md:hidden">{text}</span>
+    </IconButton>
+  );
+}
 
 export function TitleBar({ recording, info, editor }: { recording: StoredRecording; info: [string, string][]; editor?: ReactNode }) {
-  const { recordings, open, home } = useLibrary();
+  const { recordings, open, home, remove } = useLibrary();
   const [adding, setAdding] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
+  const [confirming, setConfirming] = useState(false);
   const [showEditor, setShowEditor] = useState(false);
   const others = recordings.filter((r) => r.id !== recording.id);
   const details = [...info, ["Added", new Date(recording.addedAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })]];
 
   return (
     <div className="flex items-center gap-2 h-12 shrink-0">
-      <div className="flex items-center gap-1 min-w-0 flex-1">
+      <div className="flex items-center gap-2 min-w-0 flex-1">
         <Menu.Root>
-          <Menu.Trigger aria-label="Switch recording" className={`group ${TEXT_BUTTON} gap-2 h-12 min-w-0 pl-3`}>
-            <CaretRightIcon size={14} weight="bold" className="opacity-50 shrink-0 transition-transform group-data-popup-open:rotate-90" />
-            <span className="font-inria truncate">{stripExt(recording.title)}</span>
+          <Menu.Trigger aria-label="Switch recording" className="group btn-surface bg-transparent justify-start gap-2 h-12 rounded-lg min-w-0 px-3 text-black/40 hover:text-black/55 data-popup-open:bg-surface-active">
+            <CaretRightIcon size={16} weight="fill" className="shrink-0 transition-transform group-data-popup-open:rotate-90" />
+            <span className="truncate">{stripExt(recording.title)}</span>
           </Menu.Trigger>
           <Menu.Portal>
             <Menu.Positioner side="bottom" align="start" sideOffset={8}>
-              <Menu.Popup className="z-50 w-80 max-w-[calc(100vw-2rem)] rounded-xl bg-white border border-border [box-shadow:var(--shadow-menu)] overflow-hidden flex flex-col outline-none">
+              <Menu.Popup className="z-50 w-80 max-w-[calc(100vw-2rem)] rounded-xl bg-white shadow-menu overflow-hidden flex flex-col outline-none">
                 <div className="overflow-y-auto max-h-72 flex flex-col">
-                  {others.length === 0 && <div className="p-4 font-inria text-black/50 text-sm text-center">No other recordings</div>}
+                  {others.length === 0 && <div className="p-4 text-black/50 text-sm text-center">No other recordings</div>}
                   {others.map((other) => (
                     <Menu.Item key={other.id} className={ITEM} onClick={() => open(other.id)}>
                       <RecordingIcon recording={other} size={18} />
-                      <span className="flex-1 min-w-0 font-inria truncate">{stripExt(other.title)}</span>
+                      <span className="flex-1 min-w-0 truncate">{stripExt(other.title)}</span>
                     </Menu.Item>
                   ))}
                 </div>
-                <Menu.Item className={`${ITEM} border-t border-border`} onClick={() => setAdding(true)}>
+                <Menu.Item className={`${ITEM} bg-surface-track`} onClick={() => setAdding(true)}>
                   <MusicNotesPlusIcon size={18} weight="fill" className="opacity-50" />
-                  <span className="font-inria">New Recording</span>
+                  <span>New Recording</span>
                 </Menu.Item>
               </Menu.Popup>
             </Menu.Positioner>
           </Menu.Portal>
         </Menu.Root>
-        <button aria-label="File info" onClick={() => setShowInfo(true)} className={`${TEXT_BUTTON} justify-center shrink-0 size-8 text-black/50`}>
-          <InfoIcon size={18} weight="fill" />
-        </button>
+        <Action label="File" icon={FileIcon} size={14} text="File" onClick={() => setShowInfo(true)} />
       </div>
-      {editor && (
-        <button aria-label="Editor settings" onClick={() => setShowEditor(true)} className={`${GHOST} ${ACTION}`}>
-          <GearSixIcon size={16} weight="fill" className="opacity-50" />
-          <span className="opacity-40 font-inria max-md:hidden">Editor</span>
-        </button>
-      )}
-      <button aria-label="Home" onClick={home} className={`${GHOST} ${ACTION}`}>
-        <HouseIcon size={16} weight="fill" className="opacity-50" />
-        <span className="opacity-40 font-inria max-md:hidden">Home</span>
-      </button>
+      {editor && <Action label="Editor settings" icon={GearSixIcon} text="Editor" onClick={() => setShowEditor(true)} />}
+      <Action label="Home" icon={HouseIcon} size={14} text="Home" onClick={home} />
       <NewRecordingDialog open={adding} onOpenChange={setAdding} />
       <Dialog title="Editor" open={showEditor} onOpenChange={setShowEditor}>
         {editor}
       </Dialog>
-      <Dialog title="File Info" open={showInfo} onOpenChange={setShowInfo}>
-        <p className="font-inria text-lg pb-6 break-words">{stripExt(recording.title)}</p>
+      <Dialog
+        title="File"
+        open={showInfo}
+        onOpenChange={(next) => {
+          setShowInfo(next);
+          setConfirming(false);
+        }}
+      >
+        <p className="text-lg pb-6 break-words">{stripExt(recording.title)}</p>
         <dl className="grid grid-cols-2 gap-6">
           {details.map(([label, value]) => (
             <div key={label} className="flex flex-col gap-1">
-              <dt className="font-inria text-black/40 text-sm">{label}</dt>
+              <dt className="text-black/40 text-sm">{label}</dt>
               <dd className="font-space-mono text-black/90 break-all">{value}</dd>
             </div>
           ))}
         </dl>
+        {confirming && <p className="text-black/70 pt-6">Are you sure?</p>}
+        <div className="flex gap-3 pt-6">
+          {confirming ? (
+            <>
+              <button onClick={() => setConfirming(false)} className="btn-surface flex-1 h-10 rounded-lg">
+                No
+              </button>
+              <button
+                onClick={() => {
+                  void remove(recording.id);
+                  home();
+                }}
+                className="flex-1 h-10 rounded-lg bg-red-500 text-white hover:bg-red-600 cursor-pointer"
+              >
+                Yes, I'm sure
+              </button>
+            </>
+          ) : (
+            <button onClick={() => setConfirming(true)} className="btn-surface flex-1 h-10 rounded-lg text-red-600/80">
+              Delete
+            </button>
+          )}
+        </div>
       </Dialog>
     </div>
   );

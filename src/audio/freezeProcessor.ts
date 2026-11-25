@@ -7,9 +7,8 @@ declare class AudioWorkletProcessor {
   readonly port: MessagePort;
 }
 
-
-const WINDOW = 2048;
-const SPREAD_SECONDS = 0.03;
+const WINDOW = 4096;
+const SPREAD_SECONDS = 0.05;
 const GLIDE_SECONDS = 0.015;
 
 class FreezeProcessor extends AudioWorkletProcessor {

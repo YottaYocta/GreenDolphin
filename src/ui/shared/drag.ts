@@ -3,7 +3,7 @@ import type { PointerEvent as ReactPointerEvent } from "react";
 export function drag(
   e: ReactPointerEvent<HTMLElement>,
   onMove: (clientX: number, dx: number) => void,
-  onEnd?: (moved: boolean) => void,
+  onEnd?: () => void,
   threshold = 0,
 ) {
   if (!e.isPrimary) return;
@@ -23,7 +23,7 @@ export function drag(
     el.removeEventListener("pointermove", move);
     el.removeEventListener("pointerup", end);
     el.removeEventListener("pointercancel", end);
-    onEnd?.(moved);
+    onEnd?.();
   };
   el.addEventListener("pointermove", move);
   el.addEventListener("pointerup", end);

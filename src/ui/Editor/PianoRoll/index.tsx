@@ -73,9 +73,8 @@ export function PianoRoll({ engine }: { engine: AudioEngine }) {
 
   return (
     <div
-      id="piano"
       ref={scroller}
-      className="overflow-x-auto shrink-0 touch-pan-x cursor-grab"
+      className="shrink-0 rounded-xl bg-white overflow-x-auto touch-pan-x cursor-grab"
       onPointerDown={(e) => {
         const start = scroller.current!.scrollLeft;
         const pressed = keyAt(e.clientX, e.clientY);
@@ -97,12 +96,12 @@ export function PianoRoll({ engine }: { engine: AudioEngine }) {
         <div className="relative flex h-13.5 pt-2" style={{ width: WIDTH }}>
           {Array.from({ length: KEYS }, (_, i) =>
             BLACK.has(i % 12) ? null : (
-              <div key={i} data-key={FIRST + i} className="h-8.75 shrink-0 touch-none border border-[#0000001A] bg-[#FBFBFB] hover:bg-[#F0F0F0] [box-shadow:#0000001A_0px_2px_3px] cursor-pointer" style={{ width: WHITE_W }} />
+              <div key={i} data-key={FIRST + i} className="h-8.75 shrink-0 touch-none border border-black/10 bg-surface hover:bg-surface-active [box-shadow:#0000001A_0px_2px_3px] cursor-pointer" style={{ width: WHITE_W }} />
             ),
           )}
           {Array.from({ length: KEYS }, (_, i) =>
             BLACK.has(i % 12) ? (
-              <div key={i} data-key={FIRST + i} className="absolute top-2 touch-none w-2.5 h-6.25 -translate-x-1/2 border border-[#00000080] bg-[#787878] hover:bg-[#686868] cursor-pointer" style={{ left: whiteIndex(i) * WHITE_W }} />
+              <div key={i} data-key={FIRST + i} className="absolute top-2 touch-none w-2.5 h-6.25 -translate-x-1/2 border border-black/50 bg-[#787878] hover:bg-[#686868] cursor-pointer" style={{ left: whiteIndex(i) * WHITE_W }} />
             ) : null,
           )}
         </div>

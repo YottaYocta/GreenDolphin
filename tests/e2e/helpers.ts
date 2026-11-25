@@ -10,7 +10,7 @@ declare global {
 
 export const DEMO = "Wynton Kelly - On Green Dolphin Street";
 
-export interface Snapshot {
+interface Snapshot {
   playState: string;
   position: number;
   duration: number;
@@ -23,7 +23,7 @@ export interface Snapshot {
 export async function openDemo(page: Page, { tutorial = false } = {}) {
   if (!tutorial) await page.addInitScript(() => localStorage.setItem("gd2:flag:tutorial", JSON.stringify({ on: true })));
   await page.goto("/");
-  await page.getByRole("button", { name: `Play ${DEMO}.mp3` }).click();
+  await page.getByRole("button", { name: `Open ${DEMO}.mp3` }).click();
   await waitForEditor(page);
 }
 
@@ -53,7 +53,7 @@ export async function lanePoint(page: Page, fraction: number, y = 0.5) {
 
 export async function rowPoint(page: Page, id: "timeline-ruler" | "timeline-loop", fraction: number) {
   const row = (await page.locator(`#${id}`).boundingBox())!;
-  const inner = { x: row.x + 16, width: row.width - 32 };
+  const inner = { x: row.x + 32, width: row.width - 64 };
   return { x: inner.x + inner.width * fraction, y: row.y + row.height / 2 };
 }
 
@@ -70,7 +70,7 @@ export async function mouseDrag(page: Page, from: { x: number; y: number }, to: 
 }
 
 type Touch = { x: number; y: number; id: number };
-export type TouchStep = ["touchStart" | "touchMove", Touch[]] | ["touchEnd"];
+type TouchStep = ["touchStart" | "touchMove", Touch[]] | ["touchEnd"];
 
 const sessions = new WeakMap<Page, Promise<CDPSession>>();
 export async function touch(page: Page, steps: TouchStep[]) {

@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { MusicNoteIcon, MusicNotesPlusIcon, SpinnerIcon, YoutubeLogoIcon } from "@phosphor-icons/react";
 import { noteColor } from "../shared/format";
 import { useLibrary } from "../context";
-import { Dialog } from "../shared/primitives";
+import { Dialog, IconButton } from "../shared/primitives";
 import type { StoredRecording } from "../../persistence";
 
 export const RecordingIcon = ({ recording, size = 32 }: { recording: StoredRecording; size?: number }) =>
@@ -30,10 +30,9 @@ export function NewRecordingDialog({ open, onOpenChange }: { open: boolean; onOp
   return (
     <Dialog title="New Recording" open={open} onOpenChange={onOpenChange}>
       <div className="flex flex-col gap-4">
-        <button onClick={() => input.current?.click()} className="btn-surface rounded-lg gap-2 h-12 w-full">
-          <MusicNotesPlusIcon size={20} weight="fill" className="opacity-50" />
-          <span className="opacity-40">Upload Audio File</span>
-        </button>
+        <IconButton icon={MusicNotesPlusIcon} onClick={() => input.current?.click()} className="h-12">
+          Upload Audio File
+        </IconButton>
         <input
           ref={input}
           type="file"
@@ -48,11 +47,7 @@ export function NewRecordingDialog({ open, onOpenChange }: { open: boolean; onOp
             void add(file);
           }}
         />
-        <div className="flex items-center gap-3 text-sm text-black/30 font-inria">
-          <div className="flex-1 h-px bg-border" />
-          or
-          <div className="flex-1 h-px bg-border" />
-        </div>
+        <p className="text-center text-sm text-black/30">or</p>
         <input
           type="url"
           aria-label="YouTube link"
@@ -65,11 +60,10 @@ export function NewRecordingDialog({ open, onOpenChange }: { open: boolean; onOp
           placeholder="https://www.youtube.com/watch?v=…"
           className="rounded-lg bg-surface-input h-12 px-3 font-space-mono text-sm/5 text-black/60 outline-none placeholder:text-black/25"
         />
-        {error && <p className="text-sm text-red-600/80 font-inria">{error}</p>}
-        <button onClick={() => void submit()} disabled={busy || !link.trim()} className="btn-surface rounded-lg gap-2 h-12 w-full disabled:opacity-60 disabled:cursor-not-allowed">
-          {busy ? <SpinnerIcon size={20} className="animate-spin opacity-40" /> : <YoutubeLogoIcon size={20} weight="fill" className="opacity-50" />}
-          <span className="opacity-40">{busy ? "Adding…" : "Add Video"}</span>
-        </button>
+        {error && <p className="text-sm text-red-600/80">{error}</p>}
+        <IconButton icon={busy ? SpinnerIcon : YoutubeLogoIcon} onClick={() => void submit()} disabled={busy || !link.trim()} className={`h-12 ${busy ? "[&>svg]:animate-spin" : ""}`}>
+          {busy ? "Adding…" : "Add Video"}
+        </IconButton>
       </div>
     </Dialog>
   );

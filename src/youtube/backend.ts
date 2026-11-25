@@ -86,7 +86,7 @@ class EmbedOutput implements YouTubeOutput {
         this.yt.pauseVideo();
       }
     }
-    this.yt.setPlaybackRate(p.rate);
+    if (prev?.rate !== p.rate) this.yt.setPlaybackRate(p.rate);
   }
 
   setVolume(gain: LinearGain) {
