@@ -3,7 +3,6 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { buildPeaks, drawWaveform, type Peaks } from "./Timeline/Waveform/peaks";
 import { formatSize, formatTime } from "../shared/format";
 import { Loading } from "../shared/primitives";
-import { clamp } from "./Timeline/geometry";
 import { core, type Player } from "../../core";
 import type { Section } from "../../core";
 import { Controls } from "./Controls";
@@ -156,8 +155,6 @@ export function YouTubeEditor({ recording, videoId }: { recording: StoredRecordi
     void embed.ready.then((output) => {
       if (!live) return;
       const restored = restore(recording.id, output.duration);
-      restored.options.speed = clamp(Math.round(restored.options.speed * 4) / 4, 0.25, 2);
-      restored.sound.gain = Math.min(1, restored.sound.gain);
       player = core.createPlayer(output, restored.options);
       stopFollowing = output.follow(player);
       if (import.meta.env.DEV) Object.assign(window, { __gd: { player } });
