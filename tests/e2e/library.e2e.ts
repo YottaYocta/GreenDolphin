@@ -40,7 +40,7 @@ const setPitch = async (page: Page, value: string) => {
   await page.keyboard.press("Escape");
 };
 
-test("first launch seeds the demo and offers the tutorial", async ({ page }) => {
+test("first launch seeds both demos and offers the tutorial", async ({ page }) => {
   await openDemo(page, { tutorial: true });
   await expect(page.getByText("Would you like a tutorial?")).toBeVisible();
   await page.getByRole("button", { name: "Yes" }).click();
@@ -49,6 +49,8 @@ test("first launch seeds the demo and offers the tutorial", async ({ page }) => 
   await page.reload();
   await waitForEditor(page);
   await expect(page.getByText("Would you like a tutorial?")).toBeHidden();
+  await page.getByRole("button", { name: "Home" }).click();
+  await expect(page.getByRole("button", { name: "Open Bill Evans Trio - Re: Person I Knew" })).toBeVisible();
 });
 
 test("reopens the last recording with its view, position and settings", async ({ page }) => {
