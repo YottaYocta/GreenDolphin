@@ -28,3 +28,5 @@ dist-ssr
 .fallow
 test-results
 playwright-report
+tests/stress/recordings
+tests/stress/results

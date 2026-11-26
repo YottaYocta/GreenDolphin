@@ -8,6 +8,8 @@
     "build": "tsc && vite build",
     "test": "vitest run",
     "e2e": "playwright test",
+    "stress:generate": "node tests/stress/generate.mjs",
+    "stress": "playwright test --config playwright.stress.config.ts",
     "lint": "eslint .",
     "preview": "vite preview"
   },
