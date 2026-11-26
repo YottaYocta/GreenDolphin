@@ -1,3 +1,4 @@
+import { ArrowSquareOutIcon } from "@phosphor-icons/react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { buildPeaks, drawWaveform, type Peaks } from "./Timeline/Waveform/peaks";
 import { formatSize, formatTime } from "../shared/format";
@@ -45,7 +46,7 @@ function TimelineCard({ id, session, draw, showTime, children }: { id: StoredRec
   );
 }
 
-function Loaded({ recording, info, session, top, draw, piano, editor, general }: { recording: StoredRecording; info: [string, string][]; session: Session; top?: ReactNode; draw?: TimelineProps["draw"]; piano: Tones; editor: EditorSettings; general: ReactNode }) {
+function Loaded({ recording, info, session, top, draw, piano, editor, general }: { recording: StoredRecording; info: [string, ReactNode][]; session: Session; top?: ReactNode; draw?: TimelineProps["draw"]; piano: Tones; editor: EditorSettings; general: ReactNode }) {
   const { player, restored } = session;
   const youtube = recording.source.kind === "youtube";
   const [sound, setSound] = useSound(recording.id, restored.sound, session.output);
@@ -85,7 +86,7 @@ function useEditorSettings() {
   return { editor, onEditor };
 }
 
-function Layout(props: { recording: StoredRecording; info: [string, string][]; session: Session | null; top?: ReactNode; draw?: TimelineProps["draw"]; piano: Tones }) {
+function Layout(props: { recording: StoredRecording; info: [string, ReactNode][]; session: Session | null; top?: ReactNode; draw?: TimelineProps["draw"]; piano: Tones }) {
   const { recording, info, session, top, draw, piano } = props;
   const { editor, onEditor } = useEditorSettings();
   const [tutorialStep, setTutorialStep] = useState<number | null>(null);
@@ -133,7 +134,7 @@ export function AudioEditor({ recording, size, decoded }: { recording: StoredRec
 
   const draw = useCallback((canvas: HTMLCanvasElement, view: Section, loop: Section) => peaks && drawWaveform(canvas, peaks, decoded, view, loop), [peaks, decoded]);
   if (!session) return null;
-  const info: [string, string][] = [
+  const info: [string, ReactNode][] = [
     ["Size", formatSize(size)],
     ["Duration", formatTime(decoded.duration)],
     ["Sample rate", `${decoded.sampleRate.toLocaleString()} Hz`],
@@ -170,9 +171,15 @@ export function YouTubeEditor({ recording, videoId }: { recording: StoredRecordi
     };
   }, [recording.id, videoId]);
 
-  const info: [string, string][] = [
+  const info: [string, ReactNode][] = [
     ["Source", "YouTube"],
-    ["Video ID", videoId],
+    [
+      "Video ID",
+      <a href={`https://www.youtube.com/watch?v=${videoId}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 underline hover:text-ink-55">
+        {videoId}
+        <ArrowSquareOutIcon size={14} weight="bold" className="shrink-0" />
+      </a>,
+    ],
   ];
   return (
     <>

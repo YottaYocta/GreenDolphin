@@ -17,7 +17,7 @@ function Action({ label, icon, size = 16, text, onClick }: { label: string; icon
   );
 }
 
-export function TitleBar({ recording, info, editor }: { recording: StoredRecording; info: [string, string][]; editor?: ReactNode }) {
+export function TitleBar({ recording, info, editor }: { recording: StoredRecording; info: [string, ReactNode][]; editor?: ReactNode }) {
   const { recordings, open, home, remove } = useLibrary();
   const [adding, setAdding] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
