@@ -50,13 +50,12 @@ export const toLoopMode: Persistence["toLoopMode"] = (p, loopLength) =>
     ? { type: "manual" }
     : { type: "automatic", delay: p.delayMode === "fixed" ? p.delayValue : (p.delayValue / 100) * loopLength };
 
-const stored = (key: string) => read(`flag:${key}`, { on: false }).on;
-export const flag: Persistence["flag"] = stored;
+export const flag: Persistence["flag"] = (key) => read(`flag:${key}`, { on: false }).on;
 export const setFlag: Persistence["setFlag"] = (key, on) => write(`flag:${key}`, { on });
 
 export const lastOpened: Persistence["lastOpened"] = () => read<{ id: string | null }>("last", { id: null }).id;
 export const setLastOpened: Persistence["setLastOpened"] = (id) => write("last", { id });
 
-const legacyEditorSettings = (): EditorSettings => ({ piano: stored("piano"), inlineSound: false, playheadTime: true, awake: !stored("allowSleep"), replay: false });
-export const editorSettings: Persistence["editorSettings"] = () => read("editor", legacyEditorSettings());
+const DEFAULT_EDITOR: EditorSettings = { piano: false, inlineSound: false, playheadTime: true, awake: true, replay: false };
+export const editorSettings: Persistence["editorSettings"] = () => read("editor", DEFAULT_EDITOR);
 export const saveEditorSettings: Persistence["saveEditorSettings"] = (patch) => write("editor", { ...editorSettings(), ...patch });
