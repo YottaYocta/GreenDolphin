@@ -13,7 +13,7 @@ import { restore, usePersistence, useSound, type SoundOutput } from "./session";
 import { GeneralSettings, LoopSettings, SoundSettings } from "./Controls/Settings";
 import { Timeline, type TimelineProps } from "./Timeline";
 import { TitleBar } from "./TitleBar";
-import { audio, type AudioEngine, type Recording } from "../../audio";
+import { audio, type AudioEngine, type Recording, type Tones } from "../../audio";
 import { youtube } from "../../youtube";
 import { setReplay } from "../../analytics";
 import { persistence, type EditorSettings, type StoredRecording } from "../../persistence";
@@ -21,12 +21,12 @@ import { persistence, type EditorSettings, type StoredRecording } from "../../pe
 const CARD = "flex flex-col rounded-xl overflow-hidden bg-white";
 const COLUMN = "flex flex-col gap-4 max-md:gap-2 min-h-0 has-[[data-fill]]:h-full";
 
-const tutorialSteps = (piano: boolean): TutorialStep[] => [
+const TUTORIAL_STEPS: TutorialStep[] = [
   { selector: "#timeline-ruler", text: "Click to set playback position" },
   { selector: "#timeline-view", text: "Pinch to zoom in/out" },
   { selector: "#timeline-view", text: "Drag to pan" },
   { selector: "#timeline-loop", text: "Drag the handles to set the loop" },
-  { selector: '[aria-label="Editor settings"]', text: `Show ${piano ? "the piano roll, " : ""}playback settings and other editor customizations` },
+  { selector: '[aria-label="Editor settings"]', text: "Show the piano roll, playback settings and other editor customizations" },
 ];
 
 interface Session {
@@ -45,7 +45,7 @@ function TimelineCard({ id, session, draw, showTime, children }: { id: StoredRec
   );
 }
 
-function Loaded({ recording, info, session, top, draw, engine, editor, general }: { recording: StoredRecording; info: [string, string][]; session: Session; top?: ReactNode; draw?: TimelineProps["draw"]; engine?: AudioEngine; editor: EditorSettings; general: ReactNode }) {
+function Loaded({ recording, info, session, top, draw, piano, editor, general }: { recording: StoredRecording; info: [string, string][]; session: Session; top?: ReactNode; draw?: TimelineProps["draw"]; piano: Tones; editor: EditorSettings; general: ReactNode }) {
   const { player, restored } = session;
   const youtube = recording.source.kind === "youtube";
   const [sound, setSound] = useSound(recording.id, restored.sound, session.output);
@@ -63,7 +63,7 @@ function Loaded({ recording, info, session, top, draw, engine, editor, general }
             </div>
           }
         />
-        {engine && editor.piano && <PianoRoll engine={engine} />}
+        {editor.piano && <PianoRoll tones={piano} />}
         {top}
         <TimelineCard id={recording.id} session={session} draw={draw} showTime={editor.playheadTime}>
           {editor.inlineSound && <div className="grid md:grid-flow-col md:auto-cols-fr gap-x-8 gap-y-2 shrink-0 pt-4 px-4">{settings}</div>}
@@ -85,8 +85,8 @@ function useEditorSettings() {
   return { editor, onEditor };
 }
 
-function Layout(props: { recording: StoredRecording; info: [string, string][]; session: Session | null; top?: ReactNode; draw?: TimelineProps["draw"]; engine?: AudioEngine }) {
-  const { recording, info, session, top, draw, engine } = props;
+function Layout(props: { recording: StoredRecording; info: [string, string][]; session: Session | null; top?: ReactNode; draw?: TimelineProps["draw"]; piano: Tones }) {
+  const { recording, info, session, top, draw, piano } = props;
   const { editor, onEditor } = useEditorSettings();
   const [tutorialStep, setTutorialStep] = useState<number | null>(null);
   return (
@@ -94,7 +94,7 @@ function Layout(props: { recording: StoredRecording; info: [string, string][]; s
       <div className="h-dvh flex items-center justify-center">
         <div className="w-full max-w-220 h-full md:h-min p-4 md:p-6 flex flex-col justify-center gap-8 max-md:gap-4 max-md:pt-6 max-md:pb-10">
           {session ? (
-            <Loaded recording={recording} info={info} session={session} top={top} draw={draw} engine={engine} editor={editor} general={<GeneralSettings editor={editor} onEditor={onEditor} hasPiano={!!engine} onTutorial={() => setTutorialStep(0)} />} />
+            <Loaded recording={recording} info={info} session={session} top={top} draw={draw} piano={piano} editor={editor} general={<GeneralSettings editor={editor} onEditor={onEditor} onTutorial={() => setTutorialStep(0)} />} />
           ) : (
             <div className={COLUMN}>
               <TitleBar recording={recording} info={info} />
@@ -104,7 +104,7 @@ function Layout(props: { recording: StoredRecording; info: [string, string][]; s
           )}
         </div>
       </div>
-      {session && <Tutorial steps={tutorialSteps(!!engine)} step={tutorialStep} setStep={setTutorialStep} />}
+      {session && <Tutorial steps={TUTORIAL_STEPS} step={tutorialStep} setStep={setTutorialStep} />}
     </>
   );
 }
@@ -139,7 +139,7 @@ export function AudioEditor({ recording, size, decoded }: { recording: StoredRec
     ["Sample rate", `${decoded.sampleRate.toLocaleString()} Hz`],
     ["Channels", String(decoded.channelCount)],
   ];
-  return <Layout recording={recording} info={info} session={session} draw={draw} engine={session.engine} />;
+  return <Layout recording={recording} info={info} session={session} draw={draw} piano={session.engine} />;
 }
 
 export function YouTubeEditor({ recording, videoId }: { recording: StoredRecording; videoId: string }) {
@@ -178,7 +178,7 @@ export function YouTubeEditor({ recording, videoId }: { recording: StoredRecordi
     <>
       <div ref={host} className="absolute size-0 overflow-hidden [&_iframe]:w-80 [&_iframe]:h-45" />
       {session || error !== null ? (
-        <Layout recording={recording} info={info} session={session} top={error !== null && <p className={`${CARD} p-4 shrink-0 text-sm text-danger`}>{error}</p>} />
+        <Layout recording={recording} info={info} session={session} top={error !== null && <p className={`${CARD} p-4 shrink-0 text-sm text-danger`}>{error}</p>} piano={audio.tones} />
       ) : (
         <Loading />
       )}

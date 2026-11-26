@@ -32,15 +32,20 @@ export interface Spectrum {
   close(): void;
 }
 
-export interface AudioEngine extends Output {
+export interface Tones {
+  playTone(frequency: Hertz | null): void;
+  openSpectrum?(): Spectrum;
+}
+
+export interface AudioEngine extends Output, Tones {
   openSpectrum(): Spectrum;
   setPitch(semitones: Semitones): void;
   setVolume(gain: LinearGain): void;
-  playTone(frequency: Hertz | null): void;
   dispose(): void;
 }
 
 export interface Audio {
   decode(data: ArrayBuffer): Promise<Recording>;
   createEngine(recording: Recording): Promise<AudioEngine>;
+  tones: Tones;
 }

@@ -2,8 +2,9 @@ import { SoundTouchNode } from "@soundtouchjs/audio-worklet";
 import soundTouchUrl from "@soundtouchjs/audio-worklet/processor?url";
 import freezeUrl from "./freezeProcessor.ts?worker&url";
 import { core, type Playback, type RecordingSeconds } from "../core";
-import type { Audio, AudioEngine, FreezeMessage, Hertz, LinearGain, Semitones, Spectrum } from "./interfaces";
+import type { Audio, AudioEngine, FreezeMessage, LinearGain, Semitones, Spectrum } from "./interfaces";
 import { audioContext, bufferOf, outputDelay } from "./recording";
+import { tonePlayer } from "./tones";
 
 const FADE = 0.03;
 const STRETCH_LATENCY = 0.125;
@@ -24,8 +25,8 @@ class WebAudioEngine implements AudioEngine {
   private readonly gain: GainNode;
   private readonly freeze: AudioWorkletNode;
   private readonly freezeGain: GainNode;
+  readonly playTone: AudioEngine["playTone"];
   private source: AudioBufferSourceNode | null = null;
-  private tone: OscillatorNode | null = null;
   private last: Playback | null = null;
   private idle: ReturnType<typeof setTimeout> | undefined;
 
@@ -37,6 +38,7 @@ class WebAudioEngine implements AudioEngine {
     this.gain = ctx.createGain();
     this.limiter = new DynamicsCompressorNode(ctx, { threshold: -1, knee: 0, ratio: 20, attack: 0.001, release: 0.1 });
     this.stretch.connect(this.gain).connect(this.limiter).connect(ctx.destination);
+    this.playTone = tonePlayer(ctx, this.limiter);
     this.freeze = new AudioWorkletNode(ctx, "gd-freeze", { numberOfInputs: 0, outputChannelCount: [buffer.numberOfChannels] });
     this.freezeGain = ctx.createGain();
     this.freezeGain.gain.value = 0;
@@ -97,19 +99,6 @@ class WebAudioEngine implements AudioEngine {
 
   setVolume(gain: LinearGain) {
     this.gain.gain.value = gain;
-  }
-
-  playTone(frequency: Hertz | null) {
-    this.tone?.stop();
-    this.tone = null;
-    if (frequency === null) return;
-    void this.ctx.resume();
-    const level = this.ctx.createGain();
-    level.gain.value = 10 ** (-10 / 20);
-    this.tone = Object.assign(this.ctx.createOscillator(), { type: "sine" as const });
-    this.tone.frequency.value = frequency;
-    this.tone.connect(level).connect(this.limiter);
-    this.tone.start();
   }
 
   dispose() {
