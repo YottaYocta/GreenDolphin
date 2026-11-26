@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { drag } from "../../shared/drag";
-import type { AudioEngine } from "../../../audio";
+import type { Tones } from "../../../audio";
 
 const FIRST = 24;
 const OCTAVES = 7;
@@ -36,18 +36,19 @@ function averageDb(data: Float32Array, { lo, hi }: { lo: number; hi: number }) {
 
 const keyAt = (x: number, y: number) => document.elementFromPoint(x, y)?.closest<HTMLElement>("[data-key]")?.dataset.key;
 
-export function PianoRoll({ engine }: { engine: AudioEngine }) {
+export function PianoRoll({ tones }: { tones: Tones }) {
   const scroller = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const el = scroller.current!;
     el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2;
-    const c = canvas.current!;
+    const c = canvas.current;
+    const spectrum = tones.openSpectrum?.();
+    if (!c || !spectrum) return () => tones.playTone(null);
     const dpr = window.devicePixelRatio || 1;
     [c.width, c.height] = [WIDTH * dpr, BARS_H * dpr];
     const ctx = c.getContext("2d")!;
-    const spectrum = engine.openSpectrum();
     const bins = semitoneBins(spectrum.binHz);
     const play = getComputedStyle(c).getPropertyValue("--color-play");
     let raf = 0;
@@ -66,11 +67,11 @@ export function PianoRoll({ engine }: { engine: AudioEngine }) {
     return () => {
       cancelAnimationFrame(raf);
       spectrum.close();
-      engine.playTone(null);
+      tones.playTone(null);
     };
-  }, [engine]);
+  }, [tones]);
 
-  const play = (key: string | undefined) => key !== undefined && engine.playTone(frequency(+key));
+  const play = (key: string | undefined) => key !== undefined && tones.playTone(frequency(+key));
 
   return (
     <div
@@ -87,13 +88,13 @@ export function PianoRoll({ engine }: { engine: AudioEngine }) {
             if (pressed !== undefined) play(keyAt(x, e.clientY));
             else scroller.current!.scrollLeft = start - dx;
           },
-          () => engine.playTone(null),
+          () => tones.playTone(null),
           pressed !== undefined ? 0 : SCROLL_PX,
         );
       }}
     >
       <div className="flex flex-col items-center w-fit mx-auto px-12 pt-4">
-        <canvas ref={canvas} style={{ width: WIDTH, height: BARS_H }} />
+        {tones.openSpectrum && <canvas ref={canvas} style={{ width: WIDTH, height: BARS_H }} />}
         <div className="relative flex h-13.5 pt-2" style={{ width: WIDTH }}>
           {Array.from({ length: KEYS }, (_, i) =>
             BLACK.has(i % 12) ? null : (

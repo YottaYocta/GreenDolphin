@@ -64,10 +64,10 @@ const TOGGLES: [keyof EditorSettings, string][] = [
   ["replay", "Share debug info"],
 ];
 
-export function GeneralSettings({ editor, onEditor, hasPiano, onTutorial }: { editor: EditorSettings; onEditor: (patch: Partial<EditorSettings>) => void; hasPiano: boolean; onTutorial: () => void }) {
+export function GeneralSettings({ editor, onEditor, onTutorial }: { editor: EditorSettings; onEditor: (patch: Partial<EditorSettings>) => void; onTutorial: () => void }) {
   return (
     <div className="flex flex-col gap-4">
-      {TOGGLES.filter(([key]) => hasPiano || key !== "piano").map(([key, label]) => (
+      {TOGGLES.map(([key, label]) => (
         <Toggle key={key} label={label} checked={editor[key]} onChange={(on) => onEditor({ [key]: on })} />
       ))}
       <DialogClose onClick={onTutorial} className="btn-surface h-9 rounded-lg text-sm">
