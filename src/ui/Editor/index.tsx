@@ -177,7 +177,7 @@ export function YouTubeEditor({ recording, videoId }: { recording: StoredRecordi
       "Video ID",
       <a href={`https://www.youtube.com/watch?v=${videoId}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 underline hover:text-ink-55">
         {videoId}
-        <ArrowSquareOutIcon size={14} weight="bold" className="shrink-0" />
+        <ArrowSquareOutIcon size={14} weight="fill" className="shrink-0" />
       </a>,
     ],
   ];
