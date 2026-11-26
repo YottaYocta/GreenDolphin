@@ -13,7 +13,7 @@ const start = () =>
       capture_dead_clicks: false,
       capture_heatmaps: false,
       capture_performance: false,
-      capture_exceptions: false,
+      capture_exceptions: { capture_unhandled_errors: true, capture_unhandled_rejections: true, capture_console_errors: true },
       disable_surveys: true,
       disable_web_experiments: true,
       disable_product_tours: true,
