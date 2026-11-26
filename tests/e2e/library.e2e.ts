@@ -25,7 +25,7 @@ async function upload(page: Page, name: string) {
   const fromEditor = await page.getByRole("button", { name: "Switch recording" }).isVisible();
   if (fromEditor) {
     await page.getByRole("button", { name: "Switch recording" }).click();
-    await page.getByRole("menuitem", { name: "New Recording" }).click();
+    await page.getByRole("menuitem", { name: "Load recording" }).click();
   } else await page.getByRole("button", { name: "Load recording" }).first().click();
   await page.getByLabel("Upload audio file").setInputFiles({ name, mimeType: "audio/wav", buffer: wav(8, 330) });
   await page.waitForFunction(() => (window.__gd?.player.duration ?? Infinity) < 9);
@@ -116,9 +116,9 @@ test("relative loop delay is converted to seconds from the loop length", async (
 test("Home returns to the library, and launch then stays there", async ({ page }) => {
   await openDemo(page);
   await page.getByRole("button", { name: "Home" }).click();
-  await expect(page.getByRole("list", { name: "My Recordings" })).toBeVisible();
+  await expect(page.getByRole("list", { name: "My recordings" })).toBeVisible();
   await page.reload();
-  await expect(page.getByRole("list", { name: "My Recordings" })).toBeVisible();
+  await expect(page.getByRole("list", { name: "My recordings" })).toBeVisible();
 });
 
 test("deleting asks first and removes the recording", async ({ page }) => {
@@ -140,7 +140,7 @@ test("the list sorts by last opened or by last added", async ({ page }) => {
   await page.getByRole("button", { name: `Open ${DEMO}.mp3` }).click();
   await waitForEditor(page);
   await page.getByRole("button", { name: "Home" }).click();
-  const first = page.getByRole("list", { name: "My Recordings" }).getByRole("button").first();
+  const first = page.getByRole("list", { name: "My recordings" }).getByRole("button").first();
   await expect(first).toHaveAccessibleName(`Open ${DEMO}.mp3`);
   await page.getByRole("button", { name: "Opened", exact: true }).click();
   await expect(first).toHaveAccessibleName("Open newer.wav");
@@ -152,7 +152,7 @@ test("a bad YouTube link is reported without leaving the dialog", async ({ page 
   await page.goto("/");
   await page.getByRole("button", { name: "Load recording" }).first().click();
   await page.getByLabel("YouTube link").fill("https://example.com/not-a-video");
-  await page.getByRole("button", { name: "Add Video" }).click();
+  await page.getByRole("button", { name: "Add video" }).click();
   await expect(page.getByText("Couldn't find a video in that link.")).toBeVisible();
 });
 
