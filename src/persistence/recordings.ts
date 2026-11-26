@@ -26,19 +26,12 @@ async function transact<T>(stores: string[], mode: IDBTransactionMode, work: (tx
   });
 }
 
-const record = (title: string, source: RecordingSource, addedAt = Date.now()): StoredRecording => ({ id: crypto.randomUUID(), title, addedAt, source });
-
-const save = (entries: { recording: StoredRecording; audio?: Blob }[]) =>
-  transact<void>([RECORDINGS, AUDIO], "readwrite", (tx) => {
-    for (const { recording, audio } of entries) {
-      tx.objectStore(RECORDINGS).add(recording);
-      if (audio) tx.objectStore(AUDIO).add(audio, recording.id);
-    }
-  });
-
 async function add(title: string, source: RecordingSource, audio?: Blob) {
-  const recording = record(title, source);
-  await save([{ recording, audio }]);
+  const recording: StoredRecording = { id: crypto.randomUUID(), title, addedAt: Date.now(), source };
+  await transact<void>([RECORDINGS, AUDIO], "readwrite", (tx) => {
+    tx.objectStore(RECORDINGS).add(recording);
+    if (audio) tx.objectStore(AUDIO).add(audio, recording.id);
+  });
   return recording;
 }
 
