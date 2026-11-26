@@ -9,6 +9,7 @@ import { persistence, type StoredRecording } from "../persistence";
 import { youtube } from "../youtube";
 
 const DEMO = "Wynton Kelly - On Green Dolphin Street.mp3";
+const DEMO_VIDEO = { title: "Bill Evans Trio - Re: Person I Knew", videoId: "9j6PLXMSTmw" };
 
 let seeding: Promise<void> | null = null;
 const seedDemo = () =>
@@ -17,6 +18,7 @@ const seedDemo = () =>
     if (persistence.flag("demo")) return;
     const res = await fetch(`/${encodeURIComponent(DEMO)}`).catch(() => null);
     if (!res?.ok) return;
+    await persistence.addYouTube(DEMO_VIDEO.title, DEMO_VIDEO.videoId);
     await persistence.addAudio(DEMO, await res.arrayBuffer());
     persistence.setFlag("demo", true);
   })());
