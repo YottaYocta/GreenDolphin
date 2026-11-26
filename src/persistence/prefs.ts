@@ -57,6 +57,6 @@ export const setFlag: Persistence["setFlag"] = (key, on) => write(`flag:${key}`,
 export const lastOpened: Persistence["lastOpened"] = () => read<{ id: string | null }>("last", { id: null }).id;
 export const setLastOpened: Persistence["setLastOpened"] = (id) => write("last", { id });
 
-const legacyEditorSettings = (): EditorSettings => ({ piano: stored("piano"), inlineSound: false, playheadTime: true, awake: !stored("allowSleep"), replay: !stored("noReplay") });
+const legacyEditorSettings = (): EditorSettings => ({ piano: stored("piano"), inlineSound: false, playheadTime: true, awake: !stored("allowSleep"), replay: false });
 export const editorSettings: Persistence["editorSettings"] = () => read("editor", legacyEditorSettings());
 export const saveEditorSettings: Persistence["saveEditorSettings"] = (patch) => write("editor", { ...editorSettings(), ...patch });
