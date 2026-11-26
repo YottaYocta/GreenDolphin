@@ -109,7 +109,7 @@ function Layout(props: { recording: StoredRecording; info: [string, ReactNode][]
   );
 }
 
-export function AudioEditor({ recording, size, decoded }: { recording: StoredRecording; size: number; decoded: Recording }) {
+export function AudioEditor({ recording, decoded }: { recording: StoredRecording; decoded: Recording }) {
   const [session, setSession] = useState<(Session & { engine: AudioEngine }) | null>(null);
   const [peaks, setPeaks] = useState<Peaks | null>(null);
 
@@ -134,7 +134,7 @@ export function AudioEditor({ recording, size, decoded }: { recording: StoredRec
   const draw = useCallback((canvas: HTMLCanvasElement, view: Section, loop: Section) => peaks && drawWaveform(canvas, peaks, decoded, view, loop), [peaks, decoded]);
   if (!session) return null;
   const info: [string, ReactNode][] = [
-    ["Size", formatSize(size)],
+    ["Size", recording.source.kind === "file" ? formatSize(recording.source.size) : ""],
     ["Duration", formatTime(decoded.duration)],
     ["Sample rate", `${decoded.sampleRate.toLocaleString()} Hz`],
     ["Channels", String(decoded.channelCount)],

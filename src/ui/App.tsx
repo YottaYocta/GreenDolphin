@@ -14,7 +14,6 @@ const DEMO_VIDEO = { title: "Bill Evans Trio - Re: Person I Knew", videoId: "9j6
 let seeding: Promise<void> | null = null;
 const seedDemo = () =>
   (seeding ??= (async () => {
-    await persistence.listRecordings();
     if (persistence.flag("demo")) return;
     const res = await fetch(`/${encodeURIComponent(DEMO)}`).catch(() => null);
     if (!res?.ok) return;
@@ -39,7 +38,7 @@ export function App() {
       const next: Opened =
         source.kind === "youtube"
           ? { recording, kind: "youtube", videoId: source.videoId }
-          : { recording, kind: "audio", size: source.size, decoded: await audio.decode(await persistence.readAudio(id)) };
+          : { recording, kind: "audio", decoded: await audio.decode(await persistence.readAudio(id)) };
       if (ticket !== request.current) return;
       setOpened(next);
       persistence.setLastOpened(id);
@@ -105,7 +104,7 @@ export function App() {
       {loading ? (
         <Loading />
       ) : opened?.kind === "audio" ? (
-        <AudioEditor key={opened.recording.id} recording={opened.recording} size={opened.size} decoded={opened.decoded} />
+        <AudioEditor key={opened.recording.id} recording={opened.recording} decoded={opened.decoded} />
       ) : opened?.kind === "youtube" ? (
         <YouTubeEditor key={opened.recording.id} recording={opened.recording} videoId={opened.videoId} />
       ) : (

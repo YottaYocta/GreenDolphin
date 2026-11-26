@@ -43,6 +43,6 @@ Nothing is tracked by default. If you turn on "Share debug info" in the editor s
 
 ## Attribution
 
-Demo recording is an excerpt from Wynton Kelly's recording of _On Green Dolphin Street_ in _Kelly Blue_.
+The demo recording is an excerpt from Wynton Kelly's recording of _On Green Dolphin Street_ in _Kelly Blue_. The second demo plays the Bill Evans Trio's _Re: Person I Knew_ from YouTube.
 
 Used under fair use: This material is being used under the fair use provision of U.S. copyright law (17 U.S.C. § 107), which allows for the use of copyrighted works without permission for purposes such as criticism, commentary, news reporting, teaching, scholarship, or research.

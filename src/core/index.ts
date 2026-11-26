@@ -9,7 +9,6 @@ export type {
   LoopMode,
   Output,
   Playback,
-  PlaybackMode,
   Player,
   PlayerOptions,
   PlayState,
@@ -17,7 +16,6 @@ export type {
   Section,
   SpeedRatio,
   TransportEvent,
-  TransportState,
 } from "./interfaces";
 
 export const core: Core = { positionAt, continues, createPlayer };
