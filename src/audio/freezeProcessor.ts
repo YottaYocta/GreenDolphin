@@ -21,17 +21,26 @@ class FreezeProcessor extends AudioWorkletProcessor {
   private position = 0;
   private target = 0;
   private active = false;
+  private unloaded = false;
 
   constructor() {
     super();
     this.port.onmessage = ({ data }: MessageEvent<FreezeMessage>) => {
       if (data.type === "load") this.channels = data.channels;
       else if (data.type === "active") this.active = data.active;
+      else if (data.type === "unload") this.unload();
       else {
         this.target = data.position * sampleRate;
         if (data.jump) this.reset();
       }
     };
+  }
+
+  private unload() {
+    this.port.postMessage(null, this.channels.map((c) => c.buffer));
+    this.channels = [];
+    this.voices = [];
+    this.unloaded = true;
   }
 
   private reset() {
@@ -44,7 +53,7 @@ class FreezeProcessor extends AudioWorkletProcessor {
 
   process(_inputs: Float32Array[][], outputs: Float32Array[][]) {
     const out = outputs[0];
-    if (!this.active || this.voices.length === 0) return true;
+    if (!this.active || this.voices.length === 0) return !this.unloaded;
     const block = out[0].length;
     const glide = 1 - Math.exp(-block / (GLIDE_SECONDS * sampleRate));
     this.position += (this.target - this.position) * glide;

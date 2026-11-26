@@ -105,7 +105,8 @@ class WebAudioEngine implements AudioEngine {
     this.stopSource();
     this.playTone(null);
     clearTimeout(this.idle);
-    this.post({ type: "active", active: false });
+    this.freeze.port.start();
+    this.post({ type: "unload" });
     for (const node of [this.freeze, this.freezeGain, this.stretch, this.gain]) node.disconnect();
     this.limiter.disconnect(this.ctx.destination);
   }

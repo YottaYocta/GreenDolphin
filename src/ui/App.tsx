@@ -62,6 +62,8 @@ export function App() {
     })().catch(() => setLoading(false));
   }, [openRecording]);
 
+  useEffect(() => () => void (opened?.kind === "audio" && audio.release(opened.decoded)), [opened]);
+
   const api = useMemo<LibraryApi>(() => {
     const refresh = async () => setRecordings(await persistence.listRecordings());
     return {

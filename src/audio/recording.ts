@@ -21,8 +21,10 @@ export const decode: Audio["decode"] = async (data) => {
     sampleRate: buffer.sampleRate,
     channelCount: buffer.numberOfChannels,
     length: buffer.length,
-    readChannel: (into, channel, fromSample) => buffer.copyFromChannel(into, channel, fromSample),
+    readChannel: (into, channel, fromSample) => buffers.get(recording)?.copyFromChannel(into, channel, fromSample),
   };
   buffers.set(recording, buffer);
   return recording;
 };
+
+export const release: Audio["release"] = (recording) => void buffers.delete(recording);
