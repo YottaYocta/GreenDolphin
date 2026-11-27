@@ -36,12 +36,12 @@ class PhaseLockedVocoder implements FreezeVocoder {
     this.ready = new Float32Array(this.hop);
   }
 
-  frame(x: Float32Array, atSample: number) {
+  frame(x: Float32Array, atSample: number, firstSample = 0) {
     const { n, hop, re, im, mag, phase, omega, out, peakOf, ola, window } = this;
     const bins = n / 2 + 1;
     const p = Math.round(atSample);
     if (p !== this.analysedAt) {
-      this.analyse(x, p);
+      this.analyse(x, p - firstSample);
       this.analysedAt = p;
     }
     for (let k = 0; k < bins; k++) {

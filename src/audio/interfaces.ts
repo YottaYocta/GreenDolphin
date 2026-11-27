@@ -8,13 +8,13 @@ export type FFT = (real: Float64Array, imaginary: Float64Array, inverse?: boolea
 
 export interface FreezeVocoder {
   readonly hop: number;
-  frame(channel: Float32Array, atSample: number): Float32Array;
+  frame(channel: Float32Array, atSample: number, firstSample?: number): Float32Array;
 }
 
 export type CreateFreezeVocoder = (windowSize: number, spreadSamples: number) => FreezeVocoder;
 
 export type FreezeMessage =
-  | { type: "load"; channels: Float32Array[] }
+  | { type: "load"; channels: Float32Array[]; firstSample: number }
   | { type: "seek"; position: RecordingSeconds; jump: boolean }
   | { type: "active"; active: boolean }
   | { type: "unload" };

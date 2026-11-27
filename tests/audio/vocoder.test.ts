@@ -31,3 +31,13 @@ test("moving the read position at 1x reproduces the recording", () => {
   }
   expect(err).toBeLessThan(0.03);
 });
+
+test("a window of the recording gives the same frames as the whole recording", () => {
+  const [whole, windowed] = [createFreezeVocoder(2048, 1024), createFreezeVocoder(2048, 1024)];
+  const firstSample = 12000;
+  const window = chord.subarray(firstSample, firstSample + 16000);
+  for (let k = 0; k < 20; k++) {
+    const p = 20000 + k * 37;
+    expect(Array.from(windowed.frame(window, p, firstSample))).toEqual(Array.from(whole.frame(chord, p)));
+  }
+});
