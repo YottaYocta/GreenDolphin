@@ -9,6 +9,8 @@ import { tonePlayer } from "./tones";
 const FADE = 0.03;
 const STRETCH_LATENCY = 0.125;
 const ANALYSER_SIZE = 16384;
+const FREEZE_WINDOW_SECONDS = 2;
+const FREEZE_REACH_SECONDS = 0.25;
 let registered: Promise<unknown> | null = null;
 
 export const createEngine: Audio["createEngine"] = async (recording) => {
@@ -29,6 +31,7 @@ class WebAudioEngine implements AudioEngine {
   private source: AudioBufferSourceNode | null = null;
   private last: Playback | null = null;
   private idle: ReturnType<typeof setTimeout> | undefined;
+  private freezeWindow = { firstSample: 0, lastSample: 0 };
 
   constructor(ctx: AudioContext, buffer: AudioBuffer) {
     this.ctx = ctx;
@@ -43,12 +46,6 @@ class WebAudioEngine implements AudioEngine {
     this.freezeGain = ctx.createGain();
     this.freezeGain.gain.value = 0;
     this.freeze.connect(this.freezeGain).connect(this.stretch);
-    const channels = Array.from({ length: buffer.numberOfChannels }, (_, c) => {
-      const copy = new Float32Array(buffer.length);
-      buffer.copyFromChannel(copy, c);
-      return copy;
-    });
-    this.post({ type: "load", channels }, channels.map((c) => c.buffer));
   }
 
   now = () => this.ctx.currentTime;
@@ -68,13 +65,13 @@ class WebAudioEngine implements AudioEngine {
       const position = core.positionAt(p, this.ctx.currentTime);
       this.stopSource();
       if (p.mode === "playing") this.startSource(p, position);
-      if (freezing) this.post({ type: "seek", position, jump: true });
+      if (freezing) this.seekFreeze(position, true);
       this.fadeFreeze(freezing);
     } else if (p.mode === "playing" && this.source) {
       Object.assign(this.source, { loopStart: p.loop.start, loopEnd: p.loop.end });
       this.source.playbackRate.value = p.rate;
       this.scheduleStop(this.source, p);
-    } else if (p.mode === "scrubbing") this.post({ type: "seek", position: p.anchorPosition, jump: false });
+    } else if (p.mode === "scrubbing") this.seekFreeze(p.anchorPosition, false);
 
     this.stretch.playbackRate.value = p.mode === "playing" ? p.rate : 1;
   }
@@ -139,6 +136,23 @@ class WebAudioEngine implements AudioEngine {
     clearTimeout(this.idle);
     if (on) this.post({ type: "active", active: true });
     else this.idle = setTimeout(() => this.post({ type: "active", active: false }), FADE * 2000);
+  }
+
+  private seekFreeze(position: RecordingSeconds, jump: boolean) {
+    const { sampleRate, length, numberOfChannels } = this.buffer;
+    const at = Math.round(position * sampleRate);
+    const reach = FREEZE_REACH_SECONDS * sampleRate;
+    if (Math.max(0, at - reach) < this.freezeWindow.firstSample || Math.min(length, at + reach) > this.freezeWindow.lastSample) {
+      const firstSample = Math.max(0, Math.round(at - (FREEZE_WINDOW_SECONDS * sampleRate) / 2));
+      const channels = Array.from({ length: numberOfChannels }, (_, c) => {
+        const copy = new Float32Array(Math.min(length - firstSample, FREEZE_WINDOW_SECONDS * sampleRate));
+        this.buffer.copyFromChannel(copy, c, firstSample);
+        return copy;
+      });
+      this.freezeWindow = { firstSample, lastSample: firstSample + channels[0].length };
+      this.post({ type: "load", channels, firstSample }, channels.map((c) => c.buffer));
+    }
+    this.post({ type: "seek", position, jump });
   }
 
   private post(message: FreezeMessage, transfer: Transferable[] = []) {
