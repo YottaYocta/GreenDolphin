@@ -16,7 +16,8 @@ export type CreateFreezeVocoder = (windowSize: number, spreadSamples: number) =>
 export type FreezeMessage =
   | { type: "load"; channels: Float32Array[] }
   | { type: "seek"; position: RecordingSeconds; jump: boolean }
-  | { type: "active"; active: boolean };
+  | { type: "active"; active: boolean }
+  | { type: "unload" };
 
 export interface Recording {
   readonly duration: DurationSeconds;
@@ -46,6 +47,7 @@ export interface AudioEngine extends Output, Tones {
 
 export interface Audio {
   decode(data: ArrayBuffer): Promise<Recording>;
+  release(recording: Recording): void;
   createEngine(recording: Recording): Promise<AudioEngine>;
   tones: Tones;
 }
