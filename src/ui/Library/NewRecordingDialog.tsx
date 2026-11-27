@@ -28,10 +28,10 @@ export function NewRecordingDialog({ open, onOpenChange }: { open: boolean; onOp
     }
   };
   return (
-    <Dialog title="New Recording" open={open} onOpenChange={onOpenChange}>
+    <Dialog title="Load recording" open={open} onOpenChange={onOpenChange}>
       <div className="flex flex-col gap-4">
         <IconButton icon={MusicNotesPlusIcon} onClick={() => input.current?.click()} className="h-12">
-          Upload Audio File
+          Upload audio file
         </IconButton>
         <input
           ref={input}
@@ -62,7 +62,7 @@ export function NewRecordingDialog({ open, onOpenChange }: { open: boolean; onOp
         />
         {error && <p className="text-sm text-danger">{error}</p>}
         <IconButton icon={busy ? SpinnerIcon : YoutubeLogoIcon} onClick={() => void submit()} disabled={busy || !link.trim()} className={`h-12 ${busy ? "[&>svg]:animate-spin" : ""}`}>
-          {busy ? "Adding…" : "Add Video"}
+          {busy ? "Adding…" : "Add video"}
         </IconButton>
       </div>
     </Dialog>

@@ -267,7 +267,7 @@ test("piano keys play a tone at the key's pitch", async ({ page }) => {
   expectNear(peakHz, 440, 10);
 });
 
-test("sound controls can sit under the timeline instead of in a dialog", async ({ page }) => {
+test("playback settings can sit under the timeline instead of in a dialog", async ({ page }) => {
   await page.getByRole("button", { name: "Editor settings" }).click();
   await page.getByRole("switch", { name: "Show playback settings" }).click();
   await page.keyboard.press("Escape");

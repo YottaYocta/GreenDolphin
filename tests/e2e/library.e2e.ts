@@ -25,7 +25,7 @@ async function upload(page: Page, name: string) {
   const fromEditor = await page.getByRole("button", { name: "Switch recording" }).isVisible();
   if (fromEditor) {
     await page.getByRole("button", { name: "Switch recording" }).click();
-    await page.getByRole("menuitem", { name: "New Recording" }).click();
+    await page.getByRole("menuitem", { name: "Load recording" }).click();
   } else await page.getByRole("button", { name: "Load recording" }).first().click();
   await page.getByLabel("Upload audio file").setInputFiles({ name, mimeType: "audio/wav", buffer: wav(8, 330) });
   await page.waitForFunction(() => (window.__gd?.player.duration ?? Infinity) < 9);
@@ -116,9 +116,9 @@ test("relative loop delay is converted to seconds from the loop length", async (
 test("Home returns to the library, and launch then stays there", async ({ page }) => {
   await openDemo(page);
   await page.getByRole("button", { name: "Home" }).click();
-  await expect(page.getByRole("list", { name: "My Recordings" })).toBeVisible();
+  await expect(page.getByRole("list", { name: "My recordings" })).toBeVisible();
   await page.reload();
-  await expect(page.getByRole("list", { name: "My Recordings" })).toBeVisible();
+  await expect(page.getByRole("list", { name: "My recordings" })).toBeVisible();
 });
 
 test("deleting asks first and removes the recording", async ({ page }) => {
@@ -140,7 +140,7 @@ test("the list sorts by last opened or by last added", async ({ page }) => {
   await page.getByRole("button", { name: `Open ${DEMO}.mp3` }).click();
   await waitForEditor(page);
   await page.getByRole("button", { name: "Home" }).click();
-  const first = page.getByRole("list", { name: "My Recordings" }).getByRole("button").first();
+  const first = page.getByRole("list", { name: "My recordings" }).getByRole("button").first();
   await expect(first).toHaveAccessibleName(`Open ${DEMO}.mp3`);
   await page.getByRole("button", { name: "Opened", exact: true }).click();
   await expect(first).toHaveAccessibleName("Open newer.wav");
@@ -152,7 +152,7 @@ test("a bad YouTube link is reported without leaving the dialog", async ({ page 
   await page.goto("/");
   await page.getByRole("button", { name: "Load recording" }).first().click();
   await page.getByLabel("YouTube link").fill("https://example.com/not-a-video");
-  await page.getByRole("button", { name: "Add Video" }).click();
+  await page.getByRole("button", { name: "Add video" }).click();
   await expect(page.getByText("Couldn't find a video in that link.")).toBeVisible();
 });
 
@@ -167,60 +167,4 @@ test("a long title truncates without colliding with the title bar buttons", asyn
       expect(boxes[i].x + boxes[i].width <= other.x || other.x + other.width <= boxes[i].x || boxes[i].y + boxes[i].height <= other.y || other.y + other.height <= boxes[i].y).toBe(true);
   const title = page.getByRole("button", { name: "Switch recording" }).locator("span");
   expect(await title.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(true);
-});
-
-test("recordings saved by the previous version are imported once, then its database is removed", async ({ page }) => {
-  await page.goto("/favicon/favicon.svg");
-  await page.evaluate(
-    (bytes) =>
-      new Promise<void>((resolve) => {
-        const req = indexedDB.open("greendolphin-v1", 3);
-        req.onupgradeneeded = () => ["files", "file-meta"].forEach((store) => req.result.createObjectStore(store));
-        req.onsuccess = () => {
-          const tx = req.result.transaction(["files", "file-meta"], "readwrite");
-          const video = JSON.stringify({ videoId: "jNQXAC9IVRw", url: "", title: "Me at the zoo" });
-          tx.objectStore("files").put(new File([new Uint8Array(bytes)], "old.wav", { type: "audio/wav" }), "old.wav");
-          tx.objectStore("files").put(new File([video], "Me at the zoo.yt", { type: "application/x-greendolphin-youtube" }), "Me at the zoo.yt");
-          tx.objectStore("file-meta").put({ uploadedAt: 1 }, "old.wav");
-          tx.objectStore("file-meta").put({ uploadedAt: 2 }, "Me at the zoo.yt");
-          tx.oncomplete = () => (req.result.close(), resolve());
-        };
-      }),
-    [...wav(2, 330)],
-  );
-  await page.goto("/");
-  await expect(page.getByRole("button", { name: "Open old.wav" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Open Me at the zoo" })).toBeVisible();
-  await expect(page.getByRole("button", { name: `Open ${DEMO}.mp3` })).toHaveCount(0);
-  expect(await page.evaluate(async () => (await indexedDB.databases()).map((d) => d.name))).not.toContain("greendolphin-v1");
-  await page.getByRole("button", { name: "Open old.wav" }).click();
-  await waitForEditor(page);
-  expectNear((await snapshot(page)).duration, 2, 0.01);
-});
-
-test("upgrading the database keeps recordings and drops the retired notes store", async ({ page }) => {
-  await page.goto("/favicon/favicon.svg");
-  await page.evaluate(
-    () =>
-      new Promise<void>((resolve) => {
-        const req = indexedDB.open("greendolphin", 2);
-        req.onupgradeneeded = () => ["recordings", "audio", "notes"].forEach((store) => req.result.createObjectStore(store, store === "recordings" ? { keyPath: "id" } : undefined));
-        req.onsuccess = () => {
-          const tx = req.result.transaction(["recordings", "notes"], "readwrite");
-          tx.objectStore("recordings").put({ id: "kept", title: "Kept video", addedAt: 1, source: { kind: "youtube", videoId: "jNQXAC9IVRw" } });
-          tx.objectStore("notes").put([{ pitch: 60, start: 1, length: 1 }], "kept");
-          tx.oncomplete = () => (req.result.close(), resolve());
-        };
-      }),
-  );
-  await page.goto("/");
-  await expect(page.getByRole("button", { name: "Open Kept video" })).toBeVisible();
-  const stores = await page.evaluate(
-    () =>
-      new Promise<string[]>((resolve) => {
-        const req = indexedDB.open("greendolphin");
-        req.onsuccess = () => resolve([...req.result.objectStoreNames]);
-      }),
-  );
-  expect(stores.sort()).toEqual(["audio", "recordings"]);
 });

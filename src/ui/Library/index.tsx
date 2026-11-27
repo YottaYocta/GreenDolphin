@@ -28,7 +28,7 @@ export function Library() {
           <img src="/favicon/favicon.svg" alt="" className="w-13 rounded-lg bg-white" />
           <div className="flex flex-col gap-1">
             <h1 className="font-bold text-play text-[29px]/9">GreenDolphin</h1>
-            <p className="text-ink-40 text-sm">Audio Looper & Recording Analyzer</p>
+            <p className="text-ink-40 text-sm">Audio looper & recording analyzer</p>
           </div>
         </header>
         {error && <p role="alert" className="text-sm text-danger">{error}</p>}
@@ -48,8 +48,8 @@ export function Library() {
             {byAdded ? "Added" : "Opened"}
           </IconButton>
         </div>
-        <ul aria-label="My Recordings" className="rounded-lg self-stretch bg-white min-h-0 max-md:flex-1 overflow-y-auto scrollbar-slim">
-          {recordings.length === 0 && <li className="px-6 py-8 text-center text-ink-40 text-sm">No recordings yet. Upload a file to get started.</li>}
+        <ul aria-label="My recordings" className="rounded-lg self-stretch bg-white min-h-0 max-md:flex-1 overflow-y-auto scrollbar-slim">
+          {recordings.length === 0 && <li className="px-6 py-8 text-center text-ink-40 text-sm">No recordings yet. Load one to get started.</li>}
           {rows.map(({ recording, when }) => (
             <li key={recording.id}>
               <button aria-label={`Open ${recording.title}`} onClick={() => open(recording.id)} className="flex items-center gap-4 w-full p-4 md:py-3 text-left cursor-pointer hover:bg-surface-active active:bg-surface-input">

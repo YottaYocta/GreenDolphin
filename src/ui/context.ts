@@ -2,7 +2,7 @@ import { createContext, useContext } from "react";
 import type { Recording } from "../audio";
 import type { RecordingId, StoredRecording } from "../persistence";
 
-export type Opened = { recording: StoredRecording } & ({ kind: "audio"; size: number; decoded: Recording } | { kind: "youtube"; videoId: string });
+export type Opened = { recording: StoredRecording } & ({ kind: "audio"; decoded: Recording } | { kind: "youtube"; videoId: string });
 
 export interface LibraryApi {
   recordings: StoredRecording[];

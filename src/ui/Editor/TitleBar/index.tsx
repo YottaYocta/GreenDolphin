@@ -48,7 +48,7 @@ export function TitleBar({ recording, info, editor }: { recording: StoredRecordi
                 </div>
                 <Menu.Item className={`${ITEM} bg-page-bg`} onClick={() => setAdding(true)}>
                   <MusicNotesPlusIcon size={18} weight="fill" className="text-ink-40" />
-                  <span>New Recording</span>
+                  <span>Load recording</span>
                 </Menu.Item>
               </Menu.Popup>
             </Menu.Positioner>

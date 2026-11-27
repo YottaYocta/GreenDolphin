@@ -1,6 +1,6 @@
 import type { TransportRules } from "./interfaces";
 
-export const inLoop: TransportRules["inLoop"] = (position, loop) =>
+const inLoop: TransportRules["inLoop"] = (position, loop) =>
   position >= loop.start && position < loop.end;
 
 export const loopDelay: TransportRules["loopDelay"] = (mode) => (mode.type === "automatic" ? mode.delay : 0);

@@ -14,8 +14,8 @@ export default defineConfig({
     launchOptions: { args: ["--autoplay-policy=no-user-gesture-required"] },
   },
   projects: [
-    { name: "desktop", use: { ...devices["Desktop Chrome"], channel: "chrome" } },
-    { name: "mobile", use: { ...devices["Pixel 7"], channel: "chrome" } },
+    { name: "desktop", use: devices["Desktop Chrome"] },
+    { name: "mobile", use: devices["Pixel 7"] },
   ],
   webServer: {
     command: `pnpm exec vite --port ${PORT} --strictPort --host 127.0.0.1`,
