@@ -19,8 +19,7 @@ const seedDemo = () =>
     if (persistence.flag("demo")) return;
     const res = await fetch(`/${encodeURIComponent(DEMO)}`).catch(() => null);
     if (!res?.ok) return;
-    await persistence.addYouTube(DEMO_VIDEO.title, DEMO_VIDEO.videoId, "demo-video");
-    await persistence.addAudio(DEMO, await res.arrayBuffer(), "demo-audio");
+    await persistence.addDemos(DEMO_VIDEO, { title: DEMO, data: await res.arrayBuffer() });
     persistence.setFlag("demo", true);
   })());
 

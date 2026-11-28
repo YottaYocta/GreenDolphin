@@ -38,9 +38,14 @@ async function add(title: string, source: RecordingSource, audio?: Blob, id: Rec
 export const listRecordings: Persistence["listRecordings"] = async () =>
   (await transact<StoredRecording[]>([RECORDINGS], "readonly", (tx) => tx.objectStore(RECORDINGS).getAll())).sort((a, b) => b.addedAt - a.addedAt);
 
-export const addAudio: Persistence["addAudio"] = (title, data, id) => add(title, { kind: "file", size: data.byteLength }, new Blob([data]), id);
+export const addAudio: Persistence["addAudio"] = (title, data) => add(title, { kind: "file", size: data.byteLength }, new Blob([data]));
 
-export const addYouTube: Persistence["addYouTube"] = (title, videoId, id) => add(title, { kind: "youtube", videoId }, undefined, id);
+export const addYouTube: Persistence["addYouTube"] = (title, videoId) => add(title, { kind: "youtube", videoId });
+
+export const addDemos: Persistence["addDemos"] = async (video, audio) => {
+  await add(video.title, { kind: "youtube", videoId: video.videoId }, undefined, "demo-video");
+  await add(audio.title, { kind: "file", size: audio.data.byteLength }, new Blob([audio.data]), "demo-audio");
+};
 
 export const readAudio: Persistence["readAudio"] = async (id) => {
   const blob = await transact<Blob | undefined>([AUDIO], "readonly", (tx) => tx.objectStore(AUDIO).get(id));
