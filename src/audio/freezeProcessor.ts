@@ -27,10 +27,10 @@ class FreezeProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
     this.port.onmessage = ({ data }: MessageEvent<FreezeMessage>) => {
-      if (data.type === "load") Object.assign(this, { channels: data.channels, firstSample: data.firstSample });
-      else if (data.type === "active") this.active = data.active;
+      if (data.type === "active") this.active = data.active;
       else if (data.type === "unload") this.unload();
       else {
+        if (data.window) ({ channels: this.channels, firstSample: this.firstSample } = data.window);
         this.target = data.position * sampleRate;
         if (data.jump) this.reset();
       }

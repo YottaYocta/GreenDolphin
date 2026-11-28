@@ -142,17 +142,15 @@ class WebAudioEngine implements AudioEngine {
     const { sampleRate, length, numberOfChannels } = this.buffer;
     const at = Math.round(position * sampleRate);
     const reach = FREEZE_REACH_SECONDS * sampleRate;
-    if (Math.max(0, at - reach) < this.freezeWindow.firstSample || Math.min(length, at + reach) > this.freezeWindow.lastSample) {
-      const firstSample = Math.max(0, Math.round(at - (FREEZE_WINDOW_SECONDS * sampleRate) / 2));
-      const channels = Array.from({ length: numberOfChannels }, (_, c) => {
-        const copy = new Float32Array(Math.min(length - firstSample, FREEZE_WINDOW_SECONDS * sampleRate));
-        this.buffer.copyFromChannel(copy, c, firstSample);
-        return copy;
-      });
-      this.freezeWindow = { firstSample, lastSample: firstSample + channels[0].length };
-      this.post({ type: "load", channels, firstSample }, channels.map((c) => c.buffer));
-    }
-    this.post({ type: "seek", position, jump });
+    if (Math.max(0, at - reach) >= this.freezeWindow.firstSample && Math.min(length, at + reach) <= this.freezeWindow.lastSample) return this.post({ type: "seek", position, jump });
+    const firstSample = Math.max(0, at - (FREEZE_WINDOW_SECONDS * sampleRate) / 2);
+    const channels = Array.from({ length: numberOfChannels }, (_, c) => {
+      const copy = new Float32Array(Math.min(length - firstSample, FREEZE_WINDOW_SECONDS * sampleRate));
+      this.buffer.copyFromChannel(copy, c, firstSample);
+      return copy;
+    });
+    this.freezeWindow = { firstSample, lastSample: firstSample + channels[0].length };
+    this.post({ type: "seek", position, jump, window: { channels, firstSample } }, channels.map((c) => c.buffer));
   }
 
   private post(message: FreezeMessage, transfer: Transferable[] = []) {
