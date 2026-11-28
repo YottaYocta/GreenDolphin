@@ -80,6 +80,7 @@ class EmbedOutput implements YouTubeOutput {
   render(p: Playback) {
     const prev = this.last;
     this.last = p;
+    if (p.mode === "scrubbing") return;
     const modeChanged = !prev || prev.mode !== p.mode;
     if (modeChanged || !core.continues(prev!, p)) {
       const target = core.positionAt(p, this.now());
