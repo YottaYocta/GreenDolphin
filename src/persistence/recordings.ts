@@ -1,4 +1,4 @@
-import type { Persistence, RecordingId, RecordingSource, StoredRecording } from "./interfaces";
+import type { Persistence, RecordingSource, StoredRecording } from "./interfaces";
 import { removeRecordingPrefs } from "./prefs";
 
 const RECORDINGS = "recordings";
@@ -26,11 +26,11 @@ async function transact<T>(stores: string[], mode: IDBTransactionMode, work: (tx
   });
 }
 
-async function add(title: string, source: RecordingSource, audio?: Blob, id: RecordingId = crypto.randomUUID()) {
-  const recording: StoredRecording = { id, title, addedAt: Date.now(), source };
+async function add(title: string, source: RecordingSource, audio?: Blob) {
+  const recording: StoredRecording = { id: crypto.randomUUID(), title, addedAt: Date.now(), source };
   await transact<void>([RECORDINGS, AUDIO], "readwrite", (tx) => {
-    tx.objectStore(RECORDINGS).put(recording);
-    if (audio) tx.objectStore(AUDIO).put(audio, id);
+    tx.objectStore(RECORDINGS).add(recording);
+    if (audio) tx.objectStore(AUDIO).add(audio, recording.id);
   });
   return recording;
 }
@@ -41,11 +41,6 @@ export const listRecordings: Persistence["listRecordings"] = async () =>
 export const addAudio: Persistence["addAudio"] = (title, data) => add(title, { kind: "file", size: data.byteLength }, new Blob([data]));
 
 export const addYouTube: Persistence["addYouTube"] = (title, videoId) => add(title, { kind: "youtube", videoId });
-
-export const addDemos: Persistence["addDemos"] = async (video, audio) => {
-  await add(video.title, { kind: "youtube", videoId: video.videoId }, undefined, "demo-video");
-  await add(audio.title, { kind: "file", size: audio.data.byteLength }, new Blob([audio.data]), "demo-audio");
-};
 
 export const readAudio: Persistence["readAudio"] = async (id) => {
   const blob = await transact<Blob | undefined>([AUDIO], "readonly", (tx) => tx.objectStore(AUDIO).get(id));
