@@ -30,15 +30,25 @@ class FreezeProcessor extends AudioWorkletProcessor {
       if (data.type === "active") this.active = data.active;
       else if (data.type === "unload") this.unload();
       else {
-        if (data.window) ({ channels: this.channels, firstSample: this.firstSample } = data.window);
         this.target = data.position * sampleRate;
+        if (data.window) {
+          this.release();
+          ({ channels: this.channels, firstSample: this.firstSample } = data.window);
+          const reach = WINDOW / 2 + SPREAD_SECONDS * sampleRate + this.hop;
+          const lastSample = this.firstSample + this.channels[0].length;
+          this.position = Math.min(Math.max(this.position, Math.min(this.target, this.firstSample + reach)), Math.max(this.target, lastSample - reach));
+        }
         if (data.jump) this.reset();
       }
     };
   }
 
-  private unload() {
+  private release() {
     this.port.postMessage(null, this.channels.map((c) => c.buffer));
+  }
+
+  private unload() {
+    this.release();
     this.channels = [];
     this.voices = [];
     this.unloaded = true;
@@ -57,10 +67,7 @@ class FreezeProcessor extends AudioWorkletProcessor {
     if (!this.active || this.voices.length === 0) return !this.unloaded;
     const block = out[0].length;
     const glide = 1 - Math.exp(-block / (GLIDE_SECONDS * sampleRate));
-    const reach = WINDOW / 2 + SPREAD_SECONDS * sampleRate + this.hop;
-    const lastSample = this.firstSample + (this.channels[0]?.length ?? 0);
-    const glided = this.position + (this.target - this.position) * glide;
-    this.position = Math.min(Math.max(glided, Math.min(this.target, this.firstSample + reach)), Math.max(this.target, lastSample - reach));
+    this.position += (this.target - this.position) * glide;
     const count = this.voices.length;
     for (let i = 0; i < block; i++) {
       for (let c = 0; c < count; c++) if (this.read === Math.floor((c * this.hop) / count)) this.next[c] = this.voices[c].frame(this.channels[c], this.position, this.firstSample);

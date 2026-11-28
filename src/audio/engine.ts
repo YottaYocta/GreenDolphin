@@ -31,7 +31,7 @@ class WebAudioEngine implements AudioEngine {
   private source: AudioBufferSourceNode | null = null;
   private last: Playback | null = null;
   private idle: ReturnType<typeof setTimeout> | undefined;
-  private freezeWindow = { firstSample: 0, lastSample: 0 };
+  private freezeCentre = Infinity;
 
   constructor(ctx: AudioContext, buffer: AudioBuffer) {
     this.ctx = ctx;
@@ -46,6 +46,7 @@ class WebAudioEngine implements AudioEngine {
     this.freezeGain = ctx.createGain();
     this.freezeGain.gain.value = 0;
     this.freeze.connect(this.freezeGain).connect(this.stretch);
+    this.freeze.port.start();
   }
 
   now = () => this.ctx.currentTime;
@@ -102,7 +103,6 @@ class WebAudioEngine implements AudioEngine {
     this.stopSource();
     this.playTone(null);
     clearTimeout(this.idle);
-    this.freeze.port.start();
     this.post({ type: "unload" });
     for (const node of [this.freeze, this.freezeGain, this.stretch, this.gain]) node.disconnect();
     this.limiter.disconnect(this.ctx.destination);
@@ -141,15 +141,14 @@ class WebAudioEngine implements AudioEngine {
   private seekFreeze(position: RecordingSeconds, jump: boolean) {
     const { sampleRate, length, numberOfChannels } = this.buffer;
     const at = Math.round(position * sampleRate);
-    const reach = FREEZE_REACH_SECONDS * sampleRate;
-    if (Math.max(0, at - reach) >= this.freezeWindow.firstSample && Math.min(length, at + reach) <= this.freezeWindow.lastSample) return this.post({ type: "seek", position, jump });
+    if (Math.abs(at - this.freezeCentre) <= (FREEZE_WINDOW_SECONDS / 2 - FREEZE_REACH_SECONDS) * sampleRate) return this.post({ type: "seek", position, jump });
+    this.freezeCentre = at;
     const firstSample = Math.max(0, at - (FREEZE_WINDOW_SECONDS * sampleRate) / 2);
     const channels = Array.from({ length: numberOfChannels }, (_, c) => {
       const copy = new Float32Array(Math.min(length - firstSample, FREEZE_WINDOW_SECONDS * sampleRate));
       this.buffer.copyFromChannel(copy, c, firstSample);
       return copy;
     });
-    this.freezeWindow = { firstSample, lastSample: firstSample + channels[0].length };
     this.post({ type: "seek", position, jump, window: { channels, firstSample } }, channels.map((c) => c.buffer));
   }
 
