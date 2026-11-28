@@ -11,42 +11,41 @@ import { youtube } from "../youtube";
 const DEMO = "Wynton Kelly - On Green Dolphin Street.mp3";
 const DEMO_VIDEO = { title: "Bill Evans Trio - Re: Person I Knew", videoId: "9j6PLXMSTmw" };
 
+type Screen = { at: "loading" } | { at: "library"; error?: string } | { at: "editor"; opened: Opened };
+
 let seeding: Promise<void> | null = null;
 const seedDemo = () =>
   (seeding ??= (async () => {
     if (persistence.flag("demo")) return;
     const res = await fetch(`/${encodeURIComponent(DEMO)}`).catch(() => null);
     if (!res?.ok) return;
-    await persistence.addYouTube(DEMO_VIDEO.title, DEMO_VIDEO.videoId);
-    await persistence.addAudio(DEMO, await res.arrayBuffer());
+    await persistence.addYouTube(DEMO_VIDEO.title, DEMO_VIDEO.videoId, "demo-video");
+    await persistence.addAudio(DEMO, await res.arrayBuffer(), "demo-audio");
     persistence.setFlag("demo", true);
   })());
 
 export function App() {
   const [recordings, setRecordings] = useState<StoredRecording[]>([]);
-  const [opened, setOpened] = useState<Opened | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [screen, setScreen] = useState<Screen>({ at: "loading" });
+  const opened = screen.at === "editor" ? screen.opened : null;
+  const error = (screen.at === "library" && screen.error) || null;
   const request = useRef(0);
 
   const openRecording = useCallback(async (recording: StoredRecording) => {
     const { id, title, source } = recording;
     const ticket = ++request.current;
-    setLoading(true);
-    setError(null);
+    setScreen({ at: "loading" });
     try {
-      const next: Opened =
+      const opened: Opened =
         source.kind === "youtube"
           ? { recording, kind: "youtube", videoId: source.videoId }
           : { recording, kind: "audio", decoded: await audio.decode(await persistence.readAudio(id)) };
       if (ticket !== request.current) return;
-      setOpened(next);
+      setScreen({ at: "editor", opened });
       persistence.setLastOpened(id);
       persistence.saveRecordingPrefs(id, { openedAt: Date.now() });
     } catch {
-      if (ticket === request.current) setError(`Couldn't open “${title}”. Is it an audio file?`);
-    } finally {
-      if (ticket === request.current) setLoading(false);
+      if (ticket === request.current) setScreen({ at: "library", error: `Couldn't open “${title}”. Is it an audio file?` });
     }
   }, []);
 
@@ -57,14 +56,19 @@ export function App() {
       setRecordings(list);
       const last = list.find((r) => r.id === persistence.lastOpened());
       if (last) await openRecording(last);
-      else setLoading(false);
-    })().catch(() => setLoading(false));
+      else setScreen({ at: "library" });
+    })().catch(() => setScreen({ at: "library" }));
   }, [openRecording]);
 
   useEffect(() => () => void (opened?.kind === "audio" && audio.release(opened.decoded)), [opened]);
 
   const api = useMemo<LibraryApi>(() => {
     const refresh = async () => setRecordings(await persistence.listRecordings());
+    const home = () => {
+      request.current++;
+      setScreen({ at: "library" });
+      persistence.setLastOpened(null);
+    };
     return {
       recordings,
       error,
@@ -88,29 +92,25 @@ export function App() {
         await openRecording(added);
       },
       remove: async (id) => {
+        home();
         await persistence.deleteRecording(id);
         await refresh();
       },
-      home: () => {
-        request.current++;
-        setOpened(null);
-        setLoading(false);
-        persistence.setLastOpened(null);
-      },
+      home,
     };
   }, [recordings, error, openRecording]);
 
   return (
     <LibraryContext.Provider value={api}>
       <PullToRefresh />
-      {loading ? (
+      {screen.at === "loading" ? (
         <Loading />
-      ) : opened?.kind === "audio" ? (
-        <AudioEditor key={opened.recording.id} recording={opened.recording} decoded={opened.decoded} />
-      ) : opened?.kind === "youtube" ? (
-        <YouTubeEditor key={opened.recording.id} recording={opened.recording} videoId={opened.videoId} />
-      ) : (
+      ) : !opened ? (
         <Library />
+      ) : opened.kind === "audio" ? (
+        <AudioEditor key={opened.recording.id} recording={opened.recording} decoded={opened.decoded} />
+      ) : (
+        <YouTubeEditor key={opened.recording.id} recording={opened.recording} videoId={opened.videoId} />
       )}
     </LibraryContext.Provider>
   );

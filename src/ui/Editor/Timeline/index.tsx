@@ -12,7 +12,7 @@ export interface TimelineProps {
   initialView: Section;
   initialLoop: LoopFraction;
   onView: (view: Section) => void;
-  onLoopCommit: (loop: Section) => void;
+  applyLoop: (loop: Section | null) => void;
   draw?: (canvas: HTMLCanvasElement, view: Section, loop: Section) => void;
   showTime: boolean;
 }
@@ -31,8 +31,8 @@ const Triangle: FC<{ points: string; className: string }> = ({ points, className
   </svg>
 );
 
-function createModel(props: Omit<TimelineProps, "draw" | "showTime">, content: RefObject<HTMLDivElement | null>) {
-  const { player, initialView, initialLoop, onView, onLoopCommit } = props;
+function createModel(props: Omit<TimelineProps, "player" | "draw" | "showTime">, content: RefObject<HTMLDivElement | null>) {
+  const { initialView, initialLoop, onView, applyLoop } = props;
   const m = { view: initialView, loop: initialLoop, version: 0 };
   const width = () => content.current?.clientWidth || 1;
   const fraction = (clientX: number) => (clientX - (content.current?.getBoundingClientRect().left ?? 0)) / width();
@@ -51,12 +51,8 @@ function createModel(props: Omit<TimelineProps, "draw" | "showTime">, content: R
       m.loop = loop;
       m.version++;
     },
-    lift: () => player.setLoop(null),
-    commit() {
-      const loop = toSection(m.view, m.loop);
-      player.setLoop(loop);
-      onLoopCommit(loop);
-    },
+    lift: () => applyLoop(null),
+    commit: () => applyLoop(toSection(m.view, m.loop)),
   };
 }
 
@@ -72,10 +68,10 @@ export function Timeline(props: TimelineProps) {
   const els = useMemo(() => Object.fromEntries(ELEMENTS.map((k) => [k, createRef<HTMLDivElement>()])) as Els, []);
   const lastTap = useRef({ time: -Infinity, x: 0 });
   const duration = player.duration;
-  const { initialView, initialLoop, onView, onLoopCommit } = props;
+  const { initialView, initialLoop, onView, applyLoop } = props;
   const model = useMemo(
-    () => createModel({ player, initialView, initialLoop, onView, onLoopCommit }, content),
-    [player, initialView, initialLoop, onView, onLoopCommit],
+    () => createModel({ initialView, initialLoop, onView, applyLoop }, content),
+    [initialView, initialLoop, onView, applyLoop],
   );
   const onTap = useCallback((time: RecordingSeconds) => player.dispatch({ type: "move", position: time }), [player]);
 

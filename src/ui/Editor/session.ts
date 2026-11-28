@@ -46,10 +46,9 @@ const POSITION_SAVE_MS = 1000;
 const VIEW_SAVE_MS = 250;
 
 export function usePersistence(id: RecordingId, player: Player) {
-  const { speed, loop, playState } = usePlayer(player);
+  const { speed, playState } = usePlayer(player);
 
   useEffect(() => persistence.saveRecordingPrefs(id, { speed }), [id, speed]);
-  useEffect(() => player.setLoopMode(persistence.toLoopMode(persistence.loopPrefs(), length(loop))), [player, loop]);
   useEffect(() => {
     const save = () => persistence.saveRecordingPrefs(id, { position: player.position() });
     save();
@@ -71,7 +70,10 @@ export function usePersistence(id: RecordingId, player: Player) {
         clearTimeout(timer);
         timer = setTimeout(() => persistence.saveRecordingPrefs(id, { view }), VIEW_SAVE_MS);
       },
-      onLoopCommit: (loop: Section) => persistence.saveRecordingPrefs(id, { loop }),
+      applyLoop: (loop: Section | null) => {
+        player.setLoop(loop, persistence.toLoopMode(persistence.loopPrefs(), length(loop ?? { start: 0, end: player.duration })));
+        if (loop) persistence.saveRecordingPrefs(id, { loop });
+      },
     };
-  }, [id]);
+  }, [id, player]);
 }

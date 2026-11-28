@@ -74,7 +74,7 @@ export interface Player {
   scrubTo(at: RecordingSeconds): void;
   endScrub(): void;
   setSpeed(speed: SpeedRatio): void;
-  setLoop(loop: Section | null): void;
+  setLoop(loop: Section | null, loopMode: LoopMode): void;
   setLoopMode(loopMode: LoopMode): void;
   correctPosition(observed: RecordingSeconds): void;
   dispose(): void;

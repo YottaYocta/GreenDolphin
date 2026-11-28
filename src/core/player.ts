@@ -87,10 +87,11 @@ class TransportPlayer implements Player {
     this.render();
   }
 
-  setLoop(loop: Section | null) {
+  setLoop(loop: Section | null, loopMode: LoopMode) {
     const next = loop ?? { start: 0, end: this.duration };
     if (next.start === this.state.loop.start && next.end === this.state.loop.end) return;
     this.state = { ...this.state, loop: next };
+    this.loopMode = loopMode;
     this.dispatch({ type: "loop-change" });
   }
 

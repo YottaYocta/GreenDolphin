@@ -36,10 +36,10 @@ interface Session {
 }
 
 function TimelineCard({ id, session, draw, showTime, children }: { id: StoredRecording["id"]; session: Session; draw?: TimelineProps["draw"]; showTime: boolean; children: ReactNode }) {
-  const { onView, onLoopCommit } = usePersistence(id, session.player);
+  const { onView, applyLoop } = usePersistence(id, session.player);
   return (
     <div data-fill className={`${CARD} flex-1 min-h-0 md:min-h-72 p-4`}>
-      <Timeline player={session.player} initialView={session.restored.view} initialLoop={session.restored.loopFraction} onView={onView} onLoopCommit={onLoopCommit} draw={draw} showTime={showTime} />
+      <Timeline player={session.player} initialView={session.restored.view} initialLoop={session.restored.loopFraction} onView={onView} applyLoop={applyLoop} draw={draw} showTime={showTime} />
       {children}
     </div>
   );

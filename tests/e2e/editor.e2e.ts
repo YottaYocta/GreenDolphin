@@ -77,7 +77,7 @@ test("clicking outside the loop: paused stays, playing goes to the loop start", 
 });
 
 test("after the loop end: delay 0 wraps, a delay waits, manual pauses at the start", async ({ page }) => {
-  await callPlayer(page, "setLoop", { start: 1, end: 1.6 });
+  await callPlayer(page, "setLoop", { start: 1, end: 1.6 }, { type: "automatic", delay: 0 });
   await callPlayer(page, "dispatch", { type: "toggle-play" });
   await page.waitForTimeout(900);
   const s = await snapshot(page);

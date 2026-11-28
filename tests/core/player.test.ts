@@ -12,6 +12,7 @@ const advance = (seconds: number) => {
     vi.advanceTimersByTime(1);
   }
 };
+const WRAP = { type: "automatic", delay: 0 } as const;
 const make = (options: Partial<PlayerOptions> = {}) =>
   core.createPlayer(output, { duration: 60, position: 12, loop: { start: 10, end: 20 }, loopMode: { type: "automatic", delay: 0 }, speed: 1, ...options });
 
@@ -118,15 +119,15 @@ test("scrubbing streams the freeze whether frozen or paused", () => {
 test("lifting the loop plays free; committing outside the playhead jumps to its start", () => {
   const p = make();
   p.dispatch({ type: "toggle-play" });
-  p.setLoop(null);
+  p.setLoop(null, WRAP);
   expect(last().loop).toEqual({ start: 0, end: 60 });
   expect(jumped()).toBe(false);
   advance(9);
   expect(p.position()).toBeCloseTo(21);
-  p.setLoop({ start: 30, end: 40 });
+  p.setLoop({ start: 30, end: 40 }, WRAP);
   expect(p.position()).toBe(30);
   expect(jumped()).toBe(true);
-  p.setLoop({ start: 25, end: 45 });
+  p.setLoop({ start: 25, end: 45 }, WRAP);
   expect(p.position()).toBe(30);
   expect(jumped()).toBe(false);
 });
@@ -189,4 +190,13 @@ test("setting the same loop mode again changes nothing", () => {
   const count = renders.length;
   p.setLoopMode({ type: "automatic", delay: 0 });
   expect(renders.length).toBe(count);
+});
+
+test("a new loop takes its delay in the same step", () => {
+  const p = make();
+  p.dispatch({ type: "toggle-play" });
+  p.setLoop({ start: 10, end: 14 }, { type: "automatic", delay: 2 });
+  advance(2.01);
+  expect(p.getState().playState).toBe("waiting");
+  expect(p.delayRemaining()).toBeCloseTo(1.99);
 });

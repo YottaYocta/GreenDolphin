@@ -134,8 +134,7 @@ class WebAudioEngine implements AudioEngine {
     g.setValueAtTime(g.value, now);
     g.linearRampToValueAtTime(on ? 1 : 0, now + FADE);
     clearTimeout(this.idle);
-    if (on) this.post({ type: "active", active: true });
-    else this.idle = setTimeout(() => this.post({ type: "active", active: false }), FADE * 2000);
+    if (!on) this.idle = setTimeout(() => this.post({ type: "idle" }), FADE * 2000);
   }
 
   private seekFreeze(position: RecordingSeconds, jump: boolean) {

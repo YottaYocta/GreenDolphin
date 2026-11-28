@@ -52,8 +52,8 @@ export interface Persistence {
   lastOpened(): RecordingId | null;
   setLastOpened(id: RecordingId | null): void;
   listRecordings(): Promise<StoredRecording[]>;
-  addAudio(title: string, data: ArrayBuffer): Promise<StoredRecording>;
-  addYouTube(title: string, videoId: string): Promise<StoredRecording>;
+  addAudio(title: string, data: ArrayBuffer, id?: RecordingId): Promise<StoredRecording>;
+  addYouTube(title: string, videoId: string, id?: RecordingId): Promise<StoredRecording>;
   readAudio(id: RecordingId): Promise<ArrayBuffer>;
   deleteRecording(id: RecordingId): Promise<void>;
 }

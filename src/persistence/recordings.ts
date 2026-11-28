@@ -1,4 +1,4 @@
-import type { Persistence, RecordingSource, StoredRecording } from "./interfaces";
+import type { Persistence, RecordingId, RecordingSource, StoredRecording } from "./interfaces";
 import { removeRecordingPrefs } from "./prefs";
 
 const RECORDINGS = "recordings";
@@ -26,11 +26,11 @@ async function transact<T>(stores: string[], mode: IDBTransactionMode, work: (tx
   });
 }
 
-async function add(title: string, source: RecordingSource, audio?: Blob) {
-  const recording: StoredRecording = { id: crypto.randomUUID(), title, addedAt: Date.now(), source };
+async function add(title: string, source: RecordingSource, audio?: Blob, id: RecordingId = crypto.randomUUID()) {
+  const recording: StoredRecording = { id, title, addedAt: Date.now(), source };
   await transact<void>([RECORDINGS, AUDIO], "readwrite", (tx) => {
-    tx.objectStore(RECORDINGS).add(recording);
-    if (audio) tx.objectStore(AUDIO).add(audio, recording.id);
+    tx.objectStore(RECORDINGS).put(recording);
+    if (audio) tx.objectStore(AUDIO).put(audio, id);
   });
   return recording;
 }
@@ -38,9 +38,9 @@ async function add(title: string, source: RecordingSource, audio?: Blob) {
 export const listRecordings: Persistence["listRecordings"] = async () =>
   (await transact<StoredRecording[]>([RECORDINGS], "readonly", (tx) => tx.objectStore(RECORDINGS).getAll())).sort((a, b) => b.addedAt - a.addedAt);
 
-export const addAudio: Persistence["addAudio"] = (title, data) => add(title, { kind: "file", size: data.byteLength }, new Blob([data]));
+export const addAudio: Persistence["addAudio"] = (title, data, id) => add(title, { kind: "file", size: data.byteLength }, new Blob([data]), id);
 
-export const addYouTube: Persistence["addYouTube"] = (title, videoId) => add(title, { kind: "youtube", videoId });
+export const addYouTube: Persistence["addYouTube"] = (title, videoId, id) => add(title, { kind: "youtube", videoId }, undefined, id);
 
 export const readAudio: Persistence["readAudio"] = async (id) => {
   const blob = await transact<Blob | undefined>([AUDIO], "readonly", (tx) => tx.objectStore(AUDIO).get(id));
