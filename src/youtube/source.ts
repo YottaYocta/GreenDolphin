@@ -21,18 +21,19 @@ export const parseVideoId: YouTube["parseVideoId"] = (input) => {
 };
 
 export const lookupVideo: YouTube["lookupVideo"] = async (videoId) => {
+  const untitled = { title: `YouTube ${videoId}` };
   try {
     const watch = `https://www.youtube.com/watch?v=${videoId}`;
     const res = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(watch)}&format=json`);
     if (res.ok) {
       const { title } = (await res.json()) as { title?: unknown };
-      return { title: typeof title === "string" ? title : null };
+      return typeof title === "string" ? { title } : untitled;
     }
     if (res.status === 401) return { error: "The owner of this video doesn't allow it to be played outside YouTube." };
     if (res.status === 403) return { error: "This video is private." };
     if (res.status === 400 || res.status === 404) return { error: "Couldn't find a video at that link." };
   } catch {
-    return { title: null };
+    return untitled;
   }
-  return { title: null };
+  return untitled;
 };

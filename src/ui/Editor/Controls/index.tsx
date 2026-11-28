@@ -26,9 +26,10 @@ function useCountdown(player: Player, waitingUntil: number | null) {
 }
 
 export function Controls({ player, freeze, settings }: { player: Player; freeze: boolean; settings?: ReactNode }) {
-  const { playState, waitingUntil } = usePlayer(player);
+  const state = usePlayer(player);
+  const { playState } = state;
   const [open, setOpen] = useState(false);
-  const countdown = useCountdown(player, waitingUntil);
+  const countdown = useCountdown(player, state.playState === "waiting" ? state.waitingUntil : null);
   const togglePlay = () => player.dispatch({ type: "toggle-play" });
   const toggleFreeze = () => freeze && player.dispatch({ type: "toggle-freeze" });
   const nudge = (seconds: DurationSeconds) => player.dispatch({ type: "move", position: clamp(player.position() + seconds, 0, player.duration) });

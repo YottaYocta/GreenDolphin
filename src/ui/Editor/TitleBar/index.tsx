@@ -40,7 +40,7 @@ export function TitleBar({ recording, info, editor }: { recording: StoredRecordi
                 <div className="overflow-y-auto max-h-72 flex flex-col">
                   {others.length === 0 && <div className="p-4 text-ink-40 text-sm text-center">No other recordings</div>}
                   {others.map((other) => (
-                    <Menu.Item key={other.id} className={ITEM} onClick={() => open(other.id)}>
+                    <Menu.Item key={other.id} className={ITEM} onClick={() => open(other)}>
                       <RecordingIcon recording={other} size={18} />
                       <span className="flex-1 min-w-0 truncate">{stripExt(other.title)}</span>
                     </Menu.Item>
@@ -87,7 +87,7 @@ export function TitleBar({ recording, info, editor }: { recording: StoredRecordi
                 No
               </button>
               <button
-                onClick={() => void remove(recording.id).finally(home)}
+                onClick={() => void remove(recording.id)}
                 className="btn-surface flex-1 h-10 rounded-lg bg-danger text-white hover:bg-danger-hover active:bg-danger-active"
               >
                 Yes, I'm sure

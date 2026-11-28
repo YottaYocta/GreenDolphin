@@ -16,16 +16,12 @@ export function NewRecordingDialog({ open, onOpenChange }: { open: boolean; onOp
   const [busy, setBusy] = useState(false);
   const submit = async () => {
     setBusy(true);
-    setError(null);
-    try {
-      await addYouTube(link);
-      setLink("");
-      onOpenChange(false);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn't add that video. Please try again.");
-    } finally {
-      setBusy(false);
-    }
+    const failure = await addYouTube(link).catch(() => "Couldn't add that video. Please try again.");
+    setError(failure);
+    setBusy(false);
+    if (failure) return;
+    setLink("");
+    onOpenChange(false);
   };
   return (
     <Dialog title="Load recording" open={open} onOpenChange={onOpenChange}>

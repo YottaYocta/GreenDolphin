@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
-import type { DurationSeconds, Player, PlayerOptions, Section } from "../../core";
+import type { DurationSeconds, LoopMode, Player, PlayerOptions, Section } from "../../core";
+import type { AudioEngine } from "../../audio";
+import type { YouTubeOutput } from "../../youtube";
 import { FULL, clamp, fit, length, toFraction, toSection } from "./Timeline/geometry";
-import { persistence, type RecordingId } from "../../persistence";
+import { persistence, type LoopPrefs, type RecordingId } from "../../persistence";
 
 export const usePlayer = (player: Player) => useSyncExternalStore(player.subscribe, player.getState);
 
@@ -10,10 +12,12 @@ export interface Sound {
   gain: number;
 }
 
-export interface SoundOutput {
-  setVolume(gain: number): void;
-  setPitch?(semitones: number): void;
-}
+export type SoundOutput = AudioEngine | YouTubeOutput;
+
+export const toLoopMode = (p: LoopPrefs, loopLength: DurationSeconds): LoopMode =>
+  p.mode === "manual" ? { type: "manual" } : { type: "automatic", delay: p.delayMode === "fixed" ? p.delayValue : (p.delayValue / 100) * loopLength };
+
+export const savedLoopMode = (loopLength: DurationSeconds) => toLoopMode(persistence.loopPrefs(), loopLength);
 
 export function restore(id: RecordingId, duration: DurationSeconds) {
   const p = persistence.recordingPrefs(id);
@@ -25,7 +29,7 @@ export function restore(id: RecordingId, duration: DurationSeconds) {
     duration,
     position: clamp(p.position, 0, duration),
     loop,
-    loopMode: persistence.toLoopMode(persistence.loopPrefs(), length(loop)),
+    loopMode: savedLoopMode(length(loop)),
     speed: p.speed,
   };
   const sound: Sound = { pitch: p.pitch, gain: p.gain };
@@ -35,7 +39,7 @@ export function restore(id: RecordingId, duration: DurationSeconds) {
 export function useSound(id: RecordingId, initial: Sound, output: SoundOutput) {
   const [sound, setSound] = useState(initial);
   useEffect(() => {
-    output.setPitch?.(sound.pitch);
+    if ("setPitch" in output) output.setPitch(sound.pitch);
     output.setVolume(sound.gain);
     persistence.saveRecordingPrefs(id, sound);
   }, [id, output, sound]);
@@ -46,10 +50,9 @@ const POSITION_SAVE_MS = 1000;
 const VIEW_SAVE_MS = 250;
 
 export function usePersistence(id: RecordingId, player: Player) {
-  const { speed, loop, playState } = usePlayer(player);
+  const { speed, playState } = usePlayer(player);
 
   useEffect(() => persistence.saveRecordingPrefs(id, { speed }), [id, speed]);
-  useEffect(() => player.setLoopMode(persistence.toLoopMode(persistence.loopPrefs(), length(loop))), [player, loop]);
   useEffect(() => {
     const save = () => persistence.saveRecordingPrefs(id, { position: player.position() });
     save();

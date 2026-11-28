@@ -2,7 +2,7 @@ import { createRef, useCallback, useEffect, useMemo, useRef, type FC, type Point
 import { FULL, at, clamp, isFull, length, pan, rescale, resizeLoop, shiftLoop, toSection, zoom, type LoopFraction } from "./geometry";
 import { formatTick, tickStep } from "./ticks";
 import { formatTime } from "../../shared/format";
-import type { DurationSeconds, Player, RecordingSeconds } from "../../../core";
+import type { DurationSeconds, LoopMode, Player, RecordingSeconds } from "../../../core";
 import type { Section } from "../../../core";
 import { drag } from "../../shared/drag";
 import { useKeys } from "../../shared/keys";
@@ -13,6 +13,7 @@ export interface TimelineProps {
   initialLoop: LoopFraction;
   onView: (view: Section) => void;
   onLoopCommit: (loop: Section) => void;
+  loopMode: (loopLength: DurationSeconds) => LoopMode;
   draw?: (canvas: HTMLCanvasElement, view: Section, loop: Section) => void;
   showTime: boolean;
 }
@@ -32,7 +33,7 @@ const Triangle: FC<{ points: string; className: string }> = ({ points, className
 );
 
 function createModel(props: Omit<TimelineProps, "draw" | "showTime">, content: RefObject<HTMLDivElement | null>) {
-  const { player, initialView, initialLoop, onView, onLoopCommit } = props;
+  const { player, initialView, initialLoop, onView, onLoopCommit, loopMode } = props;
   const m = { view: initialView, loop: initialLoop, version: 0 };
   const width = () => content.current?.clientWidth || 1;
   const fraction = (clientX: number) => (clientX - (content.current?.getBoundingClientRect().left ?? 0)) / width();
@@ -51,10 +52,10 @@ function createModel(props: Omit<TimelineProps, "draw" | "showTime">, content: R
       m.loop = loop;
       m.version++;
     },
-    lift: () => player.setLoop(null),
+    lift: () => player.setLoop({ start: 0, end: player.duration }, loopMode(player.duration)),
     commit() {
       const loop = toSection(m.view, m.loop);
-      player.setLoop(loop);
+      player.setLoop(loop, loopMode(length(loop)));
       onLoopCommit(loop);
     },
   };
@@ -72,10 +73,10 @@ export function Timeline(props: TimelineProps) {
   const els = useMemo(() => Object.fromEntries(ELEMENTS.map((k) => [k, createRef<HTMLDivElement>()])) as Els, []);
   const lastTap = useRef({ time: -Infinity, x: 0 });
   const duration = player.duration;
-  const { initialView, initialLoop, onView, onLoopCommit } = props;
+  const { initialView, initialLoop, onView, onLoopCommit, loopMode } = props;
   const model = useMemo(
-    () => createModel({ player, initialView, initialLoop, onView, onLoopCommit }, content),
-    [player, initialView, initialLoop, onView, onLoopCommit],
+    () => createModel({ player, initialView, initialLoop, onView, onLoopCommit, loopMode }, content),
+    [player, initialView, initialLoop, onView, onLoopCommit, loopMode],
   );
   const onTap = useCallback((time: RecordingSeconds) => player.dispatch({ type: "move", position: time }), [player]);
 

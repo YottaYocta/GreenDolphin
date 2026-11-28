@@ -15,7 +15,7 @@ export type CreateFreezeVocoder = (windowSize: number, spreadSamples: number) =>
 
 export type FreezeMessage =
   | { type: "seek"; position: RecordingSeconds; jump: boolean; window?: { channels: Float32Array[]; firstSample: number } }
-  | { type: "active"; active: boolean }
+  | { type: "idle" }
   | { type: "unload" };
 
 export interface Recording {
@@ -34,7 +34,6 @@ export interface Spectrum {
 
 export interface Tones {
   playTone(frequency: Hertz | null): void;
-  openSpectrum?(): Spectrum;
 }
 
 export interface AudioEngine extends Output, Tones {

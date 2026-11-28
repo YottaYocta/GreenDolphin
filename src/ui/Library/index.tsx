@@ -14,7 +14,7 @@ export function Library() {
     () =>
       recordings
         .map((recording) => {
-          const at = byAdded ? recording.addedAt : persistence.recordingPrefs(recording.id).openedAt;
+          const at = byAdded ? recording.addedAt : (persistence.recordingPrefs(recording.id).openedAt ?? 0);
           return { recording, at, when: at ? relativeTime(at) : "" };
         })
         .sort((a, b) => b.at - a.at || a.recording.title.localeCompare(b.recording.title)),
@@ -52,7 +52,7 @@ export function Library() {
           {recordings.length === 0 && <li className="px-6 py-8 text-center text-ink-40 text-sm">No recordings yet. Load one to get started.</li>}
           {rows.map(({ recording, when }) => (
             <li key={recording.id}>
-              <button aria-label={`Open ${recording.title}`} onClick={() => open(recording.id)} className="flex items-center gap-4 w-full p-4 md:py-3 text-left cursor-pointer hover:bg-surface-active active:bg-surface-input">
+              <button aria-label={`Open ${recording.title}`} onClick={() => open(recording)} className="flex items-center gap-4 w-full p-4 md:py-3 text-left cursor-pointer hover:bg-surface-active active:bg-surface-input">
                 <RecordingIcon recording={recording} />
                 <span className="flex max-md:flex-col md:items-center gap-1 md:gap-4 flex-1 min-w-0">
                   <span className="md:flex-1 min-w-0 truncate text-ink-70">{stripExt(recording.title)}</span>

@@ -3,7 +3,7 @@ import { core, type Output, type Playback, type PlayerOptions } from "../../src/
 
 let clock = 0;
 let renders: Playback[] = [];
-const output: Output = { now: () => clock, render: (p) => void renders.push(p) };
+const output: Output = { now: () => clock, latency: () => 0, render: (p) => void renders.push(p) };
 const last = () => renders[renders.length - 1];
 const jumped = () => renders.length > 1 && !core.continues(renders[renders.length - 2], last());
 const advance = (seconds: number) => {
@@ -12,6 +12,7 @@ const advance = (seconds: number) => {
     vi.advanceTimersByTime(1);
   }
 };
+const WRAP = { type: "automatic", delay: 0 } as const;
 const make = (options: Partial<PlayerOptions> = {}) =>
   core.createPlayer(output, { duration: 60, position: 12, loop: { start: 10, end: 20 }, loopMode: { type: "automatic", delay: 0 }, speed: 1, ...options });
 
@@ -118,15 +119,15 @@ test("scrubbing streams the freeze whether frozen or paused", () => {
 test("lifting the loop plays free; committing outside the playhead jumps to its start", () => {
   const p = make();
   p.dispatch({ type: "toggle-play" });
-  p.setLoop(null);
+  p.setLoop({ start: 0, end: 60 }, WRAP);
   expect(last().loop).toEqual({ start: 0, end: 60 });
   expect(jumped()).toBe(false);
   advance(9);
   expect(p.position()).toBeCloseTo(21);
-  p.setLoop({ start: 30, end: 40 });
+  p.setLoop({ start: 30, end: 40 }, WRAP);
   expect(p.position()).toBe(30);
   expect(jumped()).toBe(true);
-  p.setLoop({ start: 25, end: 45 });
+  p.setLoop({ start: 25, end: 45 }, WRAP);
   expect(p.position()).toBe(30);
   expect(jumped()).toBe(false);
 });
@@ -154,7 +155,7 @@ test("a scrub has an explicit start: scrubTo before startScrub does nothing", ()
 
 test("while playing, position is what is being heard, and pausing stays there", () => {
   const delayed: Output = { ...output, latency: () => 0.2 };
-  const p = core.createPlayer(delayed, { duration: 100, position: 10, loop: null, loopMode: { type: "automatic", delay: 0 }, speed: 1 });
+  const p = core.createPlayer(delayed, { duration: 100, position: 10, loop: { start: 0, end: 100 }, loopMode: { type: "automatic", delay: 0 }, speed: 1 });
   p.dispatch({ type: "toggle-play" });
   expect(p.position()).toBe(10);
   clock += 0.1;
@@ -169,7 +170,7 @@ test("while playing, position is what is being heard, and pausing stays there", 
 
 test("re-timing while playing keeps the heard position moving smoothly", () => {
   const delayed: Output = { ...output, latency: () => 0.2 };
-  const p = core.createPlayer(delayed, { duration: 100, position: 10, loop: null, loopMode: { type: "automatic", delay: 0 }, speed: 1 });
+  const p = core.createPlayer(delayed, { duration: 100, position: 10, loop: { start: 0, end: 100 }, loopMode: { type: "automatic", delay: 0 }, speed: 1 });
   p.dispatch({ type: "toggle-play" });
   clock += 1;
   const before = p.position();
@@ -187,6 +188,25 @@ test("setting the same loop mode again changes nothing", () => {
   const p = make();
   p.dispatch({ type: "toggle-play" });
   const count = renders.length;
-  p.setLoopMode({ type: "automatic", delay: 0 });
+  p.setLoop({ start: 10, end: 20 }, WRAP);
   expect(renders.length).toBe(count);
+});
+
+test("a new loop takes its delay in the same step", () => {
+  const p = make();
+  p.dispatch({ type: "toggle-play" });
+  p.setLoop({ start: 10, end: 14 }, { type: "automatic", delay: 2 });
+  advance(2.01);
+  expect(p.getState().playState).toBe("waiting");
+  expect(p.delayRemaining()).toBeCloseTo(1.99);
+});
+
+test("changing the delay during the wait restarts the loop instead of keeping the old wait", () => {
+  const p = make({ loopMode: { type: "automatic", delay: 5 } });
+  p.dispatch({ type: "toggle-play" });
+  advance(8.1);
+  expect(p.getState().playState).toBe("waiting");
+  p.setLoop({ start: 10, end: 20 }, { type: "manual" });
+  expect(p.getState().playState).toBe("playing");
+  expect(p.position()).toBe(10);
 });

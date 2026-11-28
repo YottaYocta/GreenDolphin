@@ -23,7 +23,7 @@ class TransportPlayer implements Player {
   constructor(output: Output, { duration, position, loop, loopMode, speed }: PlayerOptions) {
     this.output = output;
     this.duration = duration;
-    this.state = { playState: "paused", loop: loop ?? { start: 0, end: duration }, speed, waitingUntil: null };
+    this.state = { playState: "paused", loop, speed };
     this.loopMode = loopMode;
     this.anchor = { position: clamp(position, 0, duration), time: output.now() };
     this.render();
@@ -40,26 +40,25 @@ class TransportPlayer implements Player {
     const { playback } = this;
     if (this.scrub !== null || playback.mode !== "playing") return this.renderedPosition();
     const { loop, loopWraps, anchorPosition } = playback;
-    const time = Math.max(this.audibleFrom, this.output.now() - this.latency());
+    const time = Math.max(this.audibleFrom, this.output.now() - this.output.latency());
     const heard = positionAt(time < playback.anchorTime && this.retimed ? this.retimed : playback, time);
     const unwrapped = loopWraps && heard < loop.start && anchorPosition >= loop.start ? heard + loop.end - loop.start : heard;
     return Math.min(unwrapped, this.duration);
   }
 
   delayRemaining() {
-    const until = this.state.waitingUntil;
-    return until === null ? 0 : Math.max(0, until - this.output.now());
+    const { state } = this;
+    return state.playState === "waiting" ? Math.max(0, state.waitingUntil - this.output.now()) : 0;
   }
 
   dispatch(event: TransportEvent) {
-    const { playState, loop } = this.state;
+    const { playState, loop, speed } = this.state;
     const { loopMode } = this;
     const now = this.output.now();
     const position = this.here(now);
     const next = transition(playState, event, { position, loop, loopMode });
     this.reanchor(next.position ?? (next.state === "playing" ? position : this.position()), now);
-    const waitingUntil = next.state === "waiting" ? this.anchor.time + loopDelay(loopMode) : null;
-    this.state = { ...this.state, playState: next.state, waitingUntil };
+    this.state = next.state === "waiting" ? { loop, speed, playState: next.state, waitingUntil: this.anchor.time + loopDelay(loopMode) } : { loop, speed, playState: next.state };
     this.render();
   }
 
@@ -87,18 +86,12 @@ class TransportPlayer implements Player {
     this.render();
   }
 
-  setLoop(loop: Section | null) {
-    const next = loop ?? { start: 0, end: this.duration };
-    if (next.start === this.state.loop.start && next.end === this.state.loop.end) return;
-    this.state = { ...this.state, loop: next };
-    this.dispatch({ type: "loop-change" });
-  }
-
-  setLoopMode(loopMode: LoopMode) {
-    if (loopMode.type === this.loopMode.type && loopDelay(loopMode) === loopDelay(this.loopMode)) return;
-    this.reanchorHere();
+  setLoop(loop: Section, loopMode: LoopMode) {
+    const { loop: was } = this.state;
+    if (loop.start === was.start && loop.end === was.end && loopMode.type === this.loopMode.type && loopDelay(loopMode) === loopDelay(this.loopMode)) return;
+    this.state = { ...this.state, loop };
     this.loopMode = loopMode;
-    this.render();
+    this.dispatch({ type: "loop-change" });
   }
 
   correctPosition(observed: RecordingSeconds) {
@@ -114,10 +107,6 @@ class TransportPlayer implements Player {
 
   private renderedPosition() {
     return Math.min(this.here(), this.duration);
-  }
-
-  private latency() {
-    return this.output.latency?.() ?? 0;
   }
 
   private here(now = this.output.now()) {
@@ -157,14 +146,14 @@ class TransportPlayer implements Player {
   private schedule() {
     clearTimeout(this.timer);
     const { mode, anchorPosition, anchorTime, rate, loop, loopWraps } = this.playback;
-    const { playState, waitingUntil } = this.state;
+    const { state } = this;
     let due: number;
     let event: TransportEvent;
     if (mode === "playing" && !loopWraps && anchorPosition < loop.end) {
       due = anchorTime + (loop.end - anchorPosition) / rate;
       event = { type: "loop-end" };
-    } else if (playState === "waiting" && waitingUntil !== null) {
-      due = waitingUntil;
+    } else if (state.playState === "waiting") {
+      due = state.waitingUntil;
       event = { type: "delay-end" };
     } else return;
     this.timer = setTimeout(() => {

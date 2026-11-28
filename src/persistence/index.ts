@@ -1,5 +1,5 @@
 import type { Persistence } from "./interfaces";
-import { editorSettings, flag, lastOpened, loopPrefs, recordingPrefs, saveEditorSettings, saveLoopPrefs, saveRecordingPrefs, setFlag, setLastOpened, toLoopMode } from "./prefs";
+import { editorSettings, flag, loopPrefs, recordingPrefs, reopenOnLaunch, saveEditorSettings, saveLoopPrefs, saveRecordingPrefs, setFlag, setReopenOnLaunch } from "./prefs";
 import { addAudio, addYouTube, deleteRecording, listRecordings, readAudio } from "./recordings";
 
 export type * from "./interfaces";
@@ -9,13 +9,12 @@ export const persistence: Persistence = {
   saveRecordingPrefs,
   loopPrefs,
   saveLoopPrefs,
-  toLoopMode,
   editorSettings,
   saveEditorSettings,
   flag,
   setFlag,
-  lastOpened,
-  setLastOpened,
+  reopenOnLaunch,
+  setReopenOnLaunch,
   listRecordings,
   addAudio,
   addYouTube,

@@ -77,7 +77,7 @@ test("clicking outside the loop: paused stays, playing goes to the loop start", 
 });
 
 test("after the loop end: delay 0 wraps, a delay waits, manual pauses at the start", async ({ page }) => {
-  await callPlayer(page, "setLoop", { start: 1, end: 1.6 });
+  await callPlayer(page, "setLoop", { start: 1, end: 1.6 }, { type: "automatic", delay: 0 });
   await callPlayer(page, "dispatch", { type: "toggle-play" });
   await page.waitForTimeout(900);
   const s = await snapshot(page);
@@ -85,13 +85,13 @@ test("after the loop end: delay 0 wraps, a delay waits, manual pauses at the sta
   expect(s.position).toBeGreaterThanOrEqual(1);
   expect(s.position).toBeLessThan(1.6);
 
-  await callPlayer(page, "setLoopMode", { type: "automatic", delay: 1 });
+  await callPlayer(page, "setLoop", { start: 1, end: 1.6 }, { type: "automatic", delay: 1 });
   await page.waitForFunction(() => window.__gd!.player.getState().playState === "waiting");
   expect((await snapshot(page)).mode).toBe("silent");
   await expect(page.getByRole("button", { name: "Play", exact: true })).toHaveAttribute("data-state", "waiting");
   await page.waitForFunction(() => window.__gd!.player.getState().playState === "playing", null, { timeout: 3000 });
 
-  await callPlayer(page, "setLoopMode", { type: "manual" });
+  await callPlayer(page, "setLoop", { start: 1, end: 1.6 }, { type: "manual" });
   await page.waitForFunction(() => window.__gd!.player.getState().playState === "paused", null, { timeout: 3000 });
   expect((await snapshot(page)).position).toBe(1);
 });
