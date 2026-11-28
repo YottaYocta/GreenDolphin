@@ -61,12 +61,13 @@ class WebAudioEngine implements AudioEngine {
     const jumped = !modeChanged && !core.continues(prev!, p);
     const stopCancelled = !!prev && !prev.loopWraps && p.loopWraps;
     const freezing = p.mode === "frozen" || p.mode === "scrubbing";
+    const wasFreezing = prev?.mode === "frozen" || prev?.mode === "scrubbing";
 
     if (modeChanged || (jumped && p.mode !== "scrubbing") || (stopCancelled && p.mode === "playing")) {
       const position = core.positionAt(p, this.ctx.currentTime);
       this.stopSource();
       if (p.mode === "playing") this.startSource(p, position);
-      if (freezing) this.seekFreeze(position, true);
+      if (freezing) this.seekFreeze(position, !wasFreezing);
       this.fadeFreeze(freezing);
     } else if (p.mode === "playing" && this.source) {
       Object.assign(this.source, { loopStart: p.loop.start, loopEnd: p.loop.end });
