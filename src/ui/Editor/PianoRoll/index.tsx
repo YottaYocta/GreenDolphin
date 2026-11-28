@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { drag } from "../../shared/drag";
-import type { Tones } from "../../../audio";
+import type { AudioEngine, Tones } from "../../../audio";
 
 const FIRST = 24;
 const OCTAVES = 7;
@@ -36,7 +36,7 @@ function averageDb(data: Float32Array, { lo, hi }: { lo: number; hi: number }) {
 
 const keyAt = (x: number, y: number) => document.elementFromPoint(x, y)?.closest<HTMLElement>("[data-key]")?.dataset.key;
 
-export function PianoRoll({ tones }: { tones: Tones }) {
+export function PianoRoll({ tones }: { tones: Tones | AudioEngine }) {
   const scroller = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
 
@@ -44,7 +44,7 @@ export function PianoRoll({ tones }: { tones: Tones }) {
     const el = scroller.current!;
     el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2;
     const c = canvas.current;
-    const spectrum = tones.openSpectrum?.();
+    const spectrum = "openSpectrum" in tones && tones.openSpectrum();
     if (!c || !spectrum) return () => tones.playTone(null);
     const dpr = window.devicePixelRatio || 1;
     [c.width, c.height] = [WIDTH * dpr, BARS_H * dpr];
@@ -94,7 +94,7 @@ export function PianoRoll({ tones }: { tones: Tones }) {
       }}
     >
       <div className="flex flex-col items-center w-fit mx-auto px-12 pt-4">
-        {tones.openSpectrum && <canvas ref={canvas} style={{ width: WIDTH, height: BARS_H }} />}
+        {"openSpectrum" in tones && <canvas ref={canvas} style={{ width: WIDTH, height: BARS_H }} />}
         <div className="relative flex h-13.5 pt-2" style={{ width: WIDTH }}>
           {Array.from({ length: KEYS }, (_, i) =>
             BLACK.has(i % 12) ? null : (

@@ -36,7 +36,7 @@ declare global {
   }
 }
 
-export type VideoLookup = { title: string | null } | { error: string };
+export type VideoLookup = { title: string } | { error: string };
 
 export interface YouTubeOutput extends Output {
   readonly duration: DurationSeconds;
@@ -44,13 +44,13 @@ export interface YouTubeOutput extends Output {
   follow(player: Player): () => void;
 }
 
-export interface YouTubeEmbed {
-  ready: Promise<YouTubeOutput>;
-  dispose(): void;
+export interface EmbedEvents {
+  onReady(output: YouTubeOutput): void;
+  onError(message: string): void;
 }
 
 export interface YouTube {
   parseVideoId(input: string): string | null;
   lookupVideo(videoId: string): Promise<VideoLookup>;
-  embed(host: HTMLElement, videoId: string, onError: (message: string) => void): YouTubeEmbed;
+  embed(host: HTMLElement, videoId: string, events: EmbedEvents): () => void;
 }

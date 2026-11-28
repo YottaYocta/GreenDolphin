@@ -27,7 +27,7 @@ export const recordingPrefs: Persistence["recordingPrefs"] = (id) => ({
   loop: null,
   view: null,
   position: 0,
-  openedAt: 0,
+  openedAt: null,
   ...read<RecordingMap>("recordings", {})[id],
 });
 
@@ -45,16 +45,11 @@ export const removeRecordingPrefs = (id: RecordingId) => {
 export const loopPrefs: Persistence["loopPrefs"] = () => read("loop", DEFAULT_LOOP);
 export const saveLoopPrefs: Persistence["saveLoopPrefs"] = (patch) => write("loop", { ...loopPrefs(), ...patch });
 
-export const toLoopMode: Persistence["toLoopMode"] = (p, loopLength) =>
-  p.mode === "manual"
-    ? { type: "manual" }
-    : { type: "automatic", delay: p.delayMode === "fixed" ? p.delayValue : (p.delayValue / 100) * loopLength };
-
 export const flag: Persistence["flag"] = (key) => read(`flag:${key}`, { on: false }).on;
 export const setFlag: Persistence["setFlag"] = (key, on) => write(`flag:${key}`, { on });
 
-export const lastOpened: Persistence["lastOpened"] = () => read<{ id: string | null }>("last", { id: null }).id;
-export const setLastOpened: Persistence["setLastOpened"] = (id) => write("last", { id });
+export const reopenOnLaunch: Persistence["reopenOnLaunch"] = () => read<{ id: string | null }>("last", { id: null }).id;
+export const setReopenOnLaunch: Persistence["setReopenOnLaunch"] = (id) => write("last", { id });
 
 const DEFAULT_EDITOR: EditorSettings = { piano: false, inlineSound: false, playheadTime: true, awake: true, replay: false };
 export const editorSettings: Persistence["editorSettings"] = () => read("editor", DEFAULT_EDITOR);

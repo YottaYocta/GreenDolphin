@@ -9,7 +9,7 @@ import { Controls } from "./Controls";
 import { useKeepAwake } from "./keepAwake";
 import { Tutorial, type TutorialStep } from "./Tutorial";
 import { PianoRoll } from "./PianoRoll";
-import { restore, usePersistence, useSound, type SoundOutput } from "./session";
+import { restore, savedLoopMode, usePersistence, useSound, type SoundOutput } from "./session";
 import { GeneralSettings, LoopSettings, SoundSettings } from "./Controls/Settings";
 import { Timeline, type TimelineProps } from "./Timeline";
 import { TitleBar } from "./TitleBar";
@@ -36,16 +36,16 @@ interface Session {
 }
 
 function TimelineCard({ id, session, draw, showTime, children }: { id: StoredRecording["id"]; session: Session; draw?: TimelineProps["draw"]; showTime: boolean; children: ReactNode }) {
-  const { onView, applyLoop } = usePersistence(id, session.player);
+  const { onView, onLoopCommit } = usePersistence(id, session.player);
   return (
     <div data-fill className={`${CARD} flex-1 min-h-0 md:min-h-72 p-4`}>
-      <Timeline player={session.player} initialView={session.restored.view} initialLoop={session.restored.loopFraction} onView={onView} applyLoop={applyLoop} draw={draw} showTime={showTime} />
+      <Timeline player={session.player} initialView={session.restored.view} initialLoop={session.restored.loopFraction} onView={onView} onLoopCommit={onLoopCommit} loopMode={savedLoopMode} draw={draw} showTime={showTime} />
       {children}
     </div>
   );
 }
 
-function Loaded({ recording, info, session, top, draw, piano, editor, general }: { recording: StoredRecording; info: [string, ReactNode][]; session: Session; top?: ReactNode; draw?: TimelineProps["draw"]; piano: Tones; editor: EditorSettings; general: ReactNode }) {
+function Loaded({ recording, info, session, top, draw, piano, editor, general }: { recording: StoredRecording; info: [string, ReactNode][]; session: Session; top?: ReactNode; draw?: TimelineProps["draw"]; piano: Tones | AudioEngine; editor: EditorSettings; general: ReactNode }) {
   const { player, restored } = session;
   const youtube = recording.source.kind === "youtube";
   const [sound, setSound] = useSound(recording.id, restored.sound, session.output);
@@ -85,7 +85,7 @@ function useEditorSettings() {
   return { editor, onEditor };
 }
 
-function Layout(props: { recording: StoredRecording; info: [string, ReactNode][]; session: Session | null; top?: ReactNode; draw?: TimelineProps["draw"]; piano: Tones }) {
+function Layout(props: { recording: StoredRecording; info: [string, ReactNode][]; session: Session | null; top?: ReactNode; draw?: TimelineProps["draw"]; piano: Tones | AudioEngine }) {
   const { recording, info, session, top, draw, piano } = props;
   const { editor, onEditor } = useEditorSettings();
   const [tutorialStep, setTutorialStep] = useState<number | null>(null);
@@ -148,23 +148,22 @@ export function YouTubeEditor({ recording, videoId }: { recording: StoredRecordi
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let live = true;
     let player: Player | null = null;
     let stopFollowing = () => {};
-    const embed = youtube.embed(host.current!, videoId, setError);
-    void embed.ready.then((output) => {
-      if (!live) return;
-      const restored = restore(recording.id, output.duration);
-      player = core.createPlayer(output, restored.options);
-      stopFollowing = output.follow(player);
-      if (import.meta.env.DEV) Object.assign(window, { __gd: { player } });
-      setSession({ player, restored, output });
+    const dispose = youtube.embed(host.current!, videoId, {
+      onReady: (output) => {
+        const restored = restore(recording.id, output.duration);
+        player = core.createPlayer(output, restored.options);
+        stopFollowing = output.follow(player);
+        if (import.meta.env.DEV) Object.assign(window, { __gd: { player } });
+        setSession({ player, restored, output });
+      },
+      onError: setError,
     });
     return () => {
-      live = false;
       stopFollowing();
       player?.dispose();
-      embed.dispose();
+      dispose();
     };
   }, [recording.id, videoId]);
 

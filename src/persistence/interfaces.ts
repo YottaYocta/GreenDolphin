@@ -1,5 +1,5 @@
 import type { LinearGain, Semitones } from "../audio";
-import type { DurationSeconds, LoopMode, RecordingSeconds, Section, SpeedRatio } from "../core";
+import type { RecordingSeconds, Section, SpeedRatio } from "../core";
 
 export type EpochMilliseconds = number;
 export type RecordingId = string;
@@ -11,7 +11,7 @@ export interface RecordingPrefs {
   loop: Section | null;
   view: Section | null;
   position: RecordingSeconds;
-  openedAt: EpochMilliseconds;
+  openedAt: EpochMilliseconds | null;
 }
 
 export interface LoopPrefs {
@@ -39,21 +39,25 @@ export interface StoredRecording {
   source: RecordingSource;
 }
 
-export interface Persistence {
+export interface Preferences {
   recordingPrefs(id: RecordingId): RecordingPrefs;
   saveRecordingPrefs(id: RecordingId, patch: Partial<RecordingPrefs>): void;
   loopPrefs(): LoopPrefs;
   saveLoopPrefs(patch: Partial<LoopPrefs>): void;
-  toLoopMode(prefs: LoopPrefs, loopLength: DurationSeconds): LoopMode;
   editorSettings(): EditorSettings;
   saveEditorSettings(patch: Partial<EditorSettings>): void;
   flag(key: Flag): boolean;
   setFlag(key: Flag, on: boolean): void;
-  lastOpened(): RecordingId | null;
-  setLastOpened(id: RecordingId | null): void;
+  reopenOnLaunch(): RecordingId | null;
+  setReopenOnLaunch(id: RecordingId | null): void;
+}
+
+export interface RecordingStore {
   listRecordings(): Promise<StoredRecording[]>;
   addAudio(title: string, data: ArrayBuffer): Promise<StoredRecording>;
   addYouTube(title: string, videoId: string): Promise<StoredRecording>;
   readAudio(id: RecordingId): Promise<ArrayBuffer>;
   deleteRecording(id: RecordingId): Promise<void>;
 }
+
+export type Persistence = Preferences & RecordingStore;

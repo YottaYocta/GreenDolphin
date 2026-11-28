@@ -7,9 +7,9 @@ export type Opened = { recording: StoredRecording } & ({ kind: "audio"; decoded:
 export interface LibraryApi {
   recordings: StoredRecording[];
   error: string | null;
-  open: (id: RecordingId) => void;
+  open: (recording: StoredRecording) => void;
   add: (file: File) => Promise<void>;
-  addYouTube: (link: string) => Promise<void>;
+  addYouTube: (link: string) => Promise<string | null>;
   remove: (id: RecordingId) => Promise<void>;
   home: () => void;
 }

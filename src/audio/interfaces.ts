@@ -34,7 +34,6 @@ export interface Spectrum {
 
 export interface Tones {
   playTone(frequency: Hertz | null): void;
-  openSpectrum?(): Spectrum;
 }
 
 export interface AudioEngine extends Output, Tones {

@@ -45,20 +45,15 @@ export interface Playback {
 export interface Output {
   now(): ClockSeconds;
   render(playback: Playback): void;
-  latency?(): DurationSeconds;
+  latency(): DurationSeconds;
 }
 
-export interface TransportState {
-  playState: PlayState;
-  loop: Section;
-  speed: SpeedRatio;
-  waitingUntil: ClockSeconds | null;
-}
+export type TransportState = { loop: Section; speed: SpeedRatio } & ({ playState: Exclude<PlayState, "waiting"> } | { playState: "waiting"; waitingUntil: ClockSeconds });
 
 export interface PlayerOptions {
   duration: DurationSeconds;
   position: RecordingSeconds;
-  loop: Section | null;
+  loop: Section;
   loopMode: LoopMode;
   speed: SpeedRatio;
 }
@@ -74,8 +69,7 @@ export interface Player {
   scrubTo(at: RecordingSeconds): void;
   endScrub(): void;
   setSpeed(speed: SpeedRatio): void;
-  setLoop(loop: Section | null, loopMode: LoopMode): void;
-  setLoopMode(loopMode: LoopMode): void;
+  setLoop(loop: Section, loopMode: LoopMode): void;
   correctPosition(observed: RecordingSeconds): void;
   dispose(): void;
 }

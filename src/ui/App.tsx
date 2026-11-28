@@ -11,7 +11,7 @@ import { youtube } from "../youtube";
 const DEMO = "Wynton Kelly - On Green Dolphin Street.mp3";
 const DEMO_VIDEO = { title: "Bill Evans Trio - Re: Person I Knew", videoId: "9j6PLXMSTmw" };
 
-type Screen = { at: "loading" } | { at: "library"; error?: string } | { at: "editor"; opened: Opened };
+type Screen = { kind: "loading" } | { kind: "library"; error: string | null } | { kind: "editor"; opened: Opened };
 
 let seeding: Promise<void> | null = null;
 const seedDemo = () =>
@@ -26,26 +26,26 @@ const seedDemo = () =>
 
 export function App() {
   const [recordings, setRecordings] = useState<StoredRecording[]>([]);
-  const [screen, setScreen] = useState<Screen>({ at: "loading" });
-  const opened = screen.at === "editor" ? screen.opened : null;
-  const error = (screen.at === "library" && screen.error) || null;
+  const [screen, setScreen] = useState<Screen>({ kind: "loading" });
+  const opened = screen.kind === "editor" ? screen.opened : null;
+  const error = screen.kind === "library" ? screen.error : null;
   const request = useRef(0);
 
   const openRecording = useCallback(async (recording: StoredRecording) => {
     const { id, title, source } = recording;
     const ticket = ++request.current;
-    setScreen({ at: "loading" });
+    setScreen({ kind: "loading" });
     try {
       const opened: Opened =
         source.kind === "youtube"
           ? { recording, kind: "youtube", videoId: source.videoId }
           : { recording, kind: "audio", decoded: await audio.decode(await persistence.readAudio(id)) };
       if (ticket !== request.current) return;
-      setScreen({ at: "editor", opened });
-      persistence.setLastOpened(id);
+      setScreen({ kind: "editor", opened });
+      persistence.setReopenOnLaunch(id);
       persistence.saveRecordingPrefs(id, { openedAt: Date.now() });
     } catch {
-      if (ticket === request.current) setScreen({ at: "library", error: `Couldn't open “${title}”. Is it an audio file?` });
+      if (ticket === request.current) setScreen({ kind: "library", error: `Couldn't open “${title}”. Is it an audio file?` });
     }
   }, []);
 
@@ -54,10 +54,10 @@ export function App() {
       await seedDemo();
       const list = await persistence.listRecordings();
       setRecordings(list);
-      const last = list.find((r) => r.id === persistence.lastOpened());
+      const last = list.find((r) => r.id === persistence.reopenOnLaunch());
       if (last) await openRecording(last);
-      else setScreen({ at: "library" });
-    })().catch(() => setScreen({ at: "library" }));
+      else setScreen({ kind: "library", error: null });
+    })().catch(() => setScreen({ kind: "library", error: null }));
   }, [openRecording]);
 
   useEffect(() => () => void (opened?.kind === "audio" && audio.release(opened.decoded)), [opened]);
@@ -66,30 +66,31 @@ export function App() {
     const refresh = async () => setRecordings(await persistence.listRecordings());
     const home = () => {
       request.current++;
-      setScreen({ at: "library" });
-      persistence.setLastOpened(null);
+      setScreen({ kind: "library", error: null });
+      persistence.setReopenOnLaunch(null);
     };
     return {
       recordings,
       error,
-      open: (id) => {
-        const rec = recordings.find((r) => r.id === id);
-        if (!rec) return;
-        void openRecording(rec);
-      },
+      open: openRecording,
       add: async (file) => {
-        const added = await persistence.addAudio(file.name, await file.arrayBuffer());
-        await refresh();
-        await openRecording(added);
+        try {
+          const added = await persistence.addAudio(file.name, await file.arrayBuffer());
+          await refresh();
+          await openRecording(added);
+        } catch {
+          setScreen({ kind: "library", error: `Couldn't save “${file.name}”.` });
+        }
       },
       addYouTube: async (link) => {
         const videoId = youtube.parseVideoId(link);
-        if (!videoId) throw new Error("Couldn't find a video in that link.");
+        if (!videoId) return "Couldn't find a video in that link.";
         const found = await youtube.lookupVideo(videoId);
-        if ("error" in found) throw new Error(found.error);
-        const added = await persistence.addYouTube(found.title ?? `YouTube ${videoId}`, videoId);
+        if ("error" in found) return found.error;
+        const added = await persistence.addYouTube(found.title, videoId);
         await refresh();
         await openRecording(added);
+        return null;
       },
       remove: async (id) => {
         home();
@@ -103,14 +104,14 @@ export function App() {
   return (
     <LibraryContext.Provider value={api}>
       <PullToRefresh />
-      {screen.at === "loading" ? (
+      {screen.kind === "loading" ? (
         <Loading />
-      ) : !opened ? (
+      ) : screen.kind === "library" ? (
         <Library />
-      ) : opened.kind === "audio" ? (
-        <AudioEditor key={opened.recording.id} recording={opened.recording} decoded={opened.decoded} />
+      ) : screen.opened.kind === "audio" ? (
+        <AudioEditor key={screen.opened.recording.id} recording={screen.opened.recording} decoded={screen.opened.decoded} />
       ) : (
-        <YouTubeEditor key={opened.recording.id} recording={opened.recording} videoId={opened.videoId} />
+        <YouTubeEditor key={screen.opened.recording.id} recording={screen.opened.recording} videoId={screen.opened.videoId} />
       )}
     </LibraryContext.Provider>
   );

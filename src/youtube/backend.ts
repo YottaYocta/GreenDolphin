@@ -4,10 +4,14 @@ import type { YouTube, YouTubeOutput, YTErrorCode, YTNamespace, YTPlayer, YTPlay
 
 let api: Promise<YTNamespace> | null = null;
 const loadApi = () =>
-  (api ??= new Promise((resolve) => {
+  (api ??= new Promise((resolve, reject) => {
     if (window.YT?.Player) return resolve(window.YT);
     window.onYouTubeIframeAPIReady = () => resolve(window.YT!);
-    document.head.appendChild(Object.assign(document.createElement("script"), { src: "https://www.youtube.com/iframe_api" }));
+    const onerror = () => {
+      api = null;
+      reject(new Error("YouTube failed to load"));
+    };
+    document.head.appendChild(Object.assign(document.createElement("script"), { src: "https://www.youtube.com/iframe_api", onerror }));
   }));
 
 const describeError = (code: YTErrorCode) => {
@@ -24,14 +28,14 @@ const DRIFT = 0.4;
 const SEEK_TIMEOUT = 3;
 const END_MARGIN = 0.25;
 
-export const embed: YouTube["embed"] = (host, videoId, onError) => {
+export const embed: YouTube["embed"] = (host, videoId, { onReady, onError }) => {
   const el = host.appendChild(document.createElement("div"));
   let yt: YTPlayer | null = null;
   let output: EmbedOutput | null = null;
   let disposed = false;
-  const ready = new Promise<YouTubeOutput>((resolve) => {
-    const start = () => yt && !output && yt.getDuration() > 0 && resolve((output = new EmbedOutput(yt)));
-    void loadApi().then((YT) => {
+  const start = () => yt && !output && !disposed && yt.getDuration() > 0 && onReady((output = new EmbedOutput(yt)));
+  void loadApi().then(
+    (YT) => {
       if (disposed) return;
       yt = new YT.Player(el, {
         videoId,
@@ -42,19 +46,17 @@ export const embed: YouTube["embed"] = (host, videoId, onError) => {
           onError: ({ data }) => onError(describeError(data)),
         },
       });
-    });
-  });
-  return {
-    ready,
-    dispose() {
-      disposed = true;
-      el.remove();
-      try {
-        yt?.destroy();
-      } catch {
-        yt = null;
-      }
     },
+    () => disposed || onError("Couldn't reach YouTube. Check your connection."),
+  );
+  return () => {
+    disposed = true;
+    el.remove();
+    try {
+      yt?.destroy();
+    } catch {
+      yt = null;
+    }
   };
 };
 
@@ -72,6 +74,8 @@ class EmbedOutput implements YouTubeOutput {
   }
 
   now = () => performance.now() / 1000;
+
+  latency = () => 0;
 
   render(p: Playback) {
     const prev = this.last;
