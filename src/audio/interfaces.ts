@@ -14,8 +14,7 @@ export interface FreezeVocoder {
 export type CreateFreezeVocoder = (windowSize: number, spreadSamples: number) => FreezeVocoder;
 
 export type FreezeMessage =
-  | { type: "load"; channels: Float32Array[]; firstSample: number }
-  | { type: "seek"; position: RecordingSeconds; jump: boolean }
+  | { type: "seek"; position: RecordingSeconds; jump: boolean; window?: { channels: Float32Array[]; firstSample: number } }
   | { type: "active"; active: boolean }
   | { type: "unload" };
 
